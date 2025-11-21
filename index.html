@@ -4,9 +4,49 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Grimoire Web - Blood on the Clocktower</title>
-    <!-- 使用国内可访问的字体源 -->
-    <link rel="preconnect" href="https://fonts.font.im">
-    <link href="https://fonts.font.im/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Atmosphere -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+      :root {
+        --color-bg: #0f0f10;
+        --color-paper: #d4c5a9;
+        --color-blood: #8a1c1c;
+      }
+      body {
+        background-color: var(--color-bg);
+        color: #e5e5e5;
+        font-family: 'Crimson Text', serif; /* Main body font */
+        overflow: hidden;
+      }
+      h1, h2, h3, h4, button, .font-cinzel {
+        font-family: 'Cinzel', serif; /* Headings font */
+      }
+      
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1a1a1a;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #4a4a4a;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #666;
+      }
+      
+      /* Utility for wood/paper textures if needed later */
+      .texture-paper {
+        background-color: #eaddcf;
+        background-image: url("https://www.transparenttextures.com/patterns/aged-paper.png");
+      }
+    </style>
 
   <script type="importmap">
 {
@@ -21,8 +61,7 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/game-helper-demo02/assets/index-Bjg_syuq.js"></script>
-  <link rel="stylesheet" crossorigin href="/game-helper-demo02/assets/index-BgLDYIh2.css">
+  <script type="module" crossorigin src="/game-helper-demo02/assets/index-DIi35Yy8.js"></script>
 </head>
   <body>
     <div id="root"></div>

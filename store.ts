@@ -2,7 +2,21 @@ import { create } from 'zustand';
 import { GameState, User, GamePhase, ChatMessage, AudioState, SeatStatus, Seat } from './types';
 import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } from './constants';
 import OpenAI from 'openai';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, RealtimeChannel } from '@supabase/supabase-js';
+
+// --- Toast notification helper (lazy import to avoid circular dependency) ---
+let showErrorFn: ((msg: string) => void) | null = null;
+let showWarningFn: ((msg: string) => void) | null = null;
+
+// Lazy initialize toast functions
+const getToastFunctions = async () => {
+    if (!showErrorFn) {
+        const { showError, showWarning } = await import('./components/Toast');
+        showErrorFn = showError;
+        showWarningFn = showWarning;
+    }
+    return { showError: showErrorFn, showWarning: showWarningFn };
+};
 
 // --- SUPABASE CONFIG ---
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -14,6 +28,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// --- CONNECTION STATE TYPE ---
+export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'reconnecting';
+
 // --- DATA FILTERING UTILITIES ---
 // 数据视野隔离：根据用户身份过滤敏感信息
 
@@ -24,10 +41,23 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
  * @param isStoryteller 是否是说书人
  * @returns 过滤后的座位数据
  */
-export const filterSeatForUser = (seat: Seat, currentUserId: string, isStoryteller: boolean): Seat => {
+// 可以看到魔典的角色
+const GRIMOIRE_VIEWING_ROLES = ['spy'];
+
+export const filterSeatForUser = (seat: Seat, currentUserId: string, isStoryteller: boolean, userRoleId?: string | null): Seat => {
     // ST 看到全部信息
     if (isStoryteller) {
         return seat;
+    }
+
+    // 间谍等角色可以看到魔典（所有人的角色）
+    if (userRoleId && GRIMOIRE_VIEWING_ROLES.includes(userRoleId)) {
+        return {
+            ...seat,
+            // 间谍可以看到所有人的 seenRoleId（展示身份）
+            roleId: seat.seenRoleId,
+            realRoleId: seat.realRoleId, // 间谍看到真实身份
+        };
     }
 
     // 玩家看到自己的全部信息
@@ -60,9 +90,13 @@ export const filterSeatForUser = (seat: Seat, currentUserId: string, isStorytell
  * @returns 过滤后的游戏状态
  */
 export const filterGameStateForUser = (gameState: GameState, currentUserId: string, isStoryteller: boolean): GameState => {
+    // 获取当前用户的角色（真实角色，用于判断是否是间谍等）
+    const userSeat = gameState.seats.find(s => s.userId === currentUserId);
+    const userRoleId = userSeat?.realRoleId || userSeat?.seenRoleId;
+    
     return {
         ...gameState,
-        seats: gameState.seats.map(seat => filterSeatForUser(seat, currentUserId, isStoryteller)),
+        seats: gameState.seats.map(seat => filterSeatForUser(seat, currentUserId, isStoryteller, userRoleId)),
         messages: gameState.messages.filter(msg => {
             // 系统消息对所有人可见
             if (msg.type === 'system') return true;
@@ -228,6 +262,7 @@ interface AppState {
     isAiThinking: boolean;
     isAudioBlocked: boolean;
     isOffline: boolean;
+    connectionStatus: ConnectionStatus;
     aiProvider: AiProvider;
     roleReferenceMode: 'modal' | 'sidebar';
     isSidebarExpanded: boolean;
@@ -307,6 +342,7 @@ export const useStore = create<AppState>((set, get) => ({
     isAiThinking: false,
     isAudioBlocked: false,
     isOffline: false,
+    connectionStatus: 'disconnected' as ConnectionStatus,
     aiProvider: 'deepseek',
     roleReferenceMode: 'modal',
     isSidebarExpanded: false,
@@ -326,6 +362,8 @@ export const useStore = create<AppState>((set, get) => ({
         const user = get().user;
         if (!user) return;
 
+        set({ connectionStatus: 'connecting' });
+
         // 1. Prepare Data
         let code = Math.floor(1000 + Math.random() * 9000).toString();
         // 2. Create Game State
@@ -344,7 +382,7 @@ export const useStore = create<AppState>((set, get) => ({
 
             if (error) throw error;
 
-            // 3. Subscribe to Realtime
+            // 3. Subscribe to Realtime with connection status tracking
             const channel = supabase.channel(`room:${code}`)
                 .on(
                     'postgres_changes',
@@ -357,20 +395,30 @@ export const useStore = create<AppState>((set, get) => ({
                         }
                     }
                 )
-                .subscribe();
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        set({ connectionStatus: 'connected', isOffline: false });
+                    } else if (status === 'CLOSED') {
+                        set({ connectionStatus: 'disconnected' });
+                    } else if (status === 'CHANNEL_ERROR') {
+                        set({ connectionStatus: 'reconnecting' });
+                    }
+                });
 
             realtimeChannel = channel;
             console.log("✅ 云端房间创建成功:", code);
 
         } catch (error: any) {
             console.warn('⚠️ 云端连接失败，切换到离线模式:', error.message);
-            set({ isOffline: true });
+            set({ isOffline: true, connectionStatus: 'disconnected' });
         }
     },
 
     joinGame: async (roomCode) => {
         const user = get().user;
         if (!user) return;
+
+        set({ connectionStatus: 'connecting' });
 
         try {
             // 1. Fetch Room
@@ -381,7 +429,8 @@ export const useStore = create<AppState>((set, get) => ({
                 .single();
 
             if (error || !data) {
-                alert("房间不存在！请检查房间号。");
+                getToastFunctions().then(({ showError }) => showError("房间不存在！请检查房间号。"));
+                set({ connectionStatus: 'disconnected' });
                 return;
             }
 
@@ -402,7 +451,15 @@ export const useStore = create<AppState>((set, get) => ({
                         }
                     }
                 )
-                .subscribe();
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        set({ connectionStatus: 'connected', isOffline: false });
+                    } else if (status === 'CLOSED') {
+                        set({ connectionStatus: 'disconnected' });
+                    } else if (status === 'CHANNEL_ERROR') {
+                        set({ connectionStatus: 'reconnecting' });
+                    }
+                });
 
             realtimeChannel = channel;
 
@@ -420,7 +477,8 @@ export const useStore = create<AppState>((set, get) => ({
 
         } catch (error: any) {
             console.error("Join Game Error:", error);
-            alert(`加入房间失败: ${error.message}\n请检查网络或房间号。`);
+            set({ connectionStatus: 'disconnected' });
+            getToastFunctions().then(({ showError }) => showError(`加入房间失败: ${error.message}`));
         }
     },
 
@@ -442,7 +500,7 @@ export const useStore = create<AppState>((set, get) => ({
             supabase.removeChannel(realtimeChannel);
             realtimeChannel = null;
         }
-        set({ user: user ? { ...user, roomId: null } : null, gameState: null, isOffline: false });
+        set({ user: user ? { ...user, roomId: null } : null, gameState: null, isOffline: false, connectionStatus: 'disconnected' });
     },
 
     syncToCloud: async () => {
@@ -475,6 +533,15 @@ export const useStore = create<AppState>((set, get) => ({
 
         const seat = gameState.seats.find(s => s.id === seatId);
         if (!seat) return;
+
+        // 检查用户是否已在其他座位
+        const existingSeat = gameState.seats.find(s => s.userId === user.id && s.id !== seatId);
+        if (existingSeat) {
+            // 用户已在其他座位，不允许重复入座
+            addSystemMessage(gameState, `❌ 你已经在座位 ${existingSeat.id + 1}，不能同时占多个座位。`);
+            set({ gameState: { ...gameState } });
+            return;
+        }
 
         // 检查座位是否已被占用
         if (seat.userId && seat.userId !== user.id) {
@@ -581,7 +648,7 @@ export const useStore = create<AppState>((set, get) => ({
 
         } catch (e: any) { // Added type annotation for error
             console.error("Script import failed", e);
-            alert("导入失败: 格式不正确");
+            getToastFunctions().then(({ showError }) => showError("导入失败: 剧本格式不正确"));
         }
     },
 
@@ -636,17 +703,62 @@ export const useStore = create<AppState>((set, get) => ({
         const seat = gameState.seats.find(s => s.id === seatId);
         if (seat) {
             // 设置角色身份
-            seat.roleId = roleId; // 向后兼容
-            seat.realRoleId = roleId; // 真实身份
+            seat.realRoleId = roleId; // 真实身份（ST可见）
             seat.seenRoleId = roleId; // 默认展示身份与真实身份相同
+            seat.roleId = roleId; // 向后兼容
 
-            // 特殊角色处理：酒鬼
+            // ============ 特殊角色处理：表里角色机制 ============
+            
+            // 酒鬼 (Drunk) - 以为自己是某个镇民
             if (roleId === 'drunk') {
-                // 酒鬼以为自己是某个镇民，但实际不是
-                const townsfolkRoles = ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller'];
-                const randomTownsfolk = townsfolkRoles[Math.floor(Math.random() * townsfolkRoles.length)];
+                // 从当前剧本中选择一个未被分配的镇民角色
+                const script = SCRIPTS[gameState.currentScriptId];
+                const assignedRoles = gameState.seats.map(s => s.realRoleId).filter(Boolean);
+                const availableTownsfolk = script?.roles
+                    .map(id => ROLES[id])
+                    .filter(r => r && r.team === 'TOWNSFOLK' && !assignedRoles.includes(r.id))
+                    .map(r => r.id) || [];
+                
+                // 备用镇民列表
+                const fallbackTownsfolk = ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller', 'undertaker', 'monk', 'ravenkeeper'];
+                const townsfolkPool = availableTownsfolk.length > 0 ? availableTownsfolk : fallbackTownsfolk;
+                const randomTownsfolk = townsfolkPool[Math.floor(Math.random() * townsfolkPool.length)];
+                
                 seat.seenRoleId = randomTownsfolk; // 酒鬼看到的是假角色
-                seat.roleId = randomTownsfolk; // 向后兼容，也设置为假角色
+                seat.roleId = randomTownsfolk; // 向后兼容
+            }
+            
+            // 疯子 (Lunatic) - 以为自己是恶魔
+            if (roleId === 'lunatic') {
+                // 获取当前剧本中的恶魔
+                const script = SCRIPTS[gameState.currentScriptId];
+                const demons = script?.roles
+                    .map(id => ROLES[id])
+                    .filter(r => r && r.team === 'DEMON')
+                    .map(r => r.id) || [];
+                
+                // 默认让疯子以为自己是小恶魔或剧本中的恶魔
+                const fakeDemon = demons.length > 0 ? demons[0] : 'imp';
+                seat.seenRoleId = fakeDemon; // 疯子看到的是恶魔角色
+                seat.roleId = fakeDemon; // 向后兼容
+            }
+            
+            // 提线木偶 (Marionette) - 以为自己是好人（如果存在的话）
+            // 注意：提线木偶在官方规则中是爪牙，但以为自己是好人
+            if (roleId === 'marionette') {
+                const script = SCRIPTS[gameState.currentScriptId];
+                const assignedRoles = gameState.seats.map(s => s.realRoleId).filter(Boolean);
+                const availableTownsfolk = script?.roles
+                    .map(id => ROLES[id])
+                    .filter(r => r && r.team === 'TOWNSFOLK' && !assignedRoles.includes(r.id))
+                    .map(r => r.id) || [];
+                
+                const fallbackTownsfolk = ['washerwoman', 'librarian', 'chef', 'empath'];
+                const townsfolkPool = availableTownsfolk.length > 0 ? availableTownsfolk : fallbackTownsfolk;
+                const randomTownsfolk = townsfolkPool[Math.floor(Math.random() * townsfolkPool.length)];
+                
+                seat.seenRoleId = randomTownsfolk;
+                seat.roleId = randomTownsfolk;
             }
 
             seat.hasUsedAbility = false;
@@ -1260,7 +1372,7 @@ export const useStore = create<AppState>((set, get) => ({
             set({ gameState: { ...gameState } });
             get().syncToCloud();
         } else {
-            alert("没有空座位了！");
+            getToastFunctions().then(({ showWarning }) => showWarning("没有空座位了！"));
         }
     },
 
@@ -1328,6 +1440,7 @@ export const useStore = create<AppState>((set, get) => ({
         }
 
         gameState.phase = 'NIGHT';
+        gameState.setupPhase = 'STARTED'; // 标记游戏已开始
         gameState.nightCurrentIndex = 0;
 
         // Build night queue

@@ -190,58 +190,404 @@ export const ROLES: Record<string, RoleDef> = {
   },
 
   // --- BAD MOON RISING (BMR) ---
-  grandmother: { id: 'grandmother', name: '祖母', team: 'TOWNSFOLK', ability: '知晓孙子是谁，孙子死你也死。', firstNight: true },
-  sailor: { id: 'sailor', name: '水手', team: 'TOWNSFOLK', ability: '喝酒。除非醉酒，否则不死。', otherNight: true, icon: '⚓' },
-  chambermaid: { id: 'chambermaid', name: '女仆', team: 'TOWNSFOLK', ability: '每晚选两名玩家，知晓他们今晚醒没醒。', otherNight: true },
-  exorcist: { id: 'exorcist', name: '驱魔人', team: 'TOWNSFOLK', ability: '每晚选择一名玩家，若为恶魔，恶魔无法醒来。', otherNight: true },
-  innkeeper: { id: 'innkeeper', name: '旅店老板', team: 'TOWNSFOLK', ability: '保护两名玩家，其中一人喝醉。', otherNight: true },
-  gambler: { id: 'gambler', name: '赌徒', team: 'TOWNSFOLK', ability: '猜一名玩家角色，猜对没事，猜错死。', otherNight: true },
-  gossip: { id: 'gossip', name: '造谣者', team: 'TOWNSFOLK', ability: '白天造谣，若为真，当晚死一人。', icon: '💬' },
-  courtier: { id: 'courtier', name: '侍臣', team: 'TOWNSFOLK', ability: '使一名角色醉酒三天三夜。', otherNight: true },
-  professor: { id: 'professor', name: '教授', team: 'TOWNSFOLK', ability: '复活一名死去的村民（限一次）。', otherNight: true, icon: '⚗️' },
-  minstrel: { id: 'minstrel', name: '吟游诗人', team: 'TOWNSFOLK', ability: '爪牙死后，所有人醉酒直到明天。' },
-  tea_lady: { id: 'tea_lady', name: '茶女郎', team: 'TOWNSFOLK', ability: '若邻居都是好人，他们不死。' },
-  pacifist: { id: 'pacifist', name: '和平主义者', team: 'TOWNSFOLK', ability: '被处决的好人可能不死。' },
-  fool: { id: 'fool', name: '弄臣', team: 'TOWNSFOLK', ability: '第一次死不会死。', icon: '🎭' },
-  goon: { id: 'goon', name: '暴徒', team: 'OUTSIDER', ability: '第一个选你的玩家变醉酒，你变阵营。', otherNight: true },
-  lunatic: { id: 'lunatic', name: '疯子', team: 'OUTSIDER', ability: '你以为你是恶魔。', firstNight: true, otherNight: true },
-  tinker: { id: 'tinker', name: '工匠', team: 'OUTSIDER', ability: '你随时可能莫名其妙死亡。' },
-  moonchild: { id: 'moonchild', name: '月之子', team: 'OUTSIDER', ability: '你死后选一名玩家，如果是好人他今晚死。' },
-  godfather: { id: 'godfather', name: '教父', team: 'MINION', ability: '外来者死后，你杀一人。', otherNight: true },
-  devil_advocate: { id: 'devil_advocate', name: '魔鬼代言人', team: 'MINION', ability: '被处决的玩家不死。', otherNight: true },
-  assassin: { id: 'assassin', name: '刺客', team: 'MINION', ability: '限一次，无视保护杀一人。', otherNight: true, icon: '🗡️' },
-  mastermind: { id: 'mastermind', name: '主谋', team: 'MINION', ability: '恶魔死后游戏继续，如果处决了你，恶魔输。' },
-  zombuul: { id: 'zombuul', name: '僵尸', team: 'DEMON', ability: '第一次死看起来像死，其实没死。没死人晚上才能杀人。', otherNight: true, icon: '🧟' },
-  pukka: { id: 'pukka', name: '普卡', team: 'DEMON', ability: '每晚选人下毒，该人次晚死亡。', otherNight: true, icon: '🐍' },
-  shabaloth: { id: 'shabaloth', name: '沙巴洛斯', team: 'DEMON', ability: '每晚杀两人。可能复活一人。', otherNight: true, icon: '👹' },
-  po: { id: 'po', name: '珀', team: 'DEMON', ability: '可以空刀。空刀后每晚杀三人。', otherNight: true, icon: '🎐' },
+  grandmother: { 
+    id: 'grandmother', 
+    name: '祖母', 
+    team: 'TOWNSFOLK', 
+    ability: '知晓孙子是谁，孙子死你也死。', 
+    firstNight: true,
+    detailedDescription: '**官方规则**: 首夜，你会得知一名好人玩家是你的"孙子"。如果恶魔杀死了你的孙子，你也会死亡。\n\n**补充说明**:\n• 你会知道孙子的具体身份\n• 只有恶魔杀死孙子时你才会死，其他死法不影响你\n• 如果你先死了，孙子不受影响\n• 孙子一定是好人阵营'
+  },
+  sailor: { 
+    id: 'sailor', 
+    name: '水手', 
+    team: 'TOWNSFOLK', 
+    ability: '喝酒。除非醉酒，否则不死。', 
+    otherNight: true, 
+    icon: '⚓',
+    detailedDescription: '**官方规则**: 每晚，你选择一名存活玩家：你们之一会醉酒到明天黄昏。当你没有醉酒时，你不能死亡。\n\n**补充说明**:\n• 你或你选择的人会醉酒（ST决定）\n• 醉酒时你可以被杀死\n• 不能因任何原因死亡（包括处决），除非醉酒\n• 可以选择自己'
+  },
+  chambermaid: { 
+    id: 'chambermaid', 
+    name: '女仆', 
+    team: 'TOWNSFOLK', 
+    ability: '每晚选两名玩家，知晓他们今晚醒没醒。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚，你选择两名存活玩家（非自己）。你会得知他们中有多少人今晚醒来执行了能力。\n\n**补充说明**:\n• 结果可能是0、1或2\n• 恶魔和爪牙的夜间能力也算"醒来"\n• 被动效果（如士兵）不算醒来\n• 中毒/醉酒玩家可能仍会"醒来"但能力无效'
+  },
+  exorcist: { 
+    id: 'exorcist', 
+    name: '驱魔人', 
+    team: 'TOWNSFOLK', 
+    ability: '每晚选择一名玩家，若为恶魔，恶魔无法醒来。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚*，你选择一名玩家（非自己）。如果你选择的是恶魔，恶魔今晚不会醒来行动。\n\n**补充说明**:\n• 被驱魔的恶魔无法杀人\n• 你不会知道是否成功驱魔\n• 每晚只能选一人\n• 连续两晚不能选同一人'
+  },
+  innkeeper: { 
+    id: 'innkeeper', 
+    name: '旅店老板', 
+    team: 'TOWNSFOLK', 
+    ability: '保护两名玩家，其中一人喝醉。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚*，你选择两名玩家（非自己）。他们今晚不能被恶魔杀死，但其中一人会醉酒到明天黄昏。\n\n**补充说明**:\n• 谁醉酒由ST决定\n• 保护只针对恶魔攻击\n• 不能选择自己\n• 醉酒效果持续到次日黄昏'
+  },
+  gambler: { 
+    id: 'gambler', 
+    name: '赌徒', 
+    team: 'TOWNSFOLK', 
+    ability: '猜一名玩家角色，猜对没事，猜错死。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚*，你选择一名玩家并猜测他的角色。如果你猜错了，你死亡。\n\n**补充说明**:\n• 必须猜具体角色，不是阵营\n• 猜对没有任何奖励，只是不死\n• 可以选择自己\n• 如果你中毒/醉酒，可能猜对也会死'
+  },
+  gossip: { 
+    id: 'gossip', 
+    name: '造谣者', 
+    team: 'TOWNSFOLK', 
+    ability: '白天造谣，若为真，当晚死一人。', 
+    icon: '💬',
+    detailedDescription: '**官方规则**: 每天，你可以公开声明一个关于游戏的陈述。如果你的陈述是真的，当晚会有一名玩家死亡。\n\n**补充说明**:\n• 必须公开声明\n• ST判断陈述真假\n• 谁死由ST决定\n• 中毒/醉酒时说真话也不会触发'
+  },
+  courtier: { 
+    id: 'courtier', 
+    name: '侍臣', 
+    team: 'TOWNSFOLK', 
+    ability: '使一名角色醉酒三天三夜。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 游戏中一次，在夜晚，你选择一名角色。如果场上有该角色，他会醉酒三天三夜，从今晚开始。\n\n**补充说明**:\n• 选择的是角色类型，不是玩家\n• 如果场上没有该角色，无效果\n• 三天三夜从当晚开始计算\n• 只能使用一次'
+  },
+  professor: { 
+    id: 'professor', 
+    name: '教授', 
+    team: 'TOWNSFOLK', 
+    ability: '复活一名死去的村民（限一次）。', 
+    otherNight: true, 
+    icon: '⚗️',
+    detailedDescription: '**官方规则**: 游戏中一次，在夜晚，你选择一名死亡的玩家。如果他是镇民，他复活。\n\n**补充说明**:\n• 只能选死亡的玩家\n• 只有镇民才能被复活\n• 复活后该玩家正常参与游戏\n• 如果选了非镇民，能力被浪费'
+  },
+  minstrel: { 
+    id: 'minstrel', 
+    name: '吟游诗人', 
+    team: 'TOWNSFOLK', 
+    ability: '爪牙死后，所有人醉酒直到明天。',
+    detailedDescription: '**官方规则**: 当一名爪牙被处决并死亡时，所有其他玩家立即醉酒直到明天黄昏。\n\n**补充说明**:\n• 只有处决爪牙才触发\n• 恶魔杀死爪牙不触发\n• 醉酒持续到次日黄昏\n• 吟游诗人自己也会醉酒'
+  },
+  tea_lady: { 
+    id: 'tea_lady', 
+    name: '茶女郎', 
+    team: 'TOWNSFOLK', 
+    ability: '若邻居都是好人，他们不死。',
+    detailedDescription: '**官方规则**: 如果你的两个存活邻居都是好人，他们不能死亡。\n\n**补充说明**:\n• 必须两个邻居都是好人才生效\n• 保护他们免受任何死亡\n• 如果有一个邻居是邪恶的，无效\n• 死人不算邻居，跳过'
+  },
+  pacifist: { 
+    id: 'pacifist', 
+    name: '和平主义者', 
+    team: 'TOWNSFOLK', 
+    ability: '被处决的好人可能不死。',
+    detailedDescription: '**官方规则**: 被处决的好人玩家可能不会死亡。\n\n**补充说明**:\n• 由ST决定是否触发\n• 只影响处决，不影响夜杀\n• 可能有时触发，有时不触发\n• 中毒/醉酒时无效'
+  },
+  fool: { 
+    id: 'fool', 
+    name: '弄臣', 
+    team: 'TOWNSFOLK', 
+    ability: '第一次死不会死。', 
+    icon: '🎭',
+    detailedDescription: '**官方规则**: 你第一次死亡时，你不会死。\n\n**补充说明**:\n• 任何死法都算，包括处决和夜杀\n• 只触发一次\n• 你不会知道是否已经使用过\n• 中毒/醉酒时可能无效'
+  },
+  goon: { 
+    id: 'goon', 
+    name: '暴徒', 
+    team: 'OUTSIDER', 
+    ability: '第一个选你的玩家变醉酒，你变阵营。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚，第一个选择你作为能力目标的玩家会醉酒到明天黄昏。你会转变为该玩家的阵营。\n\n**补充说明**:\n• 阵营转变是永久的\n• 被邪恶选择后变成邪恶\n• 被好人选择后变成好人\n• 每晚只触发一次'
+  },
+  lunatic: { 
+    id: 'lunatic', 
+    name: '疯子', 
+    team: 'OUTSIDER', 
+    ability: '你以为你是恶魔。', 
+    firstNight: true, 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 你以为自己是恶魔，但实际上你是外来者。说书人会假装你的"攻击"生效。\n\n**补充说明**:\n• 你会每晚选择攻击目标，但无效果\n• ST可能让你的"攻击"看起来成功\n• 真恶魔可能知道谁是疯子\n• 你相信自己是恶魔，行为应该像恶魔'
+  },
+  tinker: { 
+    id: 'tinker', 
+    name: '工匠', 
+    team: 'OUTSIDER', 
+    ability: '你随时可能莫名其妙死亡。',
+    detailedDescription: '**官方规则**: 你可能在任何时候死亡。\n\n**补充说明**:\n• 死亡完全由ST决定\n• 可能在白天或夜晚死亡\n• 可能永远不死\n• 这是被动技能，无法控制'
+  },
+  moonchild: { 
+    id: 'moonchild', 
+    name: '月之子', 
+    team: 'OUTSIDER', 
+    ability: '你死后选一名玩家，如果是好人他今晚死。',
+    detailedDescription: '**官方规则**: 当你死亡时，如果是在夜晚，你可以选择一名玩家。如果他是好人，他今晚死亡。\n\n**补充说明**:\n• 只有夜间死亡才能触发\n• 白天处决不触发\n• 选择邪恶玩家无效\n• 这是死亡触发的能力'
+  },
+  godfather: { 
+    id: 'godfather', 
+    name: '教父', 
+    team: 'MINION', 
+    ability: '外来者死后，你杀一人。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 如果白天有外来者死亡，你今晚选择一名玩家，他死亡。\n\n**补充说明**:\n• 必须是外来者死亡才触发\n• 镇民死亡不触发\n• 你选择的目标会额外死亡\n• 可以和恶魔的攻击叠加'
+  },
+  devil_advocate: { 
+    id: 'devil_advocate', 
+    name: '魔鬼代言人', 
+    team: 'MINION', 
+    ability: '被处决的玩家不死。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚*，你选择一名存活玩家（非自己）。如果他明天被处决，他不会死亡。\n\n**补充说明**:\n• 保护持续到次日处决\n• 每晚只能选一人\n• 可以保护恶魔\n• 不能保护自己'
+  },
+  assassin: { 
+    id: 'assassin', 
+    name: '刺客', 
+    team: 'MINION', 
+    ability: '限一次，无视保护杀一人。', 
+    otherNight: true, 
+    icon: '🗡️',
+    detailedDescription: '**官方规则**: 游戏中一次，在夜晚，你选择一名玩家。他死亡，即使他有保护。\n\n**补充说明**:\n• 无视所有保护效果\n• 包括僧侣、茶女郎等\n• 只能使用一次\n• 不能在第一夜使用'
+  },
+  mastermind: { 
+    id: 'mastermind', 
+    name: '主谋', 
+    team: 'MINION', 
+    ability: '恶魔死后游戏继续，如果处决了你，恶魔输。',
+    detailedDescription: '**官方规则**: 如果恶魔死亡，游戏继续。如果你被处决，邪恶阵营输掉游戏。\n\n**补充说明**:\n• 恶魔死后你需要被处决才算好人赢\n• 这延长了游戏\n• 如果你先死了，无效\n• 需要在恶魔死后的白天处决你'
+  },
+  zombuul: { 
+    id: 'zombuul', 
+    name: '僵尸', 
+    team: 'DEMON', 
+    ability: '第一次死看起来像死，其实没死。没死人晚上才能杀人。', 
+    otherNight: true, 
+    icon: '🧟',
+    detailedDescription: '**官方规则**: 每晚*，如果今天没有人死亡，你选择一名玩家，他死亡。你第一次死亡时，你不会真的死，你会看起来死了。\n\n**补充说明**:\n• 第一次"死亡"后你继续作为僵尸存在\n• 只有当天无人死亡时才能杀人\n• 真正杀死僵尸需要第二次\n• 处决后看起来死了但实际没死'
+  },
+  pukka: { 
+    id: 'pukka', 
+    name: '普卡', 
+    team: 'DEMON', 
+    ability: '每晚选人下毒，该人次晚死亡。', 
+    otherNight: true, 
+    icon: '🐍',
+    detailedDescription: '**官方规则**: 每晚，你选择一名玩家，他中毒。前一晚被你中毒的玩家死亡。\n\n**补充说明**:\n• 今晚选的人明晚才死\n• 被选的人在死亡前一直中毒\n• 第一夜选的人第二夜死\n• 死亡延迟一夜'
+  },
+  shabaloth: { 
+    id: 'shabaloth', 
+    name: '沙巴洛斯', 
+    team: 'DEMON', 
+    ability: '每晚杀两人。可能复活一人。', 
+    otherNight: true, 
+    icon: '👹',
+    detailedDescription: '**官方规则**: 每晚*，你选择两名玩家，他们死亡。一名你杀死的玩家可能在之后某晚复活。\n\n**补充说明**:\n• 每晚必须杀两人\n• 复活由ST决定时机\n• 复活的是你杀的人之一\n• 可能整局都不复活'
+  },
+  po: { 
+    id: 'po', 
+    name: '珀', 
+    team: 'DEMON', 
+    ability: '可以空刀。空刀后每晚杀三人。', 
+    otherNight: true, 
+    icon: '🎐',
+    detailedDescription: '**官方规则**: 每晚*，你可以选择不攻击任何人。如果你这样做，下一晚你可以攻击三名玩家。\n\n**补充说明**:\n• 空刀后次晚必须杀三人\n• 正常情况一晚杀一人\n• 空刀是战略选择\n• 不能连续空刀'
+  },
 
   // --- SECTS & VIOLETS (SV) ---
-  clockmaker: { id: 'clockmaker', name: '钟表匠', team: 'TOWNSFOLK', ability: '知晓恶魔与最近爪牙的距离。', firstNight: true },
-  dreamer: { id: 'dreamer', name: '筑梦师', team: 'TOWNSFOLK', ability: '每晚选玩家，知晓两个身份（一真一假）。', otherNight: true },
-  snake_charmer: { id: 'snake_charmer', name: '弄蛇人', team: 'TOWNSFOLK', ability: '每晚选玩家，若是恶魔，你们互换。', otherNight: true },
-  mathematician: { id: 'mathematician', name: '数学家', team: 'TOWNSFOLK', ability: '知晓有多少玩家因能力获得错误信息。', otherNight: true },
-  flowergirl: { id: 'flowergirl', name: '卖花女', team: 'TOWNSFOLK', ability: '知晓恶魔今天是否投了票。', otherNight: true },
-  town_crier: { id: 'town_crier', name: '城镇公告员', team: 'TOWNSFOLK', ability: '知晓爪牙今天是否投了票。', otherNight: true },
-  oracle: { id: 'oracle', name: '神谕者', team: 'TOWNSFOLK', ability: '知晓多少死去的玩家是邪恶的。', otherNight: true },
-  savant: { id: 'savant', name: '博学者', team: 'TOWNSFOLK', ability: '每天获得两条信息，一真一假。' },
-  seamstress: { id: 'seamstress', name: '裁缝', team: 'TOWNSFOLK', ability: '限一次，检测两名玩家是否同一阵营。', otherNight: true },
-  philosopher: { id: 'philosopher', name: '哲学家', team: 'TOWNSFOLK', ability: '限一次，获得已出场角色能力。' },
-  artist: { id: 'artist', name: '艺术家', team: 'TOWNSFOLK', ability: '限一次，问一个是非题。' },
-  juggler: { id: 'juggler', name: '杂耍艺人', team: 'TOWNSFOLK', ability: '白天猜5个人，晚上知晓猜对几个。', icon: '🤹' },
-  sage: { id: 'sage', name: '贤者', team: 'TOWNSFOLK', ability: '被恶魔杀时，知晓两个恶魔备选。' },
-  mutant: { id: 'mutant', name: '变种人', team: 'OUTSIDER', ability: '若对ST以外的人承认自己是外来者，可能会死。' },
-  sweetheart: { id: 'sweetheart', name: '心上人', team: 'OUTSIDER', ability: '死后一名玩家醉酒。' },
-  barber: { id: 'barber', name: '理发师', team: 'OUTSIDER', ability: '死后恶魔可以互换两名玩家角色。' },
-  klutz: { id: 'klutz', name: '笨蛋', team: 'OUTSIDER', ability: '死后选一名玩家，若是邪恶，游戏输。' },
-  witch: { id: 'witch', name: '女巫', team: 'MINION', ability: '诅咒一名玩家，若其提名则死亡。', otherNight: true, icon: '🧙' },
-  cerenovus: { id: 'cerenovus', name: '洗脑师', team: 'MINION', ability: '指定玩家必须疯狂证明自己是某角色。', otherNight: true },
-  pit_hag: { id: 'pit_hag', name: '老巫婆', team: 'MINION', ability: '每晚将一人变成新角色。', otherNight: true },
-  evil_twin: { id: 'evil_twin', name: '邪恶双子', team: 'MINION', ability: '你有双胞胎。只要你们都活，好人无法赢。' },
-  fang_gu: { id: 'fang_gu', name: '方古', team: 'DEMON', ability: '若杀外来者，他变恶魔你死。', otherNight: true, icon: '👹' },
-  vigormortis: { id: 'vigormortis', name: '维果莫蒂斯', team: 'DEMON', ability: '杀爪牙，爪牙保留能力且看起来活着。', otherNight: true },
-  no_dashii: { id: 'no_dashii', name: '诺达希', team: 'DEMON', ability: '邻居中毒。', otherNight: true },
-  vortox: { id: 'vortox', name: '沃托克斯', team: 'DEMON', ability: '所有人信息皆假。没人被处决则邪恶赢。', otherNight: true, icon: '🌀' },
+  clockmaker: { 
+    id: 'clockmaker', 
+    name: '钟表匠', 
+    team: 'TOWNSFOLK', 
+    ability: '知晓恶魔与最近爪牙的距离。', 
+    firstNight: true,
+    detailedDescription: '**官方规则**: 首夜，你得知恶魔和最近的爪牙之间隔了多少个座位。\n\n**补充说明**:\n• 从恶魔数到最近爪牙的座位数\n• 跳过死人不计\n• 如果没有爪牙，你得到0\n• 信息可能被毒/醉影响'
+  },
+  dreamer: { 
+    id: 'dreamer', 
+    name: '筑梦师', 
+    team: 'TOWNSFOLK', 
+    ability: '每晚选玩家，知晓两个身份（一真一假）。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚，你选择一名玩家（非自己）。你会得知两个角色：一个是他的真实角色，一个不是。\n\n**补充说明**:\n• 两个角色之一是正确的\n• ST决定哪个是假的\n• 可以推断信息\n• 被毒/醉时可能两个都错'
+  },
+  snake_charmer: { 
+    id: 'snake_charmer', 
+    name: '弄蛇人', 
+    team: 'TOWNSFOLK', 
+    ability: '每晚选玩家，若是恶魔，你们互换。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚，你选择一名存活玩家。如果他是恶魔，你们互换角色和阵营，你中毒。\n\n**补充说明**:\n• 你变成恶魔，恶魔变成弄蛇人\n• 互换后你会中毒\n• 新恶魔获得恶魔能力\n• 非常危险但强力的能力'
+  },
+  mathematician: { 
+    id: 'mathematician', 
+    name: '数学家', 
+    team: 'TOWNSFOLK', 
+    ability: '知晓有多少玩家因能力获得错误信息。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚，你得知从上个黄昏到现在，有多少玩家因为能力故障而获得错误信息。\n\n**补充说明**:\n• 包括被毒/醉的玩家\n• 也包括被间谍等影响的\n• 帮助验证信息可靠性\n• 0表示所有信息都正确'
+  },
+  flowergirl: { 
+    id: 'flowergirl', 
+    name: '卖花女', 
+    team: 'TOWNSFOLK', 
+    ability: '知晓恶魔今天是否投了票。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚*，你得知恶魔今天是否投了票。\n\n**补充说明**:\n• 只关心恶魔，不包括爪牙\n• 帮助缩小恶魔嫌疑\n• 结果是"是"或"否"\n• 被毒/醉时可能错误'
+  },
+  town_crier: { 
+    id: 'town_crier', 
+    name: '城镇公告员', 
+    team: 'TOWNSFOLK', 
+    ability: '知晓爪牙今天是否投了票。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚*，你得知今天是否有爪牙投了票。\n\n**补充说明**:\n• 任意一个爪牙投票即为"是"\n• 所有爪牙都没投才是"否"\n• 与卖花女配合使用\n• 被毒/醉时可能错误'
+  },
+  oracle: { 
+    id: 'oracle', 
+    name: '神谕者', 
+    team: 'TOWNSFOLK', 
+    ability: '知晓多少死去的玩家是邪恶的。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚*，你得知死亡玩家中有多少是邪恶阵营。\n\n**补充说明**:\n• 统计所有死亡玩家\n• 包括恶魔和爪牙\n• 帮助验证处决是否正确\n• 数字只会增加或不变'
+  },
+  savant: { 
+    id: 'savant', 
+    name: '博学者', 
+    team: 'TOWNSFOLK', 
+    ability: '每天获得两条信息，一真一假。',
+    detailedDescription: '**官方规则**: 每天，你可以私下拜访说书人，获得两条关于游戏的信息。一条是真的，一条是假的。\n\n**补充说明**:\n• 必须主动拜访ST\n• 信息可以是任何内容\n• 你不知道哪条真哪条假\n• 是白天能力，不是夜晚'
+  },
+  seamstress: { 
+    id: 'seamstress', 
+    name: '裁缝', 
+    team: 'TOWNSFOLK', 
+    ability: '限一次，检测两名玩家是否同一阵营。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 游戏中一次，在夜晚，你选择两名存活玩家（非自己）。你得知他们是否属于同一阵营。\n\n**补充说明**:\n• 只能使用一次\n• 结果是"相同"或"不同"\n• 好人之间是相同的\n• 被毒/醉时可能错误'
+  },
+  philosopher: { 
+    id: 'philosopher', 
+    name: '哲学家', 
+    team: 'TOWNSFOLK', 
+    ability: '限一次，获得已出场角色能力。',
+    detailedDescription: '**官方规则**: 游戏中一次，在夜晚，你选择一个好人角色。你获得该角色的能力。如果场上有该角色，他会中毒。\n\n**补充说明**:\n• 只能选择好人角色\n• 原角色会中毒\n• 你保留哲学家身份但获得新能力\n• 只能使用一次'
+  },
+  artist: { 
+    id: 'artist', 
+    name: '艺术家', 
+    team: 'TOWNSFOLK', 
+    ability: '限一次，问一个是非题。',
+    detailedDescription: '**官方规则**: 游戏中一次，在白天，你可以私下问说书人一个关于游戏的是非题，他必须如实回答。\n\n**补充说明**:\n• 问题必须是是/否形式\n• ST必须如实回答\n• 只能问一次\n• 可以问任何游戏相关问题'
+  },
+  juggler: { 
+    id: 'juggler', 
+    name: '杂耍艺人', 
+    team: 'TOWNSFOLK', 
+    ability: '白天猜5个人，晚上知晓猜对几个。', 
+    icon: '🤹',
+    detailedDescription: '**官方规则**: 在你的第一个白天，公开猜测最多5名玩家的角色。那天晚上，你得知你猜对了多少个。\n\n**补充说明**:\n• 必须公开猜测\n• 最多猜5个人\n• 只能在第一个白天使用\n• 结果是0-5的数字'
+  },
+  sage: { 
+    id: 'sage', 
+    name: '贤者', 
+    team: 'TOWNSFOLK', 
+    ability: '被恶魔杀时，知晓两个恶魔备选。',
+    detailedDescription: '**官方规则**: 如果恶魔杀死了你，你会得知两名玩家，其中一人是恶魔。\n\n**补充说明**:\n• 只有被恶魔杀死才触发\n• 被处决不触发\n• 两人中必有恶魔\n• 死后获得信息'
+  },
+  mutant: { 
+    id: 'mutant', 
+    name: '变种人', 
+    team: 'OUTSIDER', 
+    ability: '若对ST以外的人承认自己是外来者，可能会死。',
+    detailedDescription: '**官方规则**: 如果你公开声称自己是外来者，你可能会被立即处决。\n\n**补充说明**:\n• 不能承认自己是外来者\n• 说"我是变种人"算承认\n• ST决定是否立即处决\n• 只能对ST说真话'
+  },
+  sweetheart: { 
+    id: 'sweetheart', 
+    name: '心上人', 
+    team: 'OUTSIDER', 
+    ability: '死后一名玩家醉酒。',
+    detailedDescription: '**官方规则**: 当你死亡时，一名玩家会醉酒，直到游戏结束。\n\n**补充说明**:\n• 由ST选择谁醉酒\n• 醉酒是永久的\n• 可能是任何玩家\n• 死亡时立即触发'
+  },
+  barber: { 
+    id: 'barber', 
+    name: '理发师', 
+    team: 'OUTSIDER', 
+    ability: '死后恶魔可以互换两名玩家角色。',
+    detailedDescription: '**官方规则**: 如果你死亡了，恶魔可以选择两名玩家互换角色。如果有人变成恶魔，死亡的玩家可以复活。\n\n**补充说明**:\n• 恶魔可以选择任意两人\n• 角色互换是永久的\n• 可能改变阵营格局\n• 很危险的外来者'
+  },
+  klutz: { 
+    id: 'klutz', 
+    name: '笨蛋', 
+    team: 'OUTSIDER', 
+    ability: '死后选一名玩家，若是邪恶，游戏输。',
+    detailedDescription: '**官方规则**: 当你死亡时，你必须公开选择一名存活玩家。如果你选择的是邪恶玩家，你的阵营输掉游戏。\n\n**补充说明**:\n• 必须选择一人\n• 选错立即输掉\n• 选好人则无事\n• 死亡触发，无论死法'
+  },
+  witch: { 
+    id: 'witch', 
+    name: '女巫', 
+    team: 'MINION', 
+    ability: '诅咒一名玩家，若其提名则死亡。', 
+    otherNight: true, 
+    icon: '🧙',
+    detailedDescription: '**官方规则**: 每晚，你选择一名玩家。如果被诅咒的玩家明天提名任何人，该玩家立即死亡。\n\n**补充说明**:\n• 诅咒持续到次日\n• 提名后立即死亡\n• 不提名就不会触发\n• 强力的爪牙能力'
+  },
+  cerenovus: { 
+    id: 'cerenovus', 
+    name: '洗脑师', 
+    team: 'MINION', 
+    ability: '指定玩家必须疯狂证明自己是某角色。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚，你选择一名玩家和一个好人角色。明天，他们必须假装自己是那个角色，否则可能被处决。\n\n**补充说明**:\n• 被选玩家必须配合\n• 不配合可能被处决\n• 增加混乱和怀疑\n• 每晚可以选不同人'
+  },
+  pit_hag: { 
+    id: 'pit_hag', 
+    name: '老巫婆', 
+    team: 'MINION', 
+    ability: '每晚将一人变成新角色。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚*，你选择一名玩家和一个角色。如果选择合法，他变成那个角色。如果这创造了重复角色，你可能意外杀死玩家。\n\n**补充说明**:\n• 可以改变任何人的角色\n• 可能导致重复角色死亡\n• 非常灵活的能力\n• 不能创建本不存在的角色'
+  },
+  evil_twin: { 
+    id: 'evil_twin', 
+    name: '邪恶双子', 
+    team: 'MINION', 
+    ability: '你有双胞胎。只要你们都活，好人无法赢。',
+    detailedDescription: '**官方规则**: 你和一名好人玩家是双胞胎。你们都知道对方是谁。只要你们都活着，好人不能获胜。\n\n**补充说明**:\n• 双胞胎互相知道身份\n• 好人双胞胎不知道谁是邪恶的\n• 必须处决邪恶双子\n• 非常强力的防守能力'
+  },
+  fang_gu: { 
+    id: 'fang_gu', 
+    name: '方古', 
+    team: 'DEMON', 
+    ability: '若杀外来者，他变恶魔你死。', 
+    otherNight: true, 
+    icon: '👹',
+    detailedDescription: '**官方规则**: 每晚*，你选择一名玩家，他死亡。如果你杀死了外来者，你死亡，他变成方古。如果只剩4人时有外来者死亡，邪恶获胜。\n\n**补充说明**:\n• 杀外来者会"传染"\n• 新方古获得恶魔身份\n• 可能意外改变游戏走向\n• 4人局时杀外来者直接赢'
+  },
+  vigormortis: { 
+    id: 'vigormortis', 
+    name: '维果莫蒂斯', 
+    team: 'DEMON', 
+    ability: '杀爪牙，爪牙保留能力且看起来活着。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚*，你选择一名玩家，他死亡。如果你杀死了爪牙，他保留能力且看起来活着，邻座的镇民中毒。\n\n**补充说明**:\n• 爪牙死后继续行动\n• 看起来没死\n• 邻座镇民被毒\n• 非常复杂的恶魔'
+  },
+  no_dashii: { 
+    id: 'no_dashii', 
+    name: '诺达希', 
+    team: 'DEMON', 
+    ability: '邻居中毒。', 
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚*，你选择一名玩家，他死亡。你的两个活着的镇民邻居中毒。\n\n**补充说明**:\n• 邻座镇民始终中毒\n• 只影响镇民，不影响外来者\n• 隐蔽且强力\n• 邻居变化时毒会转移'
+  },
+  vortox: { 
+    id: 'vortox', 
+    name: '沃托克斯', 
+    team: 'DEMON', 
+    ability: '所有人信息皆假。没人被处决则邪恶赢。', 
+    otherNight: true, 
+    icon: '🌀',
+    detailedDescription: '**官方规则**: 每晚*，你选择一名玩家，他死亡。所有镇民的信息都是错误的。如果连续一天没有人被处决，邪恶获胜。\n\n**补充说明**:\n• 所有镇民信息反转\n• 每天必须处决否则输\n• 非常混乱的恶魔\n• 需要反向思考信息'
+  },
 };
 
 export const SCRIPTS: Record<string, ScriptDef> = {

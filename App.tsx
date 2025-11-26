@@ -11,6 +11,7 @@ import { SCRIPTS, ROLES } from './constants';
 import { PhaseIndicator } from './components/PhaseIndicator';
 import { WaitingArea } from './components/WaitingArea';
 import { NotificationSystem } from './components/NotificationSystem';
+import { ToastContainer, useToasts } from './components/Toast';
 
 const App = () => {
   const user = useStore(state => state.user);
@@ -24,6 +25,9 @@ const App = () => {
   const openRolePanel = useStore(state => state.openRolePanel);
   const closeRolePanel = useStore(state => state.closeRolePanel);
   const toggleSidebar = useStore(state => state.toggleSidebar);
+  
+  // Toast notifications
+  const { toasts, removeToast } = useToasts();
 
   // Responsive Grimoire Logic
   const containerRef = useRef<HTMLDivElement>(null);
@@ -75,6 +79,9 @@ const App = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-[100dvh] w-screen bg-stone-950 overflow-y-auto md:overflow-hidden relative font-serif pt-16">
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       {/* Phase Indicator */}
       <PhaseIndicator />

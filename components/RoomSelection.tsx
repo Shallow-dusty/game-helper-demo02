@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
+import { showWarning } from './Toast';
 
 export const RoomSelection = () => {
   const user = useStore(state => state.user);
@@ -19,7 +20,7 @@ export const RoomSelection = () => {
     if (roomCode.length === 4) {
       joinGame(roomCode);
     } else {
-      alert("请输入4位房间号");
+      showWarning("请输入4位房间号");
     }
   };
 

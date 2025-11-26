@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Stage, Layer, Circle, Text, Group, Rect, Ring } from 'react-konva';
 import { useStore } from '../store';
 import { ROLES, TEAM_COLORS, PHASE_LABELS, SCRIPTS, STATUS_OPTIONS, STATUS_ICONS, PRESET_REMINDERS } from '../constants';
@@ -20,12 +20,61 @@ interface SeatNodeProps {
   isCurrentUser: boolean;
   scale: number;
   onClick: (e: any) => void;
+  onLongPress: (e: any) => void;
 }
 
-const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick }) => {
+// Long press hook for mobile support
+const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, delay = 500) => {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const isLongPressRef = useRef(false);
+  const startPosRef = useRef<{ x: number; y: number } | null>(null);
+
+  const start = useCallback((e: any) => {
+    isLongPressRef.current = false;
+    startPosRef.current = { x: e.evt?.clientX || 0, y: e.evt?.clientY || 0 };
+    timerRef.current = setTimeout(() => {
+      isLongPressRef.current = true;
+      onLongPress(e);
+    }, delay);
+  }, [onLongPress, delay]);
+
+  const clear = useCallback((e: any, shouldClick = false) => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (shouldClick && !isLongPressRef.current) {
+      onClick(e);
+    }
+  }, [onClick]);
+
+  const move = useCallback((e: any) => {
+    if (startPosRef.current && timerRef.current) {
+      const dx = Math.abs((e.evt?.clientX || 0) - startPosRef.current.x);
+      const dy = Math.abs((e.evt?.clientY || 0) - startPosRef.current.y);
+      // Cancel long press if moved more than 10px
+      if (dx > 10 || dy > 10) {
+        clear(e, false);
+      }
+    }
+  }, [clear]);
+
+  return {
+    onTouchStart: start,
+    onTouchEnd: (e: any) => clear(e, true),
+    onTouchMove: move,
+    onMouseDown: start,
+    onMouseUp: (e: any) => clear(e, true),
+    onMouseLeave: (e: any) => clear(e, false),
+  };
+};
+
+const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress }) => {
   const x = cx + radius * Math.cos(angle);
   const y = cy + radius * Math.sin(angle);
   const [isHovered, setIsHovered] = React.useState(false);
+  
+  const longPressHandlers = useLongPress(onLongPress, onClick);
 
   // --- PRIVACY LOGIC ---
   // Only show Role if: User is Storyteller, OR User is this Seat
@@ -52,10 +101,9 @@ const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, 
     <Group
       x={x}
       y={y}
-      onClick={onClick}
-      onTap={onClick}
+      {...longPressHandlers}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={(e) => { setIsHovered(false); longPressHandlers.onMouseLeave(e); }}
     >
       {/* Clock Hand Indicator */}
       {isClockHand && (
@@ -276,10 +324,38 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const baseScale = Math.max(0.6, Math.min(1.2, minDim / 800));
   const r = minDim / 2 - (60 * baseScale);
 
+  // Handle long press for mobile (opens context menu for ST)
+  const handleLongPress = useCallback((e: any, seat: Seat) => {
+    if (isLocked) return;
+    if (!user.isStoryteller) return;
+    
+    e.cancelBubble = true;
+    
+    // Get touch position for mobile
+    const clientX = e.evt?.touches?.[0]?.clientX || e.evt?.clientX || window.innerWidth / 2;
+    const clientY = e.evt?.touches?.[0]?.clientY || e.evt?.clientY || window.innerHeight / 2;
+    
+    const menuWidth = 240;
+    const menuHeight = 480;
+
+    let x = clientX;
+    let y = clientY;
+
+    // 防止overflow
+    if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 20;
+    if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 20;
+    if (y < 20) y = 20;
+    if (x < 20) x = 20;
+
+    setContextMenu({ x, y, seatId: seat.id });
+  }, [isLocked, user.isStoryteller]);
+
   const handleSeatClick = (e: any, seat: Seat) => {
     if (isLocked) return; // Double check logic
     e.cancelBubble = true;
-    if (e.evt.button === 2 && user.isStoryteller) {
+    
+    // Right click for ST context menu (desktop)
+    if (e.evt?.button === 2 && user.isStoryteller) {
       const menuWidth = 240;
       const menuHeight = 480; // 增加高度估计以包含子菜单和标记列表
 
@@ -353,14 +429,21 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
       onContextMenu={(e) => e.preventDefault()}
       onClick={() => { setContextMenu(null); setShowReminderMenu(false); }}
     >
-      {/* Mobile Lock Button */}
-      <button
-        onClick={() => setIsLocked(!isLocked)}
-        className={`absolute top-4 right-4 z-50 p-2 rounded-full shadow-lg transition-colors ${isLocked ? 'bg-red-600 text-white' : 'bg-stone-800/80 text-stone-400 hover:bg-stone-700'}`}
-        title={isLocked ? "解锁 (Unlock)" : "锁定 (Lock)"}
-      >
-        {isLocked ? '🔒' : '🔓'}
-      </button>
+      {/* Mobile Lock Button & Hint */}
+      <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
+        <button
+          onClick={() => setIsLocked(!isLocked)}
+          className={`p-2 rounded-full shadow-lg transition-colors ${isLocked ? 'bg-red-600 text-white' : 'bg-stone-800/80 text-stone-400 hover:bg-stone-700'}`}
+          title={isLocked ? "解锁交互 (Unlock)" : "锁定交互 (Lock)"}
+        >
+          {isLocked ? '🔒' : '🔓'}
+        </button>
+        {user.isStoryteller && !isLocked && (
+          <div className="text-[10px] text-stone-500 bg-stone-900/80 px-2 py-1 rounded text-right hidden sm:block">
+            💡 长按玩家打开菜单
+          </div>
+        )}
+      </div>
 
       <Stage width={width} height={height} listening={!isLocked}>
         <Layer>
@@ -402,6 +485,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
                 isCurrentUser={seat.userId === user.id}
                 scale={baseScale}
                 onClick={(e: any) => handleSeatClick(e, seat)}
+                onLongPress={(e: any) => handleLongPress(e, seat)}
               />
             );
           })}

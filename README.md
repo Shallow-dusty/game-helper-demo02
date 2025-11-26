@@ -1,7 +1,7 @@
 # Grimoire Web - 染钟楼谜团线上魔典
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![React](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
+[![React](https://img.shields.io/badge/React-18-61DAFB.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6.svg)](https://www.typescriptlang.org/)
 
 > Grimoire Web 是一个为《染钟楼谜团》(Blood on the Clocktower) 设计的现代化说书人助手工具。它支持实时在线多人同步、AI 规则助手、智能夜间操作引导，以及自定义剧本导入，旨在提供流畅的线上和线下游戏体验。
@@ -12,34 +12,46 @@
 
 ### 🎮 游戏管理
 - **实时同步**: 基于 Supabase Realtime，说书人的操作会实时同步给所有连接的玩家（魔典状态、投票、座位信息）
-### 🎮 游戏辅助 (Phase 2 - Game Depth)
+- **连接状态指示**: 实时显示连接状态（connecting/connected/reconnecting/disconnected）
+
+### 🔐 安全架构 (v0.7.0 NEW!)
+- **双重身份系统**: 
+  - `realRoleId` - 真实身份（仅ST可见，用于游戏逻辑）
+  - `seenRoleId` - 展示身份（玩家看到的，支持酒鬼/疯子/魔偶等欺骗机制）
+- **原子入座**: 基于数据库事务的并发安全入座机制
+- **消息隐私**: 私聊消息仅发送者、接收者和ST可见
+
+### 🎮 游戏辅助
 - **智能夜间助手**: 交互式夜间行动面板，引导说书人完成夜间流程
 - **结构化信息卡片**: 美观的卡片式信息展示，支持折叠和主题配色
 - **可视化投票历史**: 使用Recharts图表展示投票趋势和详细记录
+- **主动技能按钮**: 杀手/处女/艺术家等角色可主动发动技能
 
-### 📚 角色规则手册 (Phase 4)
+### 📚 角色规则手册
 - **双模式显示**: 模态面板(默认) + 可选侧边栏(桌面端)
 - **玩家角色高亮**: 金色Hero Card，2倍大小，脉冲动画
 - **完整规则查阅**: 所有角色能力、夜间顺序、阵营信息
+- **详细描述模式**: 官方完整规则说明 + 中文翻译（覆盖BMR/SV全部50+角色）
 
-### 🎭 游戏流程优化 (Phase 5 - NEW!)
-- **阶段指示器**: 顶部Banner实时显示当前游戏阶段
+### 🎭 游戏流程优化
+- **阶段指示器**: 顶部Banner实时显示当前游戏阶段、第X夜/天、连接状态
 - **智能角色分配**: 
   - 🎲 自动分配角色（基于Blood on the Clocktower规则）
   - ✅ 统一发放机制（说书人可随时调整）
   - 🎮 一键开始游戏
 - **三阶段流程**: ASSIGNING → READY → STARTED
-32: 
-33: ### 🛠️ 体验优化 (Phase 5-6 - Polished)
-- **全面中文化**: 核心界面全中文支持
-- **说书人工具箱**: 
-  - 📓 内置笔记本
-  - 🤖 虚拟玩家生成
-  - 📊 **板子参考** (NEW!) - 4种配置策略建议，角色强度分级
-  - 📄 技能描述详细模式
-  - ❓ 操作指引
-- **全局通知**: 角色出局、技能使用、系统消息的醒目提示
-- **📱 移动端防误触**: 魔典锁定功能，防止误操作
+
+### 🛠️ 说书人工具箱
+- **📓 内置笔记本**: 游戏中随时记录关键信息
+- **🤖 虚拟玩家生成**: 填补空位用于测试
+- **📊 板子参考**: 4种配置策略建议，角色强度分级
+- **📄 技能描述模式**: 简略/详细切换
+- **❓ 操作指引**: 快捷键和使用提示
+
+### 📱 移动端优化 (v0.7.0 Enhanced!)
+- **长按交互**: 说书人长按座位500ms弹出上下文菜单
+- **触觉反馈**: 长按时触发振动反馈
+- **魔典锁定**: 防止误触操作
 
 ### 🤖 AI 增强
 - **多模型支持**: 集成 **DeepSeek R1 系列**、**MiniMax M2**、**Kimi K2 Thinking** 等 6+ 先进大模型
@@ -47,28 +59,18 @@
 - **思维可视化**: DeepSeek R1 思维过程可折叠展示，提升透明度
 - **私密对话**: AI 回复仅说书人可见，保护游戏信息安全
 
-### 📝 信息管理
-- **结构化信息卡片**: 发送格式化卡片消息（角色查验/能力提示/游戏提示），支持颜色编码和可折叠内容
-- **聊天管理**: 清空消息、删除单条消息、公开/私密频道切换
-- **游戏历史**: 自动保存游戏记录，包含完整的玩家信息、角色配置、聊天记录和投票历史
-
-### 🎨 用户体验
-- **移动端优化**: 针对手机和平板的响应式布局，随时随地开局
-- **可调节界面**: 说书人控制面板支持宽度调节
-- **氛围音效**: 自动化音效管理，营造沉浸式游戏氛围
-- **自定义剧本**: 支持导入 JSON 格式的自定义剧本，无限扩展游戏板子
-
 ---
 
 ## 🛠️ 技术栈
 
 | 类别 | 技术 |
 |------|------|
-| **前端框架** | React 19, TypeScript 5.8 |
+| **前端框架** | React 18, TypeScript 5.8 |
 | **构建工具** | Vite 6 |
 | **样式** | Tailwind CSS + Vanilla CSS |
 | **状态管理** | Zustand |
-| **后端/数据库** | Supabase (PostgreSQL + Realtime) |
+| **画布渲染** | react-konva |
+| **后端/数据库** | Supabase (PostgreSQL + Realtime + RPC) |
 | **AI 集成** | OpenAI SDK (兼容多模型) |
 | **可视化** | Recharts |
 
@@ -106,11 +108,15 @@ VITE_SILICONFLOW_KEY=your_siliconflow_api_key
 
 > 💡 **提示**: 
 > - Supabase 请访问 [supabase.com](https://supabase.com/) 创建项目
-> - AI 密钥可从对应服务商官网获取（SiliconFlow 可同时使用 DeepSeek R1、MiniMax M2 和 Kimi K2 模型）
+> - AI 密钥可从对应服务商官网获取
 
 ### 4. 数据库初始化
 
-在 Supabase 项目中执行 `supabase_schema.sql` 中的 SQL 创建必要的表结构。
+在 Supabase 项目中执行 `supabase_schema.sql` 中的 SQL 创建必要的表结构：
+- `game_rooms` - 游戏房间数据
+- `seat_secrets` - 座位敏感信息（仅ST可见）
+- `game_messages` - 游戏消息
+- `claim_seat()` / `leave_seat()` - 原子入座/离座 RPC 函数
 
 ### 5. 启动开发服务器
 
@@ -119,13 +125,6 @@ npm run dev
 ```
 
 访问 `http://localhost:3001` 即可开始使用。
-
-### 6. 构建生产版本
-
-```bash
-npm run build
-npm run preview
-```
 
 ---
 
@@ -136,84 +135,43 @@ npm run preview
 | 功能 | 位置 | 说明 |
 |------|------|------|
 | **切换阶段** | Controls → Phase | 白天/夜间/投票/结束 |
-| **分配角色** | Grimoire → 点击座位 | 分配角色和状态标记 |
+| **分配角色** | Grimoire → 右键座位 | 分配角色、状态标记、双重身份 |
+| **移动端操作** | Grimoire → 长按座位 | 500ms长按弹出菜单 |
 | **夜间助手** | Controls → Night Order | 点击「🌙 执行夜间动作」 |
-| **发送卡片** | （需自行调用 `sendInfoCard`） | 发送结构化信息卡片 |
 | **AI 咨询** | Controls → AI Tab | 输入问题获取规则建议 |
-| **投票历史** | 游戏结束后 → 历史记录 | 查看投票趋势图表 |
+| **描述模式** | Controls → 设置 | 切换简略/详细描述 |
 
 ### 玩家操作指南
 
 | 功能 | 位置 | 说明 |
 |------|------|------|
 | **加入房间** | 主页 → 输入房间号 | 连接到说书人创建的房间 |
-| **查看魔典** | 魔典面板 | 查看座位信息和状态 |
+| **查看魔典** | 魔典面板 | 查看座位信息和自己的角色 |
+| **使用技能** | Controls → 角色卡 | 点击技能按钮（杀手/处女等） |
 | **私聊** | 聊天框 → 选择接收人 | 需说书人允许悄悄话 |
 | **投票** | 投票阶段 | 举手/投票按钮 |
 
 ---
 
-## 🎭 剧本导入指南
+## 🆕 最新更新 (v0.7.0)
 
-在"说书人"控制面板的"剧本"栏目，点击 **📥 导入** 按钮即可上传自定义剧本。
+### 🔐 安全架构重构
+- 双重身份系统（realRoleId/seenRoleId）
+- 原子入座 RPC 防止竞态条件
+- seat_secrets 表存储敏感信息
 
-### JSON 格式示例
+### 📝 角色详细描述
+- Bad Moon Rising 全部25个角色
+- Sects & Violets 全部25个角色
+- 包含官方完整规则 + 中文翻译
 
-```json
-[
-  {
-    "id": "custom_investigator",
-    "name": "调查员",
-    "team": "TOWNSFOLK",
-    "ability": "每个夜晚，你会得知一名玩家是小恶魔、爪牙还是非以上角色。",
-    "firstNight": 36,
-    "otherNights": 68,
-    "nightAction": {
-      "type": "choose_player",
-      "prompt": "选择要查验的玩家"
-    }
-  },
-  {
-    "id": "custom_demon",
-    "name": "魔影",
-    "team": "DEMON",
-    "ability": "每个夜晚，选择一名玩家：该玩家死亡。你的邻居知道你是恶魔。"
-  }
-]
-```
+### 📱 移动端优化
+- 长按交互替代右键菜单
+- 触觉反馈增强体验
 
-### 字段说明
-
-| 字段 | 必填 | 说明 |
-|------|------|------|
-| `id` | ✅ | 唯一标识符 |
-| `name` | ✅ | 角色名称 |
-| `team` | ✅ | 阵营：TOWNSFOLK/OUTSIDER/MINION/DEMON/TRAVELER |
-| `ability` | ✅ | 技能描述 |
-| `firstNight` | ❌ | 首夜行动顺序 |
-| `otherNights` | ❌ | 其他夜晚行动顺序 |
-| `nightAction` | ❌ | 夜间交互配置（支持智能夜间助手） |
-
----
-
-## 🆕 最新更新 (v0.3.0)
-
-### Phase 2: Game Depth 三大核心功能
-
-1. **🌙 Smart Night Helper (智能夜间助手)**
-   - 交互式夜间操作面板
-   - 支持单选/双选玩家、二选一决策
-   - 自动记录操作日志
-
-2. **📋 Structured Info Cards (结构化信息卡片)**
-   - 4 种卡片类型（角色信息/能力/提示/自定义）
-   - 颜色编码自动识别
-   - 长内容可折叠
-
-3. **📊 Visual Voting History (可视化投票历史)**
-   - Recharts 驱动的投票趋势图
-   - 自动记录每轮投票数据
-   - 详细表格展示处决/存活/取消结果
+### 🎮 主动技能按钮
+- 杀手/处女/艺术家/杂耍艺人/造谣者
+- 技能使用追踪
 
 查看完整更新日志：[CHANGELOG.md](./CHANGELOG.md)
 

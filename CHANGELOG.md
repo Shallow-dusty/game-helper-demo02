@@ -6,6 +6,80 @@
 
 ---
 
+## [0.7.0] - 2025-01-XX
+
+### ✨ 新增 (Added)
+
+#### 🔐 安全架构重构 (P0)
+- **双重身份系统**: 
+  - 新增 `realRoleId` (真实身份，仅ST可见) 和 `seenRoleId` (展示身份，玩家看到的)
+  - 支持酒鬼/疯子/魔偶等特殊角色的身份错位
+  - 向后兼容旧版 `roleId` 字段
+- **seat_secrets 表**: 存储敏感信息（真实角色、中毒状态等），仅ST可访问
+- **原子入座 RPC**: `claim_seat()` 函数确保并发安全，防止座位抢占
+- **game_messages 表**: 独立消息表支持私聊过滤和审计
+
+#### 📝 角色详细描述 (P0)
+- **Bad Moon Rising**: 为所有25个角色添加 `detailedDescription`
+- **Sects & Violets**: 为所有25个角色添加 `detailedDescription`
+- 包含官方完整规则说明、中文翻译和特殊交互提示
+
+#### 🎮 玩家技能交互 (P2)
+- **主动技能按钮**: 
+  - 杀手 (Slayer): 选择目标发动技能
+  - 处女 (Virgin): 声明身份
+  - 艺术家 (Artist): 向ST提问
+  - 杂耍艺人 (Juggler): 猜测角色
+  - 造谣者 (Gossip): 发表公开陈述
+- **技能使用追踪**: `hasUsedAbility` 字段防止重复使用
+- **目标选择模态框**: 需要目标的技能支持输入目标名称
+
+#### 📱 移动端优化 (P2)
+- **长按上下文菜单**: 说书人长按座位500ms弹出操作菜单
+- **触觉反馈**: 长按时触发振动反馈 (navigator.vibrate)
+- **锁定状态优化**: 移动端锁定按钮文案更新
+
+#### 🔄 连接状态指示 (P2)
+- **ConnectionStatus 类型**: 'connecting' | 'connected' | 'reconnecting' | 'disconnected'
+- **PhaseIndicator 集成**: 顶部显示实时连接状态
+- **视觉反馈**: 不同状态对应不同颜色（绿/黄/红）和脉冲动画
+
+### 🔧 改进 (Changed)
+
+- **PhaseIndicator 增强**:
+  - 显示第X夜/第X天信息
+  - 投票状态详情（提名人→被提名人）
+  - 连接状态徽章
+
+- **依赖更新**:
+  - React 19.2.0 → 18.3.1 (稳定性提升)
+  - react-dom 19.2.0 → 18.3.1
+  - react-konva 19.0.3 → 18.2.10
+
+### 📦 技术细节 (Technical)
+
+- **types.ts**:
+  - Seat: 新增 `realRoleId`, `seenRoleId`, `hasUsedAbility` 字段
+  - RoleDef: 新增 `detailedDescription` 可选字段
+  
+- **store.ts**:
+  - 新增 `connectionStatus` 状态和管理
+  - `assignRole()` 增强支持 drunk/lunatic/marionette 逻辑
+  - `filterGameStateForUser()` 支持双重身份过滤
+
+- **supabase_schema.sql**:
+  - 新增 `seat_secrets` 表
+  - 新增 `game_messages` 表
+  - 新增 `claim_seat()` 和 `leave_seat()` RPC 函数
+  - 完整 RLS 策略
+
+- **新增组件**:
+  - `ActiveAbilityButton` (Controls.tsx内)
+  - `ConnectionStatusBadge` (PhaseIndicator.tsx内)
+  - `useLongPress` Hook (Grimoire.tsx内)
+
+---
+
 ## [0.6.2] - 2025-11-27
 
 ### 🐛 修复 (Fixed)

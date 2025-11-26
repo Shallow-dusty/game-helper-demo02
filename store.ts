@@ -84,11 +84,13 @@ let isReceivingUpdate = false;
 
 // --- STATE HELPERS ---
 
-const getInitialState = (seatCount: number, roomCode: string): GameState => ({
-    roomId: roomCode,
-    currentScriptId: 'tb',
+const getInitialState = (roomId: string, seatCount: number, currentScriptId: string = 'tb'): GameState => ({
+    roomId,
+    currentScriptId,
     phase: 'SETUP',
-    allowWhispers: true,
+    setupPhase: 'ASSIGNING',
+    rolesRevealed: false,
+    allowWhispers: false,
     seats: Array.from({ length: seatCount }, (_, i) => ({
         id: i,
         userId: null,
@@ -114,6 +116,7 @@ const getInitialState = (seatCount: number, roomCode: string): GameState => ({
     voting: null,
     customScripts: {},
     customRoles: {},
+    voteHistory: [],
 });
 
 const addSystemMessage = (gameState: GameState, content: string) => {
@@ -151,6 +154,9 @@ interface AppState {
     isAudioBlocked: boolean;
     isOffline: boolean;
     aiProvider: AiProvider;
+    roleReferenceMode: 'modal' | 'sidebar';
+    isSidebarExpanded: boolean;
+    isRolePanelOpen: boolean;
 
     login: (name: string, isStoryteller: boolean) => void;
     createGame: (seatCount: number) => Promise<void>;
@@ -192,6 +198,16 @@ interface AppState {
     saveGameHistory: (finalState: GameState) => Promise<void>;
     clearAiMessages: () => void;
     deleteAiMessage: (messageId: string) => void;
+    performNightAction: (action: { roleId: string; payload: any }) => void;
+    sendInfoCard: (card: import('./types').InfoCard, recipientId: string | null) => void;
+    setRoleReferenceMode: (mode: 'modal' | 'sidebar') => void;
+    toggleSidebar: () => void;
+    openRolePanel: () => void;
+    closeRolePanel: () => void;
+    revealRoles: () => void;
+    hideRoles: () => void;
+    startGame: () => void;
+    autoAssignRoles: () => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -201,6 +217,9 @@ export const useStore = create<AppState>((set, get) => ({
     isAudioBlocked: false,
     isOffline: false,
     aiProvider: 'deepseek',
+    roleReferenceMode: 'modal',
+    isSidebarExpanded: false,
+    isRolePanelOpen: false,
 
     login: (name, isStoryteller) => {
         let id = localStorage.getItem('grimoire_uid');
@@ -218,18 +237,19 @@ export const useStore = create<AppState>((set, get) => ({
 
         // 1. Prepare Data
         let code = Math.floor(1000 + Math.random() * 9000).toString();
-        const initialState = getInitialState(seatCount, code);
+        // 2. Create Game State
+        const newState = getInitialState(code, seatCount);
         const updatedUser = { ...user, roomId: code };
 
         // Set local state immediately
-        set({ user: updatedUser, gameState: initialState, isOffline: false });
-        addSystemMessage(initialState, `${user.name} 创建了房间 ${code}`);
+        set({ user: updatedUser, gameState: newState, isOffline: false });
+        addSystemMessage(newState, `${user.name} 创建了房间 ${code}`);
 
         try {
             // 2. Insert into Supabase
             const { error } = await supabase
                 .from('game_rooms')
-                .insert({ room_code: code, data: initialState });
+                .insert({ room_code: code, data: newState });
 
             if (error) throw error;
 
@@ -434,7 +454,7 @@ export const useStore = create<AppState>((set, get) => ({
                         id: item.id,
                         name: item.name,
                         team: item.team,
-                        description: item.ability || item.description || '',
+                        ability: item.ability || item.description || '',
                         firstNight: item.firstNightReminder ? true : false,
                         otherNight: item.otherNightReminder ? true : false,
                         icon: item.image || undefined,
@@ -733,6 +753,32 @@ export const useStore = create<AppState>((set, get) => ({
         const { gameState } = get();
         if (!gameState) return;
 
+        // Record vote in history if voting was actually happening
+        if (gameState.voting && gameState.voting.nomineeSeatId !== null) {
+            const votingData = gameState.voting;
+            const voteCount = votingData.votes.length;
+
+            // Determine result based on vote count (simplified logic)
+            let result: 'executed' | 'survived' | 'cancelled' = 'cancelled';
+            if (voteCount > gameState.seats.filter(s => !s.isDead).length / 2) {
+                result = 'executed';
+            } else if (votingData.nomineeSeatId !== null) {
+                result = 'survived';
+            }
+
+            const voteRecord: import('./types').VoteRecord = {
+                round: gameState.voteHistory.length + 1,
+                nominatorSeatId: votingData.nominatorSeatId || -1,
+                nomineeSeatId: votingData.nomineeSeatId,
+                votes: votingData.votes,
+                voteCount,
+                timestamp: Date.now(),
+                result
+            };
+
+            gameState.voteHistory.push(voteRecord);
+        }
+
         gameState.phase = 'DAY';
         gameState.voting = null;
         gameState.seats.forEach(s => {
@@ -846,9 +892,10 @@ export const useStore = create<AppState>((set, get) => ({
 
         try {
             const { error } = await supabase
-                .from('game_history')
+                .from('game_rooms')
                 .insert({
-                    room_code: finalState.roomId,
+                    room_id: finalState.roomId,
+                    state: JSON.stringify(finalState), // Assuming finalState is the 'newState' intended
                     winner: finalState.gameOver.winner,
                     reason: finalState.gameOver.reason,
                     script_name: SCRIPTS[finalState.currentScriptId]?.name || finalState.customScripts[finalState.currentScriptId]?.name || 'Unknown Script',
@@ -888,5 +935,183 @@ export const useStore = create<AppState>((set, get) => ({
 
         set({ gameState: { ...gameState } });
         get().syncToCloud();
+    },
+
+    performNightAction: (action: { roleId: string; payload: any }) => {
+        const { gameState, user } = get();
+        if (!gameState || !user?.isStoryteller) return;
+
+        const { roleId, payload } = action;
+        const role = ROLES[roleId];
+
+        if (!role) return;
+
+        // Log the action
+        let logMessage = `说书人执行了 ${role.name} 的夜间动作`;
+
+        if (payload.seatId !== undefined) {
+            const seat = gameState.seats.find(s => s.id === payload.seatId);
+            logMessage += `: ${seat?.userName || '未知玩家'}`;
+        } else if (payload.seatIds) {
+            const seats = payload.seatIds.map((id: number) =>
+                gameState.seats.find(s => s.id === id)?.userName || '未知'
+            );
+            logMessage += `: ${seats.join(', ')}`;
+        } else if (payload.choice !== undefined) {
+            const nightAction = role.nightAction;
+            if (nightAction?.options) {
+                logMessage += `: ${nightAction.options[payload.choice]}`;
+            }
+        }
+
+        addSystemMessage(gameState, logMessage);
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    sendInfoCard: (card: import('./types').InfoCard, recipientId: string | null) => {
+        const { gameState, user } = get();
+        if (!gameState || !user) return;
+
+        const message: ChatMessage = {
+            id: Math.random().toString(36).substr(2, 9),
+            senderId: user.id,
+            senderName: user.name,
+            recipientId,
+            content: card.content, // Fallback for plain text view
+            timestamp: Date.now(),
+            type: 'chat',
+            isPrivate: !!recipientId,
+            card // Attach the structured card
+        };
+
+        gameState.messages.push(message);
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    setRoleReferenceMode: (mode) => {
+        set({ roleReferenceMode: mode });
+    },
+
+    toggleSidebar: () => {
+        set({ isSidebarExpanded: !get().isSidebarExpanded });
+    },
+
+    openRolePanel: () => {
+        set({ isRolePanelOpen: true });
+    },
+
+    closeRolePanel: () => {
+        set({ isRolePanelOpen: false });
+    },
+
+    revealRoles: () => {
+        const { gameState } = get();
+        if (!gameState) return;
+
+        gameState.rolesRevealed = true;
+        gameState.setupPhase = 'READY';
+        addSystemMessage(gameState, '说书人已发放角色，玩家可查看规则手册');
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    hideRoles: () => {
+        const { gameState } = get();
+        if (!gameState) return;
+
+        gameState.rolesRevealed = false;
+        gameState.setupPhase = 'ASSIGNING';
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    startGame: () => {
+        const { gameState } = get();
+        if (!gameState) return;
+
+        gameState.setupPhase = 'STARTED';
+        gameState.phase = 'NIGHT';
+        addSystemMessage(gameState, '游戏开始！进入首夜');
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    autoAssignRoles: () => {
+        const { gameState } = get();
+        if (!gameState || !gameState.currentScriptId) return;
+
+        const script = SCRIPTS[gameState.currentScriptId];
+        if (!script) return;
+
+        const seatCount = gameState.seats.filter(s => s.userId).length;
+        if (seatCount < 5) {
+            addSystemMessage(gameState, '玩家人数不足5人，无法自动分配');
+            set({ gameState: { ...gameState } });
+            return;
+        }
+
+        // TB规则自动分配
+        const composition = getComposition(seatCount);
+        const availableRoles = script.roles.map(id => ROLES[id]).filter(Boolean);
+
+        const townsfolk = availableRoles.filter(r => r.team === 'TOWNSFOLK');
+        const outsiders = availableRoles.filter(r => r.team === 'OUTSIDER');
+        const minions = availableRoles.filter(r => r.team === 'MINION');
+        const demons = availableRoles.filter(r => r.team === 'DEMON');
+
+        // 随机选择
+        const selectedRoles: string[] = [];
+        selectedRoles.push(...shuffle(townsfolk).slice(0, composition.townsfolk).map(r => r.id));
+        selectedRoles.push(...shuffle(outsiders).slice(0, composition.outsider).map(r => r.id));
+        selectedRoles.push(...shuffle(minions).slice(0, composition.minion).map(r => r.id));
+        selectedRoles.push(...shuffle(demons).slice(0, composition.demon).map(r => r.id));
+
+        // 分配到座位
+        const shuffledRoles = shuffle(selectedRoles);
+        gameState.seats.forEach((seat, i) => {
+            if (seat.userId && shuffledRoles[i]) {
+                seat.roleId = shuffledRoles[i];
+            }
+        });
+
+        addSystemMessage(gameState, `已自动分配角色 (${seatCount}人: ${composition.townsfolk}镇民+${composition.outsider}外来者+${composition.minion}爪牙+${composition.demon}恶魔)`);
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
     }
 }));
+
+// Helper: TB composition rules
+function getComposition(players: number) {
+    const rules: Record<number, { townsfolk: number; outsider: number; minion: number; demon: number }> = {
+        5: { townsfolk: 3, outsider: 0, minion: 1, demon: 1 },
+        6: { townsfolk: 3, outsider: 1, minion: 1, demon: 1 },
+        7: { townsfolk: 5, outsider: 0, minion: 1, demon: 1 },
+        8: { townsfolk: 5, outsider: 1, minion: 1, demon: 1 },
+        9: { townsfolk: 5, outsider: 2, minion: 1, demon: 1 },
+        10: { townsfolk: 7, outsider: 0, minion: 2, demon: 1 },
+        11: { townsfolk: 7, outsider: 1, minion: 2, demon: 1 },
+        12: { townsfolk: 7, outsider: 2, minion: 2, demon: 1 },
+        13: { townsfolk: 9, outsider: 0, minion: 3, demon: 1 },
+        14: { townsfolk: 9, outsider: 1, minion: 3, demon: 1 },
+        15: { townsfolk: 9, outsider: 2, minion: 3, demon: 1 }
+    };
+    return rules[players] || rules[7];
+}
+
+// Helper: Shuffle array
+function shuffle<T>(array: T[]): T[] {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+}

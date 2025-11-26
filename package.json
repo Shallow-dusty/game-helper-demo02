@@ -15,6 +15,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-konva": "^19.2.0",
+    "rechart": "^0.0.1",
+    "recharts": "^3.5.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

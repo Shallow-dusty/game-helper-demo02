@@ -3,15 +3,42 @@ export type GamePhase = 'SETUP' | 'NIGHT' | 'DAY' | 'NOMINATION' | 'VOTING';
 
 export type Team = 'TOWNSFOLK' | 'OUTSIDER' | 'MINION' | 'DEMON' | 'TRAVELER';
 
+export type NightActionDef = {
+  type: 'choose_player' | 'choose_two_players' | 'binary' | 'confirm';
+  prompt: string;
+  options?: string[]; // For binary choices
+};
+
+export type InfoCardType = 'role_info' | 'ability' | 'hint' | 'custom';
+
+export interface InfoCard {
+  type: InfoCardType;
+  title: string;
+  icon?: string;
+  color?: string; // Tailwind color class prefix (e.g., 'blue', 'purple', 'red')
+  content: string;
+}
+
+export interface VoteRecord {
+  round: number;          // 投票轮次
+  nominatorSeatId: number;
+  nomineeSeatId: number;
+  votes: number[];        // 投票者的座位ID列表
+  voteCount: number;      // 投票数
+  timestamp: number;
+  result: 'executed' | 'survived' | 'cancelled';
+}
+
 export interface RoleDef {
   id: string;
   name: string;
   team: Team;
-  description: string;
+  ability: string;
   firstNight?: boolean;
   otherNight?: boolean;
   icon?: string; // Visual indicator for the role (emoji)
   reminders?: string[]; // Default reminders for this role
+  nightAction?: NightActionDef; // Interactive night action configuration
 }
 
 export interface ScriptDefinition {
@@ -57,6 +84,7 @@ export interface ChatMessage {
   timestamp: number;
   type: 'chat' | 'system';
   isPrivate?: boolean; // New: If true, only visible to recipient (or sender)
+  card?: InfoCard; // Optional: Structured info card
 }
 
 export interface AudioState {
@@ -71,10 +99,14 @@ export interface GameOverState {
   reason: string;
 }
 
+export type SetupPhase = 'ASSIGNING' | 'READY' | 'STARTED';
+
 export interface GameState {
   roomId: string;
   currentScriptId: string; // 'tb', 'bmr', 'sv'
   phase: GamePhase;
+  setupPhase: SetupPhase; // NEW: Track setup progress
+  rolesRevealed: boolean; // NEW: Whether roles have been revealed to players
   allowWhispers: boolean; // New: Controls if players can whisper
   seats: Seat[];
   messages: ChatMessage[];
@@ -98,6 +130,7 @@ export interface GameState {
 
   customScripts: Record<string, ScriptDefinition>; // New: Store uploaded scripts
   customRoles: Record<string, RoleDef>; // New: Store custom roles from scripts
+  voteHistory: VoteRecord[]; // Track voting history
 }
 
 export interface User {

@@ -1,69 +1,247 @@
 # Grimoire Web - 染钟楼谜团线上魔典
 
-Grimoire Web 是一个为《染钟楼谜团》(Blood on the Clocktower) 设计的现代化说书人助手工具。它支持实时在线多人同步、AI 规则助手以及自定义剧本导入，旨在提供流畅的线上和线下游戏体验。
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6.svg)](https://www.typescriptlang.org/)
 
-## ✨ 主要功能
+> Grimoire Web 是一个为《染钟楼谜团》(Blood on the Clocktower) 设计的现代化说书人助手工具。它支持实时在线多人同步、AI 规则助手、智能夜间操作引导，以及自定义剧本导入，旨在提供流畅的线上和线下游戏体验。
 
-- **实时同步**: 基于 Supabase Realtime，说书人的操作会实时同步给所有连接的玩家（魔典状态、投票、座位信息）。
-- **AI 规则助手 (Oracle)**: 集成 **DeepSeek** 和 **Kimi (Moonshot)** 大模型，随时解答规则疑问、生成台词或提供判例。
-- **自定义剧本**: 支持导入 JSON 格式的自定义剧本，无限扩展游戏板子。
-- **移动端适配**: 针对手机和平板优化的响应式布局，随时随地开局。
-- **自动化流程**: 夜晚行动顺序提醒、投票时钟模拟、自动音效管理。
+---
+
+## ✨ 核心功能
+
+### 🎮 游戏管理
+- **实时同步**: 基于 Supabase Realtime，说书人的操作会实时同步给所有连接的玩家（魔典状态、投票、座位信息）
+### 🎮 游戏辅助 (Phase 2 - Game Depth)
+- **智能夜间助手**: 交互式夜间行动面板，引导说书人完成夜间流程
+- **结构化信息卡片**: 美观的卡片式信息展示，支持折叠和主题配色
+- **可视化投票历史**: 使用Recharts图表展示投票趋势和详细记录
+
+### 📚 角色规则手册 (Phase 4)
+- **双模式显示**: 模态面板(默认) + 可选侧边栏(桌面端)
+- **玩家角色高亮**: 金色Hero Card，2倍大小，脉冲动画
+- **完整规则查阅**: 所有角色能力、夜间顺序、阵营信息
+
+### 🎭 游戏流程优化 (Phase 5 - NEW!)
+- **阶段指示器**: 顶部Banner实时显示当前游戏阶段
+- **智能角色分配**: 
+  - 🎲 自动分配角色（基于Blood on the Clocktower规则）
+  - ✅ 统一发放机制（说书人可随时调整）
+  - 🎮 一键开始游戏
+- **三阶段流程**: ASSIGNING → READY → STARTED
+
+### 🤖 AI 增强
+- **多模型支持**: 集成 **DeepSeek R1 系列**、**MiniMax M2**、**Kimi K2 Thinking** 等 6+ 先进大模型
+- **智能规则助手**: 随时解答规则疑问、生成台词、提供判例建议
+- **思维可视化**: DeepSeek R1 思维过程可折叠展示，提升透明度
+- **私密对话**: AI 回复仅说书人可见，保护游戏信息安全
+
+### 📝 信息管理
+- **结构化信息卡片**: 发送格式化卡片消息（角色查验/能力提示/游戏提示），支持颜色编码和可折叠内容
+- **聊天管理**: 清空消息、删除单条消息、公开/私密频道切换
+- **游戏历史**: 自动保存游戏记录，包含完整的玩家信息、角色配置、聊天记录和投票历史
+
+### 🎨 用户体验
+- **移动端优化**: 针对手机和平板的响应式布局，随时随地开局
+- **可调节界面**: 说书人控制面板支持宽度调节
+- **氛围音效**: 自动化音效管理，营造沉浸式游戏氛围
+- **自定义剧本**: 支持导入 JSON 格式的自定义剧本，无限扩展游戏板子
+
+---
 
 ## 🛠️ 技术栈
 
-- **前端**: React 19, Vite, TypeScript
-- **样式**: Tailwind CSS (Vanilla CSS for custom animations)
-- **状态管理**: Zustand
-- **后端/同步**: Supabase (PostgreSQL + Realtime)
-- **AI**: OpenAI SDK (Compatible with DeepSeek/Moonshot)
+| 类别 | 技术 |
+|------|------|
+| **前端框架** | React 19, TypeScript 5.8 |
+| **构建工具** | Vite 6 |
+| **样式** | Tailwind CSS + Vanilla CSS |
+| **状态管理** | Zustand |
+| **后端/数据库** | Supabase (PostgreSQL + Realtime) |
+| **AI 集成** | OpenAI SDK (兼容多模型) |
+| **可视化** | Recharts |
+
+---
 
 ## 🚀 快速开始
 
-### 1. 安装依赖
+### 1. 克隆项目
+
+```bash
+git clone https://github.com/yourusername/grimoire-web.git
+cd grimoire-web
+```
+
+### 2. 安装依赖
 
 ```bash
 npm install
 ```
 
-### 2. 配置环境变量
+### 3. 配置环境变量
 
-复制 `.env.local.example` (如果不存在请手动创建) 到 `.env.local` 并填入以下密钥：
+创建 `.env.local` 文件并填入以下密钥：
 
 ```env
-# Supabase Configuration
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_key
+# Supabase Configuration (必需)
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# AI Providers (Optional)
-VITE_DEEPSEEK_KEY=your_deepseek_key
-VITE_KIMI_KEY=your_kimi_key
+# AI Providers (可选 - 根据需要配置)
+VITE_DEEPSEEK_KEY=your_deepseek_api_key
+VITE_KIMI_KEY=your_kimi_api_key
+VITE_SILICONFLOW_KEY=your_siliconflow_api_key
 ```
 
-### 3. 启动开发服务器
+> 💡 **提示**: 
+> - Supabase 请访问 [supabase.com](https://supabase.com/) 创建项目
+> - AI 密钥可从对应服务商官网获取（SiliconFlow 可同时使用 DeepSeek R1、MiniMax M2 和 Kimi K2 模型）
+
+### 4. 数据库初始化
+
+在 Supabase 项目中执行 `supabase_schema.sql` 中的 SQL 创建必要的表结构。
+
+### 5. 启动开发服务器
 
 ```bash
 npm run dev
 ```
 
-访问 `http://localhost:3000` 即可开始使用。
+访问 `http://localhost:3001` 即可开始使用。
 
-## 📖 剧本导入指南
+### 6. 构建生产版本
 
-在“说书人”控制面板的“剧本”栏目，点击 **📥 导入** 按钮即可上传自定义剧本。
-支持的标准 JSON 格式示例：
+```bash
+npm run build
+npm run preview
+```
+
+---
+
+## 📖 功能速查
+
+### 说书人操作指南
+
+| 功能 | 位置 | 说明 |
+|------|------|------|
+| **切换阶段** | Controls → Phase | 白天/夜间/投票/结束 |
+| **分配角色** | Grimoire → 点击座位 | 分配角色和状态标记 |
+| **夜间助手** | Controls → Night Order | 点击「🌙 执行夜间动作」 |
+| **发送卡片** | （需自行调用 `sendInfoCard`） | 发送结构化信息卡片 |
+| **AI 咨询** | Controls → AI Tab | 输入问题获取规则建议 |
+| **投票历史** | 游戏结束后 → 历史记录 | 查看投票趋势图表 |
+
+### 玩家操作指南
+
+| 功能 | 位置 | 说明 |
+|------|------|------|
+| **加入房间** | 主页 → 输入房间号 | 连接到说书人创建的房间 |
+| **查看魔典** | 魔典面板 | 查看座位信息和状态 |
+| **私聊** | 聊天框 → 选择接收人 | 需说书人允许悄悄话 |
+| **投票** | 投票阶段 | 举手/投票按钮 |
+
+---
+
+## 🎭 剧本导入指南
+
+在"说书人"控制面板的"剧本"栏目，点击 **📥 导入** 按钮即可上传自定义剧本。
+
+### JSON 格式示例
 
 ```json
 [
   {
-    "id": "custom_role_id",
-    "name": "角色名称",
+    "id": "custom_investigator",
+    "name": "调查员",
     "team": "TOWNSFOLK",
-    "ability": "角色技能描述..."
+    "ability": "每个夜晚，你会得知一名玩家是小恶魔、爪牙还是非以上角色。",
+    "firstNight": 36,
+    "otherNights": 68,
+    "nightAction": {
+      "type": "choose_player",
+      "prompt": "选择要查验的玩家"
+    }
+  },
+  {
+    "id": "custom_demon",
+    "name": "魔影",
+    "team": "DEMON",
+    "ability": "每个夜晚，选择一名玩家：该玩家死亡。你的邻居知道你是恶魔。"
   }
 ]
 ```
 
+### 字段说明
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `id` | ✅ | 唯一标识符 |
+| `name` | ✅ | 角色名称 |
+| `team` | ✅ | 阵营：TOWNSFOLK/OUTSIDER/MINION/DEMON/TRAVELER |
+| `ability` | ✅ | 技能描述 |
+| `firstNight` | ❌ | 首夜行动顺序 |
+| `otherNights` | ❌ | 其他夜晚行动顺序 |
+| `nightAction` | ❌ | 夜间交互配置（支持智能夜间助手） |
+
+---
+
+## 🆕 最新更新 (v0.3.0)
+
+### Phase 2: Game Depth 三大核心功能
+
+1. **🌙 Smart Night Helper (智能夜间助手)**
+   - 交互式夜间操作面板
+   - 支持单选/双选玩家、二选一决策
+   - 自动记录操作日志
+
+2. **📋 Structured Info Cards (结构化信息卡片)**
+   - 4 种卡片类型（角色信息/能力/提示/自定义）
+   - 颜色编码自动识别
+   - 长内容可折叠
+
+3. **📊 Visual Voting History (可视化投票历史)**
+   - Recharts 驱动的投票趋势图
+   - 自动记录每轮投票数据
+   - 详细表格展示处决/存活/取消结果
+
+查看完整更新日志：[CHANGELOG.md](./CHANGELOG.md)
+
+---
+
+## 📚 文档资源
+
+- [说书人完整手册](./STORYTELLER_MANUAL.md) - 详尽的功能说明和最佳实践
+- [魔典使用指南](./USER_GUIDE.md) - 玩家和说书人快速上手教程
+- [更新日志](./CHANGELOG.md) - 版本历史记录
+
+---
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+### 开发流程
+
+1. Fork 本仓库
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 创建 Pull Request
+
+---
+
 ## 📄 许可证
 
-MIT License
+本项目采用 MIT License - 详见 [LICENSE](./LICENSE) 文件
+
+---
+
+## 🙏 致谢
+
+- [Blood on the Clocktower](https://bloodontheclocktower.com/) - 原版桌游
+- [Supabase](https://supabase.com/) - 后端服务
+- [DeepSeek](https://www.deepseek.com/) / [Moonshot AI](https://www.moonshot.cn/) / [SiliconFlow](https://siliconflow.cn/) - AI 服务支持
+
+---
+
+<p align="center">Made with ❤️ for the Blood on the Clocktower community</p>

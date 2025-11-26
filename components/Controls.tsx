@@ -3,6 +3,7 @@ import { useStore } from '../store';
 import { ROLES, TEAM_COLORS, PHASE_LABELS, AUDIO_TRACKS, SCRIPTS } from '../constants';
 import { Chat } from './Chat';
 import { HistoryViewer } from './HistoryViewer';
+import { NightActionPanel } from './NightActionPanel';
 
 interface ControlsProps {
     onClose?: () => void; // For mobile drawer closing
@@ -36,6 +37,8 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const [activeTab, setActiveTab] = useState<'game' | 'chat' | 'ai'>('game');
     const [aiPrompt, setAiPrompt] = useState('');
     const [showHistory, setShowHistory] = useState(false);
+    const [showNightAction, setShowNightAction] = useState(false);
+    const [currentNightRole, setCurrentNightRole] = useState<string | null>(null);
 
     const [width, setWidth] = useState(320); // Default 320px
     const [isResizing, setIsResizing] = useState(false);
@@ -156,7 +159,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                 role.team === 'MINION' ? 'Minion' :
                                     role.team === 'DEMON' ? 'Demon' : 'Outsider'}
                         </span>
-                        <p className="text-sm text-stone-400 mt-3 leading-relaxed italic border-t border-stone-800 pt-2">{role.description}</p>
+                        <p className="text-sm text-stone-400 mt-3 leading-relaxed italic border-t border-stone-800 pt-2">{role.ability}</p>
                     </div>
                 </div>
             )}
@@ -247,6 +250,40 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                     </select>
                                 </div>
 
+                                {/* Setup Controls */}
+                                {gameState.setupPhase !== 'STARTED' && (
+                                    <div className="bg-stone-900/80 p-3 rounded border border-amber-900/30 mb-4">
+                                        <h3 className="text-xs font-bold text-amber-400 mb-2 uppercase">🎭 游戏设置</h3>
+                                        <div className="space-y-2">
+                                            <button
+                                                onClick={() => useStore.getState().autoAssignRoles()}
+                                                className="w-full bg-purple-900 hover:bg-purple-800 text-white p-2 rounded text-sm font-semibold transition"
+                                            >
+                                                🎲 自动分配角色
+                                            </button>
+
+                                            {gameState.setupPhase === 'ASSIGNING' ? (
+                                                <button onClick={() => useStore.getState().revealRoles()}
+                                                    className="w-full bg-green-900 hover:bg-green-800 text-white p-2 rounded text-sm font-semibold transition">
+                                                    ✅ 发放角色
+                                                </button>
+                                            ) : (
+                                                <button onClick={() => useStore.getState().hideRoles()}
+                                                    className="w-full bg-yellow-900 hover:bg-yellow-800 text-white p-2 rounded text-sm font-semibold transition">
+                                                    🔙 收回角色
+                                                </button>
+                                            )}
+
+                                            {gameState.setupPhase === 'READY' && (
+                                                <button onClick={() => useStore.getState().startGame()}
+                                                    className="w-full bg-red-900 hover:bg-red-800 text-white p-2 rounded text-sm font-semibold transition animate-pulse">
+                                                    🎮 开始游戏
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* AUDIO CONTROL PANEL */}
                                 <div className="bg-stone-900/80 p-3 rounded border border-stone-700 shadow-md">
                                     <h3 className="text-xs font-bold text-stone-500 uppercase mb-2 flex items-center gap-2">
@@ -332,6 +369,19 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                                 </span>
                                             ))}
                                         </div>
+
+                                        {/* Night Action Button */}
+                                        {gameState.nightCurrentIndex >= 0 && gameState.nightQueue[gameState.nightCurrentIndex] && ROLES[gameState.nightQueue[gameState.nightCurrentIndex]]?.nightAction && (
+                                            <button
+                                                onClick={() => {
+                                                    setCurrentNightRole(gameState.nightQueue[gameState.nightCurrentIndex]);
+                                                    setShowNightAction(true);
+                                                }}
+                                                className="mt-3 w-full py-2 bg-purple-900/50 hover:bg-purple-800/50 border border-purple-700 text-purple-200 rounded font-bold text-sm transition-all shadow-lg"
+                                            >
+                                                🌙 执行夜间动作
+                                            </button>
+                                        )}
                                     </div>
                                 )}
 
@@ -569,6 +619,17 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
             {/* History Modal */}
             {showHistory && <HistoryViewer onClose={() => setShowHistory(false)} />}
+
+            {/* Night Action Panel */}
+            {showNightAction && currentNightRole && (
+                <NightActionPanel
+                    roleId={currentNightRole}
+                    onComplete={() => {
+                        setShowNightAction(false);
+                        setCurrentNightRole(null);
+                    }}
+                />
+            )}
 
             <style>{`
         .btn { @apply py-1.5 px-2 rounded-sm text-xs transition-all hover:opacity-90 active:scale-95 shadow-sm border border-stone-900; }

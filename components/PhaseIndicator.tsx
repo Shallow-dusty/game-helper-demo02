@@ -19,9 +19,10 @@ export const PhaseIndicator: React.FC = () => {
         bgColor = 'bg-amber-900/90';
         icon = '📝';
     } else if (gameState.setupPhase === 'READY') {
-        message = isStoryteller ? '✅ 角色已发放，准备开始游戏' : '✅ 角色已发放，可查看规则手册';
-        bgColor = 'bg-green-900/90';
-        icon = '✅';
+        // message = isStoryteller ? '✅ 角色已发放，准备开始游戏' : '✅ 角色已发放，可查看规则手册';
+        // bgColor = 'bg-green-900/90';
+        // icon = '✅';
+        // Hide banner in READY state to prevent clutter
     } else if (gameState.setupPhase === 'STARTED') {
         // Game in progress
         const roundInfo = gameState.roundInfo || { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 1 };

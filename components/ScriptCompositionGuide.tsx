@@ -94,7 +94,7 @@ const STRATEGIES: CompositionStrategy[] = [
 interface ScriptCompositionGuideProps {
     onClose: () => void;
     playerCount: number;
-    onApplyStrategy?: (strategy: CompositionStrategy) => void;
+    onApplyStrategy?: (strategy: CompositionStrategy, roles?: { townsfolk: RoleDef[], outsider: RoleDef[], minion: RoleDef[], demon: RoleDef[] }) => void;
 }
 
 export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ onClose, playerCount, onApplyStrategy }) => {
@@ -202,7 +202,13 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
                                     ? 'border-amber-600 bg-amber-950/20'
                                     : 'border-stone-800 bg-stone-950/30 hover:border-stone-700'
                                     }`}
-                                onClick={() => setSelectedStrategy(strategy.id)}
+                                onClick={() => {
+                                    setSelectedStrategy(strategy.id);
+                                    if (expandedStrategy !== strategy.id) {
+                                        setExpandedStrategy(null);
+                                        setGeneratedRoles(null);
+                                    }
+                                }}
                             >
                                 <div className="flex justify-between items-start mb-2">
                                     <h4 className="text-sm font-bold text-stone-200 font-cinzel">{strategy.name}</h4>
@@ -215,7 +221,7 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
                                 </div>
                                 <p className="text-xs text-stone-500 mb-3">{strategy.description}</p>
 
-                                {/* 配置建议 */}
+                                {/* 配置建议 - Always visible */}
                                 <div className="space-y-1 text-xs mb-2">
                                     <p className="text-stone-400">
                                         信息类: {Math.round(strategy.guidelines.infoRolesRatio.min * composition.townsfolk)}-{Math.round(strategy.guidelines.infoRolesRatio.max * composition.townsfolk)}个
@@ -228,20 +234,22 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
                                     </p>
                                 </div>
 
-                                {/* Tips */}
-                                <div className="mt-3 pt-3 border-t border-stone-800">
-                                    <p className="text-[10px] text-stone-500 uppercase tracking-wider mb-2">说书人建议:</p>
-                                    <ul className="space-y-1">
-                                        {strategy.guidelines.tips.map((tip, i) => (
-                                            <li key={i} className="text-xs text-stone-400 flex items-start gap-1">
-                                                <span className="text-amber-600">•</span>
-                                                <span>{tip}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
+                                {/* Tips - Only show when selected */}
+                                {selectedStrategy === strategy.id && (
+                                    <div className="mt-3 pt-3 border-t border-stone-800">
+                                        <p className="text-[10px] text-stone-500 uppercase tracking-wider mb-2">说书人建议:</p>
+                                        <ul className="space-y-1">
+                                            {strategy.guidelines.tips.map((tip, i) => (
+                                                <li key={i} className="text-xs text-stone-400 flex items-start gap-1">
+                                                    <span className="text-amber-600">•</span>
+                                                    <span>{tip}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
 
-                                {/* 生成按钮 */}
+                                {/* 生成按钮 - Only show when selected */}
                                 {selectedStrategy === strategy.id && (
                                     <button
                                         onClick={(e) => {
@@ -295,7 +303,7 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
                             <button
                                 onClick={() => {
                                     const strategy = STRATEGIES.find(s => s.id === selectedStrategy);
-                                    if (strategy) onApplyStrategy(strategy);
+                                    if (strategy) onApplyStrategy(strategy, generatedRoles || undefined);
                                 }}
                                 className="w-full py-2 px-4 bg-amber-600 hover:bg-amber-500 text-white rounded font-bold text-sm transition-colors"
                             >

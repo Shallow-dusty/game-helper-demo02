@@ -408,150 +408,158 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
         </Layer>
       </Stage>
 
-      {/* ST Context Menu */}
+      {/* ST Context Menu (Now a Modal) */}
       {contextMenu && user.isStoryteller && (
         <div
-          className="fixed bg-stone-900 border border-stone-600 rounded shadow-2xl p-0 z-50 flex flex-col w-56 animate-in fade-in zoom-in-95 duration-100 overflow-hidden"
-          style={{ top: contextMenu.y, left: contextMenu.x }}
-          onClick={(e) => e.stopPropagation()}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setContextMenu(null)}
         >
-          {/* Alive/Dead Toggle */}
-          <button
-            onClick={() => { toggleDead(contextMenu.seatId); setContextMenu(null); }}
-            className="text-left px-4 py-3 hover:bg-stone-800 flex items-center gap-3 transition-colors border-b border-stone-800"
+          <div
+            className="bg-stone-900 border border-stone-600 rounded-lg shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100"
+            onClick={(e) => e.stopPropagation()}
           >
-            <span className="text-xl">☠️</span>
-            <div className="flex flex-col">
-              <span className="text-stone-200 font-bold text-sm">切换存活</span>
-              <span className="text-[10px] text-stone-500 font-mono">(Alive/Dead)</span>
-            </div>
-          </button>
-
-          {/* Ability Used Toggle */}
-          <button
-            onClick={() => { toggleAbilityUsed(contextMenu.seatId); setContextMenu(null); }}
-            className="text-left px-4 py-3 hover:bg-stone-800 flex items-center gap-3 transition-colors border-b border-stone-800"
-          >
-            <span className="text-xl">🚫</span>
-            <div className="flex flex-col">
-              <span className="text-stone-200 font-bold text-sm">标记技能耗尽</span>
-              <span className="text-[10px] text-stone-500 font-mono">(Used)</span>
-            </div>
-          </button>
-
-          {/* Status Submenu */}
-          <div className="relative group border-b border-stone-800">
-            <button className="w-full text-left px-4 py-3 hover:bg-stone-800 flex items-center justify-between gap-3 transition-colors">
+            {/* Header */}
+            <div className="bg-stone-950 p-4 border-b border-stone-800 flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <span className="text-xl">✨</span>
-                <div className="flex flex-col">
-                  <span className="text-stone-200 font-bold text-sm">状态</span>
-                  <span className="text-[10px] text-stone-500 font-mono">(Status)</span>
+                <div className="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center border border-stone-700 text-xl">
+                  {gameState.seats.find(s => s.id === contextMenu.seatId)?.roleId ?
+                    (ROLES[gameState.seats.find(s => s.id === contextMenu.seatId)?.roleId!]?.team === 'DEMON' ? '👿' :
+                      ROLES[gameState.seats.find(s => s.id === contextMenu.seatId)?.roleId!]?.team === 'MINION' ? '🧪' : '⚜️')
+                    : '👤'}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-stone-200 font-cinzel">
+                    {gameState.seats.find(s => s.id === contextMenu.seatId)?.userName}
+                  </h3>
+                  <p className="text-xs text-stone-500">
+                    座位 {contextMenu.seatId + 1} • {gameState.seats.find(s => s.id === contextMenu.seatId)?.roleId ? ROLES[gameState.seats.find(s => s.id === contextMenu.seatId)?.roleId!]?.name : '未分配角色'}
+                  </p>
                 </div>
               </div>
-              <span className="text-stone-500">▶</span>
-            </button>
+              <button onClick={() => setContextMenu(null)} className="text-stone-500 hover:text-stone-300 p-2">✕</button>
+            </div>
 
-            <div className="absolute left-full top-0 ml-1 bg-stone-900 border border-stone-600 rounded shadow-xl p-1 w-40 flex-col gap-1 hidden group-hover:flex max-h-64 overflow-y-auto z-50">
-              {STATUS_OPTIONS.filter(status => {
-                // Filter logic: TB script doesn't have Madness
-                if (gameState.currentScriptId === 'tb' && status.id === 'MADNESS') return false;
-                return true;
-              }).map(status => {
-                const seat = gameState.seats.find(s => s.id === contextMenu.seatId);
-                const hasStatus = seat?.statuses.includes(status.id as SeatStatus);
-                return (
+            {/* Actions Grid */}
+            <div className="p-4 grid grid-cols-2 gap-3">
+              {/* Alive/Dead Toggle */}
+              <button
+                onClick={() => { toggleDead(contextMenu.seatId); setContextMenu(null); }}
+                className={`p-3 rounded border flex items-center gap-3 transition-colors ${gameState.seats.find(s => s.id === contextMenu.seatId)?.isDead ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
+              >
+                <span className="text-2xl">{gameState.seats.find(s => s.id === contextMenu.seatId)?.isDead ? '💀' : '❤️'}</span>
+                <div className="text-left">
+                  <div className="font-bold text-sm">切换存活</div>
+                  <div className="text-[10px] opacity-70">{gameState.seats.find(s => s.id === contextMenu.seatId)?.isDead ? '当前: 死亡' : '当前: 存活'}</div>
+                </div>
+              </button>
+
+              {/* Ability Used Toggle */}
+              <button
+                onClick={() => { toggleAbilityUsed(contextMenu.seatId); setContextMenu(null); }}
+                className={`p-3 rounded border flex items-center gap-3 transition-colors ${gameState.seats.find(s => s.id === contextMenu.seatId)?.hasUsedAbility ? 'bg-stone-950 border-stone-800 text-stone-500' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
+              >
+                <span className="text-2xl">🚫</span>
+                <div className="text-left">
+                  <div className="font-bold text-sm">技能耗尽</div>
+                  <div className="text-[10px] opacity-70">{gameState.seats.find(s => s.id === contextMenu.seatId)?.hasUsedAbility ? '已使用' : '未使用'}</div>
+                </div>
+              </button>
+
+              {/* Assign Role */}
+              <button
+                onClick={() => { setRoleSelectSeat(contextMenu.seatId); setContextMenu(null); }}
+                className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
+              >
+                <span className="text-2xl">🎭</span>
+                <div className="text-left">
+                  <div className="font-bold text-sm">分配角色</div>
+                  <div className="text-[10px] opacity-70">更改玩家角色</div>
+                </div>
+              </button>
+
+              {/* Nominate */}
+              <button
+                onClick={() => { startVote(contextMenu.seatId); setContextMenu(null); }}
+                className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
+              >
+                <span className="text-2xl">⚖️</span>
+                <div className="text-left">
+                  <div className="font-bold text-sm">发起提名</div>
+                  <div className="text-[10px] opacity-70">开始投票流程</div>
+                </div>
+              </button>
+            </div>
+
+            {/* Status Section */}
+            <div className="px-4 pb-4">
+              <h4 className="text-xs font-bold text-stone-500 uppercase mb-2">状态 (Status)</h4>
+              <div className="flex flex-wrap gap-2">
+                {STATUS_OPTIONS.filter(status => {
+                  // Filter logic: TB script doesn't have Madness
+                  if (gameState.currentScriptId === 'tb' && status.id === 'MADNESS') return false;
+                  return true;
+                }).map(status => {
+                  const seat = gameState.seats.find(s => s.id === contextMenu.seatId);
+                  const hasStatus = seat?.statuses.includes(status.id as SeatStatus);
+                  return (
+                    <button
+                      key={status.id}
+                      onClick={() => toggleStatus(contextMenu.seatId, status.id as SeatStatus)}
+                      className={`px-3 py-1.5 rounded-full text-xs border flex items-center gap-1.5 transition-all ${hasStatus ? 'bg-amber-900/50 border-amber-600 text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'bg-stone-950 border-stone-800 text-stone-500 hover:border-stone-600'}`}
+                    >
+                      <span>{status.icon}</span>
+                      <span>{status.label.split(' ')[0]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Reminders Section */}
+            <div className="px-4 pb-4 border-t border-stone-800 pt-4">
+              <h4 className="text-xs font-bold text-stone-500 uppercase mb-2">标记 (Reminders)</h4>
+
+              {/* Existing Reminders */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {gameState.seats.find(s => s.id === contextMenu.seatId)?.reminders.map(rem => (
                   <button
-                    key={status.id}
-                    onClick={(e) => { e.stopPropagation(); toggleStatus(contextMenu.seatId, status.id as SeatStatus); }}
-                    className={`text-left px-3 py-2 hover:bg-stone-800 rounded text-xs flex items-center gap-2 transition-colors ${hasStatus ? 'bg-stone-800' : ''}`}
+                    key={rem.id}
+                    onClick={() => removeReminder(rem.id)}
+                    className="px-2 py-1 rounded bg-stone-800 border border-stone-600 text-xs text-stone-300 hover:bg-red-900/30 hover:border-red-800 hover:text-red-300 flex items-center gap-1 transition-colors group"
+                    title="点击删除"
                   >
-                    <span>{status.icon}</span>
-                    <span className={`flex-1 ${hasStatus ? 'text-amber-400 font-bold' : 'text-stone-300'}`}>{status.label}</span>
-                    {hasStatus && <span className="text-amber-400">✓</span>}
+                    <span>{rem.icon || '🔸'}</span>
+                    <span>{rem.text}</span>
+                    <span className="hidden group-hover:inline ml-1">×</span>
                   </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Assign Role */}
-          <button
-            onClick={() => { setRoleSelectSeat(contextMenu.seatId); setContextMenu(null); }}
-            className="text-left px-4 py-3 hover:bg-stone-800 flex items-center gap-3 transition-colors border-b border-stone-800"
-          >
-            <span className="text-xl">🎭</span>
-            <div className="flex flex-col">
-              <span className="text-stone-200 font-bold text-sm">分配角色</span>
-              <span className="text-[10px] text-stone-500 font-mono">(Assign Role)</span>
-            </div>
-          </button>
-
-          {/* Nominate */}
-          <button
-            onClick={() => { startVote(contextMenu.seatId); setContextMenu(null); }}
-            className="text-left px-4 py-3 hover:bg-stone-800 flex items-center gap-3 transition-colors border-b border-stone-800"
-          >
-            <span className="text-xl">⚖️</span>
-            <div className="flex flex-col">
-              <span className="text-stone-200 font-bold text-sm">发起提名</span>
-              <span className="text-[10px] text-stone-500 font-mono">(Nominate)</span>
-            </div>
-          </button>
-
-          {/* Reminders Section */}
-          <div className="relative group">
-            <button
-              className="w-full text-left px-4 py-3 hover:bg-stone-800 flex items-center justify-between gap-3 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-xl">📝</span>
-                <div className="flex flex-col">
-                  <span className="text-stone-200 font-bold text-sm">添加标记</span>
-                  <span className="text-[10px] text-stone-500 font-mono">(Reminder)</span>
-                </div>
+                ))}
+                {gameState.seats.find(s => s.id === contextMenu.seatId)?.reminders.length === 0 && (
+                  <span className="text-xs text-stone-600 italic">无标记</span>
+                )}
               </div>
-              <span className="text-stone-500">▶</span>
-            </button>
 
-            {/* Reminder Submenu */}
-            <div className="absolute left-full top-0 ml-1 bg-stone-900 border border-stone-600 rounded shadow-xl p-1 w-32 flex-col gap-1 hidden group-hover:flex z-50">
-              {PRESET_REMINDERS.map(preset => (
-                <button
-                  key={preset.text}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (preset.text === '自定义') {
-                      const text = prompt("输入标记内容:");
-                      if (text) addReminder(contextMenu.seatId, text, preset.icon, preset.color);
-                    } else {
-                      addReminder(contextMenu.seatId, preset.text, preset.icon, preset.color);
-                    }
-                    setContextMenu(null);
-                  }}
-                  className="text-left px-2 py-1.5 hover:bg-stone-800 rounded text-xs text-stone-300 flex items-center gap-2"
-                >
-                  <span>{preset.icon}</span> {preset.text}
-                </button>
-              ))}
+              {/* Add Reminder Buttons */}
+              <div className="grid grid-cols-4 gap-2">
+                {PRESET_REMINDERS.map(preset => (
+                  <button
+                    key={preset.text}
+                    onClick={() => {
+                      if (preset.text === '自定义') {
+                        const text = prompt("输入标记内容:");
+                        if (text) addReminder(contextMenu.seatId, text, preset.icon, preset.color);
+                      } else {
+                        addReminder(contextMenu.seatId, preset.text, preset.icon, preset.color);
+                      }
+                    }}
+                    className="p-2 rounded bg-stone-950 border border-stone-800 hover:bg-stone-800 text-center transition-colors flex flex-col items-center justify-center gap-1"
+                  >
+                    <span className="text-lg">{preset.icon}</span>
+                    <span className="text-[10px] text-stone-400">{preset.text}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-
-          {/* Existing Reminders (Click to remove) */}
-          {gameState.seats.find(s => s.id === contextMenu.seatId)?.reminders.length! > 0 && (
-            <div className="border-t border-stone-700 bg-stone-950/50">
-              <p className="text-[10px] text-stone-500 px-4 py-1 uppercase tracking-wider">点击删除标记:</p>
-              {gameState.seats.find(s => s.id === contextMenu.seatId)?.reminders.map(rem => (
-                <button
-                  key={rem.id}
-                  onClick={() => removeReminder(rem.id)}
-                  className="w-full text-left px-4 py-2 hover:bg-red-900/20 text-xs text-stone-400 flex items-center gap-2 truncate transition-colors"
-                >
-                  <span className="text-xs">{rem.icon || '🔸'}</span> {rem.text}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       )}
 

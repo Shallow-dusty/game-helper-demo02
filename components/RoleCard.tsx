@@ -5,6 +5,7 @@ interface RoleCardProps {
     role: RoleDef;
     isPlayerRole?: boolean;
     size?: 'small' | 'normal' | 'large';
+    showDetails?: boolean;
 }
 
 const TEAM_COLORS = {
@@ -26,7 +27,8 @@ const TEAM_NAMES = {
 export const RoleCard: React.FC<RoleCardProps> = ({
     role,
     isPlayerRole = false,
-    size = 'normal'
+    size = 'normal',
+    showDetails = false
 }) => {
     const color = TEAM_COLORS[role.team] || 'stone';
     const teamName = TEAM_NAMES[role.team] || role.team;
@@ -80,6 +82,19 @@ export const RoleCard: React.FC<RoleCardProps> = ({
                         </p>
                     </div>
 
+                    {/* Detailed Description */}
+                    {showDetails && role.detailedDescription && (
+                        <div className="pt-3 border-t border-yellow-500/30">
+                            <div className="text-sm text-stone-300 leading-relaxed space-y-2"
+                                dangerouslySetInnerHTML={{
+                                    __html: role.detailedDescription
+                                        .split('\n').join('<br/>')
+                                        .replace(/\*\*(.+?)\*\*/g, '<strong class="text-yellow-400">$1</strong>')
+                                }}
+                            />
+                        </div>
+                    )}
+
                     {/* Night Order */}
                     {(role.firstNight || role.otherNight) && (
                         <div className="flex gap-4 pt-3 border-t border-yellow-500/30">
@@ -103,12 +118,6 @@ export const RoleCard: React.FC<RoleCardProps> = ({
     }
 
     // Normal role card
-    const borderColor = `border-${color}-500`;
-    const textColor = `text-${color}-300`;
-    const badgeTextColor = `text-${color}-500/60`;
-    const badgeBgColor = `bg-${color}-950/30`;
-
-    // Use complete class names for Tailwind
     const cardClasses = {
         blue: 'border-blue-500',
         green: 'border-green-500',
@@ -137,7 +146,7 @@ export const RoleCard: React.FC<RoleCardProps> = ({
     };
 
     return (
-        <div className={`${sizeClasses[size]} rounded-lg border-2 ${cardClasses[color as keyof typeof cardClasses] || cardClasses.stone} bg-stone-900 hover:bg-stone-800 transition-all hover:scale-105 hover:shadow-lg cursor-pointer`}>
+        <div className={`${sizeClasses[size]} rounded-lg border-2 ${cardClasses[color as keyof typeof cardClasses] || cardClasses.stone} bg-stone-900 hover:bg-stone-800 transition-all hover:scale-105 hover:shadow-lg cursor-pointer h-full flex flex-col`}>
             {/* Role Name */}
             <div className="flex items-center justify-between mb-2">
                 <h4 className={`${titleSizeClasses[size]} font-bold ${titleClasses[color as keyof typeof titleClasses] || titleClasses.stone} font-cinzel`}>
@@ -149,13 +158,26 @@ export const RoleCard: React.FC<RoleCardProps> = ({
             </div>
 
             {/* Ability */}
-            <p className="text-sm text-stone-300 leading-relaxed mb-2">
+            <p className="text-sm text-stone-300 leading-relaxed mb-2 flex-grow">
                 {role.ability}
             </p>
 
+            {/* Detailed Description */}
+            {showDetails && role.detailedDescription && (
+                <div className="pt-2 mt-2 border-t border-stone-700/50">
+                    <div className="text-xs text-stone-400 leading-relaxed space-y-1"
+                        dangerouslySetInnerHTML={{
+                            __html: role.detailedDescription
+                                .split('\n').join('<br/>')
+                                .replace(/\*\*(.+?)\*\*/g, '<strong class="text-stone-200">$1</strong>')
+                        }}
+                    />
+                </div>
+            )}
+
             {/* Night Order (compact) */}
             {(role.firstNight || role.otherNight) && (
-                <div className="flex gap-3 text-xs text-stone-500 pt-2 border-t border-stone-700">
+                <div className="flex gap-3 text-xs text-stone-500 pt-2 border-t border-stone-700 mt-auto">
                     {role.firstNight && <span>首夜: {role.firstNight}</span>}
                     {role.otherNight && <span>其他: {role.otherNight}</span>}
                 </div>

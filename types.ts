@@ -34,6 +34,7 @@ export interface RoleDef {
   name: string;
   team: Team;
   ability: string;
+  detailedDescription?: string; // 详细描述（包含官方完整说明+额外补充）
   firstNight?: boolean;
   otherNight?: boolean;
   icon?: string; // Visual indicator for the role (emoji)
@@ -79,7 +80,12 @@ export interface Seat {
   userName: string;
   isDead: boolean;
   hasGhostVote: boolean;
-  roleId: string | null; // Null if not assigned
+
+  // 角色身份系统：支持"表里"角色机制
+  roleId: string | null; // 【已弃用】向后兼容，实际使用 seenRoleId
+  realRoleId: string | null; // 真实身份（ST 可见，用于游戏逻辑判定）
+  seenRoleId: string | null; // 展示身份（玩家看到的，可能是假的）
+
   reminders: Reminder[];
   // Interaction states
   isHandRaised: boolean;

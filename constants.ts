@@ -3,28 +3,191 @@ import { RoleDef, ScriptDef } from './types';
 
 export const ROLES: Record<string, RoleDef> = {
   // --- TROUBLE BREWING (TB) ---
-  washerwoman: { id: 'washerwoman', name: '洗衣妇', team: 'TOWNSFOLK', ability: '开局知晓一张村民牌。', firstNight: true },
-  librarian: { id: 'librarian', name: '图书管理员', team: 'TOWNSFOLK', ability: '开局知晓一张外来者牌。', firstNight: true },
-  investigator: { id: 'investigator', name: '调查员', team: 'TOWNSFOLK', ability: '开局知晓一张爪牙牌。', firstNight: true },
-  chef: { id: 'chef', name: '厨师', team: 'TOWNSFOLK', ability: '知晓邪恶玩家的相邻对数。', firstNight: true },
-  empath: { id: 'empath', name: '共情者', team: 'TOWNSFOLK', ability: '知晓邻座有多少邪恶玩家。', otherNight: true },
-  fortune_teller: { id: 'fortune_teller', name: '占卜师', team: 'TOWNSFOLK', ability: '每晚选择两名玩家检测是否为恶魔。', otherNight: true, icon: '🔮', nightAction: { type: 'choose_two_players', prompt: '选择两名玩家进行查验' } },
-  undertaker: { id: 'undertaker', name: '掘墓人', team: 'TOWNSFOLK', ability: '知晓白天被处决玩家的角色。', otherNight: true },
-  monk: { id: 'monk', name: '僧侣', team: 'TOWNSFOLK', ability: '每晚保护一名玩家免受恶魔伤害。', otherNight: true, icon: '🛡️', nightAction: { type: 'choose_player', prompt: '选择一名玩家进行保护' } },
-  ravenkeeper: { id: 'ravenkeeper', name: '守鸦人', team: 'TOWNSFOLK', ability: '若在夜晚死亡,选择一名玩家查验身份。', otherNight: true, icon: '🦅', nightAction: { type: 'choose_player', prompt: '选择一名玩家查验身份(仅夜间死亡时)' } },
-  virgin: { id: 'virgin', name: '处女', team: 'TOWNSFOLK', ability: '首次被提名为村民时，立即处决提名者。', icon: '🕯️' },
-  slayer: { id: 'slayer', name: '杀手', team: 'TOWNSFOLK', ability: '每局游戏限一次，选择一名玩家击杀恶魔。', icon: '🏹' },
-  soldier: { id: 'soldier', name: '士兵', team: 'TOWNSFOLK', ability: '免受恶魔伤害。', icon: '🛡️' },
-  mayor: { id: 'mayor', name: '市长', team: 'TOWNSFOLK', ability: '若只剩3名玩家，票死别人即可获胜。', icon: '🏅' },
-  butler: { id: 'butler', name: '管家', team: 'OUTSIDER', ability: '除非主人投票，否则不能投票。', otherNight: true },
-  drunk: { id: 'drunk', name: '酒鬼', team: 'OUTSIDER', ability: '你以为你是村民，其实你不是。', icon: '🍺' },
-  recluse: { id: 'recluse', name: '隐士', team: 'OUTSIDER', ability: '可能被判定为邪恶/爪牙/恶魔。' },
-  saint: { id: 'saint', name: '圣徒', team: 'OUTSIDER', ability: '若被处决，你所在的阵营失败。', icon: '☠️' },
-  poisoner: { id: 'poisoner', name: '投毒者', team: 'MINION', ability: '每晚对一名玩家下毒。', otherNight: true, icon: '🧪', nightAction: { type: 'choose_player', prompt: '选择一名玩家下毒' } },
-  spy: { id: 'spy', name: '间谍', team: 'MINION', ability: '可以查看魔典。', otherNight: true, icon: '🕵️' },
-  scarlet_woman: { id: 'scarlet_woman', name: '猩红女巫', team: 'MINION', ability: '若恶魔死亡，你成为新的恶魔。' },
-  baron: { id: 'baron', name: '男爵', team: 'MINION', ability: '增加2名外来者代替村民。', firstNight: true },
-  imp: { id: 'imp', name: '小恶魔', team: 'DEMON', ability: '每晚击杀一名玩家。可以自杀传位。', otherNight: true, icon: '😈', nightAction: { type: 'choose_player', prompt: '选择一名玩家击杀' } },
+  washerwoman: {
+    id: 'washerwoman',
+    name: '洗衣妇',
+    team: 'TOWNSFOLK',
+    firstNight: true,
+    ability: '开局时，你能得知一名镇民和一位玩家，该玩家是该镇民或另一个特定镇民。',
+    detailedDescription: '**官方规则**: 首夜，你会看到两个玩家和一个镇民角色。其中一个玩家是该镇民，另一个可能是任何角色。\n\n**补充说明**:\n• 选人方式：说书人指定\n• 信息可能被下毒或醉酒影响'
+  },
+  librarian: {
+    id: 'librarian',
+    name: '图书管理员',
+    team: 'TOWNSFOLK',
+    firstNight: true,
+    ability: '开局时，你能得知一名外来者和一位玩家，该玩家是该外来者或另一个特定外来者。',
+    detailedDescription: '**官方规则**: 首夜，你会看到两个玩家和一个外来者角色。其中一个玩家是该外来者。\n\n**补充说明**:\n• 选人方式：说书人指定\n• 如果没有外来者，会显示错误信息'
+  },
+  investigator: {
+    id: 'investigator',
+    name: '调查员',
+    team: 'TOWNSFOLK',
+    firstNight: true,
+    ability: '开局时，你能得知两名玩家和一个爪牙身份，这两名玩家其中恰好有一名是该爪牙。',
+    detailedDescription: '**官方规则**: 首夜，你会看到两个玩家和一个爪牙角色。其中恰好一个玩家是该爪牙。\n\n**补充说明**:\n• 选人方式：说书人指定\n• 另一个玩家一定不是该爪牙（但可能是其他邪恶角色）'
+  },
+  chef: {
+    id: 'chef',
+    name: '厨师',
+    team: 'TOWNSFOLK',
+    ability: '知晓邪恶玩家的相邻对数。',
+    firstNight: true,
+    detailedDescription: '**官方规则**: 首夜，说书人会告诉你场上有多少对邻座的邪恶玩家。\n\n**补充说明**:\n• 若ABC三人连坐，AB都是邪恶，BC都是邪恶，则为2对（不是3对）\n• 如果所有邪恶都不相邻，你会得到0\n• 信息可能被下毒或醉酒影响'
+  },
+  empath: {
+    id: 'empath',
+    name: '共情者',
+    team: 'TOWNSFOLK',
+    ability: '知晓邻座有多少邪恶玩家。',
+    otherNight: true,
+    detailedDescription: '**官方规则**: 每晚（包括首夜），你会得知你的两个邻居中有几个是邪恶阵营。\n\n**补充说明**:\n• 可能的结果：0、1或2\n• 如果你的邻居死亡，仍然计入\n• 如果游戏中途换位，按新位置计算\n• 信息可能被下毒或醉酒影响'
+  },
+  fortune_teller: {
+    id: 'fortune_teller',
+    name: '占卜师',
+    team: 'TOWNSFOLK',
+    ability: '每晚选择两名玩家检测是否为恶魔。',
+    otherNight: true,
+    icon: '🔮',
+    nightAction: { type: 'choose_two_players', prompt: '选择两名玩家进行查验' },
+    detailedDescription: '**官方规则**: 每晚，你选择两名玩家。说书人会告诉你，他们中是否有恶魔。如果他们中有一个恶魔，你会得到“是”；如果没有，你会得到“否”。\n\n**补充说明**:\n• 选人方式：你指定\n• 如果你选择的两人中有一个是恶魔，你只会知道“是”，但不知道具体是哪一个。\n• 如果你选择的两人中有一个是红鲱鱼（Red Herring），你也会得到“是”，即使没有恶魔。\n• 红鲱鱼是说书人可以指定的一个非恶魔角色，其效果是让占卜师在选择到他时，总是得到“是”的信息。'
+  },
+  undertaker: {
+    id: 'undertaker',
+    name: '掘墓人',
+    team: 'TOWNSFOLK',
+    ability: '知晓白天被处决玩家的角色。',
+    otherNight: true,
+    detailedDescription: '**官方规则**: 如果白天有玩家被处决，当晚你会得知该玩家的角色。\n\n**补充说明**:\n• 只有被处决（投票出局）才会触发，被恶魔杀死不触发\n• 如果白天没人被处决，你不会醒来\n• 你得知的是该玩家的真实角色，即使他以为自己是其他角色（如酒鬼）\n• 信息可能被下毒或醉酒影响'
+  },
+  monk: {
+    id: 'monk',
+    name: '僧侣',
+    team: 'TOWNSFOLK',
+    ability: '每晚保护一名玩家免受恶魔伤害。',
+    otherNight: true,
+    icon: '🛡️',
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家进行保护' },
+    detailedDescription: '**官方规则**: 每晚（除首夜外），你选择一名玩家，该玩家当晚不会被恶魔杀死。\n\n**补充说明**:\n• 选人方式：你指定\n• 你可以选择自己\n• 只保护恶魔杀死，不保护其他死亡方式（如被处决、刺客）\n• 如果恶魔攻击了你保护的目标，恶魔不会得知\n• 你可以连续多晚保护同一个人'
+  },
+  ravenkeeper: {
+    id: 'ravenkeeper',
+    name: '守鸦人',
+    team: 'TOWNSFOLK',
+    ability: '若在夜晚死亡,选择一名玩家查验身份。',
+    otherNight: true,
+    icon: '🦅',
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家查验身份(仅夜间死亡时)' },
+    detailedDescription: '**官方规则**: 如果你在夜间死亡（被恶魔杀死），当晚你立即醒来并选择一名玩家，说书人会告诉你该玩家的角色。\n\n**补充说明**:\n• 选人方式：你指定\n• 只有夜间死亡才触发，白天被处决不触发\n• 你可以选择任何玩家，包括自己\n• 你得知的是真实角色，不受酒鬼等影响\n• 信息可能被下毒或醉酒影响'
+  },
+  virgin: {
+    id: 'virgin',
+    name: '处女',
+    team: 'TOWNSFOLK',
+    ability: '首次被提名为村民时，立即处决提名者。',
+    icon: '🕯️',
+    detailedDescription: '**官方规则**: 当你首次被一个镇民提名时，该镇民立即被处决。\n\n**补充说明**:\n• 只在首次被提名时触发\n• 只对镇民（TOWNSFOLK）角色有效\n• 如果提名者是外来者、爪牙或恶魔，不会触发\n• 如果你被醉酒或下毒，也不会触发\n• 第二次被提名不会再触发'
+  },
+  slayer: {
+    id: 'slayer',
+    name: '杀手',
+    team: 'TOWNSFOLK',
+    ability: '每局游戏限一次，选择一名玩家击杀恶魔。',
+    icon: '🏹',
+    detailedDescription: '**官方规则**: 整局游戏中，你可以在白天公开选择一名玩家。如果该玩家是恶魔，他立即死亡。\n\n**补充说明**:\n• 选人方式：你公开宣布\n• 整局只能使用一次，不管是否成功\n• 如果目标不是恶魔，则无事发生\n• 一些特殊恶魔可能不会死亡（如僵尸）\n• ST需要在玩家面板上标记技能已使用'
+  },
+  soldier: {
+    id: 'soldier',
+    name: '士兵',
+    team: 'TOWNSFOLK',
+    ability: '免受恶魔伤害。',
+    icon: '🛡️',
+    detailedDescription: '**官方规则**: 你不会被恶魔杀死。\n\n**补充说明**:\n• 被动技能，无需操作\n• 只免疫恶魔的攻击，仍然可以被处决、刺客等杀死\n• 如果你被醉酒或下毒，会失去保护\n• 恶魔攻击你时，ST不会告诉恶魔你是士兵'
+  },
+  mayor: {
+    id: 'mayor',
+    name: '市长',
+    team: 'TOWNSFOLK',
+    ability: '若只剩3名玩家，票死别人即可获胜。',
+    icon: '🏅',
+    detailedDescription: '**官方规则**: 当场上只剩下3名活人时，如果有玩家被处决，好人立即获胜。\n\n**补充说明**:\n• 当有死人的情况下，剩余活人=3时触发\n• 只有处决（投票杀死）才触发，夜间杀死不触发\n• 即使被处决的是好人，好人仍然能获胜\n• 如果你被醉酒或下毒，此效果不生效'
+  },
+  butler: {
+    id: 'butler',
+    name: '管家',
+    team: 'OUTSIDER',
+    ability: '除非主人投票，否则不能投票。',
+    otherNight: true,
+    detailedDescription: '**官方规则**: 首夜，你选择一名玩家作为你的主人。投票时，只有当你的主人投票时，你才能投票。\n\n**补充说明**:\n• 选人方式：首夜你秘密指定\n• 主人死亡后，你仍然只能跟着他投票\n• 主人不投票时，你不能投票\n• 你不需要和主人投同一人\n• 主人可以是任何阵营'
+  },
+  drunk: {
+    id: 'drunk',
+    name: '酒鬼',
+    team: 'OUTSIDER',
+    ability: '你以为你是村民，其实你不是。',
+    icon: '🍺',
+    detailedDescription: '**官方规则**: 你不知道自己是酒鬼。你以为自己是一个镇民角色，但实际上你的能力不生效。\n\n**补充说明**:\n• ST会告诉你一个镇民角色，但你实际是酒鬼\n• 你会接收到假信息，可能是真的也可能是假的\n• 如果有角色查验你，他们会看到你被告知的角色\n• 酒鬼是固定的，整局不会变化\n• 酒鬼和被下毒不同，酒鬼是永久性的'
+  },
+  recluse: {
+    id: 'recluse',
+    name: '隐士',
+    team: 'OUTSIDER',
+    ability: '可能被判定为邪恶/爪牙/恶魔。',
+    detailedDescription: '**官方规则**: 当其他角色查验你时，ST可以选择让你看起来像是邪恶阵营、爪牙或恶魔。\n\n**补充说明**:\n• 影响占卜师、调查员等查验角色\n• ST可以选择何时让你显示为邪恶\n• 你仍然是好人阵营，只是信息可能错误\n• 你也可能一直显示为外来者\n• 与酒鬼不同，你知道自己是隐士'
+  },
+  saint: {
+    id: 'saint',
+    name: '圣徒',
+    team: 'OUTSIDER',
+    ability: '若被处决，你所在的阵营失败。',
+    icon: '☠️',
+    detailedDescription: '**官方规则**: 如果你在白天被投票处决，邪恶阵营立即获胜。\n\n**补充说明**:\n• 只有被处决（投票出局）才触发，夜间被杀不触发\n• 即使玩家死亡，只要被处决仍然触发\n• 如果你被醉酒或下毒，不会触发\n• 这是外来者中最危险的角色\n• 爪牙可能会故意提名你'
+  },
+  poisoner: {
+    id: 'poisoner',
+    name: '投毒者',
+    team: 'MINION',
+    ability: '每晚对一名玩家下毒。',
+    otherNight: true,
+    icon: '🧪',
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家下毒' },
+    detailedDescription: '**官方规则**: 每晚，你选择一名玩家下毒。被下毒的玩家能力失效，信息变为错误。\n\n**补充说明**:\n• 选人方式：你每晚指定\n• 被下毒的玩家不知道自己被下毒\n• 毒性持续到下一个黑夜\n• 你可以连续多晚选同一个人\n• 下毒后，目标的能力完全无效'
+  },
+  spy: {
+    id: 'spy',
+    name: '间谍',
+    team: 'MINION',
+    ability: '可以查看魔典。',
+    otherNight: true,
+    icon: '🕵️',
+    detailedDescription: '**官方规则**: 每晚，你会看到魔典（所有玩家的角色）。当被查验时，你可能显示为好人或任何角色。\n\n**补充说明**:\n• 你可以看到所有玩家的真实角色\n• 当别人查验你时，ST可以让你显示为任何角色\n• 你可以纪乱洗衣妇、图书管理员等的信息\n• 非常强大的情报角色\n• 你知道谁是酒鬼、谁是隐士'
+  },
+  scarlet_woman: {
+    id: 'scarlet_woman',
+    name: '猎红女巫',
+    team: 'MINION',
+    ability: '若恶魔死亡，你成为新的恶魔。',
+    detailedDescription: '**官方规则**: 如果恶魔死亡且场上有至少5名活人，你变成原来的恶魔角色。\n\n**补充说明**:\n• 只有在至少5人活着时才会变身\n• 你会变成恶魔，获得恶魔技能\n• 原恶魔真的死了，你是新恶魔\n• 如果有多个爪牙，只有你会变成恶魔\n• 如果少5人时，你不会变身，好人获胜'
+  },
+  baron: {
+    id: 'baron',
+    name: '男爵',
+    team: 'MINION',
+    ability: '增加2名外来者代替村民。',
+    firstNight: true,
+    detailedDescription: '**官方规则**: 如果场上有男爵，会额外增加2个外来者，减少2个镇民。\n\n**补充说明**:\n• 这是开局效果，影响角色配置\n• 如果没有男爵，可能没有外来者\n• 如果有男爵，至少有2个外来者\n• 图书管理员会接收到正确信息\n• 男爵死亡后，外来者不会消失'
+  },
+  imp: {
+    id: 'imp',
+    name: '小恶魔',
+    team: 'DEMON',
+    ability: '每晚击杀一名玩家。可以自杀传位。',
+    otherNight: true,
+    icon: '😈',
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家击杀' },
+    detailedDescription: '**官方规则**: 每晚，你选择一名玩家杀死。你可以选择自杀，如果你自杀，一名爪牙变成小恶魔。\n\n**补充说明**:\n• 选人方式：你每晚指定\n• 你不能选择同一个爪牙两次\n• 如果你自杀，ST会选择一个爪牙变成恶魔\n• 自杀是主动技能，可以避免被处决\n• 如果目标被僧侣保护或是士兵，无法杀死'
+  },
 
   // --- BAD MOON RISING (BMR) ---
   grandmother: { id: 'grandmother', name: '祖母', team: 'TOWNSFOLK', ability: '知晓孙子是谁，孙子死你也死。', firstNight: true },

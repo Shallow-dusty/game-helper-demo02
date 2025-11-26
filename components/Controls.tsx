@@ -7,8 +7,7 @@ import { NightActionPanel } from './NightActionPanel';
 import { StorytellerNotebook } from './StorytellerNotebook';
 import { PlayerNotebook } from './PlayerNotebook';
 import { PlayerNightAction } from './PlayerNightAction';
-import { HelpModal } from './HelpModal';
-import { GameRules } from './GameRules';
+import { RoleReferencePanel } from './RoleReferencePanel';
 import { VotingChart } from './VotingChart';
 import { ScriptCompositionGuide } from './ScriptCompositionGuide';
 
@@ -45,8 +44,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const [aiPrompt, setAiPrompt] = useState('');
     const [showHistory, setShowHistory] = useState(false);
     const [showNightAction, setShowNightAction] = useState(false);
-    const [showHelp, setShowHelp] = useState(false);
-    const [showRules, setShowRules] = useState(false);
+    const [showRoleReference, setShowRoleReference] = useState(false);
     const [showCompositionGuide, setShowCompositionGuide] = useState(false);
     const [skillDescriptionMode, setSkillDescriptionMode] = useState<'simple' | 'detailed'>('simple');
 
@@ -113,6 +111,43 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
         }
     }, [gameState?.phase, gameState?.nightCurrentIndex, user?.id]);
 
+    // Audio Element Ref
+    const audioRef = React.useRef<HTMLAudioElement>(null);
+
+    // Sync audio state with ref
+    useEffect(() => {
+        if (!audioRef.current) return;
+
+        const audio = audioRef.current;
+        // If trackId is empty, pause and clear src
+        if (!gameState.audio.trackId) {
+            audio.pause();
+            audio.src = '';
+            return;
+        }
+
+        const track = AUDIO_TRACKS[gameState.audio.trackId];
+
+        if (track && audio.src !== track.url) {
+            audio.src = track.url;
+        }
+
+        audio.volume = gameState.audio.volume;
+
+        if (gameState.audio.isPlaying) {
+            // Use a promise to handle play(), as it can be interrupted
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(e => {
+                    console.error("Audio play failed (likely browser policy):", e);
+                    // Optionally update state to paused if play fails
+                });
+            }
+        } else {
+            audio.pause();
+        }
+    }, [gameState?.audio?.trackId, gameState?.audio?.isPlaying, gameState?.audio?.volume]);
+
 
     if (!user || !gameState) return null;
 
@@ -133,6 +168,9 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             className="bg-stone-950 border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif relative transition-none z-50"
             style={{ width: `${width}px` }}
         >
+            {/* Audio Element */}
+            <audio ref={audioRef} loop />
+
             {/* Drag Handle */}
             <div
                 className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-purple-500/50 z-50 transition-colors"
@@ -151,15 +189,8 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     </div>
                 </div>
 
+                {/* Mobile Close Button - 移除了游戏规则按钮，已在Game Tab中 */}
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setShowRules(true)}
-                        className="text-stone-400 hover:text-amber-400 p-2 transition-colors"
-                        title="游戏规则 (Game Rules)"
-                    >
-                        📖
-                    </button>
-                    {/* Mobile Close Button */}
                     {onClose && (
                         <button onClick={onClose} className="md:hidden text-stone-400 hover:text-white p-2">
                             ✕
@@ -269,34 +300,6 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                             <div className="text-3xl font-bold text-amber-600 tracking-widest font-cinzel drop-shadow-md">{PHASE_LABELS[gameState.phase]}</div>
                         </div>
 
-                        {/* GAME RULES COLLAPSIBLE PANEL */}
-                        <div className="bg-stone-900 rounded border border-stone-700 overflow-hidden">
-                            <button
-                                onClick={() => setShowRules(!showRules)}
-                                className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-stone-800 transition-colors"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xl">📖</span>
-                                    <span className="text-sm font-bold text-stone-200 font-cinzel">游戏规则 (Game Rules)</span>
-                                </div>
-                                <span className="text-stone-500 text-sm">{showRules ? '▼' : '▶'}</span>
-                            </button>
-                            {showRules && (
-                                <div className="border-t border-stone-800 p-4 bg-stone-950/50 max-h-64 overflow-y-auto">
-                                    <div className="text-xs text-stone-400 space-y-2">
-                                        <p className="font-bold text-amber-400">基础规则:</p>
-                                        <p>• 白天讨论，提名投票，晚上角色秘密行动</p>
-                                        <p>• 好人目标：找出并处决恶魔</p>
-                                        <p>• 邪恶目标：杀死所有好人或达成特定胜利条件</p>
-                                        <p className="font-bold text-amber-400 mt-3">投票规则:</p>
-                                        <p>• 票数&gt;存活人数/2则被提名人处决</p>
-                                        <p>• 死亡玩家有1次幽灵票机会</p>
-                                        <p className="text-[10px] text-stone-600 mt-2 italic">点击右上角📖查看完整规则</p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
                         {/* ST CONTROLS */}
                         {user.isStoryteller && (
                             <div className="space-y-6">
@@ -380,7 +383,14 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                             <span>🎲</span> 自动分配角色
                                         </button>
                                         <button
-                                            onClick={() => useStore.getState().distributeRoles()}
+                                            onClick={() => {
+                                                const hasEmptyRoles = gameState.seats.some(s => !s.roleId);
+                                                if (hasEmptyRoles) {
+                                                    alert("错误：有玩家未分配角色！请先分配角色再发放。");
+                                                    return;
+                                                }
+                                                useStore.getState().distributeRoles();
+                                            }}
                                             className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
                                             title="将角色信息发送给玩家"
                                         >
@@ -393,12 +403,23 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                         >
                                             <span>📊</span> 板子参考
                                         </button>
-                                        <button
-                                            onClick={() => useStore.getState().startGame()}
-                                            className="col-span-2 bg-red-900 hover:bg-red-800 text-stone-200 py-2 px-3 rounded text-xs border border-red-800 transition-colors flex items-center justify-center gap-1 font-bold"
-                                        >
-                                            <span>🌙</span> 开始游戏
-                                        </button>
+
+                                        {/* Phase Switch Button */}
+                                        {gameState.phase === 'SETUP' || gameState.phase === 'DAY' ? (
+                                            <button
+                                                onClick={() => useStore.getState().startGame()}
+                                                className="col-span-2 bg-indigo-900 hover:bg-indigo-800 text-indigo-100 py-2 px-3 rounded text-xs border border-indigo-700 transition-colors flex items-center justify-center gap-1 font-bold shadow-lg"
+                                            >
+                                                <span>🌙</span> {gameState.phase === 'SETUP' ? '开始游戏 (进入夜晚)' : '进入夜晚'}
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => setPhase('DAY')}
+                                                className="col-span-2 bg-amber-700 hover:bg-amber-600 text-white py-2 px-3 rounded text-xs border border-amber-600 transition-colors flex items-center justify-center gap-1 font-bold shadow-lg"
+                                            >
+                                                <span>☀</span> 天亮 (进入白天)
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
@@ -471,6 +492,14 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                                 🌙 执行夜间动作
                                             </button>
                                         )}
+
+                                        {/* Manual Day Switch (Backup) */}
+                                        <button
+                                            onClick={() => setPhase('DAY')}
+                                            className="mt-3 w-full py-2 bg-amber-900/30 hover:bg-amber-800/50 text-amber-500 rounded text-xs border border-amber-900/50 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <span>☀</span> 强制天亮
+                                        </button>
                                     </div>
                                 )}
 
@@ -554,14 +583,21 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                             onClick={toggleSkillMode}
                                             className="w-full bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
                                         >
-                                            <span>{skillDescriptionMode === 'simple' ? '📝' : '📄'}</span>
-                                            {skillDescriptionMode === 'simple' ? '详细模式' : '简单模式'}
+                                            <span className={`px-2 py-1 rounded text-xs ${skillDescriptionMode === 'detailed' ? 'bg-amber-900 text-amber-200' : 'bg-stone-700 text-stone-300'}`}>
+                                                {skillDescriptionMode === 'detailed' ? '详细' : '简略'}
+                                            </span>
+                                        </button>
+                                        {/* History Button for Players */}
+                                        <button
+                                            onClick={() => setShowHistory(true)}
+                                            className="mt-2 w-full bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
+                                            title="查看历史记录"
+                                        >
+                                            <span>📜</span> 历史
                                         </button>
                                     </div>
                                 </div>
-                            )
-                        }
-
+                            )}
                     </div>
                 )}
 
@@ -628,43 +664,68 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
                 {/* Tab: Notebook */}
                 {activeTab === 'notebook' && (
-                    <div className="h-full p-4">
+                    <div className="h-full">
                         {user.isStoryteller ? <StorytellerNotebook /> : <PlayerNotebook />}
                     </div>
                 )}
-
             </div>
 
             {/* --- Modals --- */}
             {showHistory && <HistoryViewer onClose={() => setShowHistory(false)} />}
-            {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
-            {showRules && <GameRules onClose={() => setShowRules(false)} />}
+            {showRoleReference && (
+                <RoleReferencePanel
+                    isOpen={showRoleReference}
+                    onClose={() => setShowRoleReference(false)}
+                    playerRoleId={currentSeat?.roleId || null}
+                    scriptRoles={SCRIPTS[gameState.currentScriptId]?.roles.map(id => ROLES[id]).filter(Boolean) || []}
+                />
+            )}
             {showCompositionGuide && (
                 <ScriptCompositionGuide
                     onClose={() => setShowCompositionGuide(false)}
-                    playerCount={gameState.seats.filter(s => s.userId || s.isVirtual).length}
-                />
-            )}
+                    playerCount={gameState.seats.length}
+                    onApplyStrategy={(strategy, roles) => {
+                        if (roles) {
+                            const allRoles = [
+                                ...roles.townsfolk,
+                                ...roles.outsider,
+                                ...roles.minion,
+                                ...roles.demon
+                            ];
 
-            {/* Night Action Modal (ST) */}
-            {showNightAction && user.isStoryteller && currentNightRole && (
-                <NightActionPanel
-                    roleId={currentNightRole}
-                    onComplete={() => {
-                        setShowNightAction(false);
-                        nightNext(); // 自动推进到下一个夜间角色
+                            // Shuffle roles
+                            const shuffledRoles = allRoles.sort(() => Math.random() - 0.5);
+
+                            // Get seats and assignRole function
+                            const seats = useStore.getState().gameState.seats;
+                            const assignRole = useStore.getState().assignRole;
+
+                            // Assign roles
+                            seats.forEach((seat, index) => {
+                                if (index < shuffledRoles.length) {
+                                    assignRole(seat.id, shuffledRoles[index].id);
+                                } else {
+                                    assignRole(seat.id, null as any);
+                                }
+                            });
+                        }
+                        setShowCompositionGuide(false);
                     }}
                 />
             )}
-
-            {/* Night Action Modal (Player) */}
+            {showNightAction && currentNightRole && (
+                <NightActionPanel
+                    roleId={currentNightRole}
+                    onComplete={() => setShowNightAction(false)}
+                />
+            )}
+            {/* Player Night Action Modal */}
             {showNightAction && !user.isStoryteller && currentSeat?.roleId && (
                 <PlayerNightAction
                     roleId={currentSeat.roleId}
                     onComplete={() => setShowNightAction(false)}
                 />
             )}
-
         </div>
     );
 };

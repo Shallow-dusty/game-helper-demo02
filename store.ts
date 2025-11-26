@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GameState, User, GamePhase, ChatMessage, AudioState, SeatStatus } from './types';
+import { GameState, User, GamePhase, ChatMessage, AudioState, SeatStatus, Seat } from './types';
 import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } from './constants';
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
@@ -14,7 +14,71 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// --- AI CONFIG ---
+// --- DATA FILTERING UTILITIES ---
+// 数据视野隔离：根据用户身份过滤敏感信息
+
+/**
+ * 为特定用户过滤座位信息
+ * @param seat 原始座位数据
+ * @param currentUserId 当前用户ID
+ * @param isStoryteller 是否是说书人
+ * @returns 过滤后的座位数据
+ */
+export const filterSeatForUser = (seat: Seat, currentUserId: string, isStoryteller: boolean): Seat => {
+    // ST 看到全部信息
+    if (isStoryteller) {
+        return seat;
+    }
+
+    // 玩家看到自己的全部信息
+    if (seat.userId === currentUserId) {
+        // 玩家看到的是 seenRoleId（可能是假角色，如酒鬼）
+        return {
+            ...seat,
+            roleId: seat.seenRoleId, // 向后兼容
+            realRoleId: null, // 隐藏真实身份
+        };
+    }
+
+    // 其他玩家看到的隐藏敏感信息
+    return {
+        ...seat,
+        roleId: null, // 隐藏角色
+        realRoleId: null, // 隐藏真实身份
+        seenRoleId: null, // 隐藏展示身份
+        statuses: [], // 隐藏状态（中毒/醉酒等）
+        reminders: seat.reminders.filter(r => r.sourceRole === 'public'), // 只显示公开提醒
+        hasUsedAbility: false, // 隐藏技能使用状态
+    };
+};
+
+/**
+ * 为特定用户过滤整个游戏状态
+ * @param gameState 原始游戏状态
+ * @param currentUserId 当前用户ID
+ * @param isStoryteller 是否是说书人
+ * @returns 过滤后的游戏状态
+ */
+export const filterGameStateForUser = (gameState: GameState, currentUserId: string, isStoryteller: boolean): GameState => {
+    return {
+        ...gameState,
+        seats: gameState.seats.map(seat => filterSeatForUser(seat, currentUserId, isStoryteller)),
+        messages: gameState.messages.filter(msg => {
+            // 系统消息对所有人可见
+            if (msg.type === 'system') return true;
+            // 公开消息对所有人可见
+            if (!msg.recipientId) return true;
+            // 私聊消息仅对发送者、接收者和 ST 可见
+            if (msg.isPrivate) {
+                return isStoryteller ||
+                    msg.senderId === currentUserId ||
+                    msg.recipientId === currentUserId;
+            }
+            return true;
+        })
+    };
+};
+
 // --- AI CONFIG ---
 export type AiProvider =
     | 'deepseek'
@@ -97,7 +161,9 @@ const getInitialState = (roomId: string, seatCount: number, currentScriptId: str
         userName: `座位 ${i + 1}`,
         isDead: false,
         hasGhostVote: true,
-        roleId: null,
+        roleId: null, // 向后兼容
+        realRoleId: null, // 真实身份
+        seenRoleId: null, // 展示身份
         reminders: [],
         isHandRaised: false,
         isNominated: false,
@@ -408,19 +474,28 @@ export const useStore = create<AppState>((set, get) => ({
         if (!user || !gameState) return;
 
         const seat = gameState.seats.find(s => s.id === seatId);
-        if (seat) {
-            const oldSeat = gameState.seats.find(s => s.userId === user.id);
-            if (oldSeat) {
-                oldSeat.userId = null;
-                oldSeat.userName = `座位 ${oldSeat.id + 1}`;
-            }
-            seat.userId = user.id;
-            seat.userName = user.name;
-            addSystemMessage(gameState, `${user.name} 入座了 ${seatId + 1} 号位。`);
+        if (!seat) return;
 
-            set({ gameState: { ...gameState } });
-            get().syncToCloud();
+        // 检查座位是否已被占用
+        if (seat.userId && seat.userId !== user.id) {
+            if (seat.isVirtual) {
+                // 虚拟玩家座位：自动清除虚拟标记并允许真实玩家入座
+                addSystemMessage(gameState, `${user.name} 接管了虚拟玩家的座位 ${seatId + 1}。`);
+            } else {
+                // 真实玩家座位：阻止入座
+                addSystemMessage(gameState, `❌ 座位 ${seatId + 1} 已被 ${seat.userName} 占用。`);
+                set({ gameState: { ...gameState } });
+                return;
+            }
         }
+
+        // 占座
+        seat.userId = user.id;
+        seat.userName = user.name;
+        seat.isVirtual = false; // 清除虚拟标记
+        addSystemMessage(gameState, `${user.name} 就坐于座位 ${seatId + 1}。`);
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
     },
 
     sendMessage: (content, recipientId) => {
@@ -560,7 +635,20 @@ export const useStore = create<AppState>((set, get) => ({
 
         const seat = gameState.seats.find(s => s.id === seatId);
         if (seat) {
-            seat.roleId = roleId;
+            // 设置角色身份
+            seat.roleId = roleId; // 向后兼容
+            seat.realRoleId = roleId; // 真实身份
+            seat.seenRoleId = roleId; // 默认展示身份与真实身份相同
+
+            // 特殊角色处理：酒鬼
+            if (roleId === 'drunk') {
+                // 酒鬼以为自己是某个镇民，但实际不是
+                const townsfolkRoles = ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller'];
+                const randomTownsfolk = townsfolkRoles[Math.floor(Math.random() * townsfolkRoles.length)];
+                seat.seenRoleId = randomTownsfolk; // 酒鬼看到的是假角色
+                seat.roleId = randomTownsfolk; // 向后兼容，也设置为假角色
+            }
+
             seat.hasUsedAbility = false;
             seat.statuses = [];
         }
@@ -669,6 +757,8 @@ export const useStore = create<AppState>((set, get) => ({
             isDead: false,
             hasGhostVote: true,
             roleId: null,
+            realRoleId: null,
+            seenRoleId: null,
             reminders: [],
             isHandRaised: false,
             isNominated: false,

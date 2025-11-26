@@ -161,7 +161,8 @@ export const TEAM_LABELS: Record<string, string> = {
 export const STATUS_ICONS: Record<string, string> = {
   'POISONED': '🤢',
   'DRUNK': '🍺',
-  'PROTECTED': '🛡️'
+  'PROTECTED': '🛡️',
+  'MADNESS': '🤪'
 };
 
 export const AUDIO_TRACKS: Record<string, { name: string, url: string }> = {
@@ -180,4 +181,11 @@ export const PRESET_REMINDERS = [
   { text: '疯狂', icon: '🤪', color: 'text-purple-400' },
   { text: '复活', icon: '🌅', color: 'text-yellow-200' },
   { text: '自定义', icon: '📝', color: 'text-stone-300' },
+];
+
+export const STATUS_OPTIONS = [
+  { id: 'POISONED', label: '中毒 (Poison)', icon: '🤢' },
+  { id: 'DRUNK', label: '醉酒 (Drunk)', icon: '🍺' },
+  { id: 'PROTECTED', label: '保护 (Protect)', icon: '🛡️' },
+  { id: 'MADNESS', label: '疯狂 (Madness)', icon: '🤪' },
 ];

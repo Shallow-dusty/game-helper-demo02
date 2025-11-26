@@ -58,7 +58,7 @@ export interface Reminder {
   color?: string; // New: Tailwind color class
 }
 
-export type SeatStatus = 'POISONED' | 'DRUNK' | 'PROTECTED';
+export type SeatStatus = 'POISONED' | 'DRUNK' | 'PROTECTED' | 'MADNESS';
 
 export interface RoundInfo {
   dayCount: number;
@@ -97,6 +97,7 @@ export interface ChatMessage {
   content: string;
   timestamp: number;
   type: 'chat' | 'system';
+  role?: 'user' | 'assistant' | 'system'; // New: For AI chat context
   isPrivate?: boolean; // New: If true, only visible to recipient (or sender)
   card?: InfoCard; // Optional: Structured info card
 }
@@ -150,6 +151,7 @@ export interface GameState {
   roundInfo: RoundInfo;
   storytellerNotes: StorytellerNote[];
   skillDescriptionMode: 'simple' | 'detailed';
+  aiMessages: ChatMessage[];
 }
 
 export interface User {

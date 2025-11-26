@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { ROLES, TEAM_COLORS, PHASE_LABELS, AUDIO_TRACKS, SCRIPTS } from '../constants';
 import { Chat } from './Chat';
 import { HistoryViewer } from './HistoryViewer';
 import { NightActionPanel } from './NightActionPanel';
 import { StorytellerNotebook } from './StorytellerNotebook';
+import { PlayerNotebook } from './PlayerNotebook';
+import { PlayerNightAction } from './PlayerNightAction';
 import { HelpModal } from './HelpModal';
+import { GameRules } from './GameRules';
+import { VotingChart } from './VotingChart';
+import { ScriptCompositionGuide } from './ScriptCompositionGuide';
 
 interface ControlsProps {
     onClose?: () => void; // For mobile drawer closing
@@ -41,6 +46,23 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const [showHistory, setShowHistory] = useState(false);
     const [showNightAction, setShowNightAction] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
+    const [showRules, setShowRules] = useState(false);
+    const [showCompositionGuide, setShowCompositionGuide] = useState(false);
+    const [skillDescriptionMode, setSkillDescriptionMode] = useState<'simple' | 'detailed'>('simple');
+
+    // Load preference from localStorage
+    useEffect(() => {
+        const savedMode = localStorage.getItem('skillDescriptionMode') as 'simple' | 'detailed';
+        if (savedMode) {
+            setSkillDescriptionMode(savedMode);
+        }
+    }, []);
+
+    const toggleSkillMode = () => {
+        const newMode = skillDescriptionMode === 'simple' ? 'detailed' : 'simple';
+        setSkillDescriptionMode(newMode);
+        localStorage.setItem('skillDescriptionMode', newMode);
+    };
     const [currentNightRole, setCurrentNightRole] = useState<string | null>(null);
 
     const [width, setWidth] = useState(320); // Default 320px
@@ -72,6 +94,26 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
         };
     }, [isResizing]);
 
+    // Auto-trigger player night action
+    useEffect(() => {
+        if (!user || !gameState || user.isStoryteller) return;
+        if (gameState.phase !== 'NIGHT') return;
+
+        const currentSeat = gameState.seats.find(s => s.userId === user.id);
+        if (!currentSeat || !currentSeat.roleId) return;
+
+        const currentNightRole = gameState.nightQueue[gameState.nightCurrentIndex];
+        if (currentNightRole === currentSeat.roleId) {
+            // It's my turn!
+            // Check if I have a night action
+            const role = ROLES[currentSeat.roleId];
+            if (role?.nightAction) {
+                setShowNightAction(true);
+            }
+        }
+    }, [gameState?.phase, gameState?.nightCurrentIndex, user?.id]);
+
+
     if (!user || !gameState) return null;
 
     const currentSeat = gameState.seats.find(s => s.userId === user.id);
@@ -88,7 +130,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
     return (
         <div
-            className="bg-stone-950 border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif relative transition-none"
+            className="bg-stone-950 border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif relative transition-none z-50"
             style={{ width: `${width}px` }}
         >
             {/* Drag Handle */}
@@ -109,12 +151,21 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     </div>
                 </div>
 
-                {/* Mobile Close Button */}
-                {onClose && (
-                    <button onClick={onClose} className="md:hidden text-stone-400 hover:text-white p-2">
-                        ✕
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setShowRules(true)}
+                        className="text-stone-400 hover:text-amber-400 p-2 transition-colors"
+                        title="游戏规则 (Game Rules)"
+                    >
+                        📖
                     </button>
-                )}
+                    {/* Mobile Close Button */}
+                    {onClose && (
+                        <button onClick={onClose} className="md:hidden text-stone-400 hover:text-white p-2">
+                            ✕
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* GAME OVER BANNER */}
@@ -153,15 +204,24 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                         <div className="absolute top-0 right-0 p-1 opacity-20 text-4xl">
                             {role.team === 'DEMON' ? '👿' : role.team === 'MINION' ? '🧪' : '⚜️'}
                         </div>
-                        <div className="font-bold flex justify-between items-center text-lg font-cinzel" style={{ color: TEAM_COLORS[role.team] }}>
-                            <span>{role.name}</span>
+                        <div className="flex justify-between items-center mb-2">
+                            <div className="font-bold flex items-center gap-2 text-lg font-cinzel" style={{ color: TEAM_COLORS[role.team] }}>
+                                <span>{role.name}</span>
+                            </div>
+                            <button
+                                onClick={toggleSkillMode}
+                                className="text-[10px] px-2 py-1 bg-stone-800 hover:bg-stone-700 text-stone-400 rounded border border-stone-600 transition-colors"
+                                title="切换详细/简略描述"
+                            >
+                                {skillDescriptionMode === 'simple' ? '详细' : '简略'}
+                            </button>
                         </div>
                         <span className="text-[10px] opacity-70 border border-current px-1.5 py-0.5 rounded uppercase tracking-widest" style={{ color: TEAM_COLORS[role.team] }}>
                             {role.team === 'TOWNSFOLK' ? '村民' :
                                 role.team === 'MINION' ? '爪牙' :
                                     role.team === 'DEMON' ? '恶魔' : '外来者'}
                         </span>
-                        {gameState.skillDescriptionMode === 'detailed' && (
+                        {skillDescriptionMode === 'detailed' && (
                             <p className="text-sm text-stone-400 mt-3 leading-relaxed italic border-t border-stone-800 pt-2">{role.ability}</p>
                         )}
                     </div>
@@ -188,14 +248,12 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 >
                     🤖 助手
                 </button>
-                {user.isStoryteller && (
-                    <button
-                        onClick={() => setActiveTab('notebook')}
-                        className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'notebook' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
-                    >
-                        📓 笔记
-                    </button>
-                )}
+                <button
+                    onClick={() => setActiveTab('notebook')}
+                    className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'notebook' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                >
+                    📓 笔记
+                </button>
             </div>
 
             {/* --- Content Area --- */}
@@ -209,6 +267,34 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                         <div className="text-center p-4 bg-black/40 rounded border border-stone-800 shadow-inner backdrop-blur-sm">
                             <div className="text-xs text-stone-500 uppercase tracking-[0.2em] mb-1 font-cinzel">Current Phase</div>
                             <div className="text-3xl font-bold text-amber-600 tracking-widest font-cinzel drop-shadow-md">{PHASE_LABELS[gameState.phase]}</div>
+                        </div>
+
+                        {/* GAME RULES COLLAPSIBLE PANEL */}
+                        <div className="bg-stone-900 rounded border border-stone-700 overflow-hidden">
+                            <button
+                                onClick={() => setShowRules(!showRules)}
+                                className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-stone-800 transition-colors"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xl">📖</span>
+                                    <span className="text-sm font-bold text-stone-200 font-cinzel">游戏规则 (Game Rules)</span>
+                                </div>
+                                <span className="text-stone-500 text-sm">{showRules ? '▼' : '▶'}</span>
+                            </button>
+                            {showRules && (
+                                <div className="border-t border-stone-800 p-4 bg-stone-950/50 max-h-64 overflow-y-auto">
+                                    <div className="text-xs text-stone-400 space-y-2">
+                                        <p className="font-bold text-amber-400">基础规则:</p>
+                                        <p>• 白天讨论，提名投票，晚上角色秘密行动</p>
+                                        <p>• 好人目标：找出并处决恶魔</p>
+                                        <p>• 邪恶目标：杀死所有好人或达成特定胜利条件</p>
+                                        <p className="font-bold text-amber-400 mt-3">投票规则:</p>
+                                        <p>• 票数&gt;存活人数/2则被提名人处决</p>
+                                        <p>• 死亡玩家有1次幽灵票机会</p>
+                                        <p className="text-[10px] text-stone-600 mt-2 italic">点击右上角📖查看完整规则</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* ST CONTROLS */}
@@ -273,421 +359,312 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                             <span>🤖</span> 添加虚拟玩家
                                         </button>
                                         <button
-                                            onClick={() => useStore.getState().toggleSkillDescriptionMode()}
+                                            onClick={() => useStore.getState().addSeat()}
                                             className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
-                                            title="切换技能描述显示模式"
+                                            title="添加一个空座位"
                                         >
-                                            <span>{gameState.skillDescriptionMode === 'simple' ? '📝' : '📄'}</span>
-                                            {gameState.skillDescriptionMode === 'simple' ? '详细模式' : '简单模式'}
+                                            <span>➕</span> 添加座位
                                         </button>
                                         <button
-                                            onClick={() => useStore.getState().autoAssignRoles()}
-                                            disabled={gameState.setupPhase !== 'ASSIGNING'}
-                                            className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                                            onClick={() => useStore.getState().removeSeat()}
+                                            className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
+                                            title="移除最后一个座位"
+                                        >
+                                            <span>➖</span> 移除座位
+                                        </button>
+                                        <button
+                                            onClick={() => useStore.getState().assignRoles()}
+                                            className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
+                                            title="随机分配角色给所有玩家"
                                         >
                                             <span>🎲</span> 自动分配角色
                                         </button>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-2">
                                         <button
-                                            onClick={() => gameState.rolesRevealed ? useStore.getState().hideRoles() : useStore.getState().revealRoles()}
-                                            className={`py-2 px-3 rounded text-xs border transition-colors flex items-center justify-center gap-1
-                                                ${gameState.rolesRevealed
-                                                    ? 'bg-amber-900/30 text-amber-500 border-amber-900'
-                                                    : 'bg-stone-800 text-stone-300 border-stone-600 hover:bg-stone-700'}
-                                            `}
+                                            onClick={() => useStore.getState().distributeRoles()}
+                                            className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
+                                            title="将角色信息发送给玩家"
                                         >
-                                            <span>{gameState.rolesRevealed ? '🫣' : '👀'}</span>
-                                            {gameState.rolesRevealed ? '隐藏角色' : '发放角色'}
+                                            <span>👀</span> 发放角色
+                                        </button>
+                                        <button
+                                            onClick={() => setShowCompositionGuide(true)}
+                                            className="bg-stone-800 hover:bg-amber-900 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
+                                            title="查看板子配置建议"
+                                        >
+                                            <span>📊</span> 板子参考
                                         </button>
                                         <button
                                             onClick={() => useStore.getState().startGame()}
-                                            disabled={gameState.setupPhase === 'STARTED'}
-                                            className="bg-red-900 hover:bg-red-800 text-red-100 py-2 px-3 rounded text-xs border border-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                                            className="col-span-2 bg-red-900 hover:bg-red-800 text-stone-200 py-2 px-3 rounded text-xs border border-red-800 transition-colors flex items-center justify-center gap-1 font-bold"
                                         >
                                             <span>🌙</span> 开始游戏
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-                        )}
 
-
-
-                        {/* AUDIO CONTROL PANEL */}
-                        <div className="bg-stone-900/80 p-3 rounded border border-stone-700 shadow-md">
-                            <h3 className="text-xs font-bold text-stone-500 uppercase mb-2 flex items-center gap-2">
-                                🎵 氛围音效 (Atmosphere)
-                            </h3>
-                            <div className="flex flex-col gap-2">
-                                <select
-                                    className="w-full bg-stone-950 border border-stone-700 rounded text-xs text-stone-300 p-2 outline-none focus:border-stone-500"
-                                    value={gameState.audio.trackId || ''}
-                                    onChange={(e) => setAudioTrack(e.target.value)}
-                                >
-                                    <option value="">-- 选择曲目 --</option>
-                                    {Object.entries(AUDIO_TRACKS).map(([key, track]) => (
-                                        <option key={key} value={key}>{track.name}</option>
-                                    ))}
-                                </select>
-
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={toggleAudioPlay}
-                                        className={`flex-1 py-1.5 rounded text-xs font-bold border transition-colors ${gameState.audio.isPlaying ? 'bg-red-900/50 border-red-800 text-red-200' : 'bg-stone-800 border-stone-600 text-stone-400'}`}
+                                {/* Audio Controls */}
+                                <div className="bg-stone-900 p-3 rounded border border-stone-700">
+                                    <div className="text-xs font-bold text-stone-500 uppercase mb-2">🎵 氛围音效 (Audio)</div>
+                                    <select
+                                        className="w-full bg-stone-950 border border-stone-700 rounded text-xs text-stone-300 p-1 mb-2"
+                                        onChange={(e) => setAudioTrack(e.target.value)}
+                                        value={gameState.audio.trackId || ''}
                                     >
-                                        {gameState.audio.isPlaying ? '❚❚ 暂停' : '▶ 播放'}
-                                    </button>
-                                    <input
-                                        type="range"
-                                        min="0" max="1" step="0.1"
-                                        value={gameState.audio.volume}
-                                        onChange={(e) => setAudioVolume(parseFloat(e.target.value))}
-                                        className="w-24 accent-red-700 h-1 bg-stone-700 rounded-lg appearance-none cursor-pointer"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <h3 className="text-xs font-bold text-stone-500 uppercase border-b border-stone-800 pb-1 font-cinzel flex justify-between items-center">
-                            说书人工具
-                            <button onClick={() => setShowHelp(true)} className="text-stone-500 hover:text-stone-300 text-[10px] border border-stone-700 px-1.5 rounded-full transition-colors" title="操作指南">?</button>
-                        </h3>
-
-                        {/* History Button */}
-                        <button
-                            onClick={() => setShowHistory(true)}
-                            className="w-full btn flex items-center justify-center gap-2 font-serif bg-stone-800 border-stone-600 text-stone-300 hover:bg-stone-700"
-                        >
-                            <span>📜</span> 历史记录 (History)
-                        </button>
-
-                        {/* Phase Management */}
-                        <div className="grid grid-cols-3 gap-2">
-                            <button onClick={() => setPhase('DAY')} className={`btn font-cinzel ${gameState.phase === 'DAY' ? 'bg-amber-900/80 ring-1 ring-amber-600 text-amber-100' : 'bg-stone-800 text-stone-400'}`}>☀ 白天</button>
-                            <button onClick={() => setPhase('NIGHT')} className={`btn font-cinzel ${gameState.phase === 'NIGHT' ? 'bg-indigo-950 ring-1 ring-indigo-600 text-indigo-200' : 'bg-stone-800 text-stone-400'}`}>🌙 夜晚</button>
-                            <button onClick={() => setPhase('NOMINATION')} className={`btn font-cinzel ${gameState.phase === 'NOMINATION' ? 'bg-emerald-900/80 ring-1 ring-emerald-600 text-emerald-100' : 'bg-stone-800 text-stone-400'}`}>⚖ 提名</button>
-                        </div>
-
-                        {/* Whisper Toggle */}
-                        <button
-                            onClick={toggleWhispers}
-                            className={`w-full btn flex items-center justify-center gap-2 font-serif ${gameState.allowWhispers ? 'bg-stone-800 border-stone-600 text-stone-300' : 'bg-red-950 border-red-800 text-red-300'}`}
-                        >
-                            <span>{gameState.allowWhispers ? '🟢' : '🔴'}</span>
-                            {gameState.allowWhispers ? '允许私聊 (Whispers On)' : '禁止私聊 (Whispers Off)'}
-                        </button>
-
-                        {/* Night Queue Manager */}
-                        {gameState.phase === 'NIGHT' && (
-                            <div className="bg-black/30 p-3 rounded border border-indigo-900/50 shadow-lg">
-                                <div className="text-xs text-indigo-400/70 mb-2 flex justify-between uppercase tracking-wider">
-                                    <span>夜间行动顺序</span>
-                                    <span>{gameState.nightCurrentIndex + 1} / {gameState.nightQueue.length}</span>
-                                </div>
-                                <div className="flex items-center justify-between mb-3 bg-indigo-950/30 p-2 rounded border border-indigo-900/30">
-                                    <button onClick={nightPrev} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&lt;</button>
-                                    <span className={`font-serif text-lg font-bold ${gameState.nightCurrentIndex >= 0 ? 'text-indigo-200' : 'text-stone-600'}`}>
-                                        {gameState.nightCurrentIndex >= 0 ? ROLES[gameState.nightQueue[gameState.nightCurrentIndex]]?.name || '天亮' : '入夜'}
-                                    </span>
-                                    <button onClick={nightNext} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&gt;</button>
-                                </div>
-                                <div className="text-[10px] text-stone-500 flex flex-wrap gap-1.5">
-                                    {gameState.nightQueue.map((rid, idx) => (
-                                        <span
-                                            key={idx}
-                                            className={`px-1.5 py-0.5 rounded transition-all border ${idx === gameState.nightCurrentIndex ? 'bg-indigo-900 text-indigo-100 border-indigo-500 shadow-[0_0_10px_#4f46e5]' : idx < gameState.nightCurrentIndex ? 'text-stone-700 border-transparent decoration-stone-700 line-through' : 'bg-stone-800 text-stone-500 border-stone-700'}`}
+                                        <option value="">-- 选择音效 --</option>
+                                        {Object.entries(AUDIO_TRACKS).map(([id, track]) => (
+                                            <option key={id} value={id}>{track.name}</option>
+                                        ))}
+                                    </select>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={toggleAudioPlay}
+                                            className={`flex-1 py-1 rounded text-xs font-bold ${gameState.audio.isPlaying ? 'bg-amber-700 text-white' : 'bg-stone-800 text-stone-400'}`}
                                         >
-                                            {ROLES[rid]?.name}
-                                        </span>
-                                    ))}
+                                            {gameState.audio.isPlaying ? '⏸ 暂停' : '▶ 播放'}
+                                        </button>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="1"
+                                            step="0.1"
+                                            value={gameState.audio.volume}
+                                            onChange={(e) => setAudioVolume(parseFloat(e.target.value))}
+                                            className="w-20 accent-amber-600"
+                                        />
+                                    </div>
                                 </div>
 
-                                {/* Night Action Button */}
-                                {gameState.nightCurrentIndex >= 0 && gameState.nightQueue[gameState.nightCurrentIndex] && ROLES[gameState.nightQueue[gameState.nightCurrentIndex]]?.nightAction && (
-                                    <button
-                                        onClick={() => {
-                                            setCurrentNightRole(gameState.nightQueue[gameState.nightCurrentIndex]);
-                                            setShowNightAction(true);
-                                        }}
-                                        className="mt-3 w-full py-2 bg-purple-900/50 hover:bg-purple-800/50 border border-purple-700 text-purple-200 rounded font-bold text-sm transition-all shadow-lg"
-                                    >
-                                        🌙 执行夜间动作
-                                    </button>
+                                {/* Night Queue Manager */}
+                                {gameState.phase === 'NIGHT' && (
+                                    <div className="bg-black/30 p-3 rounded border border-indigo-900/50 shadow-lg">
+                                        <div className="text-xs text-indigo-400/70 mb-2 flex justify-between uppercase tracking-wider">
+                                            <span>夜间行动顺序</span>
+                                            <span>{gameState.nightCurrentIndex + 1} / {gameState.nightQueue.length}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between mb-3 bg-indigo-950/30 p-2 rounded border border-indigo-900/30">
+                                            <button onClick={nightPrev} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&lt;</button>
+                                            <span className={`font-serif text-lg font-bold ${gameState.nightCurrentIndex >= 0 ? 'text-indigo-200' : 'text-stone-600'}`}>
+                                                {gameState.nightCurrentIndex >= 0 ? ROLES[gameState.nightQueue[gameState.nightCurrentIndex]]?.name || '天亮' : '入夜'}
+                                            </span>
+                                            <button onClick={nightNext} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&gt;</button>
+                                        </div>
+                                        <div className="text-[10px] text-stone-500 flex flex-wrap gap-1.5">
+                                            {gameState.nightQueue.map((rid, idx) => (
+                                                <span
+                                                    key={idx}
+                                                    className={`px-1.5 py-0.5 rounded transition-all border ${idx === gameState.nightCurrentIndex ? 'bg-indigo-900 text-indigo-100 border-indigo-500 shadow-[0_0_10px_#4f46e5]' : idx < gameState.nightCurrentIndex ? 'text-stone-700 border-transparent decoration-stone-700 line-through' : 'bg-stone-800 text-stone-500 border-stone-700'}`}
+                                                >
+                                                    {ROLES[rid]?.name}
+                                                </span>
+                                            ))}
+                                        </div>
+
+                                        {/* Night Action Button */}
+                                        {gameState.nightCurrentIndex >= 0 && gameState.nightQueue[gameState.nightCurrentIndex] && ROLES[gameState.nightQueue[gameState.nightCurrentIndex]]?.nightAction && (
+                                            <button
+                                                onClick={() => {
+                                                    setCurrentNightRole(gameState.nightQueue[gameState.nightCurrentIndex]);
+                                                    setShowNightAction(true);
+                                                }}
+                                                className="mt-3 w-full py-2 bg-purple-900/50 hover:bg-purple-800/50 border border-purple-700 text-purple-200 rounded font-bold text-sm transition-all shadow-lg"
+                                            >
+                                                🌙 执行夜间动作
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Voting Controls */}
+                                {gameState.voting?.isOpen && (
+                                    <div className="bg-amber-950/20 border border-amber-800/50 p-4 rounded shadow-[0_0_20px_rgba(180,83,9,0.1)] animate-fade-in">
+                                        <div className="text-xs text-amber-600 mb-3 font-bold uppercase tracking-widest text-center">投票进行中</div>
+                                        <div className="text-sm mb-4 flex justify-between items-center border-b border-amber-900/30 pb-2">
+                                            <span className="text-stone-400">被提名者</span>
+                                            <span className="font-bold text-amber-100 text-lg font-cinzel">{gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName}</span>
+                                        </div>
+                                        <button
+                                            onClick={nextClockHand}
+                                            className="w-full py-3 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-bold rounded-sm mb-2 shadow border border-amber-500 font-cinzel"
+                                        >
+                                            移动时针 ➜
+                                        </button>
+                                        <button onClick={closeVote} className="w-full py-1 bg-transparent hover:bg-red-900/20 text-xs rounded text-red-400 border border-transparent hover:border-red-900/50 transition-colors">
+                                            取消 / 结束投票
+                                        </button>
+                                    </div>
                                 )}
                             </div>
-                        )}
+                        )
+                        }
 
-                        {/* Voting Controls */}
-                        {gameState.voting?.isOpen && (
-                            <div className="bg-amber-950/20 border border-amber-800/50 p-4 rounded shadow-[0_0_20px_rgba(180,83,9,0.1)] animate-fade-in">
-                                <div className="text-xs text-amber-600 mb-3 font-bold uppercase tracking-widest text-center">投票进行中</div>
-                                <div className="text-sm mb-4 flex justify-between items-center border-b border-amber-900/30 pb-2">
-                                    <span className="text-stone-400">被提名者</span>
-                                    <span className="font-bold text-amber-100 text-lg font-cinzel">{gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName}</span>
-                                </div>
-                                <button
-                                    onClick={nextClockHand}
-                                    className="w-full py-3 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-bold rounded-sm mb-2 shadow border border-amber-500 font-cinzel"
-                                >
-                                    移动时针 ➜
-                                </button>
-                                <button onClick={closeVote} className="w-full py-1 bg-transparent hover:bg-red-900/20 text-xs rounded text-red-400 border border-transparent hover:border-red-900/50 transition-colors">
-                                    取消 / 结束投票
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                )
-                }
+                        {/* PLAYER CONTROLS */}
+                        {
+                            !user.isStoryteller && (
+                                <div className="space-y-4">
+                                    {/* Voting Stats */}
+                                    <VotingChart />
 
-                {/* PLAYER CONTROLS */}
-                {
-                    !user.isStoryteller && (
-                        <div className="space-y-4">
-                            {gameState.phase === 'NIGHT' && (
-                                <div className="p-6 bg-black/60 rounded border border-indigo-900/50 text-center animate-pulse shadow-[0_0_30px_rgba(30,27,75,0.5)] backdrop-blur-sm">
-                                    <div className="text-4xl mb-4 opacity-80">🌙</div>
-                                    <h3 className="text-indigo-200 font-bold font-cinzel text-xl tracking-widest">夜幕降临</h3>
-                                    <p className="text-xs text-indigo-400 mt-2 font-serif italic">只有被叫到名字时才醒来。</p>
-                                </div>
-                            )}
-
-                            {gameState.voting?.isOpen && (
-                                <div className="p-4 bg-amber-900/10 rounded border border-amber-800/50 shadow-[0_0_20px_rgba(180,83,9,0.1)]">
-                                    <h3 className="text-center font-bold text-amber-600 mb-2 flex items-center justify-center gap-2 font-cinzel">
-                                        <span>⚖</span> 审判
-                                    </h3>
-                                    <p className="text-xs text-center text-stone-400 mb-6">
-                                        受审者: <span className="text-amber-100 font-bold text-base ml-1">{gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName}</span>
-                                    </p>
-
-                                    {gameState.voting.clockHandSeatId === currentSeat?.id ? (
-                                        <div className="animate-bounce">
-                                            <button
-                                                onClick={toggleHand}
-                                                className={`w-full py-4 rounded-sm text-xl font-bold shadow-xl transition-all border-2 font-cinzel tracking-wider ${currentSeat?.isHandRaised ? 'bg-green-900 border-green-600 hover:bg-green-800 text-green-100' : 'bg-stone-700 border-stone-500 hover:bg-stone-600 text-stone-300'}`}
-                                            >
-                                                {currentSeat?.isHandRaised ? '✋ 已投票' : '举手投票？'}
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="text-center text-stone-600 italic p-3 border border-dashed border-stone-800 rounded-sm font-serif text-sm">
-                                            时针转动中...
+                                    {/* Player Controls */}
+                                    {gameState.phase === 'NIGHT' && (
+                                        <div className="p-6 bg-black/60 rounded border border-indigo-900/50 text-center animate-pulse shadow-[0_0_30px_rgba(30,27,75,0.5)] backdrop-blur-sm">
+                                            <div className="text-4xl mb-4 opacity-80">🌙</div>
+                                            <h3 className="text-indigo-200 font-bold font-cinzel text-xl tracking-widest">夜幕降临</h3>
+                                            <p className="text-xs text-indigo-400 mt-2 font-serif italic">只有被叫到名字时才醒来。</p>
+                                            {currentSeat?.roleId === gameState.nightQueue[gameState.nightCurrentIndex] && (
+                                                <button
+                                                    onClick={() => setShowNightAction(true)}
+                                                    className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold animate-bounce shadow-lg"
+                                                >
+                                                    执行行动
+                                                </button>
+                                            )}
                                         </div>
                                     )}
+
+                                    {gameState.voting?.isOpen && (
+                                        <div className="p-4 bg-amber-900/10 rounded border border-amber-800/50 shadow-[0_0_20px_rgba(180,83,9,0.1)]">
+                                            <h3 className="text-center font-bold text-amber-600 mb-2 flex items-center justify-center gap-2 font-cinzel">
+                                                <span>⚖</span> 审判
+                                            </h3>
+                                            <p className="text-xs text-center text-stone-400 mb-6">
+                                                受审者: <span className="text-amber-100 font-bold text-base ml-1">{gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName}</span>
+                                            </p>
+
+                                            {gameState.voting.clockHandSeatId === currentSeat?.id ? (
+                                                <div className="animate-bounce">
+                                                    <button
+                                                        onClick={toggleHand}
+                                                        className={`w-full py-4 rounded-sm text-xl font-bold shadow-xl transition-all border-2 font-cinzel tracking-wider ${currentSeat?.isHandRaised ? 'bg-green-900 border-green-600 hover:bg-green-800 text-green-100' : 'bg-stone-700 border-stone-500 hover:bg-stone-600 text-stone-300'}`}
+                                                    >
+                                                        {currentSeat?.isHandRaised ? '✋ 已投票' : '举手投票？'}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center text-stone-600 italic p-3 border border-dashed border-stone-800 rounded-sm font-serif text-sm">
+                                                    时针转动中...
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Settings for Player */}
+                                    <div className="bg-stone-900 p-3 rounded border border-stone-700 mt-4">
+                                        <div className="text-xs font-bold text-stone-500 uppercase mb-2">⚙️ 设置</div>
+                                        <button
+                                            onClick={toggleSkillMode}
+                                            className="w-full bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
+                                        >
+                                            <span>{skillDescriptionMode === 'simple' ? '📝' : '📄'}</span>
+                                            {skillDescriptionMode === 'simple' ? '详细模式' : '简单模式'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )
+                        }
+
+                    </div>
+                )}
+
+                {/* Tab: Chat */}
+                {activeTab === 'chat' && (
+                    <div className="h-full flex flex-col">
+                        <Chat />
+                    </div>
+                )}
+
+                {/* Tab: AI */}
+                {activeTab === 'ai' && (
+                    <div className="h-full flex flex-col p-4">
+                        <div className="flex-1 overflow-y-auto space-y-4 mb-4 scrollbar-thin">
+                            {/* AI Messages */}
+                            {gameState.aiMessages.map(msg => (
+                                <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                                    <div className={`max-w-[85%] p-3 rounded-lg text-sm ${msg.role === 'user' ? 'bg-stone-800 text-stone-200' : 'bg-amber-900/30 text-amber-100 border border-amber-800/30'}`}>
+                                        {msg.content}
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-[10px] text-stone-600">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                                        {user.isStoryteller && (
+                                            <button onClick={() => deleteAiMessage(msg.id)} className="text-[10px] text-red-900 hover:text-red-500">Del</button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {isAiThinking && (
+                                <div className="flex items-start">
+                                    <div className="bg-amber-900/30 text-amber-100 p-3 rounded-lg text-sm border border-amber-800/30 animate-pulse">
+                                        Thinking...
+                                    </div>
                                 </div>
                             )}
                         </div>
-                    )
-                }
-            </div>
-
-
-            {/* Tab: Notebook */}
-            {activeTab === 'notebook' && user.isStoryteller && (
-                <div className="h-full p-2 overflow-hidden">
-                    <StorytellerNotebook />
-                </div>
-            )}
-
-            {/* Tab: Chat */}
-            {
-                activeTab === 'chat' && (
-                    <Chat />
-                )
-            }
-
-            {/* Tab: AI Assistant */}
-            {
-                activeTab === 'ai' && user.isStoryteller && (
-                    <div className="h-full flex flex-col p-4 space-y-4 relative">
-                        {/* AI Chat History */}
-                        <div className="flex-1 bg-stone-900/80 rounded p-4 border border-purple-900/30 overflow-y-auto scrollbar-thin space-y-4">
-                            <div className="flex justify-between items-center mb-4 border-b border-purple-900/20 pb-2 sticky top-0 bg-stone-900/95 z-10">
-                                <div className="flex items-center gap-2">
-                                    <h3 className="text-purple-400 font-bold flex items-center gap-2 font-cinzel">
-                                        <span>✨</span> 先知
-                                    </h3>
-                                    <button
-                                        onClick={() => {
-                                            if (confirm('清空所有助手聊天记录？')) clearAiMessages();
-                                        }}
-                                        className="text-[10px] text-stone-500 hover:text-red-400 border border-stone-800 hover:border-red-900 px-1.5 py-0.5 rounded transition-colors"
-                                        title="清空聊天"
-                                    >
-                                        🗑️
-                                    </button>
-                                </div>
+                        <form onSubmit={handleAiSubmit} className="flex gap-2">
+                            <input
+                                type="text"
+                                value={aiPrompt}
+                                onChange={(e) => setAiPrompt(e.target.value)}
+                                placeholder="Ask AI helper..."
+                                className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 focus:border-amber-600 focus:outline-none"
+                            />
+                            <button type="submit" disabled={!aiPrompt.trim() || isAiThinking} className="bg-amber-700 hover:bg-amber-600 disabled:opacity-50 text-white px-3 py-2 rounded">
+                                Send
+                            </button>
+                        </form>
+                        {user.isStoryteller && (
+                            <div className="mt-2 flex justify-between">
+                                <button onClick={clearAiMessages} className="text-xs text-stone-500 hover:text-stone-300">Clear History</button>
                                 <select
                                     value={aiProvider}
                                     onChange={(e) => setAiProvider(e.target.value as any)}
-                                    className="bg-stone-950 border border-purple-900/50 text-purple-300 text-xs rounded px-2 py-1 outline-none focus:border-purple-500 max-w-[150px]"
+                                    className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded"
                                 >
-                                    <optgroup label="DeepSeek R1 (Reasoning)">
-                                        <option value="sf_r1">🧠 DeepSeek R1 (Full)</option>
-                                        <option value="sf_r1_llama_70b">🦙 R1 Llama 70B</option>
-                                        <option value="sf_r1_qwen_32b">🤖 R1 Qwen 32B</option>
-                                        <option value="sf_r1_qwen_7b_pro">⚡ R1 Qwen 7B Pro</option>
-                                    </optgroup>
-                                    <optgroup label="Other High Performance">
-                                        <option value="sf_minimax_m2">🦄 MiniMax M2 (230B)</option>
-                                        <option value="sf_kimi_k2_thinking">🤔 Kimi K2 Thinking</option>
-                                    </optgroup>
-                                    <optgroup label="Official / Legacy">
-                                        <option value="deepseek">DeepSeek V3.2 (Official)</option>
-                                        <option value="kimi">Kimi (Official - Fixing)</option>
-                                    </optgroup>
+                                    <option value="gemini">Gemini</option>
+                                    <option value="openai">OpenAI</option>
                                 </select>
                             </div>
-
-                            {/* Messages */}
-                            {gameState.messages
-                                .filter(m => m.senderId === 'ai_guide')
-                                .map(msg => {
-                                    // Parse <think> tags
-                                    const thinkMatch = msg.content.match(/<think>([\s\S]*?)<\/think>/);
-                                    const thinkContent = thinkMatch ? thinkMatch[1] : null;
-                                    const mainContent = msg.content.replace(/<think>[\s\S]*?<\/think>/, '').trim();
-
-                                    return (
-                                        <div
-                                            key={msg.id}
-                                            className="group relative bg-purple-950/20 border border-purple-900/30 p-3 rounded-lg text-sm text-stone-300 hover:bg-purple-950/30 transition-colors"
-                                        >
-                                            <div className="flex justify-between items-start mb-1">
-                                                <span className="text-purple-400 font-bold text-xs">{msg.senderName}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[10px] text-stone-600">{new Date(msg.timestamp).toLocaleTimeString()}</span>
-                                                    <button
-                                                        onClick={() => deleteAiMessage(msg.id)}
-                                                        className="text-stone-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                        title="Delete Message"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {/* Thinking Content */}
-                                            {thinkContent && (
-                                                <details className="mb-2 bg-black/20 rounded border border-purple-900/20 overflow-hidden">
-                                                    <summary className="text-[10px] text-purple-400/70 bg-purple-900/10 px-2 py-1 cursor-pointer hover:bg-purple-900/20 select-none flex items-center gap-1">
-                                                        <span>💭</span> 思考过程
-                                                    </summary>
-                                                    <div className="p-2 text-xs text-stone-500 font-mono whitespace-pre-wrap border-t border-purple-900/10 bg-black/10">
-                                                        {thinkContent.trim()}
-                                                    </div>
-                                                </details>
-                                            )}
-
-                                            <div className="whitespace-pre-wrap leading-relaxed">{mainContent || (thinkContent ? '' : msg.content)}</div>
-
-                                            {/* Action Buttons (Visible on Hover/Focus) */}
-                                            <div className="absolute top-8 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-stone-950/80 rounded p-1 backdrop-blur-sm z-10">
-                                                <button
-                                                    onClick={() => useStore.getState().forwardMessage(msg.id, null)}
-                                                    className="text-[10px] bg-stone-800 hover:bg-stone-700 text-stone-300 px-2 py-1 rounded border border-stone-600"
-                                                    title="Broadcast to All"
-                                                >
-                                                    📢 公示
-                                                </button>
-                                                <div className="relative group/menu">
-                                                    <button className="text-[10px] bg-stone-800 hover:bg-stone-700 text-stone-300 px-2 py-1 rounded border border-stone-600">
-                                                        🤫 私发...
-                                                    </button>
-                                                    {/* Dropdown for Whisper */}
-                                                    <div className="absolute right-0 top-full mt-1 w-32 bg-stone-900 border border-stone-700 rounded shadow-xl hidden group-hover/menu:block z-50 max-h-48 overflow-y-auto">
-                                                        {gameState.seats.filter(s => s.userId).map(seat => (
-                                                            <button
-                                                                key={seat.id}
-                                                                onClick={() => useStore.getState().forwardMessage(msg.id, seat.userId)}
-                                                                className="w-full text-left px-2 py-1.5 text-xs text-stone-400 hover:bg-stone-800 hover:text-stone-200 truncate"
-                                                            >
-                                                                {seat.userName}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-
-                            {/* Thinking Indicator */}
-                            {isAiThinking && (
-                                <div className="flex items-center gap-2 text-purple-400 text-xs animate-pulse p-2">
-                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                    <span>先知正在占卜...</span>
-                                </div>
-                            )}
-
-                            {/* Empty State */}
-                            {!isAiThinking && gameState.messages.filter(m => m.senderId === 'ai_guide').length === 0 && (
-                                <p className="text-xs text-stone-500 text-center mt-10 italic">
-                                    向先知寻求指引...
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Input Area */}
-                        <form onSubmit={handleAiSubmit} className="relative shrink-0">
-                            <textarea
-                                value={aiPrompt}
-                                onChange={e => setAiPrompt(e.target.value)}
-                                className="w-full bg-stone-950 border border-stone-700 rounded p-3 text-sm text-stone-200 focus:border-purple-600 outline-none resize-none h-24 placeholder-stone-700 font-serif disabled:opacity-50"
-                                placeholder="询问先知..."
-                                disabled={isAiThinking}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleAiSubmit(e);
-                                    }
-                                }}
-                            />
-                            <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                                <span className="text-[10px] text-stone-600 hidden md:inline">Shift+Enter 换行</span>
-                                <button
-                                    type="submit"
-                                    disabled={isAiThinking || !aiPrompt.trim()}
-                                    className="bg-purple-900 hover:bg-purple-800 disabled:bg-stone-800 disabled:text-stone-600 text-purple-100 font-bold py-1.5 px-4 rounded border border-purple-950 transition-all font-cinzel text-xs shadow-lg"
-                                >
-                                    {isAiThinking ? '...' : '发送'}
-                                </button>
-                            </div>
-                        </form>
+                        )}
                     </div>
-                )
-            }
+                )}
 
+                {/* Tab: Notebook */}
+                {activeTab === 'notebook' && (
+                    <div className="h-full p-4">
+                        {user.isStoryteller ? <StorytellerNotebook /> : <PlayerNotebook />}
+                    </div>
+                )}
 
+            </div>
 
-
-            {/* History Modal */}
+            {/* --- Modals --- */}
             {showHistory && <HistoryViewer onClose={() => setShowHistory(false)} />}
-
-            {/* Night Action Panel */}
-            {
-                showNightAction && currentNightRole && (
-                    <NightActionPanel
-                        roleId={currentNightRole}
-                        onComplete={() => {
-                            setShowNightAction(false);
-                            setCurrentNightRole(null);
-                        }}
-                    />
-                )
-            }
-
-            {/* Help Modal */}
             {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+            {showRules && <GameRules onClose={() => setShowRules(false)} />}
+            {showCompositionGuide && (
+                <ScriptCompositionGuide
+                    onClose={() => setShowCompositionGuide(false)}
+                    playerCount={gameState.seats.filter(s => s.userId || s.isVirtual).length}
+                />
+            )}
 
-            <style>{`
-        .btn { @apply py-1.5 px-2 rounded-sm text-xs transition-all hover:opacity-90 active:scale-95 shadow-sm border border-stone-900; }
-      `}</style>
-        </div >
+            {/* Night Action Modal (ST) */}
+            {showNightAction && user.isStoryteller && currentNightRole && (
+                <NightActionPanel
+                    roleId={currentNightRole}
+                    onComplete={() => {
+                        setShowNightAction(false);
+                        nightNext(); // 自动推进到下一个夜间角色
+                    }}
+                />
+            )}
+
+            {/* Night Action Modal (Player) */}
+            {showNightAction && !user.isStoryteller && currentSeat?.roleId && (
+                <PlayerNightAction
+                    roleId={currentSeat.roleId}
+                    onComplete={() => setShowNightAction(false)}
+                />
+            )}
+
+        </div>
     );
 };

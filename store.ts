@@ -124,7 +124,8 @@ const getInitialState = (roomId: string, seatCount: number, currentScriptId: str
         totalRounds: 0
     },
     storytellerNotes: [],
-    skillDescriptionMode: 'simple'
+    skillDescriptionMode: 'simple',
+    aiMessages: []
 });
 
 const addSystemMessage = (gameState: GameState, content: string) => {
@@ -199,32 +200,39 @@ interface AppState {
     toggleHand: () => void;
     closeVote: () => void;
 
-    syncToCloud: () => void;
-    sync: () => void;
-    importScript: (jsonContent: string) => void;
-    forwardMessage: (messageId: string, targetRecipientId: string | null) => void;
-    saveGameHistory: (finalState: GameState) => Promise<void>;
-    clearAiMessages: () => void;
-    deleteAiMessage: (messageId: string) => void;
-    performNightAction: (action: { roleId: string; payload: any }) => void;
-    sendInfoCard: (card: import('./types').InfoCard, recipientId: string | null) => void;
-    setRoleReferenceMode: (mode: 'modal' | 'sidebar') => void;
-    toggleSidebar: () => void;
-    openRolePanel: () => void;
-    closeRolePanel: () => void;
-    revealRoles: () => void;
-    hideRoles: () => void;
-    startGame: () => void;
-    autoAssignRoles: () => void;
-
     // New Actions
+    addSeat: () => void;
+    removeSeat: () => void;
     addVirtualPlayer: () => void;
-    removeVirtualPlayer: (seatId: number) => void;
-    handlePlayerSeating: (seatId: number) => void;
+    assignRoles: () => void;
+    distributeRoles: () => void;
+    startGame: () => void;
+
+    // Note Actions
     addStorytellerNote: (content: string) => void;
     updateStorytellerNote: (id: string, content: string) => void;
     deleteStorytellerNote: (id: string) => void;
+
+    // Night Actions
+    performNightAction: (action: { roleId: string, payload: any }) => void;
+    submitNightAction: (action: { roleId: string, payload: any }) => void;
+
+    importScript: (jsonContent: string) => void;
+
+    // Sync & History
+    syncToCloud: () => void;
+    sync: () => void;
+    saveGameHistory: (gameState: GameState) => void;
+
+    // UI State
+    openRolePanel: () => void;
+    closeRolePanel: () => void;
+    toggleSidebar: () => void;
     toggleSkillDescriptionMode: () => void;
+
+    // AI
+    clearAiMessages: () => void;
+    deleteAiMessage: (id: string) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -438,6 +446,8 @@ export const useStore = create<AppState>((set, get) => ({
         get().syncToCloud();
     },
 
+
+
     setScript: (scriptId) => {
         const { gameState } = get();
         if (!gameState) return; // Added check for gameState
@@ -614,7 +624,7 @@ export const useStore = create<AppState>((set, get) => ({
             if (seat.statuses.includes(status)) {
                 seat.statuses = seat.statuses.filter(s => s !== status);
             } else {
-                seat.statuses.push(status);
+                seat.statuses = [...seat.statuses, status];
             }
         }
         set({ gameState: { ...gameState } });
@@ -635,15 +645,46 @@ export const useStore = create<AppState>((set, get) => ({
         if (!gameState) return;
         const seat = gameState.seats.find(s => s.id === seatId);
         if (seat) {
-            seat.reminders.push({
+            seat.reminders = [...seat.reminders, {
                 id: Math.random().toString(36),
                 text,
                 sourceRole: 'ST',
                 seatId,
                 icon,
                 color
-            });
+            }];
         }
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    addSeat: () => {
+        const { gameState } = get();
+        if (!gameState) return;
+        const newId = gameState.seats.length;
+        gameState.seats = [...gameState.seats, {
+            id: newId,
+            userId: null,
+            userName: `座位 ${newId + 1}`,
+            isDead: false,
+            hasGhostVote: true,
+            roleId: null,
+            reminders: [],
+            isHandRaised: false,
+            isNominated: false,
+            hasUsedAbility: false,
+            statuses: [],
+            isVirtual: true // Default to virtual/empty
+        }];
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    removeSeat: () => {
+        const { gameState } = get();
+        if (!gameState || gameState.seats.length === 0) return;
+        // Remove the last seat
+        gameState.seats = gameState.seats.slice(0, -1);
         set({ gameState: { ...gameState } });
         get().syncToCloud();
     },
@@ -767,7 +808,7 @@ export const useStore = create<AppState>((set, get) => ({
 
         const seat = gameState.seats.find(s => s.userId === user.id);
 
-        if (seat && gameState.voting.clockHandSeatId === seat.id) {
+        if (seat) {
             if (seat.isDead && !seat.hasGhostVote) return;
             seat.isHandRaised = !seat.isHandRaised;
             set({ gameState: { ...gameState } });
@@ -1034,13 +1075,24 @@ export const useStore = create<AppState>((set, get) => ({
         set({ isRolePanelOpen: false });
     },
 
-    revealRoles: () => {
+    distributeRoles: () => {
         const { gameState } = get();
         if (!gameState) return;
 
+        // 验证：检查所有座位（包含虚拟玩家）是否都已分配角色
+        const occupiedSeats = gameState.seats.filter(s => s.userId || s.isVirtual);
+        const unassignedSeats = occupiedSeats.filter(s => !s.roleId);
+
+        if (unassignedSeats.length > 0) {
+            const seatNumbers = unassignedSeats.map(s => s.id + 1).join(', ');
+            addSystemMessage(gameState, `❌ 无法发放角色：座位 ${seatNumbers} 还未分配角色。请先完成角色分配。`);
+            set({ gameState: { ...gameState } });
+            return;
+        }
+
         gameState.rolesRevealed = true;
         gameState.setupPhase = 'READY';
-        addSystemMessage(gameState, '说书人已发放角色，玩家可查看规则手册');
+        addSystemMessage(gameState, '✅ 说书人已发放角色，玩家可查看规则手册');
 
         set({ gameState: { ...gameState } });
         get().syncToCloud();
@@ -1057,28 +1109,18 @@ export const useStore = create<AppState>((set, get) => ({
         get().syncToCloud();
     },
 
-    startGame: () => {
-        const { gameState } = get();
-        if (!gameState) return;
 
-        gameState.setupPhase = 'STARTED';
-        gameState.phase = 'NIGHT';
-        addSystemMessage(gameState, '游戏开始！进入首夜');
 
-        set({ gameState: { ...gameState } });
-        get().syncToCloud();
-    },
-
-    autoAssignRoles: () => {
+    assignRoles: () => {
         const { gameState } = get();
         if (!gameState || !gameState.currentScriptId) return;
 
         const script = SCRIPTS[gameState.currentScriptId];
         if (!script) return;
 
-        const seatCount = gameState.seats.filter(s => s.userId).length;
+        const seatCount = gameState.seats.filter(s => s.userId || s.isVirtual).length;
         if (seatCount < 5) {
-            addSystemMessage(gameState, '玩家人数不足5人，无法自动分配');
+            addSystemMessage(gameState, '玩家人数不足5人（含虚拟玩家），无法自动分配');
             set({ gameState: { ...gameState } });
             return;
         }
@@ -1099,10 +1141,10 @@ export const useStore = create<AppState>((set, get) => ({
         selectedRoles.push(...shuffle(minions).slice(0, composition.minion).map(r => r.id));
         selectedRoles.push(...shuffle(demons).slice(0, composition.demon).map(r => r.id));
 
-        // 分配到座位
+        // 分配到座位（包含真实玩家和虚拟玩家）
         const shuffledRoles = shuffle(selectedRoles);
         gameState.seats.forEach((seat, i) => {
-            if (seat.userId && shuffledRoles[i]) {
+            if ((seat.userId || seat.isVirtual) && shuffledRoles[i]) {
                 seat.roleId = shuffledRoles[i];
             }
         });
@@ -1144,6 +1186,72 @@ export const useStore = create<AppState>((set, get) => ({
             set({ gameState: { ...gameState } });
             get().syncToCloud();
         }
+    },
+
+
+
+    submitNightAction: (action) => {
+        const { gameState, user } = get();
+        if (!gameState || !user) return;
+
+        // Find player's seat
+        const seat = gameState.seats.find(s => s.userId === user.id);
+        if (!seat) return;
+
+        const roleName = ROLES[action.roleId]?.name || action.roleId;
+        let actionDesc = `提交了 ${roleName} 的夜间行动`;
+
+        if (action.payload?.targetId) {
+            const target = gameState.seats.find(s => s.id === action.payload.targetId);
+            actionDesc += ` (目标: ${target?.userName})`;
+        }
+
+        // Add to ST notes or system message (private to ST?)
+        // For now, add a system message that only ST can see? 
+        // System messages are public.
+        // Maybe add a private AI message to ST?
+        addAiMessage(gameState, `🌑 玩家 ${seat.userName} ${actionDesc}`, 'system', user.id); // Send to self? No, send to ST.
+
+        // Find ST user
+        // We don't have easy access to ST user ID here unless we store it.
+        // But we can just add a system message for now.
+        addSystemMessage(gameState, `🌑 [夜间] ${seat.userName} ${actionDesc}`);
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    startGame: () => {
+        const { gameState } = get();
+        if (!gameState) return;
+
+        // Validation
+        if (gameState.seats.filter(s => s.userId || s.isVirtual).length < 5) {
+            addSystemMessage(gameState, '❌ 无法开始：玩家人数不足 5 人 (含虚拟玩家)。');
+            return;
+        }
+
+        const unassigned = gameState.seats.filter(s => (s.userId || s.isVirtual) && !s.roleId);
+        if (unassigned.length > 0) {
+            addSystemMessage(gameState, `❌ 无法开始：还有 ${unassigned.length} 位玩家未分配角色。`);
+            return;
+        }
+
+        gameState.phase = 'NIGHT';
+        gameState.nightCurrentIndex = 0;
+
+        // Build night queue
+        const inPlayRoles = gameState.seats
+            .filter(s => !s.isDead && s.roleId)
+            .map(s => s.roleId!);
+
+        // First night order
+        const firstNightOrder = NIGHT_ORDER_FIRST.filter(id => inPlayRoles.includes(id));
+        gameState.nightQueue = firstNightOrder;
+
+        addSystemMessage(gameState, '🌃 游戏开始！进入首个夜晚。');
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
     },
 
     handlePlayerSeating: (seatId) => {
@@ -1194,7 +1302,9 @@ export const useStore = create<AppState>((set, get) => ({
         gameState.skillDescriptionMode = gameState.skillDescriptionMode === 'simple' ? 'detailed' : 'simple';
         set({ gameState: { ...gameState } });
         get().syncToCloud();
-    }
+    },
+
+
 }));
 
 // Helper: TB composition rules

@@ -2,17 +2,23 @@ import React from 'react';
 
 interface HelpModalProps {
     onClose: () => void;
+    embedded?: boolean;
 }
 
-export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
-    return (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200 font-serif">
-            <div className="bg-stone-900 border border-stone-700 p-6 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl relative text-stone-300">
-                <button onClick={onClose} className="absolute top-4 right-4 text-stone-500 hover:text-stone-200 text-xl transition-colors">×</button>
-                <h2 className="text-2xl font-bold text-amber-600 mb-6 font-cinzel border-b border-stone-800 pb-2 flex items-center gap-2">
-                    <span>📜</span> 说书人操作指南
-                </h2>
-
+export const HelpModal: React.FC<HelpModalProps> = ({ onClose, embedded = false }) => {
+    const content = (
+        <div className={`${embedded ? '' : 'bg-stone-900 border border-stone-700 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col'}`}>
+            {!embedded && (
+                <div className="p-4 border-b border-stone-800 flex justify-between items-center bg-stone-950">
+                    <h2 className="text-xl font-bold text-stone-200 font-cinzel flex items-center gap-2">
+                        <span>❓</span> 说书人操作指引
+                    </h2>
+                    <button onClick={onClose} className="text-stone-500 hover:text-stone-300 transition-colors">
+                        ✕
+                    </button>
+                </div>
+            )}
+            <div className={`${embedded ? '' : 'p-6 overflow-y-auto'}`}>
                 <div className="space-y-6">
                     <section>
                         <h3 className="text-lg font-bold text-stone-200 mb-3 flex items-center gap-2">
@@ -54,6 +60,14 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
                     </div>
                 </div>
             </div>
+        </div>
+    );
+
+    if (embedded) return content;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            {content}
         </div>
     );
 };

@@ -62,7 +62,7 @@ const App = () => {
   const isNight = gameState?.phase === 'NIGHT';
 
   return (
-    <div className="flex flex-col md:flex-row h-[100dvh] w-screen bg-stone-950 overflow-hidden relative font-serif">
+    <div className="flex flex-col md:flex-row h-[100dvh] w-screen bg-stone-950 overflow-y-auto md:overflow-hidden relative font-serif">
       
       {/* Audio Manager */}
       <AudioManager />

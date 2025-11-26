@@ -11,6 +11,15 @@ export interface RoleDef {
   firstNight?: boolean;
   otherNight?: boolean;
   icon?: string; // Visual indicator for the role (emoji)
+  reminders?: string[]; // Default reminders for this role
+}
+
+export interface ScriptDefinition {
+  id: string;
+  name: string;
+  author?: string;
+  roles: string[]; // Role IDs
+  meta?: any; // Extra metadata
 }
 
 export interface Reminder {
@@ -67,14 +76,14 @@ export interface GameState {
   seats: Seat[];
   messages: ChatMessage[];
   gameOver: GameOverState;
-  
+
   // Audio State (New)
   audio: AudioState;
 
   // Clock / Night Order
   nightQueue: string[]; // Array of RoleIDs
   nightCurrentIndex: number; // -1 if not started
-  
+
   // Voting State
   voting: {
     nominatorSeatId: number | null;
@@ -83,6 +92,9 @@ export interface GameState {
     votes: number[]; // SeatIDs of those who voted
     isOpen: boolean;
   } | null;
+
+  customScripts: Record<string, ScriptDefinition>; // New: Store uploaded scripts
+  customRoles: Record<string, RoleDef>; // New: Store custom roles from scripts
 }
 
 export interface User {

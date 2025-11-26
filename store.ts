@@ -1,8 +1,7 @@
-
 import { create } from 'zustand';
 import { GameState, User, GamePhase, ChatMessage, AudioState, SeatStatus } from './types';
 import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } from './constants';
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 
 // --- SUPABASE CONFIG ---
@@ -14,6 +13,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// --- AI CONFIG ---
+type AiProvider = 'deepseek' | 'kimi';
+
+const AI_CONFIG = {
+    deepseek: {
+        apiKey: import.meta.env.VITE_DEEPSEEK_KEY,
+        baseURL: 'https://api.deepseek.com',
+        model: 'deepseek-chat'
+    },
+    kimi: {
+        apiKey: import.meta.env.VITE_KIMI_KEY,
+        baseURL: 'https://api.moonshot.cn/v1',
+        model: 'moonshot-v1-8k'
+    }
+};
 
 // Global variables for subscription
 let realtimeChannel: any = null;
@@ -49,6 +64,8 @@ const getInitialState = (seatCount: number, roomCode: string): GameState => ({
     nightQueue: [],
     nightCurrentIndex: -1,
     voting: null,
+    customScripts: {},
+    customRoles: {},
 });
 
 const addSystemMessage = (gameState: GameState, content: string) => {
@@ -63,11 +80,12 @@ const addSystemMessage = (gameState: GameState, content: string) => {
     });
 };
 
-const addAiMessage = (gameState: GameState, content: string) => {
+const addAiMessage = (gameState: GameState, content: string, provider: string) => {
+    const providerName = provider === 'deepseek' ? 'DeepSeek' : 'Kimi';
     gameState.messages.push({
         id: Math.random().toString(36).substr(2, 9),
         senderId: 'ai_guide',
-        senderName: '魔典助手 (AI)',
+        senderName: `魔典助手 (${providerName})`,
         recipientId: null,
         content,
         timestamp: Date.now(),
@@ -83,6 +101,7 @@ interface AppState {
     isAiThinking: boolean;
     isAudioBlocked: boolean;
     isOffline: boolean;
+    aiProvider: AiProvider;
 
     login: (name: string, isStoryteller: boolean) => void;
     createGame: (seatCount: number) => Promise<void>;
@@ -100,7 +119,9 @@ interface AppState {
     toggleWhispers: () => void;
     addReminder: (seatId: number, text: string) => void;
     removeReminder: (id: string) => void;
+
     askAi: (prompt: string) => Promise<void>;
+    setAiProvider: (provider: AiProvider) => void;
 
     setAudioTrack: (trackId: string) => void;
     toggleAudioPlay: () => void;
@@ -117,6 +138,7 @@ interface AppState {
 
     syncToCloud: () => void;
     sync: () => void;
+    importScript: (jsonContent: string) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -125,6 +147,7 @@ export const useStore = create<AppState>((set, get) => ({
     isAiThinking: false,
     isAudioBlocked: false,
     isOffline: false,
+    aiProvider: 'deepseek',
 
     login: (name, isStoryteller) => {
         let id = localStorage.getItem('grimoire_uid');
@@ -165,8 +188,6 @@ export const useStore = create<AppState>((set, get) => ({
                     (payload) => {
                         if (payload.new && payload.new.data) {
                             isReceivingUpdate = true;
-                            // Merge logic could go here, but for now simple replace
-                            // Check if we are the ones who sent it (optional optimization, but hard without sender ID in payload)
                             set({ gameState: payload.new.data });
                             isReceivingUpdate = false;
                         }
@@ -267,7 +288,6 @@ export const useStore = create<AppState>((set, get) => ({
         const currentGameState = get().gameState;
         if (!currentGameState) return;
 
-        // Debounce could be added here
         const { error } = await supabase
             .from('game_rooms')
             .update({ data: currentGameState, updated_at: new Date() })
@@ -330,13 +350,64 @@ export const useStore = create<AppState>((set, get) => ({
 
     setScript: (scriptId) => {
         const { gameState } = get();
-        if (!gameState || !SCRIPTS[scriptId]) return;
+        if (!gameState) return; // Added check for gameState
+        const script = SCRIPTS[scriptId] || gameState.customScripts[scriptId]; // Define script
+        if (!script) return; // Check if script exists
 
         gameState.currentScriptId = scriptId;
-        addSystemMessage(gameState, `剧本切换为: ${SCRIPTS[scriptId].name}`);
-
+        addSystemMessage(gameState, `剧本已切换为: ${script.name}`);
         set({ gameState: { ...gameState } });
         get().syncToCloud();
+    },
+
+    importScript: (jsonContent: string) => {
+        const { gameState } = get();
+        if (!gameState) return;
+
+        try {
+            const data = JSON.parse(jsonContent);
+            if (!Array.isArray(data)) throw new Error("Invalid format: Expected array of roles");
+
+            const scriptId = `custom_${Date.now()}`;
+            const scriptName = data.find((item: any) => item.id === '_meta')?.name || `Custom Script ${new Date().toLocaleTimeString()}`;
+
+            const roles: string[] = [];
+
+            data.forEach((item: any) => {
+                if (item.id === '_meta') return;
+
+                if (item.id && item.name && item.team) {
+                    gameState.customRoles[item.id] = {
+                        id: item.id,
+                        name: item.name,
+                        team: item.team,
+                        description: item.ability || item.description || '',
+                        firstNight: item.firstNightReminder ? true : false,
+                        otherNight: item.otherNightReminder ? true : false,
+                        icon: item.image || undefined,
+                        reminders: item.reminders || []
+                    };
+                    roles.push(item.id);
+                }
+            });
+
+            if (roles.length === 0) throw new Error("No valid roles found");
+
+            gameState.customScripts[scriptId] = {
+                id: scriptId,
+                name: scriptName,
+                roles: roles
+            };
+
+            addSystemMessage(gameState, `成功导入剧本: ${scriptName}`);
+            set({ gameState: { ...gameState } });
+            get().setScript(scriptId);
+            get().syncToCloud();
+
+        } catch (e: any) { // Added type annotation for error
+            console.error("Script import failed", e);
+            alert("导入失败: 格式不正确");
+        }
     },
 
     setPhase: (phase) => {
@@ -611,14 +682,24 @@ export const useStore = create<AppState>((set, get) => ({
         get().syncToCloud();
     },
 
+    setAiProvider: (provider) => {
+        set({ aiProvider: provider });
+    },
+
     askAi: async (prompt: string) => {
-        const { user, gameState } = get();
+        const { user, gameState, aiProvider } = get();
         if (!user || !user.isStoryteller || !gameState) return;
 
         set({ isAiThinking: true });
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const config = AI_CONFIG[aiProvider];
+            const openai = new OpenAI({
+                apiKey: config.apiKey,
+                baseURL: config.baseURL,
+                dangerouslyAllowBrowser: true // Required for client-side usage
+            });
+
             const gameContext = {
                 script: SCRIPTS[gameState.currentScriptId].name,
                 phase: gameState.phase,
@@ -631,22 +712,23 @@ export const useStore = create<AppState>((set, get) => ({
                 nightOrder: gameState.nightQueue.map(r => ROLES[r]?.name),
             };
 
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: `Context: ${JSON.stringify(gameContext)}. User Question: ${prompt}`,
-                config: {
-                    systemInstruction: "You are an expert 'Blood on the Clocktower' Storyteller assistant. Keep answers concise and helpful.",
-                }
+            const completion = await openai.chat.completions.create({
+                messages: [
+                    { role: "system", content: "You are an expert 'Blood on the Clocktower' Storyteller assistant. Keep answers concise and helpful." },
+                    { role: "user", content: `Context: ${JSON.stringify(gameContext)}. User Question: ${prompt}` }
+                ],
+                model: config.model,
             });
 
-            if (response.text) {
-                addAiMessage(gameState, response.text);
+            const reply = completion.choices[0].message.content;
+            if (reply) {
+                addAiMessage(gameState, reply, aiProvider);
                 set({ gameState: { ...gameState } });
                 get().syncToCloud();
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            addSystemMessage(gameState, "AI 助手暂时无法连接。");
+            addSystemMessage(gameState, `AI 助手 (${aiProvider}) 连接失败: ${error.message}`);
             set({ gameState: { ...gameState } });
             get().syncToCloud();
         } finally {

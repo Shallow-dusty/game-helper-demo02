@@ -4,6 +4,7 @@ import { ROLES, TEAM_COLORS, PHASE_LABELS, AUDIO_TRACKS, SCRIPTS } from '../cons
 import { Chat } from './Chat';
 import { HistoryViewer } from './HistoryViewer';
 import { NightActionPanel } from './NightActionPanel';
+import { NightActionManager } from './NightActionManager';
 import { StorytellerNotebook } from './StorytellerNotebook';
 import { PlayerNotebook } from './PlayerNotebook';
 import { PlayerNightAction } from './PlayerNightAction';
@@ -213,6 +214,18 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const [showRoleReference, setShowRoleReference] = useState(false);
     const [showCompositionGuide, setShowCompositionGuide] = useState(false);
     const [skillDescriptionMode, setSkillDescriptionMode] = useState<'simple' | 'detailed'>('simple');
+    
+    // 移动端可折叠区块状态
+    const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+        setup: false,
+        phase: false,
+        audio: true, // 默认折叠音频
+        voting: false
+    });
+    
+    const toggleSection = (section: string) => {
+        setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+    };
 
     // Load preference from localStorage
     useEffect(() => {
@@ -478,6 +491,9 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                         {/* ST CONTROLS */}
                         {user.isStoryteller && (
                             <div className="space-y-6">
+                                
+                                {/* Night Action Manager - 处理玩家夜间行动请求 */}
+                                <NightActionManager />
 
                                 {/* Script Selector */}
                                 <div className="bg-stone-900 p-3 rounded border border-stone-700">
@@ -524,10 +540,17 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                     </select>
                                 </div>
 
-                                {/* Game Setup */}
-                                <div className="bg-stone-900 p-3 rounded border border-stone-700 space-y-2">
-                                    <div className="text-xs font-bold text-stone-500 uppercase">⚙️ 游戏设置 (Setup)</div>
-
+                                {/* Game Setup - Collapsible on Mobile */}
+                                <div className="bg-stone-900 rounded border border-stone-700">
+                                    <button 
+                                        className="w-full p-3 flex justify-between items-center text-xs font-bold text-stone-500 uppercase md:cursor-default"
+                                        onClick={() => toggleSection('setup')}
+                                    >
+                                        <span>⚙️ 游戏设置 (Setup)</span>
+                                        <span className="md:hidden text-stone-600">{collapsedSections.setup ? '▼' : '▲'}</span>
+                                    </button>
+                                    
+                                    <div className={`space-y-2 px-3 pb-3 ${collapsedSections.setup ? 'hidden md:block' : ''}`}>
                                     <div className="grid grid-cols-2 gap-2">
                                         <button
                                             onClick={() => useStore.getState().addVirtualPlayer()}
@@ -596,11 +619,20 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                             </button>
                                         )}
                                     </div>
+                                    </div>
                                 </div>
 
-                                {/* Audio Controls */}
-                                <div className="bg-stone-900 p-3 rounded border border-stone-700">
-                                    <div className="text-xs font-bold text-stone-500 uppercase mb-2">🎵 氛围音效 (Audio)</div>
+                                {/* Audio Controls - Collapsible */}
+                                <div className="bg-stone-900 rounded border border-stone-700">
+                                    <button 
+                                        className="w-full p-3 flex justify-between items-center text-xs font-bold text-stone-500 uppercase"
+                                        onClick={() => toggleSection('audio')}
+                                    >
+                                        <span>🎵 氛围音效 (Audio)</span>
+                                        <span className="text-stone-600">{collapsedSections.audio ? '▼' : '▲'}</span>
+                                    </button>
+                                    
+                                    <div className={`px-3 pb-3 ${collapsedSections.audio ? 'hidden' : ''}`}>
                                     <select
                                         className="w-full bg-stone-950 border border-stone-700 rounded text-xs text-stone-300 p-1 mb-2"
                                         onChange={(e) => setAudioTrack(e.target.value)}
@@ -627,6 +659,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                             onChange={(e) => setAudioVolume(parseFloat(e.target.value))}
                                             className="w-20 accent-amber-600"
                                         />
+                                    </div>
                                     </div>
                                 </div>
 

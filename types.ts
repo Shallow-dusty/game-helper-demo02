@@ -29,6 +29,17 @@ export interface VoteRecord {
   result: 'executed' | 'survived' | 'cancelled';
 }
 
+// 夜间行动请求（玩家提交给ST）
+export interface NightActionRequest {
+  id: string;
+  seatId: number;
+  roleId: string;
+  payload: any;
+  status: 'pending' | 'resolved';
+  result?: string; // ST回复的结果信息
+  timestamp: number;
+}
+
 export interface RoleDef {
   id: string;
   name: string;
@@ -158,6 +169,9 @@ export interface GameState {
   storytellerNotes: StorytellerNote[];
   skillDescriptionMode: 'simple' | 'detailed';
   aiMessages: ChatMessage[];
+  
+  // 夜间行动请求队列
+  nightActionRequests: NightActionRequest[];
 }
 
 export interface User {

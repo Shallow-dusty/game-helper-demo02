@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GameState, User, GamePhase, ChatMessage, AudioState, SeatStatus, Seat } from './types';
+import { GameState, User, GamePhase, ChatMessage, AudioState, SeatStatus, Seat, NightActionRequest } from './types';
 import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } from './constants';
 import OpenAI from 'openai';
 import { createClient, RealtimeChannel } from '@supabase/supabase-js';
@@ -225,7 +225,8 @@ const getInitialState = (roomId: string, seatCount: number, currentScriptId: str
     },
     storytellerNotes: [],
     skillDescriptionMode: 'simple',
-    aiMessages: []
+    aiMessages: [],
+    nightActionRequests: []
 });
 
 const addSystemMessage = (gameState: GameState, content: string) => {
@@ -273,7 +274,8 @@ interface AppState {
     joinGame: (roomCode: string) => Promise<void>;
     leaveGame: () => void;
 
-    joinSeat: (seatId: number) => void;
+    joinSeat: (seatId: number) => Promise<void>;
+    leaveSeat: () => Promise<void>;
     sendMessage: (content: string, recipientId: string | null) => void;
     setScript: (scriptId: string) => void;
     setPhase: (phase: GamePhase) => void;
@@ -317,6 +319,8 @@ interface AppState {
     // Night Actions
     performNightAction: (action: { roleId: string, payload: any }) => void;
     submitNightAction: (action: { roleId: string, payload: any }) => void;
+    resolveNightAction: (requestId: string, result: string) => void;
+    getPendingNightActions: () => NightActionRequest[];
 
     importScript: (jsonContent: string) => void;
 
@@ -527,7 +531,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     // --- ACTIONS ---
 
-    joinSeat: (seatId) => {
+    joinSeat: async (seatId) => {
         const { user, gameState } = get();
         if (!user || !gameState) return;
 
@@ -538,31 +542,138 @@ export const useStore = create<AppState>((set, get) => ({
         const existingSeat = gameState.seats.find(s => s.userId === user.id && s.id !== seatId);
         if (existingSeat) {
             // 用户已在其他座位，不允许重复入座
-            addSystemMessage(gameState, `❌ 你已经在座位 ${existingSeat.id + 1}，不能同时占多个座位。`);
-            set({ gameState: { ...gameState } });
+            getToastFunctions().then(({ showWarning }) => {
+                showWarning?.(`你已经在座位 ${existingSeat.id + 1}，不能同时占多个座位。`);
+            });
             return;
         }
 
-        // 检查座位是否已被占用
-        if (seat.userId && seat.userId !== user.id) {
-            if (seat.isVirtual) {
-                // 虚拟玩家座位：自动清除虚拟标记并允许真实玩家入座
-                addSystemMessage(gameState, `${user.name} 接管了虚拟玩家的座位 ${seatId + 1}。`);
-            } else {
-                // 真实玩家座位：阻止入座
-                addSystemMessage(gameState, `❌ 座位 ${seatId + 1} 已被 ${seat.userName} 占用。`);
-                set({ gameState: { ...gameState } });
-                return;
-            }
+        // 检查座位是否已被占用（本地快速检查）
+        if (seat.userId && seat.userId !== user.id && !seat.isVirtual) {
+            getToastFunctions().then(({ showWarning }) => {
+                showWarning?.(`座位 ${seatId + 1} 已被 ${seat.userName} 占用。`);
+            });
+            return;
         }
 
-        // 占座
-        seat.userId = user.id;
-        seat.userName = user.name;
-        seat.isVirtual = false; // 清除虚拟标记
-        addSystemMessage(gameState, `${user.name} 就坐于座位 ${seatId + 1}。`);
-        set({ gameState: { ...gameState } });
-        get().syncToCloud();
+        // 生成客户端令牌（用于验证座位所有权）
+        const clientToken = user.id + '_' + Date.now().toString(36);
+
+        try {
+            // 调用 Supabase RPC 原子化占座
+            const { data, error } = await supabase.rpc('claim_seat', {
+                p_room_code: gameState.roomCode,
+                p_seat_id: seatId,
+                p_player_name: user.name,
+                p_client_token: clientToken
+            });
+
+            if (error) {
+                console.error('claim_seat RPC error:', error);
+                // 降级到本地处理
+                seat.userId = user.id;
+                seat.userName = user.name;
+                seat.isVirtual = false;
+                addSystemMessage(gameState, `${user.name} 就坐于座位 ${seatId + 1}。`);
+                set({ gameState: { ...gameState } });
+                get().syncToCloud();
+                return;
+            }
+
+            if (data && !data.success) {
+                // RPC 返回失败（座位已被占用）
+                getToastFunctions().then(({ showWarning }) => {
+                    showWarning?.(data.error || '占座失败');
+                });
+                return;
+            }
+
+            // RPC 成功，更新本地状态
+            seat.userId = user.id;
+            seat.userName = user.name;
+            seat.isVirtual = false;
+            // 保存 clientToken 用于后续 leave_seat 验证
+            (seat as any).clientToken = clientToken;
+            
+            addSystemMessage(gameState, `${user.name} 就坐于座位 ${seatId + 1}。`);
+            set({ gameState: { ...gameState } });
+            // 不需要 syncToCloud，RPC 已经更新了数据库
+            
+        } catch (err) {
+            console.error('claim_seat error:', err);
+            // 降级到本地处理
+            seat.userId = user.id;
+            seat.userName = user.name;
+            seat.isVirtual = false;
+            addSystemMessage(gameState, `${user.name} 就坐于座位 ${seatId + 1}。`);
+            set({ gameState: { ...gameState } });
+            get().syncToCloud();
+        }
+    },
+
+    leaveSeat: async () => {
+        const { user, gameState } = get();
+        if (!user || !gameState) return;
+
+        // 找到用户当前的座位
+        const seat = gameState.seats.find(s => s.userId === user.id);
+        if (!seat) {
+            getToastFunctions().then(({ showWarning }) => {
+                showWarning?.('你没有座位可以离开。');
+            });
+            return;
+        }
+
+        const clientToken = (seat as any).clientToken;
+        const seatId = seat.id;
+        const userName = seat.userName;
+
+        try {
+            // 如果有 clientToken，调用 RPC 离座
+            if (clientToken) {
+                const { data, error } = await supabase.rpc('leave_seat', {
+                    p_room_code: gameState.roomCode,
+                    p_seat_id: seatId,
+                    p_client_token: clientToken
+                });
+
+                if (error) {
+                    console.error('leave_seat RPC error:', error);
+                    // 降级到本地处理
+                }
+
+                if (data && !data.success) {
+                    // 可能 token 不匹配，但仍允许本地清除
+                    console.warn('leave_seat failed:', data.error);
+                }
+            }
+
+            // 清除本地座位状态
+            seat.userId = null;
+            seat.userName = null;
+            seat.roleId = null;
+            seat.realRoleId = null;
+            seat.seenRoleId = null;
+            (seat as any).clientToken = null;
+            
+            addSystemMessage(gameState, `${userName} 离开了座位 ${seatId + 1}。`);
+            set({ gameState: { ...gameState } });
+            get().syncToCloud();
+            
+        } catch (err) {
+            console.error('leave_seat error:', err);
+            // 降级到本地处理
+            seat.userId = null;
+            seat.userName = null;
+            seat.roleId = null;
+            seat.realRoleId = null;
+            seat.seenRoleId = null;
+            (seat as any).clientToken = null;
+            
+            addSystemMessage(gameState, `${userName} 离开了座位 ${seatId + 1}。`);
+            set({ gameState: { ...gameState } });
+            get().syncToCloud();
+        }
     },
 
     sendMessage: (content, recipientId) => {
@@ -1474,24 +1585,88 @@ export const useStore = create<AppState>((set, get) => ({
         const roleName = ROLES[action.roleId]?.name || action.roleId;
         let actionDesc = `提交了 ${roleName} 的夜间行动`;
 
-        if (action.payload?.targetId) {
-            const target = gameState.seats.find(s => s.id === action.payload.targetId);
+        if (action.payload?.seatId !== undefined) {
+            const target = gameState.seats.find(s => s.id === action.payload.seatId);
             actionDesc += ` (目标: ${target?.userName})`;
+        } else if (action.payload?.seatIds) {
+            const targets = action.payload.seatIds.map((id: number) => 
+                gameState.seats.find(s => s.id === id)?.userName
+            ).filter(Boolean);
+            actionDesc += ` (目标: ${targets.join(', ')})`;
         }
 
-        // Add to ST notes or system message (private to ST?)
-        // For now, add a system message that only ST can see? 
-        // System messages are public.
-        // Maybe add a private AI message to ST?
-        addAiMessage(gameState, `🌑 玩家 ${seat.userName} ${actionDesc}`, 'system', user.id); // Send to self? No, send to ST.
+        // 创建夜间行动请求
+        const request: NightActionRequest = {
+            id: Math.random().toString(36).substr(2, 9),
+            seatId: seat.id,
+            roleId: action.roleId,
+            payload: action.payload,
+            status: 'pending',
+            timestamp: Date.now()
+        };
 
-        // Find ST user
-        // We don't have easy access to ST user ID here unless we store it.
-        // But we can just add a system message for now.
-        addSystemMessage(gameState, `🌑 [夜间] ${seat.userName} ${actionDesc}`);
+        // 添加到请求队列
+        if (!gameState.nightActionRequests) {
+            gameState.nightActionRequests = [];
+        }
+        gameState.nightActionRequests.push(request);
+
+        // 系统消息通知ST
+        addSystemMessage(gameState, `🌑 [夜间] ${seat.userName} ${actionDesc}（等待说书人确认）`);
 
         set({ gameState: { ...gameState } });
         get().syncToCloud();
+    },
+
+    resolveNightAction: (requestId: string, result: string) => {
+        const { gameState, user } = get();
+        if (!gameState || !user?.isStoryteller) return;
+
+        const request = gameState.nightActionRequests?.find(r => r.id === requestId);
+        if (!request) return;
+
+        const seat = gameState.seats.find(s => s.id === request.seatId);
+        const roleName = ROLES[request.roleId]?.name || request.roleId;
+
+        // 更新请求状态
+        request.status = 'resolved';
+        request.result = result;
+
+        // 发送私信给玩家（通过 InfoCard）
+        if (seat?.userId) {
+            const infoCard: import('./types').InfoCard = {
+                type: 'ability',
+                title: `${roleName} 能力结果`,
+                icon: ROLES[request.roleId]?.icon || '🌙',
+                color: 'indigo',
+                content: result
+            };
+
+            const message: ChatMessage = {
+                id: Math.random().toString(36).substr(2, 9),
+                senderId: 'system',
+                senderName: '说书人',
+                recipientId: seat.userId,
+                content: `[${roleName}] ${result}`,
+                timestamp: Date.now(),
+                type: 'chat',
+                isPrivate: true,
+                card: infoCard
+            };
+
+            gameState.messages.push(message);
+        }
+
+        addSystemMessage(gameState, `✅ 说书人已回复 ${seat?.userName} 的 ${roleName} 行动`);
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    getPendingNightActions: () => {
+        const { gameState } = get();
+        if (!gameState?.nightActionRequests) return [];
+        return gameState.nightActionRequests.filter(r => r.status === 'pending');
     },
 
     startGame: () => {

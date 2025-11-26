@@ -483,7 +483,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     )
                 }
             </div>
-                )}
+
 
             {/* Tab: Notebook */}
             {activeTab === 'notebook' && user.isStoryteller && (
@@ -662,30 +662,30 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     </div>
                 )
             }
-        </div>
 
 
 
-            {/* History Modal */ }
-    { showHistory && <HistoryViewer onClose={() => setShowHistory(false)} /> }
 
-    {/* Night Action Panel */ }
-    {
-        showNightAction && currentNightRole && (
-            <NightActionPanel
-                roleId={currentNightRole}
-                onComplete={() => {
-                    setShowNightAction(false);
-                    setCurrentNightRole(null);
-                }}
-            />
-        )
-    }
+            {/* History Modal */}
+            {showHistory && <HistoryViewer onClose={() => setShowHistory(false)} />}
 
-    {/* Help Modal */ }
-    { showHelp && <HelpModal onClose={() => setShowHelp(false)} /> }
+            {/* Night Action Panel */}
+            {
+                showNightAction && currentNightRole && (
+                    <NightActionPanel
+                        roleId={currentNightRole}
+                        onComplete={() => {
+                            setShowNightAction(false);
+                            setCurrentNightRole(null);
+                        }}
+                    />
+                )
+            }
 
-    <style>{`
+            {/* Help Modal */}
+            {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+
+            <style>{`
         .btn { @apply py-1.5 px-2 rounded-sm text-xs transition-all hover:opacity-90 active:scale-95 shadow-sm border border-stone-900; }
       `}</style>
         </div >

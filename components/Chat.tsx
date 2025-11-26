@@ -1,0 +1,172 @@
+
+import React, { useState, useEffect, useRef } from 'react';
+import { useStore } from '../store';
+
+export const Chat = () => {
+  const messages = useStore(state => state.gameState?.messages || []);
+  const seats = useStore(state => state.gameState?.seats || []);
+  const allowWhispers = useStore(state => state.gameState?.allowWhispers ?? true);
+  const user = useStore(state => state.user);
+  const sendMessage = useStore(state => state.sendMessage);
+  
+  const [input, setInput] = useState('');
+  const [recipientId, setRecipientId] = useState<string | null>(null); // null = Public
+  const [activeChannel, setActiveChannel] = useState<'CHAT' | 'LOG'>('CHAT');
+  
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+      if (!allowWhispers && !user?.isStoryteller && recipientId !== null) {
+          setRecipientId(null);
+      }
+  }, [allowWhispers, user, recipientId]);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, activeChannel]);
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    sendMessage(input, recipientId);
+    setInput('');
+  };
+
+  // --- PRIVACY FILTERING ---
+  // Filter messages based on active channel AND privacy
+  // (Since Store now contains full state, we must hide other people's whispers here)
+  const filteredMessages = messages.filter(msg => {
+      // 1. Channel Check
+      if (activeChannel === 'LOG' && msg.type !== 'system') return false;
+      if (activeChannel === 'CHAT' && msg.type !== 'chat') return false;
+
+      // 2. Privacy Check
+      if (msg.recipientId) {
+          // Private message
+          if (user?.isStoryteller) return true; // ST sees all
+          if (msg.senderId === user?.id) return true; // I sent it
+          if (msg.recipientId === user?.id) return true; // Sent to me
+          return false; // Hide others' whispers
+      }
+      
+      return true; // Public message
+  });
+
+  const availableRecipients = seats.filter(s => s.userId && s.userId !== user?.id);
+
+  return (
+    <div className="flex flex-col h-full bg-stone-900 font-serif">
+      
+      {/* Channel Tabs */}
+      <div className="flex border-b border-stone-800 bg-stone-950">
+          <button 
+            onClick={() => setActiveChannel('CHAT')}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${activeChannel === 'CHAT' ? 'bg-stone-900 text-stone-200 border-b-2 border-red-700' : 'text-stone-600 hover:bg-stone-900'}`}
+          >
+            💬 聊天 (Chat)
+          </button>
+          <button 
+            onClick={() => setActiveChannel('LOG')}
+            className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${activeChannel === 'LOG' ? 'bg-stone-900 text-amber-200 border-b-2 border-amber-700' : 'text-stone-600 hover:bg-stone-900'}`}
+          >
+            📜 记录 (Log)
+          </button>
+      </div>
+
+      {/* Message List */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
+        {filteredMessages.length === 0 && (
+            <div className="text-center text-stone-600 text-sm mt-10 italic opacity-50">暂无消息...</div>
+        )}
+        
+        {filteredMessages.map(msg => {
+           const isMe = msg.senderId === user?.id;
+           const isSystem = msg.type === 'system';
+           const isPrivate = msg.recipientId !== null;
+
+           // --- SYSTEM LOG RENDER ---
+           if (isSystem) {
+               return (
+                   <div key={msg.id} className="flex items-start gap-2 my-2 text-stone-400 border-l-2 border-stone-700 pl-2 py-1 bg-black/20 rounded-r">
+                       <span className="text-[10px] mt-0.5">📜</span>
+                       <span className="text-xs font-serif leading-relaxed">{msg.content}</span>
+                   </div>
+               );
+           }
+
+           // --- CHAT RENDER ---
+           const senderSeat = seats.find(s => s.userId === msg.senderId);
+           const displayName = senderSeat ? `[${senderSeat.id + 1}] ${msg.senderName}` : msg.senderName;
+
+           return (
+               <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-in slide-in-from-bottom-2 duration-300`}>
+                   <div className="flex items-center gap-2 mb-0.5">
+                       <span className={`text-[10px] font-bold ${isPrivate ? 'text-purple-400' : 'text-stone-500'}`}>
+                           {displayName} 
+                           {isPrivate && !isMe && " (悄悄话)"}
+                           {isPrivate && isMe && ` ➜ ${seats.find(s => s.userId === msg.recipientId)?.userName || '未知'}`}
+                       </span>
+                   </div>
+                   <div 
+                        className={`px-3 py-2 rounded-lg text-sm max-w-[90%] break-words shadow-sm relative ${
+                            isPrivate
+                            ? 'bg-purple-900/40 text-purple-100 border border-purple-700/50 italic' 
+                            : isMe 
+                                ? 'bg-red-900 text-stone-100 rounded-tr-none'
+                                : 'bg-stone-800 text-stone-300 rounded-tl-none border border-stone-700'
+                       }`}
+                   >
+                       {msg.content}
+                   </div>
+               </div>
+           )
+        })}
+        <div ref={endRef} />
+      </div>
+
+      {/* Input Area */}
+      {activeChannel === 'CHAT' && (
+          <form onSubmit={handleSend} className="p-3 border-t border-stone-700 bg-stone-950">
+              <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] uppercase text-stone-500 font-bold tracking-wider">发送给:</span>
+                  {(allowWhispers || user?.isStoryteller) ? (
+                      <select 
+                        value={recipientId || ''}
+                        onChange={(e) => setRecipientId(e.target.value || null)}
+                        className={`bg-stone-900 border text-xs rounded px-2 py-1 outline-none transition-colors ${recipientId ? 'border-purple-600 text-purple-300' : 'border-stone-700 text-stone-400'}`}
+                      >
+                          <option value="">📢 所有人 (Public)</option>
+                          {availableRecipients.map(s => (
+                              <option key={s.userId} value={s.userId!}>
+                                  🕵️ {s.userName} ({s.id + 1}号)
+                              </option>
+                          ))}
+                      </select>
+                  ) : (
+                      <div className="text-xs text-red-500 flex items-center gap-1 border border-red-900/30 bg-red-950/20 px-2 py-1 rounded">
+                          <span>⛔</span> 
+                          <span>私聊已禁用 (Disabled)</span>
+                      </div>
+                  )}
+              </div>
+
+              <div className="relative">
+                <input 
+                    className={`w-full bg-stone-800 text-stone-200 text-sm rounded-sm px-4 py-2 outline-none border focus:ring-1 transition-all pr-10 ${recipientId ? 'border-purple-800 focus:border-purple-600 focus:ring-purple-900' : 'border-stone-700 focus:border-red-700 focus:ring-red-900'}`}
+                    placeholder={recipientId ? "发送悄悄话..." : "发送公开消息..."}
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                />
+                <button 
+                    type="submit"
+                    disabled={!input.trim()}
+                    className={`absolute right-1 top-1 bottom-1 w-8 h-8 flex items-center justify-center rounded-sm text-white transition-colors disabled:opacity-50 disabled:bg-transparent ${recipientId ? 'bg-purple-800 hover:bg-purple-700' : 'bg-stone-700 hover:bg-red-700'}`}
+                >
+                    <span className="text-xs">➤</span>
+                </button>
+              </div>
+          </form>
+      )}
+    </div>
+  );
+};

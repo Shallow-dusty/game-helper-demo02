@@ -1,0 +1,5 @@
+{
+  "name": "Grimoire-Web",
+  "description": "A Blood on the Clocktower web application featuring a virtual Grimoire, real-time state synchronization, and Storyteller tools.",
+  "requestFramePermissions": []
+}

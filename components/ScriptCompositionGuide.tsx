@@ -97,9 +97,126 @@ interface ScriptCompositionGuideProps {
     onApplyStrategy?: (strategy: CompositionStrategy, roles?: { townsfolk: RoleDef[], outsider: RoleDef[], minion: RoleDef[], demon: RoleDef[] }) => void;
 }
 
+// 策略详情弹窗组件
+const StrategyDetailModal: React.FC<{
+    strategy: CompositionStrategy;
+    composition: { townsfolk: number; outsider: number; minion: number; demon: number };
+    generatedRoles: { townsfolk: RoleDef[], outsider: RoleDef[], minion: RoleDef[], demon: RoleDef[] } | null;
+    onGenerate: () => void;
+    onApply: () => void;
+    onClose: () => void;
+}> = ({ strategy, composition, generatedRoles, onGenerate, onApply, onClose }) => {
+    return (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4 backdrop-blur-sm" onClick={onClose}>
+            <div className="bg-stone-900 rounded-lg border border-amber-700 w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                {/* Header */}
+                <div className="p-4 border-b border-stone-700 bg-stone-950 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-bold text-amber-400 font-cinzel">{strategy.name}</h3>
+                        <span className={`text-xs px-2 py-0.5 rounded ${
+                            strategy.difficulty === '新手' ? 'bg-green-950/50 text-green-400 border border-green-800' :
+                            strategy.difficulty === '中等' ? 'bg-blue-950/50 text-blue-400 border border-blue-800' :
+                            'bg-red-950/50 text-red-400 border border-red-800'
+                        }`}>
+                            {strategy.difficulty}
+                        </span>
+                    </div>
+                    <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-xl">✕</button>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 overflow-y-auto max-h-[calc(85vh-8rem)]">
+                    <p className="text-stone-400 mb-4">{strategy.description}</p>
+
+                    {/* 配置建议 */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="bg-stone-950/50 p-4 rounded border border-stone-800">
+                            <h4 className="text-sm font-bold text-stone-300 mb-2">📊 推荐配置</h4>
+                            <div className="space-y-1 text-xs text-stone-400">
+                                <p>信息类角色: {Math.round(strategy.guidelines.infoRolesRatio.min * composition.townsfolk)}-{Math.round(strategy.guidelines.infoRolesRatio.max * composition.townsfolk)}个</p>
+                                <p>推荐爪牙: {strategy.guidelines.recommendedMinions.map(id => ROLES[id]?.name || id).join(', ')}</p>
+                                <p>推荐局外人: {strategy.guidelines.recommendedOutsiders.map(id => ROLES[id]?.name || id).join(', ')}</p>
+                            </div>
+                        </div>
+                        <div className="bg-stone-950/50 p-4 rounded border border-stone-800">
+                            <h4 className="text-sm font-bold text-stone-300 mb-2">💡 说书人建议</h4>
+                            <ul className="space-y-1">
+                                {strategy.guidelines.tips.map((tip, i) => (
+                                    <li key={i} className="text-xs text-stone-400 flex items-start gap-1">
+                                        <span className="text-amber-600">•</span>
+                                        <span>{tip}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+
+                    {/* 生成按钮 */}
+                    <button
+                        onClick={onGenerate}
+                        className="w-full py-3 px-4 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded text-sm font-bold transition-colors border border-stone-600 mb-4"
+                    >
+                        🎲 生成具体角色配置
+                    </button>
+
+                    {/* 生成的角色列表 */}
+                    {generatedRoles && (
+                        <div className="bg-amber-950/20 border border-amber-800 rounded p-4 mb-4">
+                            <h4 className="text-sm font-bold text-amber-400 mb-3">🎭 生成的角色配置</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <p className="text-blue-400 font-bold text-xs mb-2">镇民 ({generatedRoles.townsfolk.length})</p>
+                                    {generatedRoles.townsfolk.map(role => (
+                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
+                                    ))}
+                                </div>
+                                <div>
+                                    <p className="text-yellow-400 font-bold text-xs mb-2">外来者 ({generatedRoles.outsider.length})</p>
+                                    {generatedRoles.outsider.map(role => (
+                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
+                                    ))}
+                                </div>
+                                <div>
+                                    <p className="text-orange-400 font-bold text-xs mb-2">爪牙 ({generatedRoles.minion.length})</p>
+                                    {generatedRoles.minion.map(role => (
+                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
+                                    ))}
+                                </div>
+                                <div>
+                                    <p className="text-red-400 font-bold text-xs mb-2">恶魔 ({generatedRoles.demon.length})</p>
+                                    {generatedRoles.demon.map(role => (
+                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 应用按钮 */}
+                    <div className="bg-red-950/20 border border-red-800 rounded p-4">
+                        <p className="text-xs text-red-400 mb-3">
+                            ⚠️ 应用此策略将<strong>清除当前所有角色分配</strong>，并根据上方配置重新分配角色。
+                        </p>
+                        <button
+                            onClick={onApply}
+                            disabled={!generatedRoles}
+                            className={`w-full py-3 px-4 rounded font-bold text-sm transition-colors ${
+                                generatedRoles 
+                                    ? 'bg-amber-600 hover:bg-amber-500 text-white' 
+                                    : 'bg-stone-800 text-stone-600 cursor-not-allowed'
+                            }`}
+                        >
+                            {generatedRoles ? `✅ 应用 "${strategy.name}" 策略` : '请先生成角色配置'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ onClose, playerCount, onApplyStrategy }) => {
-    const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
-    const [expandedStrategy, setExpandedStrategy] = useState<string | null>(null);
+    const [selectedStrategy, setSelectedStrategy] = useState<CompositionStrategy | null>(null);
     const [generatedRoles, setGeneratedRoles] = useState<{ townsfolk: RoleDef[], outsider: RoleDef[], minion: RoleDef[], demon: RoleDef[] } | null>(null);
 
     // 获取标准配比
@@ -131,23 +248,25 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
         const demonRoles = tbRoles.filter(id => ROLES[id]?.team === 'DEMON');
 
         // 随机选择角色
-        const shuffleArray = <T,>(array: T[]): T[] => array.sort(() => Math.random() - 0.5);
+        const shuffleArray = <T,>(array: T[]): T[] => [...array].sort(() => Math.random() - 0.5);
 
-        const selectedTownsfolk = shuffleArray([...townsfolkRoles])
+        const selectedTownsfolk = shuffleArray(townsfolkRoles)
             .slice(0, composition.townsfolk)
             .map(id => ROLES[id]).filter(Boolean);
 
         const selectedOutsider = strategy.guidelines.recommendedOutsiders
+            .filter(id => outsiderRoles.includes(id))
             .concat(shuffleArray(outsiderRoles.filter(id => !strategy.guidelines.recommendedOutsiders.includes(id))))
             .slice(0, composition.outsider)
             .map(id => ROLES[id]).filter(Boolean);
 
         const selectedMinion = strategy.guidelines.recommendedMinions
+            .filter(id => minionRoles.includes(id))
             .concat(shuffleArray(minionRoles.filter(id => !strategy.guidelines.recommendedMinions.includes(id))))
             .slice(0, composition.minion)
             .map(id => ROLES[id]).filter(Boolean);
 
-        const selectedDemon = shuffleArray([...demonRoles])
+        const selectedDemon = shuffleArray(demonRoles)
             .slice(0, composition.demon)
             .map(id => ROLES[id]).filter(Boolean);
 
@@ -157,12 +276,18 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
             minion: selectedMinion,
             demon: selectedDemon
         });
-        setExpandedStrategy(strategy.id);
+    };
+
+    const handleApply = () => {
+        if (selectedStrategy && generatedRoles && onApplyStrategy) {
+            onApplyStrategy(selectedStrategy, generatedRoles);
+            onClose();
+        }
     };
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-stone-900 rounded-lg border border-stone-700 w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-stone-900 rounded-lg border border-stone-700 w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="p-4 border-b border-stone-800 bg-stone-950 flex justify-between items-center">
                     <div>
@@ -193,126 +318,50 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
                         </div>
                     </div>
 
-                    {/* 策略列表 */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* 策略列表 - 点击打开详情弹窗 */}
+                    <h4 className="text-sm font-bold text-stone-300 mb-3">选择一个策略查看详情：</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {STRATEGIES.map(strategy => (
                             <div
                                 key={strategy.id}
-                                className={`p-4 rounded border transition-all cursor-pointer ${selectedStrategy === strategy.id
-                                    ? 'border-amber-600 bg-amber-950/20'
-                                    : 'border-stone-800 bg-stone-950/30 hover:border-stone-700'
-                                    }`}
+                                className="p-4 rounded border border-stone-800 bg-stone-950/30 hover:border-amber-700 hover:bg-amber-950/10 cursor-pointer transition-all group"
                                 onClick={() => {
-                                    setSelectedStrategy(strategy.id);
-                                    if (expandedStrategy !== strategy.id) {
-                                        setExpandedStrategy(null);
-                                        setGeneratedRoles(null);
-                                    }
+                                    setSelectedStrategy(strategy);
+                                    setGeneratedRoles(null);
                                 }}
                             >
                                 <div className="flex justify-between items-start mb-2">
-                                    <h4 className="text-sm font-bold text-stone-200 font-cinzel">{strategy.name}</h4>
-                                    <span className={`text-xs px-2 py-0.5 rounded ${strategy.difficulty === '新手' ? 'bg-green-950/50 text-green-400 border border-green-800' :
-                                        strategy.difficulty === '中等' ? 'bg-blue-950/50 text-blue-400 border border-blue-800' :
-                                            'bg-red-950/50 text-red-400 border border-red-800'
-                                        }`}>
-                                        {strategy.difficulty}
-                                    </span>
+                                    <h4 className="text-sm font-bold text-stone-200 font-cinzel group-hover:text-amber-400 transition-colors">{strategy.name}</h4>
                                 </div>
-                                <p className="text-xs text-stone-500 mb-3">{strategy.description}</p>
-
-                                {/* 配置建议 - Always visible */}
-                                <div className="space-y-1 text-xs mb-2">
-                                    <p className="text-stone-400">
-                                        信息类: {Math.round(strategy.guidelines.infoRolesRatio.min * composition.townsfolk)}-{Math.round(strategy.guidelines.infoRolesRatio.max * composition.townsfolk)}个
-                                    </p>
-                                    <p className="text-stone-400">
-                                        推荐爪牙: {strategy.guidelines.recommendedMinions.map(id => ROLES[id]?.name || id).join(', ')}
-                                    </p>
-                                    <p className="text-stone-400">
-                                        局外人: {strategy.guidelines.recommendedOutsiders.map(id => ROLES[id]?.name || id).join(', ')}
-                                    </p>
-                                </div>
-
-                                {/* Tips - Only show when selected */}
-                                {selectedStrategy === strategy.id && (
-                                    <div className="mt-3 pt-3 border-t border-stone-800">
-                                        <p className="text-[10px] text-stone-500 uppercase tracking-wider mb-2">说书人建议:</p>
-                                        <ul className="space-y-1">
-                                            {strategy.guidelines.tips.map((tip, i) => (
-                                                <li key={i} className="text-xs text-stone-400 flex items-start gap-1">
-                                                    <span className="text-amber-600">•</span>
-                                                    <span>{tip}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-
-                                {/* 生成按钮 - Only show when selected */}
-                                {selectedStrategy === strategy.id && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            generateRoles(strategy);
-                                        }}
-                                        className="mt-3 w-full py-2 px-3 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs font-bold transition-colors"
-                                    >
-                                        🎲 生成具体配置
-                                    </button>
-                                )}
-
-                                {/* 展开的角色列表 */}
-                                {expandedStrategy === strategy.id && generatedRoles && (
-                                    <div className="mt-3 pt-3 border-t border-amber-800 bg-amber-950/10 -mx-4 px-4 pb-2">
-                                        <p className="text-[10px] text-amber-500 uppercase tracking-wider mb-2 font-bold">生成的角色配置:</p>
-                                        <div className="grid grid-cols-2 gap-2 text-[10px]">
-                                            <div>
-                                                <p className="text-blue-400 font-bold mb-1">镇民 ({generatedRoles.townsfolk.length}):</p>
-                                                {generatedRoles.townsfolk.map(role => (
-                                                    <p key={role.id} className="text-stone-400 truncate">• {role.name}</p>
-                                                ))}
-                                            </div>
-                                            <div>
-                                                <p className="text-yellow-400 font-bold mb-1">外来者 ({generatedRoles.outsider.length}):</p>
-                                                {generatedRoles.outsider.map(role => (
-                                                    <p key={role.id} className="text-stone-400 truncate">• {role.name}</p>
-                                                ))}
-                                                <p className="text-orange-400 font-bold mb-1 mt-2">爪牙 ({generatedRoles.minion.length}):</p>
-                                                {generatedRoles.minion.map(role => (
-                                                    <p key={role.id} className="text-stone-400 truncate">• {role.name}</p>
-                                                ))}
-                                                <p className="text-red-400 font-bold mb-1 mt-2">恶魔 ({generatedRoles.demon.length}):</p>
-                                                {generatedRoles.demon.map(role => (
-                                                    <p key={role.id} className="text-stone-400 truncate">• {role.name}</p>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+                                <span className={`text-xs px-2 py-0.5 rounded inline-block mb-2 ${
+                                    strategy.difficulty === '新手' ? 'bg-green-950/50 text-green-400 border border-green-800' :
+                                    strategy.difficulty === '中等' ? 'bg-blue-950/50 text-blue-400 border border-blue-800' :
+                                    'bg-red-950/50 text-red-400 border border-red-800'
+                                }`}>
+                                    {strategy.difficulty}
+                                </span>
+                                <p className="text-xs text-stone-500">{strategy.description}</p>
+                                <p className="text-xs text-amber-600 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">点击查看详情 →</p>
                             </div>
                         ))}
                     </div>
-
-                    {/* 应用按钮 */}
-                    {selectedStrategy && onApplyStrategy && (
-                        <div className="mt-6 p-4 bg-amber-950/20 border border-amber-800 rounded">
-                            <p className="text-xs text-amber-400 mb-2">
-                                ⚠️ 应用此策略将清除当前所有角色分配，并根据建议重新配置角色池。
-                            </p>
-                            <button
-                                onClick={() => {
-                                    const strategy = STRATEGIES.find(s => s.id === selectedStrategy);
-                                    if (strategy) onApplyStrategy(strategy, generatedRoles || undefined);
-                                }}
-                                className="w-full py-2 px-4 bg-amber-600 hover:bg-amber-500 text-white rounded font-bold text-sm transition-colors"
-                            >
-                                应用 "{STRATEGIES.find(s => s.id === selectedStrategy)?.name}" 策略
-                            </button>
-                        </div>
-                    )}
                 </div>
             </div>
+
+            {/* 策略详情弹窗 */}
+            {selectedStrategy && (
+                <StrategyDetailModal
+                    strategy={selectedStrategy}
+                    composition={composition}
+                    generatedRoles={generatedRoles}
+                    onGenerate={() => generateRoles(selectedStrategy)}
+                    onApply={handleApply}
+                    onClose={() => {
+                        setSelectedStrategy(null);
+                        setGeneratedRoles(null);
+                    }}
+                />
+            )}
         </div>
     );
 };

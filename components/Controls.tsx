@@ -858,7 +858,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             {showCompositionGuide && (
                 <ScriptCompositionGuide
                     onClose={() => setShowCompositionGuide(false)}
-                    playerCount={gameState.seats.length}
+                    playerCount={gameState.seats.filter(s => s.userId || s.isVirtual).length || gameState.seats.length}
                     onApplyStrategy={(strategy, roles) => {
                         if (roles) {
                             const allRoles = [
@@ -869,20 +869,43 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                             ];
 
                             // Shuffle roles
-                            const shuffledRoles = allRoles.sort(() => Math.random() - 0.5);
+                            const shuffledRoles = [...allRoles].sort(() => Math.random() - 0.5);
 
-                            // Get seats and assignRole function
-                            const seats = useStore.getState().gameState.seats;
+                            // Get seats with players and assignRole function
+                            const currentState = useStore.getState().gameState;
                             const assignRole = useStore.getState().assignRole;
+                            
+                            // Get only occupied seats (real players + virtual)
+                            const occupiedSeats = currentState.seats.filter(s => s.userId || s.isVirtual);
 
-                            // Assign roles
-                            seats.forEach((seat, index) => {
+                            // First, clear ALL seat roles
+                            currentState.seats.forEach(seat => {
+                                assignRole(seat.id, null as any);
+                            });
+
+                            // Then assign new roles only to occupied seats
+                            occupiedSeats.forEach((seat, index) => {
                                 if (index < shuffledRoles.length) {
                                     assignRole(seat.id, shuffledRoles[index].id);
-                                } else {
-                                    assignRole(seat.id, null as any);
                                 }
                             });
+
+                            // Add system message
+                            const addSystemMessage = (content: string) => {
+                                currentState.messages.push({
+                                    id: Math.random().toString(36).substr(2, 9),
+                                    senderId: 'system',
+                                    senderName: '系统',
+                                    recipientId: null,
+                                    content,
+                                    timestamp: Date.now(),
+                                    type: 'system'
+                                });
+                            };
+                            addSystemMessage(`📊 已应用 "${strategy.name}" 策略，重新分配了 ${shuffledRoles.length} 个角色。`);
+                            
+                            useStore.setState({ gameState: { ...currentState } });
+                            useStore.getState().syncToCloud();
                         }
                         setShowCompositionGuide(false);
                     }}

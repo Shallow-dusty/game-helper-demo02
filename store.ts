@@ -697,8 +697,16 @@ export const useStore = create<AppState>((set, get) => ({
     },
 
     assignRole: (seatId, roleId) => {
-        const { gameState } = get();
+        const { gameState, user } = get();
         if (!gameState) return;
+
+        // 游戏开始后禁止修改身份（除非是说书人强制操作）
+        if (gameState.setupPhase === 'STARTED') {
+            getToastFunctions().then(({ showWarning }) => {
+                showWarning?.('游戏已开始，无法修改角色分配。');
+            });
+            return;
+        }
 
         const seat = gameState.seats.find(s => s.id === seatId);
         if (seat) {
@@ -978,45 +986,107 @@ export const useStore = create<AppState>((set, get) => ({
         get().syncToCloud();
     },
 
-    nextClockHand: () => {
-        const { gameState } = get();
-        if (!gameState || !gameState.voting) return;
+    nextClockHand: (() => {
+        // 防抖：防止快速点击造成的闪烁
+        let isProcessing = false;
+        
+        return () => {
+            if (isProcessing) return;
+            isProcessing = true;
+            
+            try {
+                const { gameState } = get();
+                if (!gameState || !gameState.voting) {
+                    isProcessing = false;
+                    return;
+                }
 
-        const currentHand = gameState.voting.clockHandSeatId!;
-        const currentSeat = gameState.seats.find(s => s.id === currentHand);
+                const currentHand = gameState.voting.clockHandSeatId;
+                if (currentHand === null) {
+                    isProcessing = false;
+                    return;
+                }
+                
+                const currentSeat = gameState.seats.find(s => s.id === currentHand);
 
-        if (currentSeat && currentSeat.isHandRaised) {
-            gameState.voting.votes.push(currentHand);
-            if (currentSeat.isDead) {
-                currentSeat.hasGhostVote = false;
-                addSystemMessage(gameState, `${currentSeat.userName} 投出了死票。`);
+                if (currentSeat && currentSeat.isHandRaised) {
+                    gameState.voting.votes.push(currentHand);
+                    if (currentSeat.isDead) {
+                        currentSeat.hasGhostVote = false;
+                        addSystemMessage(gameState, `${currentSeat.userName} 投出了死票。`);
+                    }
+                }
+
+                const nextHand = (currentHand + 1) % gameState.seats.length;
+                if (nextHand === gameState.voting.nomineeSeatId) {
+                    // 投票结束，自动结算
+                    gameState.voting.clockHandSeatId = null;
+                    gameState.voting.isOpen = false;
+                    
+                    const voteCount = gameState.voting.votes.length;
+                    const aliveCount = gameState.seats.filter(s => !s.isDead).length;
+                    const majority = Math.floor(aliveCount / 2) + 1;
+                    const nominee = gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId);
+                    
+                    addSystemMessage(gameState, `投票结束。共 ${voteCount} 票（过半需要 ${majority} 票）。`);
+                    
+                    // 自动结算结果
+                    let result: 'executed' | 'survived' = voteCount >= majority ? 'executed' : 'survived';
+                    
+                    if (result === 'executed') {
+                        addSystemMessage(gameState, `🪦 ${nominee?.userName || '被提名者'} 票数达标，可被处决。`);
+                    } else {
+                        addSystemMessage(gameState, `✅ ${nominee?.userName || '被提名者'} 票数不足，存活。`);
+                    }
+                    
+                    // 记录投票历史
+                    const voteRecord: import('./types').VoteRecord = {
+                        round: gameState.voteHistory.length + 1,
+                        nominatorSeatId: gameState.voting.nominatorSeatId || -1,
+                        nomineeSeatId: gameState.voting.nomineeSeatId!,
+                        votes: gameState.voting.votes,
+                        voteCount,
+                        timestamp: Date.now(),
+                        result
+                    };
+                    gameState.voteHistory.push(voteRecord);
+                } else {
+                    gameState.voting.clockHandSeatId = nextHand;
+                }
+                
+                set({ gameState: { ...gameState } });
+                get().syncToCloud();
+            } finally {
+                // 延迟释放锁，避免快速连续点击
+                setTimeout(() => {
+                    isProcessing = false;
+                }, 150);
             }
-        }
+        };
+    })(),
 
-        if ((currentHand + 1) % gameState.seats.length === gameState.voting.nomineeSeatId) {
-            gameState.voting.clockHandSeatId = null; // End
-            gameState.voting.isOpen = false;
-            addSystemMessage(gameState, `投票结束。共 ${gameState.voting.votes.length} 票。`);
-        } else {
-            gameState.voting.clockHandSeatId = (currentHand + 1) % gameState.seats.length;
-        }
-        set({ gameState: { ...gameState } });
-        get().syncToCloud();
-    },
+    toggleHand: (() => {
+        // 防抖：防止快速点击
+        let lastToggle = 0;
+        
+        return () => {
+            const now = Date.now();
+            if (now - lastToggle < 150) return;
+            lastToggle = now;
+            
+            const { user, gameState } = get();
+            if (!user || !gameState || !gameState.voting || !gameState.voting.isOpen) return;
 
-    toggleHand: () => {
-        const { user, gameState } = get();
-        if (!user || !gameState || !gameState.voting || !gameState.voting.isOpen) return;
+            const seat = gameState.seats.find(s => s.userId === user.id);
 
-        const seat = gameState.seats.find(s => s.userId === user.id);
-
-        if (seat) {
-            if (seat.isDead && !seat.hasGhostVote) return;
-            seat.isHandRaised = !seat.isHandRaised;
-            set({ gameState: { ...gameState } });
-            get().syncToCloud();
-        }
-    },
+            if (seat) {
+                if (seat.isDead && !seat.hasGhostVote) return;
+                seat.isHandRaised = !seat.isHandRaised;
+                set({ gameState: { ...gameState } });
+                get().syncToCloud();
+            }
+        };
+    })(),
 
     closeVote: () => {
         const { gameState } = get();
@@ -1029,7 +1099,8 @@ export const useStore = create<AppState>((set, get) => ({
 
             // Determine result based on vote count (simplified logic)
             let result: 'executed' | 'survived' | 'cancelled' = 'cancelled';
-            if (voteCount > gameState.seats.filter(s => !s.isDead).length / 2) {
+            const aliveCount = gameState.seats.filter(s => !s.isDead).length;
+            if (voteCount >= Math.floor(aliveCount / 2) + 1) {
                 result = 'executed';
             } else if (votingData.nomineeSeatId !== null) {
                 result = 'survived';

@@ -117,6 +117,14 @@ const getInitialState = (roomId: string, seatCount: number, currentScriptId: str
     customScripts: {},
     customRoles: {},
     voteHistory: [],
+    roundInfo: {
+        dayCount: 0,
+        nightCount: 0,
+        nominationCount: 0,
+        totalRounds: 0
+    },
+    storytellerNotes: [],
+    skillDescriptionMode: 'simple'
 });
 
 const addSystemMessage = (gameState: GameState, content: string) => {
@@ -208,6 +216,15 @@ interface AppState {
     hideRoles: () => void;
     startGame: () => void;
     autoAssignRoles: () => void;
+
+    // New Actions
+    addVirtualPlayer: () => void;
+    removeVirtualPlayer: (seatId: number) => void;
+    handlePlayerSeating: (seatId: number) => void;
+    addStorytellerNote: (content: string) => void;
+    updateStorytellerNote: (id: string, content: string) => void;
+    deleteStorytellerNote: (id: string) => void;
+    toggleSkillDescriptionMode: () => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -492,6 +509,14 @@ export const useStore = create<AppState>((set, get) => ({
 
         if (prevPhase !== phase) {
             addSystemMessage(gameState, `阶段变更为: ${PHASE_LABELS[phase]}`);
+
+            // Round Tracking
+            if (phase === 'NIGHT') {
+                gameState.roundInfo.nightCount++;
+                gameState.roundInfo.totalRounds++;
+            } else if (phase === 'DAY') {
+                gameState.roundInfo.dayCount++;
+            }
         }
 
         if (phase === 'NIGHT') {
@@ -699,6 +724,7 @@ export const useStore = create<AppState>((set, get) => ({
         };
 
         addSystemMessage(gameState, `开始对 ${nominee?.userName} 进行投票。`);
+        gameState.roundInfo.nominationCount++;
 
         if (nominee?.roleId === 'virgin' && !nominee.hasUsedAbility) {
             addSystemMessage(gameState, `⚡ 警告：【处女】被提名！若提名者是村民，请立即处决提名者。`);
@@ -1083,6 +1109,89 @@ export const useStore = create<AppState>((set, get) => ({
 
         addSystemMessage(gameState, `已自动分配角色 (${seatCount}人: ${composition.townsfolk}镇民+${composition.outsider}外来者+${composition.minion}爪牙+${composition.demon}恶魔)`);
 
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    // --- NEW ACTIONS IMPLEMENTATION ---
+
+    addVirtualPlayer: () => {
+        const { gameState } = get();
+        if (!gameState) return;
+
+        // Find first empty seat
+        const emptySeat = gameState.seats.find(s => !s.userId && !s.isVirtual);
+        if (emptySeat) {
+            emptySeat.isVirtual = true;
+            emptySeat.userName = `虚拟玩家 ${emptySeat.id + 1}`;
+            addSystemMessage(gameState, `说书人添加了虚拟玩家到座位 ${emptySeat.id + 1}`);
+            set({ gameState: { ...gameState } });
+            get().syncToCloud();
+        } else {
+            alert("没有空座位了！");
+        }
+    },
+
+    removeVirtualPlayer: (seatId) => {
+        const { gameState } = get();
+        if (!gameState) return;
+        const seat = gameState.seats.find(s => s.id === seatId);
+        if (seat && seat.isVirtual) {
+            seat.isVirtual = false;
+            seat.userName = `座位 ${seat.id + 1}`;
+            seat.roleId = null;
+            addSystemMessage(gameState, `说书人移除了座位 ${seatId + 1} 的虚拟玩家`);
+            set({ gameState: { ...gameState } });
+            get().syncToCloud();
+        }
+    },
+
+    handlePlayerSeating: (seatId) => {
+        const { user, gameState } = get();
+        if (!user || !gameState) return;
+
+        get().joinSeat(seatId);
+
+        const updatedUser = { ...user, isSeated: true };
+        set({ user: updatedUser });
+    },
+
+    addStorytellerNote: (content) => {
+        const { gameState } = get();
+        if (!gameState) return;
+        gameState.storytellerNotes.push({
+            id: Math.random().toString(36).substr(2, 9),
+            content,
+            timestamp: Date.now()
+        });
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    updateStorytellerNote: (id, content) => {
+        const { gameState } = get();
+        if (!gameState) return;
+        const note = gameState.storytellerNotes.find(n => n.id === id);
+        if (note) {
+            note.content = content;
+            note.timestamp = Date.now();
+            set({ gameState: { ...gameState } });
+            get().syncToCloud();
+        }
+    },
+
+    deleteStorytellerNote: (id) => {
+        const { gameState } = get();
+        if (!gameState) return;
+        gameState.storytellerNotes = gameState.storytellerNotes.filter(n => n.id !== id);
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    toggleSkillDescriptionMode: () => {
+        const { gameState } = get();
+        if (!gameState) return;
+        gameState.skillDescriptionMode = gameState.skillDescriptionMode === 'simple' ? 'detailed' : 'simple';
         set({ gameState: { ...gameState } });
         get().syncToCloud();
     }

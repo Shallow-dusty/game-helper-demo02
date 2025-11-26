@@ -60,6 +60,19 @@ export interface Reminder {
 
 export type SeatStatus = 'POISONED' | 'DRUNK' | 'PROTECTED';
 
+export interface RoundInfo {
+  dayCount: number;
+  nightCount: number;
+  nominationCount: number;
+  totalRounds: number;
+}
+
+export interface StorytellerNote {
+  id: string;
+  content: string;
+  timestamp: number;
+}
+
 export interface Seat {
   id: number;
   userId: string | null;
@@ -73,6 +86,7 @@ export interface Seat {
   isNominated: boolean;
   hasUsedAbility: boolean; // New: Tracks if "Once per game" ability is spent
   statuses: SeatStatus[]; // New: Tracks visual/logic statuses like Poisoned
+  isVirtual?: boolean; // New: Virtual player for testing/filling
 }
 
 export interface ChatMessage {
@@ -131,6 +145,11 @@ export interface GameState {
   customScripts: Record<string, ScriptDefinition>; // New: Store uploaded scripts
   customRoles: Record<string, RoleDef>; // New: Store custom roles from scripts
   voteHistory: VoteRecord[]; // Track voting history
+
+  // New Features
+  roundInfo: RoundInfo;
+  storytellerNotes: StorytellerNote[];
+  skillDescriptionMode: 'simple' | 'detailed';
 }
 
 export interface User {
@@ -138,6 +157,7 @@ export interface User {
   name: string;
   isStoryteller: boolean;
   roomId: string | null;
+  isSeated?: boolean; // New: Track if user has taken a seat
 }
 
 export interface ScriptDef {

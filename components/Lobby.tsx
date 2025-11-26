@@ -92,7 +92,7 @@ export const Lobby = () => {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 className="w-full bg-stone-900/50 border-b-2 border-stone-700 px-4 py-3 text-xl text-stone-100 focus:border-red-700 focus:bg-stone-900 outline-none transition-all placeholder-stone-700 font-serif"
-                                placeholder="Sign your name..."
+                                placeholder="请输入您的名字..."
                                 required
                                 autoComplete="off"
                             />
@@ -115,13 +115,13 @@ export const Lobby = () => {
                             type="submit"
                             className="w-full bg-gradient-to-r from-red-950 to-red-900 hover:from-red-900 hover:to-red-800 text-stone-200 font-bold py-4 rounded border border-red-950 shadow-lg transition-all hover:shadow-[0_0_20px_rgba(120,0,0,0.3)] active:scale-[0.99] font-cinzel text-lg tracking-widest"
                         >
-                            进入小镇 (Enter Town)
+                            进入小镇
                         </button>
                     </form>
                 </div>
 
                 <p className="text-center text-stone-600 text-xs mt-8 font-serif italic">
-                    "There is a demon among us..."
+                    "恶魔就在我们中间..."
                 </p>
             </div>
         </div>

@@ -4,64 +4,74 @@ import { useStore } from '../store';
 import { AUDIO_TRACKS } from '../constants';
 
 export const AudioManager = () => {
-  const audioState = useStore(state => state.gameState?.audio);
-  const setAudioBlocked = useStore(state => state.setAudioBlocked);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const previousTrackRef = useRef<string | null>(null);
+    const audioState = useStore(state => state.gameState?.audio);
+    const setAudioBlocked = useStore(state => state.setAudioBlocked);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const previousTrackRef = useRef<string | null>(null);
 
-  // Create audio element on mount
-  useEffect(() => {
-    const audio = new Audio();
-    audio.loop = true;
-    audioRef.current = audio;
+    const isAudioBlocked = useStore(state => state.isAudioBlocked);
 
-    return () => {
-      audio.pause();
-      audioRef.current = null;
-    };
-  }, []);
+    // Create audio element on mount
+    useEffect(() => {
+        const audio = new Audio();
+        audio.loop = true;
+        audioRef.current = audio;
 
-  // Sync with Store
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !audioState) return;
+        return () => {
+            audio.pause();
+            audioRef.current = null;
+        };
+    }, []);
 
-    // Handle Volume
-    audio.volume = audioState.volume;
+    // Sync with Store
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio || !audioState) return;
 
-    // Helper function to safely play
-    const safePlay = () => {
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                setAudioBlocked(false);
-            }).catch(error => {
-                console.warn("Audio autoplay blocked by browser:", error);
-                setAudioBlocked(true);
-            });
+        // Handle Volume
+        audio.volume = audioState.volume;
+
+        // Helper function to safely play
+        const safePlay = () => {
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    setAudioBlocked(false);
+                }).catch(error => {
+                    console.warn("Audio autoplay blocked by browser:", error);
+                    setAudioBlocked(true);
+                });
+            }
+        };
+
+        // Handle Track Change
+        if (audioState.trackId && audioState.trackId !== previousTrackRef.current) {
+            const track = AUDIO_TRACKS[audioState.trackId];
+            if (track) {
+                audio.src = track.url;
+                if (audioState.isPlaying) {
+                    safePlay();
+                }
+            }
+            previousTrackRef.current = audioState.trackId;
         }
-    };
 
-    // Handle Track Change
-    if (audioState.trackId && audioState.trackId !== previousTrackRef.current) {
-        const track = AUDIO_TRACKS[audioState.trackId];
-        if (track) {
-            audio.src = track.url;
-            if (audioState.isPlaying) {
+        // Handle Play/Pause state toggles
+        if (audioState.isPlaying && audio.paused && audio.src) {
+            // If blocked, don't spam try, wait for unblock
+            if (!isAudioBlocked) {
                 safePlay();
             }
+        } else if (!audioState.isPlaying && !audio.paused) {
+            audio.pause();
         }
-        previousTrackRef.current = audioState.trackId;
-    }
 
-    // Handle Play/Pause state toggles
-    if (audioState.isPlaying && audio.paused && audio.src) {
-        safePlay();
-    } else if (!audioState.isPlaying && !audio.paused) {
-        audio.pause();
-    }
+        // Retry play if unblocked
+        if (!isAudioBlocked && audioState.isPlaying && audio.paused && audio.src) {
+            safePlay();
+        }
 
-  }, [audioState?.trackId, audioState?.isPlaying, audioState?.volume, setAudioBlocked]);
+    }, [audioState?.trackId, audioState?.isPlaying, audioState?.volume, setAudioBlocked, isAudioBlocked]);
 
-  return null; // Invisible component
+    return null; // Invisible component
 };

@@ -9,6 +9,8 @@ import { RoleReferencePanel } from './components/RoleReferencePanel';
 import { RoleReferenceSidebar } from './components/RoleReferenceSidebar';
 import { SCRIPTS, ROLES } from './constants';
 import { PhaseIndicator } from './components/PhaseIndicator';
+import { WaitingArea } from './components/WaitingArea';
+import { NotificationSystem } from './components/NotificationSystem';
 
 const App = () => {
   const user = useStore(state => state.user);
@@ -76,6 +78,9 @@ const App = () => {
 
       {/* Phase Indicator */}
       <PhaseIndicator />
+
+      {/* Waiting Area Overlay */}
+      <WaitingArea />
 
       {/* Audio Manager */}
       <AudioManager />

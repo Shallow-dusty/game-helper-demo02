@@ -25,6 +25,7 @@ interface SeatNodeProps {
 const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick }) => {
   const x = cx + radius * Math.cos(angle);
   const y = cy + radius * Math.sin(angle);
+  const [isHovered, setIsHovered] = React.useState(false);
 
   // --- PRIVACY LOGIC ---
   // Only show Role if: User is Storyteller, OR User is this Seat
@@ -48,7 +49,14 @@ const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, 
   const statusIconSize = 14 * scale;
 
   return (
-    <Group x={x} y={y} onClick={onClick} onTap={onClick}>
+    <Group
+      x={x}
+      y={y}
+      onClick={onClick}
+      onTap={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       {/* Clock Hand Indicator */}
       {isClockHand && (
         <Ring innerRadius={tokenRadius + 3} outerRadius={tokenRadius + 9} fill="#fbbf24" listening={false} />
@@ -57,12 +65,13 @@ const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, 
       {/* Seat Circle (Token Base) */}
       <Circle
         radius={tokenRadius}
-        fill={seat.isDead ? '#2d2d2d' : '#1c1c1c'} // Darker background
-        stroke={isCurrentUser ? '#fff' : (isNominee ? '#ef4444' : teamColor)}
+        fill={seat.isDead ? '#44403c' : TEAM_COLORS[roleDef?.team || 'TOWNSFOLK']}
+        stroke={isCurrentUser ? '#f59e0b' : '#292524'}
         strokeWidth={isCurrentUser ? 4 : 2}
-        shadowColor="black"
-        shadowBlur={10 * scale}
-        shadowOpacity={0.6}
+        shadowBlur={isCurrentUser ? 15 : 5}
+        shadowColor={isCurrentUser ? '#f59e0b' : 'black'}
+        opacity={seat.isDead ? 0.8 : 1}
+        dash={seat.isVirtual ? [5, 5] : undefined}
       />
 
       {/* Inner Ring for Style */}
@@ -96,6 +105,8 @@ const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, 
         shadowColor="black"
         shadowBlur={2}
         shadowOpacity={0.8}
+        ellipsis={true}
+        wrap="none"
       />
 
       {/* Role Info (Hidden for others) */}
@@ -180,6 +191,43 @@ const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, 
         </Group>
       )}
 
+      {/* Virtual Player Indicator */}
+      {seat.isVirtual && (
+        <Text
+          x={-tokenRadius * 0.8}
+          y={tokenRadius * 0.5}
+          text="🤖"
+          fontSize={16 * scale}
+          listening={false}
+        />
+      )}
+
+      {/* Tooltip for Name (on hover) */}
+      {isHovered && (
+        <Group y={tokenRadius + 25}>
+          <Rect
+            x={-((seat.userName.length * fontSizeName) / 1.5)}
+            width={(seat.userName.length * fontSizeName) / 0.7}
+            height={fontSizeName + 10}
+            fill="#000000"
+            opacity={0.9}
+            cornerRadius={4}
+            shadowColor="black"
+            shadowBlur={4}
+          />
+          <Text
+            text={seat.userName}
+            x={-((seat.userName.length * fontSizeName) / 1.5)}
+            width={(seat.userName.length * fontSizeName) / 0.7}
+            padding={5}
+            align="center"
+            fontSize={fontSizeName}
+            fill="#ffffff"
+            fontFamily="sans-serif"
+          />
+        </Group>
+      )}
+
       {/* Reminders (ST Only) */}
       {isST && seat.reminders.length > 0 && (
         <Group y={-tokenRadius} x={-tokenRadius}>
@@ -230,9 +278,19 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const handleSeatClick = (e: any, seat: Seat) => {
     e.cancelBubble = true;
     if (e.evt.button === 2 && user.isStoryteller) {
+      const menuWidth = 200; // w-48 + padding
+      const menuHeight = 320; // Approximate max height with all options
+
+      let x = e.evt.clientX;
+      let y = e.evt.clientY;
+
+      // Prevent overflow
+      if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 10;
+      if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 10;
+
       setContextMenu({
-        x: e.evt.clientX,
-        y: e.evt.clientY,
+        x,
+        y,
         seatId: seat.id
       });
       return;
@@ -349,15 +407,28 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
             <span className="text-lg w-5 text-center">🚫</span> 标记技能耗尽 (Used)
           </button>
           <div className="border-t border-stone-700 my-1"></div>
-          <button onClick={() => toggleStatus(contextMenu.seatId, 'POISONED')} className="text-left px-3 py-2 hover:bg-stone-800 rounded text-xs text-stone-300 flex items-center gap-3 transition-colors">
-            <span className="text-lg w-5 text-center">🤢</span> 中毒 (Poison)
-          </button>
-          <button onClick={() => toggleStatus(contextMenu.seatId, 'DRUNK')} className="text-left px-3 py-2 hover:bg-stone-800 rounded text-xs text-stone-300 flex items-center gap-3 transition-colors">
-            <span className="text-lg w-5 text-center">🍺</span> 醉酒 (Drunk)
-          </button>
-          <button onClick={() => toggleStatus(contextMenu.seatId, 'PROTECTED')} className="text-left px-3 py-2 hover:bg-stone-800 rounded text-xs text-stone-300 flex items-center gap-3 transition-colors">
-            <span className="text-lg w-5 text-center">🛡️</span> 保护 (Protect)
-          </button>
+          <div className="border-t border-stone-700 my-1"></div>
+
+          {/* Status Submenu */}
+          <div className="relative group">
+            <button className="w-full text-left px-3 py-2 hover:bg-stone-800 rounded text-xs text-stone-300 flex items-center gap-3 transition-colors justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-lg w-5 text-center">✨</span> 状态 (Status)
+              </div>
+              <span>▶</span>
+            </button>
+            <div className="absolute left-full top-0 ml-1 bg-stone-900 border border-stone-600 rounded shadow-xl p-1 w-32 flex flex-col gap-1 hidden group-hover:flex">
+              <button onClick={() => toggleStatus(contextMenu.seatId, 'POISONED')} className="text-left px-3 py-2 hover:bg-stone-800 rounded text-xs text-stone-300 flex items-center gap-3 transition-colors">
+                <span className="text-lg w-5 text-center">🤢</span> 中毒 (Poison)
+              </button>
+              <button onClick={() => toggleStatus(contextMenu.seatId, 'DRUNK')} className="text-left px-3 py-2 hover:bg-stone-800 rounded text-xs text-stone-300 flex items-center gap-3 transition-colors">
+                <span className="text-lg w-5 text-center">🍺</span> 醉酒 (Drunk)
+              </button>
+              <button onClick={() => toggleStatus(contextMenu.seatId, 'PROTECTED')} className="text-left px-3 py-2 hover:bg-stone-800 rounded text-xs text-stone-300 flex items-center gap-3 transition-colors">
+                <span className="text-lg w-5 text-center">🛡️</span> 保护 (Protect)
+              </button>
+            </div>
+          </div>
           <div className="border-t border-stone-700 my-1"></div>
           <button onClick={() => { setRoleSelectSeat(contextMenu.seatId); setContextMenu(null); }} className="text-left px-3 py-2 hover:bg-stone-800 rounded text-xs text-stone-300 flex items-center gap-3 transition-colors">
             <span className="text-lg w-5 text-center">🎭</span> 分配角色 (Assign Role)
@@ -436,18 +507,18 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
             </div>
 
             <div className="space-y-6">
-              {renderRoleSection('TOWNSFOLK', '村民 (Townsfolk)', rolesByTeam.TOWNSFOLK)}
-              {renderRoleSection('OUTSIDER', '外来者 (Outsider)', rolesByTeam.OUTSIDER)}
-              {renderRoleSection('MINION', '爪牙 (Minion)', rolesByTeam.MINION)}
-              {renderRoleSection('DEMON', '恶魔 (Demon)', rolesByTeam.DEMON)}
+              {renderRoleSection('TOWNSFOLK', '村民', rolesByTeam.TOWNSFOLK)}
+              {renderRoleSection('OUTSIDER', '外来者', rolesByTeam.OUTSIDER)}
+              {renderRoleSection('MINION', '爪牙', rolesByTeam.MINION)}
+              {renderRoleSection('DEMON', '恶魔', rolesByTeam.DEMON)}
             </div>
 
             <div className="mt-8 flex justify-end gap-4">
               <button onClick={() => { assignRole(roleSelectSeat!, null as any); setRoleSelectSeat(null); }} className="px-6 py-2 text-stone-500 hover:text-red-400 text-xs uppercase tracking-widest transition-colors">
-                清除角色 (Clear Role)
+                清除角色
               </button>
               <button onClick={() => setRoleSelectSeat(null)} className="px-8 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded font-cinzel text-sm transition-colors">
-                取消 (Cancel)
+                取消
               </button>
             </div>
           </div>

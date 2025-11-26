@@ -24,14 +24,20 @@ export const PhaseIndicator: React.FC = () => {
         icon = '✅';
     } else if (gameState.setupPhase === 'STARTED') {
         // Game in progress
+        const roundInfo = gameState.roundInfo || { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 1 };
+
         if (gameState.phase === 'NIGHT') {
-            message = '🌙 夜间阶段';
+            message = `🌙 第 ${roundInfo.nightCount} 夜`;
             bgColor = 'bg-blue-900/90';
             icon = '🌙';
         } else if (gameState.phase === 'DAY') {
-            message = '☀️ 白天阶段';
+            message = `☀️ 第 ${roundInfo.dayCount} 天`;
             bgColor = 'bg-yellow-900/90';
             icon = '☀️';
+        } else if (gameState.phase === 'NOMINATION') {
+            message = `⚖️ 第 ${roundInfo.dayCount} 天 - 提名 (${roundInfo.nominationCount})`;
+            bgColor = 'bg-emerald-900/90';
+            icon = '⚖️';
         } else if (gameState.voting && gameState.voting.nomineeSeatId !== null) {
             const nominee = gameState.seats[gameState.voting.nomineeSeatId];
             const nomineeName = nominee?.userId ? `座位${gameState.voting.nomineeSeatId + 1}` : '座位' + (gameState.voting.nomineeSeatId + 1);
@@ -48,10 +54,10 @@ export const PhaseIndicator: React.FC = () => {
     if (!message) return null;
 
     return (
-        <div className={`fixed top-0 left-0 right-0 z-50 ${bgColor} backdrop-blur-sm border-b border-stone-700 shadow-lg`}>
-            <div className="container mx-auto px-4 py-2 flex items-center justify-center gap-2">
-                <span className="text-2xl">{icon}</span>
-                <span className="text-stone-100 font-semibold text-sm md:text-base">
+        <div className={`fixed top-0 left-0 right-0 z-30 ${bgColor} backdrop-blur-sm border-b border-stone-700 shadow-lg`}>
+            <div className="container mx-auto px-4 py-1.5 flex items-center justify-center gap-2">
+                <span className="text-xl md:text-2xl">{icon}</span>
+                <span className="text-stone-100 font-semibold text-xs md:text-sm">
                     {message}
                 </span>
             </div>

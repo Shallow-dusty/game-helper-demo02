@@ -27,6 +27,8 @@ export interface Reminder {
   text: string;
   sourceRole: string;
   seatId: number;
+  icon?: string; // New: Emoji or icon name
+  color?: string; // New: Tailwind color class
 }
 
 export type SeatStatus = 'POISONED' | 'DRUNK' | 'PROTECTED';
@@ -54,6 +56,7 @@ export interface ChatMessage {
   content: string;
   timestamp: number;
   type: 'chat' | 'system';
+  isPrivate?: boolean; // New: If true, only visible to recipient (or sender)
 }
 
 export interface AudioState {

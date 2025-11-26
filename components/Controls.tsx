@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { useStore } from '../store';
 import { ROLES, TEAM_COLORS, PHASE_LABELS, AUDIO_TRACKS, SCRIPTS } from '../constants';
 import { Chat } from './Chat';
+import { HistoryViewer } from './HistoryViewer';
 
 interface ControlsProps {
     onClose?: () => void; // For mobile drawer closing
@@ -30,9 +30,41 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const setAudioVolume = useStore(state => state.setAudioVolume);
     const aiProvider = useStore(state => state.aiProvider);
     const setAiProvider = useStore(state => state.setAiProvider);
+    const clearAiMessages = useStore(state => state.clearAiMessages);
+    const deleteAiMessage = useStore(state => state.deleteAiMessage);
 
     const [activeTab, setActiveTab] = useState<'game' | 'chat' | 'ai'>('game');
     const [aiPrompt, setAiPrompt] = useState('');
+    const [showHistory, setShowHistory] = useState(false);
+
+    const [width, setWidth] = useState(320); // Default 320px
+    const [isResizing, setIsResizing] = useState(false);
+
+    React.useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isResizing) return;
+            // Calculate new width: Window width - Mouse X
+            // (Since sidebar is on the right)
+            const newWidth = window.innerWidth - e.clientX;
+            if (newWidth > 250 && newWidth < 800) {
+                setWidth(newWidth);
+            }
+        };
+
+        const handleMouseUp = () => {
+            setIsResizing(false);
+        };
+
+        if (isResizing) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+        }
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isResizing]);
 
     if (!user || !gameState) return null;
 
@@ -44,12 +76,20 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
         if (!aiPrompt.trim()) return;
         const prompt = aiPrompt;
         setAiPrompt('');
-        setActiveTab('chat'); // Switch to chat to see answer
+        // setActiveTab('chat'); // No longer switch to chat
         await askAi(prompt);
     };
 
     return (
-        <div className="w-full md:w-80 bg-stone-950 border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif">
+        <div
+            className="bg-stone-950 border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif relative transition-none"
+            style={{ width: `${width}px` }}
+        >
+            {/* Drag Handle */}
+            <div
+                className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-purple-500/50 z-50 transition-colors"
+                onMouseDown={() => setIsResizing(true)}
+            />
 
             {/* --- Header: User Info --- */}
             <div className="p-4 border-b border-stone-800 bg-stone-950 flex items-start justify-between shadow-md z-10">
@@ -97,6 +137,9 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     </button>
                 )}
             </div>
+
+            {/* History Modal */}
+            {showHistory && <HistoryViewer onClose={() => setShowHistory(false)} />}
 
             {/* Player Role Reveal (In Header Area) */}
             {!user.isStoryteller && role && (
@@ -241,6 +284,14 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
                                 <h3 className="text-xs font-bold text-stone-500 uppercase border-b border-stone-800 pb-1 font-cinzel">Storyteller Tools</h3>
 
+                                {/* History Button */}
+                                <button
+                                    onClick={() => setShowHistory(true)}
+                                    className="w-full btn flex items-center justify-center gap-2 font-serif bg-stone-800 border-stone-600 text-stone-300 hover:bg-stone-700"
+                                >
+                                    <span>📜</span> 历史记录 (History)
+                                </button>
+
                                 {/* Phase Management */}
                                 <div className="grid grid-cols-3 gap-2">
                                     <button onClick={() => setPhase('DAY')} className={`btn font-cinzel ${gameState.phase === 'DAY' ? 'bg-amber-900/80 ring-1 ring-amber-600 text-amber-100' : 'bg-stone-800 text-stone-400'}`}>☀ Day</button>
@@ -354,55 +405,171 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
                 {/* Tab: AI Assistant */}
                 {activeTab === 'ai' && user.isStoryteller && (
-                    <div className="h-full flex flex-col p-4 space-y-4">
-                        <div className="flex-1 bg-stone-900/80 rounded p-4 border border-purple-900/30 overflow-y-auto scrollbar-thin">
-                            <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-purple-400 font-bold flex items-center gap-2 font-cinzel">
-                                    <span>✨</span> Oracle
-                                </h3>
+                    <div className="h-full flex flex-col p-4 space-y-4 relative">
+                        {/* AI Chat History */}
+                        <div className="flex-1 bg-stone-900/80 rounded p-4 border border-purple-900/30 overflow-y-auto scrollbar-thin space-y-4">
+                            <div className="flex justify-between items-center mb-4 border-b border-purple-900/20 pb-2 sticky top-0 bg-stone-900/95 z-10">
+                                <div className="flex items-center gap-2">
+                                    <h3 className="text-purple-400 font-bold flex items-center gap-2 font-cinzel">
+                                        <span>✨</span> Oracle
+                                    </h3>
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('Clear all AI chat history?')) clearAiMessages();
+                                        }}
+                                        className="text-[10px] text-stone-500 hover:text-red-400 border border-stone-800 hover:border-red-900 px-1.5 py-0.5 rounded transition-colors"
+                                        title="Clear Chat"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
                                 <select
                                     value={aiProvider}
                                     onChange={(e) => setAiProvider(e.target.value as any)}
-                                    className="bg-stone-950 border border-purple-900/50 text-purple-300 text-xs rounded px-2 py-1 outline-none focus:border-purple-500"
+                                    className="bg-stone-950 border border-purple-900/50 text-purple-300 text-xs rounded px-2 py-1 outline-none focus:border-purple-500 max-w-[150px]"
                                 >
-                                    <option value="deepseek">DeepSeek (V3)</option>
-                                    <option value="kimi">Kimi (Moonshot)</option>
+                                    <optgroup label="DeepSeek R1 (Reasoning)">
+                                        <option value="sf_r1">🧠 DeepSeek R1 (Full)</option>
+                                        <option value="sf_r1_llama_70b">🦙 R1 Llama 70B</option>
+                                        <option value="sf_r1_qwen_32b">🤖 R1 Qwen 32B</option>
+                                        <option value="sf_r1_qwen_7b_pro">⚡ R1 Qwen 7B Pro</option>
+                                    </optgroup>
+                                    <optgroup label="Other High Performance">
+                                        <option value="sf_minimax_m2">🦄 MiniMax M2 (230B)</option>
+                                        <option value="sf_kimi_k2_thinking">🤔 Kimi K2 Thinking</option>
+                                    </optgroup>
+                                    <optgroup label="Official / Legacy">
+                                        <option value="deepseek">DeepSeek V3.2 (Official)</option>
+                                        <option value="kimi">Kimi (Official - Fixing)</option>
+                                    </optgroup>
                                 </select>
                             </div>
-                            <p className="text-xs text-stone-500 mb-4 leading-relaxed font-serif italic">
-                                I am your servant in the shadows. Ask me of rules, or bid me speak the terrors of the night.
-                            </p>
 
-                            {/* Suggested Prompts */}
-                            <div className="space-y-2">
-                                <button onClick={() => setAiPrompt("给所有玩家写一段夜晚降临的开场白，要恐怖一点，强调未知的恐惧")} className="text-left w-full p-3 bg-purple-950/20 hover:bg-purple-900/30 rounded-sm text-xs text-purple-200 border border-purple-900/30 transition-colors font-serif">
-                                    📜 生成恐怖夜晚开场白 (Night Intro)
-                                </button>
-                                <button onClick={() => setAiPrompt("如果有两个'洗衣服'在场上（可能是间谍），我该怎么给信息？")} className="text-left w-full p-3 bg-purple-950/20 hover:bg-purple-900/30 rounded-sm text-xs text-purple-200 border border-purple-900/30 transition-colors font-serif">
-                                    🤔 规则判定: 多个同角色 (Rule Check)
-                                </button>
-                            </div>
+                            {/* Messages */}
+                            {gameState.messages
+                                .filter(m => m.senderId === 'ai_guide')
+                                .map(msg => {
+                                    // Parse <think> tags
+                                    const thinkMatch = msg.content.match(/<think>([\s\S]*?)<\/think>/);
+                                    const thinkContent = thinkMatch ? thinkMatch[1] : null;
+                                    const mainContent = msg.content.replace(/<think>[\s\S]*?<\/think>/, '').trim();
+
+                                    return (
+                                        <div
+                                            key={msg.id}
+                                            className="group relative bg-purple-950/20 border border-purple-900/30 p-3 rounded-lg text-sm text-stone-300 hover:bg-purple-950/30 transition-colors"
+                                        >
+                                            <div className="flex justify-between items-start mb-1">
+                                                <span className="text-purple-400 font-bold text-xs">{msg.senderName}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] text-stone-600">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                                                    <button
+                                                        onClick={() => deleteAiMessage(msg.id)}
+                                                        className="text-stone-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        title="Delete Message"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Thinking Content */}
+                                            {thinkContent && (
+                                                <details className="mb-2 bg-black/20 rounded border border-purple-900/20 overflow-hidden">
+                                                    <summary className="text-[10px] text-purple-400/70 bg-purple-900/10 px-2 py-1 cursor-pointer hover:bg-purple-900/20 select-none flex items-center gap-1">
+                                                        <span>💭</span> Thinking Process
+                                                    </summary>
+                                                    <div className="p-2 text-xs text-stone-500 font-mono whitespace-pre-wrap border-t border-purple-900/10 bg-black/10">
+                                                        {thinkContent.trim()}
+                                                    </div>
+                                                </details>
+                                            )}
+
+                                            <div className="whitespace-pre-wrap leading-relaxed">{mainContent || (thinkContent ? '' : msg.content)}</div>
+
+                                            {/* Action Buttons (Visible on Hover/Focus) */}
+                                            <div className="absolute top-8 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-stone-950/80 rounded p-1 backdrop-blur-sm z-10">
+                                                <button
+                                                    onClick={() => useStore.getState().forwardMessage(msg.id, null)}
+                                                    className="text-[10px] bg-stone-800 hover:bg-stone-700 text-stone-300 px-2 py-1 rounded border border-stone-600"
+                                                    title="Broadcast to All"
+                                                >
+                                                    📢 公示
+                                                </button>
+                                                <div className="relative group/menu">
+                                                    <button className="text-[10px] bg-stone-800 hover:bg-stone-700 text-stone-300 px-2 py-1 rounded border border-stone-600">
+                                                        🤫 私发...
+                                                    </button>
+                                                    {/* Dropdown for Whisper */}
+                                                    <div className="absolute right-0 top-full mt-1 w-32 bg-stone-900 border border-stone-700 rounded shadow-xl hidden group-hover/menu:block z-50 max-h-48 overflow-y-auto">
+                                                        {gameState.seats.filter(s => s.userId).map(seat => (
+                                                            <button
+                                                                key={seat.id}
+                                                                onClick={() => useStore.getState().forwardMessage(msg.id, seat.userId)}
+                                                                className="w-full text-left px-2 py-1.5 text-xs text-stone-400 hover:bg-stone-800 hover:text-stone-200 truncate"
+                                                            >
+                                                                {seat.userName}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                            {/* Thinking Indicator */}
+                            {isAiThinking && (
+                                <div className="flex items-center gap-2 text-purple-400 text-xs animate-pulse p-2">
+                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                    <span>Oracle is divining...</span>
+                                </div>
+                            )}
+
+                            {/* Empty State */}
+                            {!isAiThinking && gameState.messages.filter(m => m.senderId === 'ai_guide').length === 0 && (
+                                <p className="text-xs text-stone-500 text-center mt-10 italic">
+                                    Ask the Oracle for guidance...
+                                </p>
+                            )}
                         </div>
 
-                        <form onSubmit={handleAiSubmit} className="relative">
+                        {/* Input Area */}
+                        <form onSubmit={handleAiSubmit} className="relative shrink-0">
                             <textarea
                                 value={aiPrompt}
                                 onChange={e => setAiPrompt(e.target.value)}
-                                className="w-full bg-stone-950 border border-stone-700 rounded p-3 text-sm text-stone-200 focus:border-purple-600 outline-none resize-none h-24 placeholder-stone-700 font-serif"
+                                className="w-full bg-stone-950 border border-stone-700 rounded p-3 text-sm text-stone-200 focus:border-purple-600 outline-none resize-none h-24 placeholder-stone-700 font-serif disabled:opacity-50"
                                 placeholder="Consult the Oracle..."
+                                disabled={isAiThinking}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleAiSubmit(e);
+                                    }
+                                }}
                             />
-                            <button
-                                type="submit"
-                                disabled={isAiThinking || !aiPrompt.trim()}
-                                className="mt-2 w-full bg-purple-900 hover:bg-purple-800 text-purple-100 font-bold py-2 rounded border border-purple-950 transition-all flex justify-center items-center gap-2 font-cinzel text-sm"
-                            >
-                                {isAiThinking ? 'Divining...' : 'Consult'}
-                            </button>
+                            <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                                <span className="text-[10px] text-stone-600 hidden md:inline">Shift+Enter for newline</span>
+                                <button
+                                    type="submit"
+                                    disabled={isAiThinking || !aiPrompt.trim()}
+                                    className="bg-purple-900 hover:bg-purple-800 disabled:bg-stone-800 disabled:text-stone-600 text-purple-100 font-bold py-1.5 px-4 rounded border border-purple-950 transition-all font-cinzel text-xs shadow-lg"
+                                >
+                                    {isAiThinking ? '...' : 'Send'}
+                                </button>
+                            </div>
                         </form>
                     </div>
                 )}
 
             </div>
+
+            {/* History Modal */}
+            {showHistory && <HistoryViewer onClose={() => setShowHistory(false)} />}
+
             <style>{`
         .btn { @apply py-1.5 px-2 rounded-sm text-xs transition-all hover:opacity-90 active:scale-95 shadow-sm border border-stone-900; }
       `}</style>

@@ -15,18 +15,66 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // --- AI CONFIG ---
-type AiProvider = 'deepseek' | 'kimi';
+// --- AI CONFIG ---
+export type AiProvider =
+    | 'deepseek'
+    | 'kimi'
+    | 'sf_r1'
+    | 'sf_r1_llama_70b'
+    | 'sf_r1_qwen_32b'
+    | 'sf_r1_qwen_7b_pro'
+    | 'sf_minimax_m2'
+    | 'sf_kimi_k2_thinking';
 
 const AI_CONFIG = {
     deepseek: {
         apiKey: import.meta.env.VITE_DEEPSEEK_KEY,
         baseURL: 'https://api.deepseek.com',
-        model: 'deepseek-chat'
+        model: 'deepseek-chat', // V3.2
+        name: 'DeepSeek V3.2 (Official)'
     },
     kimi: {
         apiKey: import.meta.env.VITE_KIMI_KEY,
         baseURL: 'https://api.moonshot.cn/v1',
-        model: 'moonshot-v1-8k'
+        model: 'moonshot-v1-8k', // K2
+        name: 'Kimi (Official - Fixing)'
+    },
+    // SiliconFlow Models
+    sf_r1: {
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        baseURL: 'https://api.siliconflow.cn/v1',
+        model: 'deepseek-ai/DeepSeek-R1',
+        name: '🧠 DeepSeek R1 (Full)'
+    },
+    sf_r1_llama_70b: {
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        baseURL: 'https://api.siliconflow.cn/v1',
+        model: 'deepseek-ai/DeepSeek-R1-Distill-Llama-70B',
+        name: '🦙 R1 Distill Llama 70B'
+    },
+    sf_r1_qwen_32b: {
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        baseURL: 'https://api.siliconflow.cn/v1',
+        model: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B',
+        name: '🤖 R1 Distill Qwen 32B'
+    },
+    sf_r1_qwen_7b_pro: {
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        baseURL: 'https://api.siliconflow.cn/v1',
+        model: 'Pro/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B',
+        name: '⚡ R1 Distill Qwen 7B Pro'
+    },
+    sf_minimax_m2: {
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        baseURL: 'https://api.siliconflow.cn/v1',
+        model: 'MiniMaxAI/MiniMax-M2',
+        name: '🦄 MiniMax M2 (230B)'
+    },
+    sf_kimi_k2_thinking: {
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        baseURL: 'https://api.siliconflow.cn/v1',
+        model: 'moonshotai/Kimi-K2-Thinking',
+        name: '🤔 Kimi K2 Thinking'
     }
 };
 
@@ -80,16 +128,17 @@ const addSystemMessage = (gameState: GameState, content: string) => {
     });
 };
 
-const addAiMessage = (gameState: GameState, content: string, provider: string) => {
-    const providerName = provider === 'deepseek' ? 'DeepSeek' : 'Kimi';
+const addAiMessage = (gameState: GameState, content: string, provider: string, recipientId: string | null = null) => {
+    const providerName = AI_CONFIG[provider as AiProvider]?.name || provider;
     gameState.messages.push({
         id: Math.random().toString(36).substr(2, 9),
         senderId: 'ai_guide',
         senderName: `魔典助手 (${providerName})`,
-        recipientId: null,
+        recipientId: recipientId,
         content,
         timestamp: Date.now(),
-        type: 'chat'
+        type: 'chat',
+        isPrivate: !!recipientId
     });
 };
 
@@ -117,7 +166,7 @@ interface AppState {
     toggleAbilityUsed: (seatId: number) => void;
     toggleStatus: (seatId: number, status: SeatStatus) => void;
     toggleWhispers: () => void;
-    addReminder: (seatId: number, text: string) => void;
+    addReminder: (seatId: number, text: string, icon?: string, color?: string) => void;
     removeReminder: (id: string) => void;
 
     askAi: (prompt: string) => Promise<void>;
@@ -139,6 +188,10 @@ interface AppState {
     syncToCloud: () => void;
     sync: () => void;
     importScript: (jsonContent: string) => void;
+    forwardMessage: (messageId: string, targetRecipientId: string | null) => void;
+    saveGameHistory: (finalState: GameState) => Promise<void>;
+    clearAiMessages: () => void;
+    deleteAiMessage: (messageId: string) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -481,11 +534,13 @@ export const useStore = create<AppState>((set, get) => ({
                     } else {
                         gameState.gameOver = { isOver: true, winner: 'GOOD', reason: '恶魔已死亡' };
                         addSystemMessage(gameState, `🏆 游戏结束！好人胜利 (恶魔死亡)`);
+                        get().saveGameHistory(gameState); // Save history
                     }
                 }
                 if (role.id === 'saint' && gameState.phase === 'DAY') {
                     gameState.gameOver = { isOver: true, winner: 'EVIL', reason: '圣徒被处决' };
                     addSystemMessage(gameState, `🏆 游戏结束！邪恶胜利 (圣徒被处决)`);
+                    get().saveGameHistory(gameState); // Save history
                 }
             }
         } else {
@@ -530,12 +585,19 @@ export const useStore = create<AppState>((set, get) => ({
         get().syncToCloud();
     },
 
-    addReminder: (seatId, text) => {
+    addReminder: (seatId, text, icon, color) => {
         const { gameState } = get();
         if (!gameState) return;
         const seat = gameState.seats.find(s => s.id === seatId);
         if (seat) {
-            seat.reminders.push({ id: Math.random().toString(36), text, sourceRole: 'ST', seatId });
+            seat.reminders.push({
+                id: Math.random().toString(36),
+                text,
+                sourceRole: 'ST',
+                seatId,
+                icon,
+                color
+            });
         }
         set({ gameState: { ...gameState } });
         get().syncToCloud();
@@ -701,15 +763,15 @@ export const useStore = create<AppState>((set, get) => ({
             });
 
             const gameContext = {
-                script: SCRIPTS[gameState.currentScriptId].name,
+                script: SCRIPTS[gameState.currentScriptId]?.name || gameState.customScripts[gameState.currentScriptId]?.name,
                 phase: gameState.phase,
                 seats: gameState.seats.map(s => ({
                     name: s.userName,
-                    role: s.roleId ? ROLES[s.roleId]?.name : 'Unknown',
+                    role: s.roleId ? (ROLES[s.roleId]?.name || gameState.customRoles[s.roleId]?.name) : 'Unknown',
                     isDead: s.isDead,
                     statuses: s.statuses
                 })),
-                nightOrder: gameState.nightQueue.map(r => ROLES[r]?.name),
+                nightOrder: gameState.nightQueue.map(r => ROLES[r]?.name || gameState.customRoles[r]?.name),
             };
 
             const completion = await openai.chat.completions.create({
@@ -720,9 +782,19 @@ export const useStore = create<AppState>((set, get) => ({
                 model: config.model,
             });
 
-            const reply = completion.choices[0].message.content;
+            let reply = completion.choices[0].message.content;
+
+            // Handle DeepSeek R1 "reasoning_content" if available (some APIs might return it this way)
+            // @ts-ignore
+            const reasoning = completion.choices[0].message.reasoning_content;
+
+            if (reasoning) {
+                reply = `<think>${reasoning}</think>\n${reply}`;
+            }
+
             if (reply) {
-                addAiMessage(gameState, reply, aiProvider);
+                // Send as private message to ST
+                addAiMessage(gameState, reply, aiProvider, user.id);
                 set({ gameState: { ...gameState } });
                 get().syncToCloud();
             }
@@ -734,5 +806,87 @@ export const useStore = create<AppState>((set, get) => ({
         } finally {
             set({ isAiThinking: false });
         }
+    },
+
+    forwardMessage: (messageId: string, targetRecipientId: string | null) => {
+        const { gameState, user } = get();
+        if (!gameState || !user) return;
+
+        const originalMsg = gameState.messages.find(m => m.id === messageId);
+        if (!originalMsg) return;
+
+        const newMsg: ChatMessage = {
+            id: Math.random().toString(36).substr(2, 9),
+            senderId: 'ai_guide',
+            senderName: originalMsg.senderName, // Keep original AI name
+            recipientId: targetRecipientId,
+            content: originalMsg.content,
+            timestamp: Date.now(),
+            type: 'chat',
+            isPrivate: !!targetRecipientId
+        };
+
+        gameState.messages.push(newMsg);
+
+        const targetName = targetRecipientId
+            ? gameState.seats.find(s => s.userId === targetRecipientId)?.userName || '玩家'
+            : '所有人';
+
+        addSystemMessage(gameState, `说书人转发了 AI 消息给 ${targetName}`);
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    saveGameHistory: async (finalState: GameState) => {
+        if (!finalState.gameOver.isOver) return;
+
+        try {
+            const { error } = await supabase
+                .from('game_history')
+                .insert({
+                    room_code: finalState.roomId,
+                    winner: finalState.gameOver.winner,
+                    reason: finalState.gameOver.reason,
+                    script_name: SCRIPTS[finalState.currentScriptId]?.name || finalState.customScripts[finalState.currentScriptId]?.name || 'Unknown Script',
+                    players: finalState.seats.map(s => ({
+                        name: s.userName,
+                        role: s.roleId ? (ROLES[s.roleId]?.name || finalState.customRoles[s.roleId]?.name) : null,
+                        team: s.roleId ? (ROLES[s.roleId]?.team || finalState.customRoles[s.roleId]?.team) : null,
+                        isDead: s.isDead
+                    })),
+                    messages: finalState.messages,
+                    created_at: new Date()
+                });
+
+            if (error) throw error;
+            console.log("✅ 游戏记录已保存");
+        } catch (err) {
+            console.error("Failed to save game history:", err);
+        }
+    },
+
+    clearAiMessages: () => {
+        const { gameState } = get();
+        if (!gameState) return;
+
+        // Filter out AI messages (senderId = 'ai_guide')
+        gameState.messages = gameState.messages.filter(m => m.senderId !== 'ai_guide');
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    deleteAiMessage: (messageId: string) => {
+        const { gameState } = get();
+        if (!gameState) return;
+
+        gameState.messages = gameState.messages.filter(m => m.id !== messageId);
+
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
     }
 }));

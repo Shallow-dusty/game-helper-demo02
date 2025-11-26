@@ -134,7 +134,7 @@ export const NIGHT_ORDER_FIRST = [
 ];
 
 export const NIGHT_ORDER_OTHER = [
-  'philosopher', 'poisoner', 'snake_charmer', 'witch', 'cerenovus', 'pit_hag', 
+  'philosopher', 'poisoner', 'snake_charmer', 'witch', 'cerenovus', 'pit_hag',
   'monk', 'exorcist', 'innkeeper', 'gambler', 'chambermaid', 'sailor', 'courtier',
   'godfather', 'devil_advocate', 'assassin',
   'imp', 'zombuul', 'pukka', 'shabaloth', 'po', 'fang_gu', 'vigormortis', 'no_dashii', 'vortox',
@@ -159,9 +159,9 @@ export const TEAM_LABELS: Record<string, string> = {
 };
 
 export const STATUS_ICONS: Record<string, string> = {
-    'POISONED': '🤢',
-    'DRUNK': '🍺',
-    'PROTECTED': '🛡️'
+  'POISONED': '🤢',
+  'DRUNK': '🍺',
+  'PROTECTED': '🛡️'
 };
 
 export const AUDIO_TRACKS: Record<string, { name: string, url: string }> = {
@@ -171,3 +171,13 @@ export const AUDIO_TRACKS: Record<string, { name: string, url: string }> = {
   night_horror: { name: '恐怖时刻 (Horror)', url: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3' },
   voting: { name: '审判之时 (Voting)', url: 'https://cdn.pixabay.com/download/audio/2020/09/14/audio_a03f5519d3.mp3' },
 };
+
+export const PRESET_REMINDERS = [
+  { text: '中毒', icon: '🤢', color: 'text-green-400' },
+  { text: '醉酒', icon: '🍺', color: 'text-amber-400' },
+  { text: '保护', icon: '🛡️', color: 'text-blue-400' },
+  { text: '死亡', icon: '💀', color: 'text-red-500' },
+  { text: '疯狂', icon: '🤪', color: 'text-purple-400' },
+  { text: '复活', icon: '🌅', color: 'text-yellow-200' },
+  { text: '自定义', icon: '📝', color: 'text-stone-300' },
+];

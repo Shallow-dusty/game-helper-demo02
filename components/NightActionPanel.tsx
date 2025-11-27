@@ -19,7 +19,7 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
 
     if (!gameState || !nightAction) return null;
 
-    const availableSeats = gameState.seats.filter(s => s.userId !== null);
+    const availableSeats = gameState.seats.filter(s => s.userId !== null || s.isVirtual);
 
     const handleSubmit = () => {
         let payload: any = {};
@@ -39,8 +39,7 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
     const canSubmit =
         (nightAction.type === 'choose_player' && selectedPlayer !== null) ||
         (nightAction.type === 'choose_two_players' && selectedPlayers.length === 2) ||
-        nightAction.type === 'confirm' ||
-        nightAction.type === 'binary';
+        nightAction.type === 'confirm';
 
     const togglePlayerSelection = (seatId: number) => {
         if (nightAction.type === 'choose_two_players') {
@@ -91,7 +90,12 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border ${isSelected ? 'bg-purple-800 border-purple-400' : 'bg-stone-900 border-stone-600'}`}>
                                                 {seat.id + 1}
                                             </div>
-                                            <span className="font-bold text-lg">{seat.userName}</span>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-lg">{seat.userName}</span>
+                                                {seat.isVirtual && (
+                                                    <span className="text-[10px] text-stone-500 uppercase tracking-widest">虚拟玩家</span>
+                                                )}
+                                            </div>
                                         </div>
                                         {seat.isDead && <span className="text-xs font-bold text-red-500 bg-red-950/30 px-2 py-1 rounded border border-red-900/50">💀 已死亡</span>}
                                     </div>
@@ -122,13 +126,15 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
 
                 {/* Action Buttons */}
                 <div className="flex gap-2">
-                    <button
-                        onClick={handleSubmit}
-                        disabled={!canSubmit}
-                        className="flex-1 bg-purple-700 hover:bg-purple-600 disabled:bg-stone-800 disabled:text-stone-600 text-white font-bold py-3 rounded transition-all shadow-lg disabled:shadow-none"
-                    >
-                        确认
-                    </button>
+                    {nightAction.type !== 'binary' && (
+                        <button
+                            onClick={handleSubmit}
+                            disabled={!canSubmit}
+                            className="flex-1 bg-purple-700 hover:bg-purple-600 disabled:bg-stone-800 disabled:text-stone-600 text-white font-bold py-3 rounded transition-all shadow-lg disabled:shadow-none"
+                        >
+                            确认
+                        </button>
+                    )}
                     <button
                         onClick={onComplete}
                         className="px-4 py-3 bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-400 rounded transition-all"

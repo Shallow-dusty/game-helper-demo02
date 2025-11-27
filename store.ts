@@ -204,6 +204,7 @@ const getInitialState = (roomId: string, seatCount: number, currentScriptId: str
         isNominated: false,
         hasUsedAbility: false,
         statuses: [],
+        voteLocked: false,
     })),
     messages: [],
     gameOver: { isOver: false, winner: null, reason: '' },
@@ -256,6 +257,59 @@ const addAiMessage = (gameState: GameState, content: string, provider: string, r
     });
 };
 
+const fallbackTownsfolk = ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller', 'undertaker', 'monk', 'ravenkeeper'];
+
+const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: string | null) => {
+    if (!seat) return;
+
+    seat.realRoleId = roleId;
+    seat.seenRoleId = roleId;
+    seat.roleId = roleId;
+    seat.hasUsedAbility = false;
+    seat.statuses = [];
+
+    if (!roleId) {
+        return;
+    }
+
+    const script = SCRIPTS[gameState.currentScriptId];
+
+    const assignedRoles = gameState.seats
+        .filter(s => s.realRoleId && s.id !== seat.id)
+        .map(s => s.realRoleId as string);
+
+    const pickTownsfolk = () => {
+        const availableTownsfolk = script?.roles
+            .map(id => ROLES[id])
+            .filter(r => r && r.team === 'TOWNSFOLK' && !assignedRoles.includes(r.id))
+            .map(r => r.id) || [];
+        const pool = availableTownsfolk.length > 0 ? availableTownsfolk : fallbackTownsfolk;
+        return pool[Math.floor(Math.random() * pool.length)];
+    };
+
+    if (roleId === 'drunk') {
+        const fakeRole = pickTownsfolk();
+        seat.seenRoleId = fakeRole;
+        seat.roleId = fakeRole;
+    }
+
+    if (roleId === 'lunatic') {
+        const demons = script?.roles
+            .map(id => ROLES[id])
+            .filter(r => r && r.team === 'DEMON')
+            .map(r => r.id) || [];
+        const fakeDemon = demons.length > 0 ? demons[0] : 'imp';
+        seat.seenRoleId = fakeDemon;
+        seat.roleId = fakeDemon;
+    }
+
+    if (roleId === 'marionette') {
+        const fakeRole = pickTownsfolk();
+        seat.seenRoleId = fakeRole;
+        seat.roleId = fakeRole;
+    }
+};
+
 // --- STORE ---
 
 interface AppState {
@@ -278,6 +332,7 @@ interface AppState {
     joinSeat: (seatId: number) => Promise<void>;
     leaveSeat: () => Promise<void>;
     sendMessage: (content: string, recipientId: string | null) => void;
+    forwardMessage: (messageId: string, targetRecipientId: string | null) => void;
     setScript: (scriptId: string) => void;
     setPhase: (phase: GamePhase) => void;
     assignRole: (seatId: number, roleId: string) => void;
@@ -288,6 +343,7 @@ interface AppState {
     toggleVibration: () => void;
     addReminder: (seatId: number, text: string, icon?: string, color?: string) => void;
     removeReminder: (id: string) => void;
+    setRoleReferenceMode: (mode: 'modal' | 'sidebar') => void;
 
     askAi: (prompt: string) => Promise<void>;
     setAiProvider: (provider: AiProvider) => void;
@@ -309,14 +365,17 @@ interface AppState {
     addSeat: () => void;
     removeSeat: () => void;
     addVirtualPlayer: () => void;
+    removeVirtualPlayer: (seatId: number) => void;
     assignRoles: () => void;
     distributeRoles: () => void;
+    hideRoles: () => void;
     startGame: () => void;
 
     // Note Actions
     addStorytellerNote: (content: string) => void;
     updateStorytellerNote: (id: string, content: string) => void;
     deleteStorytellerNote: (id: string) => void;
+    sendInfoCard: (card: import('./types').InfoCard, recipientId: string | null) => void;
 
     // Night Actions
     performNightAction: (action: { roleId: string, payload: any }) => void;
@@ -328,6 +387,7 @@ interface AppState {
 
     // Sync & History
     syncToCloud: () => void;
+    refreshFromCloud: () => Promise<void>;
     sync: () => void;
     saveGameHistory: (gameState: GameState) => void;
 
@@ -336,6 +396,7 @@ interface AppState {
     closeRolePanel: () => void;
     toggleSidebar: () => void;
     toggleSkillDescriptionMode: () => void;
+    handlePlayerSeating: (seatId: number) => void;
 
     // AI
     clearAiMessages: () => void;
@@ -719,7 +780,7 @@ export const useStore = create<AppState>((set, get) => ({
 
             // 清除本地座位状态
             seat.userId = null;
-            seat.userName = null;
+            seat.userName = `座位 ${seat.id + 1}`;
             seat.roleId = null;
             seat.realRoleId = null;
             seat.seenRoleId = null;
@@ -733,7 +794,7 @@ export const useStore = create<AppState>((set, get) => ({
             console.error('leave_seat error:', err);
             // 降级到本地处理
             seat.userId = null;
-            seat.userName = null;
+            seat.userName = `座位 ${seat.id + 1}`;
             seat.roleId = null;
             seat.realRoleId = null;
             seat.seenRoleId = null;
@@ -901,67 +962,7 @@ export const useStore = create<AppState>((set, get) => ({
 
         const seat = gameState.seats.find(s => s.id === seatId);
         if (seat) {
-            // 设置角色身份
-            seat.realRoleId = roleId; // 真实身份（ST可见）
-            seat.seenRoleId = roleId; // 默认展示身份与真实身份相同
-            seat.roleId = roleId; // 向后兼容
-
-            // ============ 特殊角色处理：表里角色机制 ============
-            
-            // 酒鬼 (Drunk) - 以为自己是某个镇民
-            if (roleId === 'drunk') {
-                // 从当前剧本中选择一个未被分配的镇民角色
-                const script = SCRIPTS[gameState.currentScriptId];
-                const assignedRoles = gameState.seats.map(s => s.realRoleId).filter(Boolean);
-                const availableTownsfolk = script?.roles
-                    .map(id => ROLES[id])
-                    .filter(r => r && r.team === 'TOWNSFOLK' && !assignedRoles.includes(r.id))
-                    .map(r => r.id) || [];
-                
-                // 备用镇民列表
-                const fallbackTownsfolk = ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller', 'undertaker', 'monk', 'ravenkeeper'];
-                const townsfolkPool = availableTownsfolk.length > 0 ? availableTownsfolk : fallbackTownsfolk;
-                const randomTownsfolk = townsfolkPool[Math.floor(Math.random() * townsfolkPool.length)];
-                
-                seat.seenRoleId = randomTownsfolk; // 酒鬼看到的是假角色
-                seat.roleId = randomTownsfolk; // 向后兼容
-            }
-            
-            // 疯子 (Lunatic) - 以为自己是恶魔
-            if (roleId === 'lunatic') {
-                // 获取当前剧本中的恶魔
-                const script = SCRIPTS[gameState.currentScriptId];
-                const demons = script?.roles
-                    .map(id => ROLES[id])
-                    .filter(r => r && r.team === 'DEMON')
-                    .map(r => r.id) || [];
-                
-                // 默认让疯子以为自己是小恶魔或剧本中的恶魔
-                const fakeDemon = demons.length > 0 ? demons[0] : 'imp';
-                seat.seenRoleId = fakeDemon; // 疯子看到的是恶魔角色
-                seat.roleId = fakeDemon; // 向后兼容
-            }
-            
-            // 提线木偶 (Marionette) - 以为自己是好人（如果存在的话）
-            // 注意：提线木偶在官方规则中是爪牙，但以为自己是好人
-            if (roleId === 'marionette') {
-                const script = SCRIPTS[gameState.currentScriptId];
-                const assignedRoles = gameState.seats.map(s => s.realRoleId).filter(Boolean);
-                const availableTownsfolk = script?.roles
-                    .map(id => ROLES[id])
-                    .filter(r => r && r.team === 'TOWNSFOLK' && !assignedRoles.includes(r.id))
-                    .map(r => r.id) || [];
-                
-                const fallbackTownsfolk = ['washerwoman', 'librarian', 'chef', 'empath'];
-                const townsfolkPool = availableTownsfolk.length > 0 ? availableTownsfolk : fallbackTownsfolk;
-                const randomTownsfolk = townsfolkPool[Math.floor(Math.random() * townsfolkPool.length)];
-                
-                seat.seenRoleId = randomTownsfolk;
-                seat.roleId = randomTownsfolk;
-            }
-
-            seat.hasUsedAbility = false;
-            seat.statuses = [];
+            applyRoleAssignment(gameState, seat, roleId);
         }
         set({ gameState: { ...gameState } });
         get().syncToCloud();
@@ -1094,7 +1095,8 @@ export const useStore = create<AppState>((set, get) => ({
             isNominated: false,
             hasUsedAbility: false,
             statuses: [],
-            isVirtual: true // Default to virtual/empty
+            isVirtual: true, // Default to virtual/empty
+            voteLocked: false
         }];
         set({ gameState: { ...gameState } });
         get().syncToCloud();
@@ -1199,7 +1201,10 @@ export const useStore = create<AppState>((set, get) => ({
             addSystemMessage(gameState, `⚡ 警告：【处女】被提名！若提名者是村民，请立即处决提名者。`);
         }
 
-        gameState.seats.forEach(s => s.isHandRaised = false);
+        gameState.seats.forEach(s => {
+            s.isHandRaised = false;
+            s.voteLocked = false;
+        });
         set({ gameState: { ...gameState } });
         get().syncToCloud();
     },
@@ -1227,12 +1232,15 @@ export const useStore = create<AppState>((set, get) => ({
                 
                 const currentSeat = gameState.seats.find(s => s.id === currentHand);
 
-                if (currentSeat && currentSeat.isHandRaised) {
-                    gameState.voting.votes.push(currentHand);
-                    if (currentSeat.isDead) {
-                        currentSeat.hasGhostVote = false;
-                        addSystemMessage(gameState, `${currentSeat.userName} 投出了死票。`);
+                if (currentSeat && !currentSeat.voteLocked) {
+                    if (currentSeat.isHandRaised) {
+                        gameState.voting.votes.push(currentHand);
+                        if (currentSeat.isDead) {
+                            currentSeat.hasGhostVote = false;
+                            addSystemMessage(gameState, `${currentSeat.userName} 投出了死票。`);
+                        }
                     }
+                    currentSeat.voteLocked = true;
                 }
 
                 const nextHand = (currentHand + 1) % gameState.seats.length;
@@ -1242,14 +1250,14 @@ export const useStore = create<AppState>((set, get) => ({
                     gameState.voting.isOpen = false;
                     
                     const voteCount = gameState.voting.votes.length;
-                    const aliveCount = gameState.seats.filter(s => !s.isDead).length;
-                    const majority = Math.floor(aliveCount / 2) + 1;
+                    const aliveCount = gameState.seats.filter(s => (s.userId || s.isVirtual) && !s.isDead).length;
+                    const majority = aliveCount > 0 ? Math.floor(aliveCount / 2) + 1 : 0;
                     const nominee = gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId);
                     
                     addSystemMessage(gameState, `投票结束。共 ${voteCount} 票（过半需要 ${majority} 票）。`);
                     
                     // 自动结算结果
-                    let result: 'executed' | 'survived' = voteCount >= majority ? 'executed' : 'survived';
+                    let result: 'executed' | 'survived' = majority > 0 && voteCount >= majority ? 'executed' : 'survived';
                     
                     if (result === 'executed') {
                         addSystemMessage(gameState, `🪦 ${nominee?.userName || '被提名者'} 票数达标，可被处决。`);
@@ -1298,6 +1306,7 @@ export const useStore = create<AppState>((set, get) => ({
             const seat = gameState.seats.find(s => s.userId === user.id);
 
             if (seat) {
+                if (seat.voteLocked) return;
                 if (seat.isDead && !seat.hasGhostVote) return;
                 seat.isHandRaised = !seat.isHandRaised;
                 set({ gameState: { ...gameState } });
@@ -1317,8 +1326,9 @@ export const useStore = create<AppState>((set, get) => ({
 
             // Determine result based on vote count (simplified logic)
             let result: 'executed' | 'survived' | 'cancelled' = 'cancelled';
-            const aliveCount = gameState.seats.filter(s => !s.isDead).length;
-            if (voteCount >= Math.floor(aliveCount / 2) + 1) {
+            const aliveCount = gameState.seats.filter(s => (s.userId || s.isVirtual) && !s.isDead).length;
+            const required = aliveCount > 0 ? Math.floor(aliveCount / 2) + 1 : 0;
+            if (required > 0 && voteCount >= required) {
                 result = 'executed';
             } else if (votingData.nomineeSeatId !== null) {
                 result = 'survived';
@@ -1342,6 +1352,7 @@ export const useStore = create<AppState>((set, get) => ({
         gameState.seats.forEach(s => {
             s.isHandRaised = false;
             s.isNominated = false;
+            s.voteLocked = false;
         });
         addSystemMessage(gameState, `投票被取消。`);
         set({ gameState: { ...gameState } });
@@ -1440,32 +1451,32 @@ export const useStore = create<AppState>((set, get) => ({
 
         set({ gameState: { ...gameState } });
         get().syncToCloud();
-
-        set({ gameState: { ...gameState } });
-        get().syncToCloud();
     },
 
     saveGameHistory: async (finalState: GameState) => {
         if (!finalState.gameOver.isOver) return;
 
         try {
+            const historyRecord = {
+                room_code: finalState.roomId,
+                winner: finalState.gameOver.winner,
+                reason: finalState.gameOver.reason,
+                script_name: SCRIPTS[finalState.currentScriptId]?.name ||
+                    finalState.customScripts[finalState.currentScriptId]?.name ||
+                    'Unknown Script',
+                players: finalState.seats.map(s => ({
+                    name: s.userName,
+                    role: s.roleId ? (ROLES[s.roleId]?.name || finalState.customRoles[s.roleId]?.name) : null,
+                    team: s.roleId ? (ROLES[s.roleId]?.team || finalState.customRoles[s.roleId]?.team) : null,
+                    isDead: s.isDead
+                })),
+                messages: finalState.messages,
+                state: finalState
+            };
+
             const { error } = await supabase
-                .from('game_rooms')
-                .insert({
-                    room_id: finalState.roomId,
-                    state: JSON.stringify(finalState), // Assuming finalState is the 'newState' intended
-                    winner: finalState.gameOver.winner,
-                    reason: finalState.gameOver.reason,
-                    script_name: SCRIPTS[finalState.currentScriptId]?.name || finalState.customScripts[finalState.currentScriptId]?.name || 'Unknown Script',
-                    players: finalState.seats.map(s => ({
-                        name: s.userName,
-                        role: s.roleId ? (ROLES[s.roleId]?.name || finalState.customRoles[s.roleId]?.name) : null,
-                        team: s.roleId ? (ROLES[s.roleId]?.team || finalState.customRoles[s.roleId]?.team) : null,
-                        isDead: s.isDead
-                    })),
-                    messages: finalState.messages,
-                    created_at: new Date()
-                });
+                .from('game_history')
+                .insert(historyRecord);
 
             if (error) throw error;
             console.log("✅ 游戏记录已保存");
@@ -1550,7 +1561,7 @@ export const useStore = create<AppState>((set, get) => ({
         get().syncToCloud();
     },
 
-    setRoleReferenceMode: (mode) => {
+    setRoleReferenceMode: (mode: 'modal' | 'sidebar') => {
         set({ roleReferenceMode: mode });
     },
 
@@ -1632,11 +1643,10 @@ export const useStore = create<AppState>((set, get) => ({
         selectedRoles.push(...shuffle(minions).slice(0, composition.minion).map(r => r.id));
         selectedRoles.push(...shuffle(demons).slice(0, composition.demon).map(r => r.id));
 
-        // 分配到座位（包含真实玩家和虚拟玩家）
         const shuffledRoles = shuffle(selectedRoles);
         gameState.seats.forEach((seat, i) => {
             if ((seat.userId || seat.isVirtual) && shuffledRoles[i]) {
-                seat.roleId = shuffledRoles[i];
+                applyRoleAssignment(gameState, seat, shuffledRoles[i]);
             }
         });
 
@@ -1657,6 +1667,7 @@ export const useStore = create<AppState>((set, get) => ({
         if (emptySeat) {
             emptySeat.isVirtual = true;
             emptySeat.userName = `虚拟玩家 ${emptySeat.id + 1}`;
+            emptySeat.voteLocked = false;
             addSystemMessage(gameState, `说书人添加了虚拟玩家到座位 ${emptySeat.id + 1}`);
             set({ gameState: { ...gameState } });
             get().syncToCloud();
@@ -1665,7 +1676,7 @@ export const useStore = create<AppState>((set, get) => ({
         }
     },
 
-    removeVirtualPlayer: (seatId) => {
+    removeVirtualPlayer: (seatId: number) => {
         const { gameState } = get();
         if (!gameState) return;
         const seat = gameState.seats.find(s => s.id === seatId);
@@ -1673,6 +1684,9 @@ export const useStore = create<AppState>((set, get) => ({
             seat.isVirtual = false;
             seat.userName = `座位 ${seat.id + 1}`;
             seat.roleId = null;
+             seat.realRoleId = null;
+             seat.seenRoleId = null;
+             seat.voteLocked = false;
             addSystemMessage(gameState, `说书人移除了座位 ${seatId + 1} 的虚拟玩家`);
             set({ gameState: { ...gameState } });
             get().syncToCloud();
@@ -1738,6 +1752,9 @@ export const useStore = create<AppState>((set, get) => ({
         // 更新请求状态
         request.status = 'resolved';
         request.result = result;
+
+        // 及时清理已处理的请求，避免队列无限增长
+        gameState.nightActionRequests = gameState.nightActionRequests.filter(r => r.status !== 'resolved');
 
         // 发送私信给玩家（通过 InfoCard）
         if (seat?.userId) {
@@ -1810,7 +1827,7 @@ export const useStore = create<AppState>((set, get) => ({
         get().syncToCloud();
     },
 
-    handlePlayerSeating: (seatId) => {
+    handlePlayerSeating: (seatId: number) => {
         const { user, gameState } = get();
         if (!user || !gameState) return;
 

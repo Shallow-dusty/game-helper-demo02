@@ -19,23 +19,42 @@ def ensure_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-def download_file(url, filepath):
-    try:
-        # 伪装 User-Agent
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        response = requests.get(url, headers=headers, stream=True)
-        response.raise_for_status()
-        
-        with open(filepath, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
-        print(f"✅ 已下载: {filepath}")
-        return True
-    except Exception as e:
-        print(f"❌ 下载失败 {url}: {e}")
-        return False
+def download_file(url, filepath, max_retries=3, backoff=2):
+    """下载音频，验证 Content-Type 并在临时错误时重试"""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    temp_path = f"{filepath}.part"
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = requests.get(url, headers=headers, stream=True, timeout=30)
+            response.raise_for_status()
+
+            content_type = response.headers.get('Content-Type', '').lower()
+            if not content_type.startswith('audio/') and not url.lower().endswith('.mp3'):
+                raise ValueError(f"非音频资源(Content-Type={content_type or 'unknown'})")
+
+            with open(temp_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+            os.replace(temp_path, filepath)
+            print(f"✅ 已下载: {filepath}")
+            return True
+        except (requests.HTTPError, requests.ConnectionError, requests.Timeout, ValueError) as e:
+            should_retry = isinstance(e, (requests.HTTPError, requests.ConnectionError, requests.Timeout)) and attempt < max_retries
+            print(f"❌ 下载失败 {url} (尝试 {attempt}/{max_retries}): {e}")
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            if should_retry:
+                sleep_time = backoff ** (attempt - 1)
+                print(f"⏳ {sleep_time}s 后重试...")
+                time.sleep(sleep_time)
+            else:
+                return False
+
+    return False
 
 def scrape_category(category):
     print(f"\n🔍 正在扫描类别: {category['name']} ({category['url']})...")

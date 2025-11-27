@@ -13,6 +13,10 @@ export const Chat = () => {
     const [input, setInput] = useState('');
     const [recipientId, setRecipientId] = useState<string | null>(null); // null = Public
     const [activeChannel, setActiveChannel] = useState<'CHAT' | 'LOG'>('CHAT');
+    
+    // NFR-03: iOS 软键盘适配
+    const [keyboardOffset, setKeyboardOffset] = useState(0);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const endRef = useRef<HTMLDivElement>(null);
 
@@ -25,6 +29,33 @@ export const Chat = () => {
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, activeChannel]);
+
+    // NFR-03: iOS 软键盘适配 - 使用 visualViewport API
+    useEffect(() => {
+        const viewport = window.visualViewport;
+        if (!viewport) return;
+        
+        const handleResize = () => {
+            // 计算键盘高度：视窗高度差
+            const keyboardHeight = window.innerHeight - viewport.height;
+            setKeyboardOffset(keyboardHeight > 50 ? keyboardHeight : 0);
+            
+            // 确保输入框可见
+            if (keyboardHeight > 50 && inputRef.current) {
+                setTimeout(() => {
+                    inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, 100);
+            }
+        };
+        
+        viewport.addEventListener('resize', handleResize);
+        viewport.addEventListener('scroll', handleResize);
+        
+        return () => {
+            viewport.removeEventListener('resize', handleResize);
+            viewport.removeEventListener('scroll', handleResize);
+        };
+    }, []);
 
     const handleSend = (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,7 +84,8 @@ export const Chat = () => {
         return true; // Public message
     });
 
-    const availableRecipients = seats.filter(s => s.userId && s.userId !== user?.id);
+    // FR-05: 过滤掉虚拟玩家，只显示真实玩家
+    const availableRecipients = seats.filter(s => s.userId && s.userId !== user?.id && !s.isVirtual);
 
     return (
         <div className="flex flex-col h-full bg-stone-900 font-serif">
@@ -131,7 +163,11 @@ export const Chat = () => {
 
             {/* Input Area */}
             {activeChannel === 'CHAT' && (
-                <form onSubmit={handleSend} className="p-3 border-t border-stone-700 bg-stone-950">
+                <form 
+                    onSubmit={handleSend} 
+                    className="p-3 border-t border-stone-700 bg-stone-950 transition-all"
+                    style={{ paddingBottom: keyboardOffset > 0 ? `${keyboardOffset + 12}px` : undefined }}
+                >
                     <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] uppercase text-stone-500 font-bold tracking-wider">发送给:</span>
                         {(allowWhispers || user?.isStoryteller) ? (
@@ -157,6 +193,7 @@ export const Chat = () => {
 
                     <div className="relative">
                         <input
+                            ref={inputRef}
                             className={`w-full bg-stone-800 text-stone-200 text-sm rounded-sm px-4 py-2 outline-none border focus:ring-1 transition-all pr-10 ${recipientId ? 'border-purple-800 focus:border-purple-600 focus:ring-purple-900' : 'border-stone-700 focus:border-red-700 focus:ring-red-900'}`}
                             placeholder={recipientId ? "发送悄悄话..." : "发送公开消息..."}
                             value={input}

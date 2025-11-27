@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useStore } from '../store';
 import { ROLES, TEAM_COLORS, PHASE_LABELS, AUDIO_TRACKS, SCRIPTS } from '../constants';
 import { Chat } from './Chat';
@@ -13,6 +13,37 @@ import { VotingChart } from './VotingChart';
 import { ScriptCompositionGuide } from './ScriptCompositionGuide';
 import { showError, showWarning } from './Toast';
 import { RoleDef, Seat, GamePhase } from '../types';
+
+// FR-06: 投票按钮组件 - 带加载状态
+const VoteButton: React.FC<{ isRaised: boolean; onToggle: () => void }> = ({ isRaised, onToggle }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    
+    const handleClick = useCallback(() => {
+        if (isLoading) return;
+        setIsLoading(true);
+        onToggle();
+        // 延迟后重置 loading（给予视觉反馈）
+        setTimeout(() => setIsLoading(false), 300);
+    }, [isLoading, onToggle]);
+    
+    return (
+        <div className="animate-bounce">
+            <button
+                onClick={handleClick}
+                disabled={isLoading}
+                className={`w-full py-4 rounded-sm text-xl font-bold shadow-xl transition-all border-2 font-cinzel tracking-wider ${
+                    isLoading 
+                        ? 'bg-stone-800 border-stone-600 text-stone-500 cursor-wait'
+                        : isRaised 
+                            ? 'bg-green-900 border-green-600 hover:bg-green-800 text-green-100' 
+                            : 'bg-stone-700 border-stone-500 hover:bg-stone-600 text-stone-300'
+                }`}
+            >
+                {isLoading ? '⏳ 处理中...' : isRaised ? '✋ 已投票' : '举手投票？'}
+            </button>
+        </div>
+    );
+};
 
 // Roles with active day abilities
 const ACTIVE_ABILITY_ROLES: Record<string, { 
@@ -286,6 +317,23 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             const role = ROLES[currentSeat.roleId];
             if (role?.nightAction) {
                 setShowNightAction(true);
+                
+                // FR-03: 震动 + 音效提醒玩家唤醒（仅在说书人开启时）
+                if (gameState.vibrationEnabled) {
+                    // 震动 API
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate([200, 100, 200]); // 短-停-短 模式
+                    }
+                }
+                
+                // 播放唤醒音效（音效不受振动开关影响，音量小不易察觉）
+                try {
+                    const wakeSound = new Audio('/sounds/wake.mp3');
+                    wakeSound.volume = 0.3;
+                    wakeSound.play().catch(e => console.log('音效播放被浏览器阻止:', e));
+                } catch (e) {
+                    // 忽略音效加载失败
+                }
             }
         }
     }, [gameState?.phase, gameState?.nightCurrentIndex, user?.id]);
@@ -621,6 +669,20 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                                 <span>☀</span> 天亮 (进入白天)
                                             </button>
                                         )}
+                                        
+                                        {/* 振动开关 - 线下游戏应关闭，避免自爆 */}
+                                        <button
+                                            onClick={() => useStore.getState().toggleVibration()}
+                                            className={`col-span-2 py-2 px-3 rounded text-xs border transition-colors flex items-center justify-center gap-1 ${
+                                                gameState.vibrationEnabled 
+                                                    ? 'bg-green-900/50 border-green-700 text-green-300 hover:bg-green-800/50' 
+                                                    : 'bg-stone-800 border-stone-600 text-stone-400 hover:bg-stone-700'
+                                            }`}
+                                            title="线下游戏应关闭振动，避免暴露玩家身份"
+                                        >
+                                            <span>{gameState.vibrationEnabled ? '📳' : '🔇'}</span>
+                                            {gameState.vibrationEnabled ? '夜间振动提醒: 开启' : '夜间振动提醒: 关闭'}
+                                        </button>
                                     </div>
                                     </div>
                                 </div>
@@ -785,14 +847,10 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                             </p>
 
                                             {gameState.voting.clockHandSeatId === currentSeat?.id ? (
-                                                <div className="animate-bounce">
-                                                    <button
-                                                        onClick={toggleHand}
-                                                        className={`w-full py-4 rounded-sm text-xl font-bold shadow-xl transition-all border-2 font-cinzel tracking-wider ${currentSeat?.isHandRaised ? 'bg-green-900 border-green-600 hover:bg-green-800 text-green-100' : 'bg-stone-700 border-stone-500 hover:bg-stone-600 text-stone-300'}`}
-                                                    >
-                                                        {currentSeat?.isHandRaised ? '✋ 已投票' : '举手投票？'}
-                                                    </button>
-                                                </div>
+                                                <VoteButton 
+                                                    isRaised={currentSeat?.isHandRaised || false}
+                                                    onToggle={toggleHand}
+                                                />
                                             ) : (
                                                 <div className="text-center text-stone-600 italic p-3 border border-dashed border-stone-800 rounded-sm font-serif text-sm">
                                                     时针转动中...
@@ -820,6 +878,17 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                         >
                                             <span>📜</span> 历史
                                         </button>
+                                        
+                                        {/* FR-01: Leave Seat Button for Players */}
+                                        {currentSeat && (
+                                            <button
+                                                onClick={() => useStore.getState().leaveSeat()}
+                                                className="mt-2 w-full bg-red-900/30 hover:bg-red-800/50 text-red-400 py-2 px-3 rounded text-xs border border-red-900/50 transition-colors flex items-center justify-center gap-1"
+                                                title="离开当前座位"
+                                            >
+                                                <span>🚪</span> 离开座位
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             )}

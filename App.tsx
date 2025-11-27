@@ -202,10 +202,11 @@ const App = () => {
       {gameState && (
         <button
           onClick={() => roleReferenceMode === 'modal' ? openRolePanel() : toggleSidebar()}
-          className="fixed bottom-6 left-6 z-30 bg-amber-900 hover:bg-amber-800 text-amber-200 p-4 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"
+          className="fixed bottom-20 md:bottom-6 left-4 md:left-6 z-30 bg-amber-900 hover:bg-amber-800 text-amber-200 p-3 md:p-4 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"
+          style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
           title="查看规则手册"
         >
-          <span className="text-2xl">📖</span>
+          <span className="text-xl md:text-2xl">📖</span>
         </button>
       )}
     </div>

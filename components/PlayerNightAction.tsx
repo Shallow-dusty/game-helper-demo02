@@ -55,16 +55,34 @@ export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, on
         }
     };
 
+    // FR-02: 改为底部浮层，不阻挡魔典
     return (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-md animate-in fade-in zoom-in-95 duration-300">
-            <div className="bg-stone-900 border-2 border-indigo-500 rounded-lg p-6 max-w-md w-full mx-4 shadow-[0_0_50px_rgba(79,70,229,0.3)]">
+        <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom duration-300">
+            {/* 半透明背景遮罩 - 点击可关闭 */}
+            <div 
+                className="absolute inset-0 -top-screen bg-black/40 backdrop-blur-sm"
+                onClick={onComplete}
+                style={{ top: '-100vh' }}
+            />
+            
+            <div className="relative bg-stone-900 border-t-2 border-indigo-500 rounded-t-xl p-4 md:p-6 max-w-lg mx-auto shadow-[0_-10px_50px_rgba(79,70,229,0.3)]">
+                {/* 拖拽指示条 */}
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-stone-700 rounded-full" />
+                
                 {/* Header */}
-                <div className="flex items-center gap-3 mb-4 border-b border-indigo-900/50 pb-3">
-                    <span className="text-4xl animate-pulse">{role.icon || '🌙'}</span>
-                    <div>
-                        <h3 className="text-2xl font-bold text-indigo-300 font-cinzel">{role.name}</h3>
-                        <p className="text-xs text-indigo-400 uppercase tracking-widest">你的回合 (Your Turn)</p>
+                <div className="flex items-center gap-3 mb-4 border-b border-indigo-900/50 pb-3 mt-2">
+                    <span className="text-3xl md:text-4xl animate-pulse">{role.icon || '🌙'}</span>
+                    <div className="flex-1">
+                        <h3 className="text-xl md:text-2xl font-bold text-indigo-300 font-cinzel">{role.name}</h3>
+                        <p className="text-[10px] md:text-xs text-indigo-400 uppercase tracking-widest">你的回合 (Your Turn)</p>
                     </div>
+                    <button
+                        onClick={onComplete}
+                        className="p-2 text-stone-500 hover:text-stone-300 transition-colors"
+                        aria-label="关闭"
+                    >
+                        ✕
+                    </button>
                 </div>
 
                 {/* Prompt */}
@@ -120,12 +138,12 @@ export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, on
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="flex gap-3 pb-safe">
                     {(nightAction.type !== 'binary') && (
                         <button
                             onClick={handleSubmit}
                             disabled={!canSubmit}
-                            className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-stone-800 disabled:text-stone-600 text-white font-bold py-3 rounded transition-all shadow-lg disabled:shadow-none text-lg"
+                            className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-stone-800 disabled:text-stone-600 text-white font-bold py-3 rounded transition-all shadow-lg disabled:shadow-none text-base md:text-lg"
                         >
                             确认提交
                         </button>
@@ -134,7 +152,7 @@ export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, on
                         onClick={onComplete}
                         className="px-4 py-3 bg-transparent hover:bg-stone-800 text-stone-500 hover:text-stone-300 rounded transition-all text-sm"
                     >
-                        跳过 / 稍后
+                        跳过
                     </button>
                 </div>
             </div>

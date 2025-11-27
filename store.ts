@@ -189,6 +189,7 @@ const getInitialState = (roomId: string, seatCount: number, currentScriptId: str
     setupPhase: 'ASSIGNING',
     rolesRevealed: false,
     allowWhispers: false,
+    vibrationEnabled: false, // 默认关闭，避免线下自爆
     seats: Array.from({ length: seatCount }, (_, i) => ({
         id: i,
         userId: null,
@@ -284,6 +285,7 @@ interface AppState {
     toggleAbilityUsed: (seatId: number) => void;
     toggleStatus: (seatId: number, status: SeatStatus) => void;
     toggleWhispers: () => void;
+    toggleVibration: () => void;
     addReminder: (seatId: number, text: string, icon?: string, color?: string) => void;
     removeReminder: (id: string) => void;
 
@@ -438,10 +440,24 @@ export const useStore = create<AppState>((set, get) => ({
                 .eq('room_code', roomCode)
                 .single();
 
-            if (error || !data) {
-                getToastFunctions().then(({ showError }) => showError("房间不存在！请检查房间号。"));
+            if (error) {
+                // NFR-02: 区分网络错误和房间不存在
+                if (error.code === 'PGRST116') {
+                    // 房间不存在
+                    getToastFunctions().then(({ showError }) => showError("房间不存在！请检查房间号。"));
+                } else {
+                    // 网络错误
+                    getToastFunctions().then(({ showError }) => showError("网络连接失败，请检查网络后重试。"));
+                }
                 set({ connectionStatus: 'disconnected' });
                 // 清除无效的房间记录
+                localStorage.removeItem('grimoire_last_room');
+                return;
+            }
+            
+            if (!data) {
+                getToastFunctions().then(({ showError }) => showError("房间不存在或已关闭！"));
+                set({ connectionStatus: 'disconnected' });
                 localStorage.removeItem('grimoire_last_room');
                 return;
             }
@@ -508,6 +524,12 @@ export const useStore = create<AppState>((set, get) => ({
             if (seat) {
                 seat.userId = null;
                 seat.userName = `座位 ${seat.id + 1}`;
+                // BUG-02: 完整清理座位状态
+                seat.roleId = null;
+                seat.realRoleId = null;
+                seat.seenRoleId = null;
+                seat.isHandRaised = false;
+                (seat as any).clientToken = null;
             }
             addSystemMessage(state, `${user.name} 离开了房间。`);
             get().syncToCloud();
@@ -520,7 +542,16 @@ export const useStore = create<AppState>((set, get) => ({
             supabase.removeChannel(realtimeChannel);
             realtimeChannel = null;
         }
-        set({ user: user ? { ...user, roomId: null } : null, gameState: null, isOffline: false, connectionStatus: 'disconnected' });
+        
+        // BUG-02: 完整重置所有状态
+        set({ 
+            user: user ? { ...user, roomId: null } : null, 
+            gameState: null, 
+            isOffline: false, 
+            connectionStatus: 'disconnected',
+            isAiThinking: false,
+            isAudioBlocked: false
+        });
     },
 
     syncToCloud: async () => {
@@ -578,7 +609,7 @@ export const useStore = create<AppState>((set, get) => ({
         try {
             // 调用 Supabase RPC 原子化占座
             const { data, error } = await supabase.rpc('claim_seat', {
-                p_room_code: gameState.roomCode,
+                p_room_code: gameState.roomId,
                 p_seat_id: seatId,
                 p_player_name: user.name,
                 p_client_token: clientToken
@@ -642,7 +673,7 @@ export const useStore = create<AppState>((set, get) => ({
             // 如果有 clientToken，调用 RPC 离座
             if (clientToken) {
                 const { data, error } = await supabase.rpc('leave_seat', {
-                    p_room_code: gameState.roomCode,
+                    p_room_code: gameState.roomId,
                     p_seat_id: seatId,
                     p_client_token: clientToken
                 });
@@ -965,6 +996,15 @@ export const useStore = create<AppState>((set, get) => ({
         if (!gameState) return;
         gameState.allowWhispers = !gameState.allowWhispers;
         addSystemMessage(gameState, gameState.allowWhispers ? "🟢 说书人开启了私聊功能。" : "🔴 说书人禁用了私聊功能。");
+        set({ gameState: { ...gameState } });
+        get().syncToCloud();
+    },
+
+    toggleVibration: () => {
+        const { gameState } = get();
+        if (!gameState) return;
+        gameState.vibrationEnabled = !gameState.vibrationEnabled;
+        addSystemMessage(gameState, gameState.vibrationEnabled ? "📳 说书人开启了夜间振动提醒。" : "🔇 说书人关闭了夜间振动提醒。");
         set({ gameState: { ...gameState } });
         get().syncToCloud();
     },

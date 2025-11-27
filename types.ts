@@ -140,6 +140,7 @@ export interface GameState {
   setupPhase: SetupPhase; // NEW: Track setup progress
   rolesRevealed: boolean; // NEW: Whether roles have been revealed to players
   allowWhispers: boolean; // New: Controls if players can whisper
+  vibrationEnabled: boolean; // 是否启用夜间唤醒震动（线下游戏应关闭）
   seats: Seat[];
   messages: ChatMessage[];
   gameOver: GameOverState;

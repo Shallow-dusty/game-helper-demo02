@@ -29,12 +29,21 @@ export interface VoteRecord {
   result: 'executed' | 'survived' | 'cancelled';
 }
 
+// 夜间行动请求载荷类型
+export interface NightActionPayload {
+  seatId?: number;           // 单选玩家目标
+  seatIds?: number[];        // 多选玩家目标
+  choice?: number;           // 二选一选项索引
+  confirmed?: boolean;       // 确认类操作
+  customData?: string;       // 自定义数据
+}
+
 // 夜间行动请求（玩家提交给ST）
 export interface NightActionRequest {
   id: string;
   seatId: number;
   roleId: string;
-  payload: any;
+  payload: NightActionPayload;
   status: 'pending' | 'resolved';
   result?: string; // ST回复的结果信息
   timestamp: number;
@@ -93,7 +102,12 @@ export interface Seat {
   hasGhostVote: boolean;
 
   // 角色身份系统：支持"表里"角色机制
-  roleId: string | null; // 【已弃用】向后兼容，实际使用 seenRoleId
+  /**
+   * @deprecated 请使用 seenRoleId 代替。此字段仅用于向后兼容。
+   * 在 filterSeatForUser 中会自动将 seenRoleId 映射到此字段。
+   * 计划在 v0.8.0 移除。
+   */
+  roleId: string | null;
   realRoleId: string | null; // 真实身份（ST 可见，用于游戏逻辑判定）
   seenRoleId: string | null; // 展示身份（玩家看到的，可能是假的）
 

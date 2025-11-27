@@ -12,6 +12,7 @@ import { PhaseIndicator } from './components/PhaseIndicator';
 import { WaitingArea } from './components/WaitingArea';
 import { NotificationSystem } from './components/NotificationSystem';
 import { ToastContainer, useToasts } from './components/Toast';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const App = () => {
   const user = useStore(state => state.user);
@@ -215,4 +216,11 @@ const App = () => {
   );
 };
 
-export default App;
+// 包装 ErrorBoundary 的导出
+const AppWithErrorBoundary = () => (
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
+
+export default AppWithErrorBoundary;

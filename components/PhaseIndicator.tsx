@@ -2,6 +2,14 @@ import React from 'react';
 import { useStore, ConnectionStatus } from '../store';
 import { SCRIPTS } from '../constants';
 
+// 连接状态样式配置
+const CONNECTION_STYLES: Record<ConnectionStatus, { text: string; className: string }> = {
+    connecting: { text: '连接中...', className: 'text-yellow-400 animate-pulse' },
+    connected: { text: '已连接', className: 'text-green-400' },
+    reconnecting: { text: '重连中...', className: 'text-yellow-400 animate-pulse' },
+    disconnected: { text: '已断开', className: 'text-red-400' },
+};
+
 export const PhaseIndicator: React.FC = () => {
     const gameState = useStore(state => state.gameState);
     const user = useStore(state => state.user);
@@ -79,19 +87,26 @@ export const PhaseIndicator: React.FC = () => {
 
     if (!message) return null;
 
-    // Connection status display
+    // Connection status display - 使用常量配置
     const getConnectionDisplay = () => {
-        switch (connectionStatus) {
-            case 'connected':
-                return { color: 'bg-green-500', text: '在线', animate: '' };
-            case 'connecting':
-                return { color: 'bg-yellow-500', text: '连接中', animate: 'animate-pulse' };
-            case 'reconnecting':
-                return { color: 'bg-orange-500', text: '重连中', animate: 'animate-pulse' };
-            case 'disconnected':
-            default:
-                return { color: isOffline ? 'bg-gray-500' : 'bg-red-500', text: isOffline ? '离线' : '断开', animate: isOffline ? '' : 'animate-pulse' };
+        const style = CONNECTION_STYLES[connectionStatus] || CONNECTION_STYLES.disconnected;
+        
+        if (connectionStatus === 'disconnected' && isOffline) {
+            return { color: 'bg-gray-500', text: '离线模式', animate: '' };
         }
+        
+        const colorMap: Record<ConnectionStatus, string> = {
+            connected: 'bg-green-500',
+            connecting: 'bg-yellow-500',
+            reconnecting: 'bg-orange-500',
+            disconnected: 'bg-red-500',
+        };
+        
+        return {
+            color: colorMap[connectionStatus] || 'bg-red-500',
+            text: style.text.replace('...', ''),
+            animate: style.className.includes('animate') ? 'animate-pulse' : ''
+        };
     };
 
     const connDisplay = getConnectionDisplay();

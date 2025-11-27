@@ -6,7 +6,45 @@
 
 ---
 
-## [0.7.0] - 2025-01-XX
+## [0.7.1] - 2025-11-27
+
+### 🔍 代码审查 (Code Review)
+
+本版本完成了全面的代码审查，识别并记录了以下问题：
+
+#### 已识别问题 (Identified Issues)
+
+**安全性与健壮性**:
+- `VotingChart.tsx`: 座位查找可能返回 undefined，已使用可选链 (`?.`) 保护
+- `NightActionManager.tsx`: 酒鬼/疯子检测逻辑需要非空检查
+- `store.ts`: `NightActionRequest.payload` 类型为 `any`，建议定义具体类型
+
+**内存管理**:
+- `Chat.tsx`: `visualViewport` 事件监听器清理逻辑已正确实现
+- `Grimoire.tsx`: `useLongPress` Hook 的 timeout 清理已正确实现
+
+**代码质量**:
+- `constants.ts`: `NIGHT_ORDER_FIRST/OTHER` 包含未定义的角色ID
+- `types.ts`: `roleId` 字段标记为已弃用但仍在使用
+- `Controls.tsx`: 700+ 行代码，建议拆分
+
+### 📝 文档更新 (Documentation)
+
+- 更新 `README.md` 版本号和功能描述
+- 更新 `USER_GUIDE.md` 添加最新功能说明
+- 更新 `STORYTELLER_MANUAL.md` 完善操作指南
+- 生成完整优化建议清单
+
+### 📦 技术细节 (Technical)
+
+- **审查范围**: 26个源文件 + 4个文档文件
+- **总代码行数**: 约 15,000+ 行
+- **组件数量**: 24个 React 组件
+- **类型定义**: 完整的 TypeScript 类型覆盖
+
+---
+
+## [0.7.0] - 2025-01-15
 
 ### ✨ 新增 (Added)
 

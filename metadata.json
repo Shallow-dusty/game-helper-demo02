@@ -1,5 +1,8 @@
 {
   "name": "Grimoire-Web",
-  "description": "A Blood on the Clocktower web application featuring a virtual Grimoire, real-time state synchronization, and Storyteller tools.",
+  "version": "0.7.0",
+  "description": "血染钟楼线上魔典工具 - 支持多人实时同步、AI规则咨询、完整游戏流程管理。A Blood on the Clocktower web application featuring a virtual Grimoire, real-time state synchronization, and Storyteller tools.",
+  "author": "Grimoire Web Team",
+  "license": "MIT",
   "requestFramePermissions": []
 }

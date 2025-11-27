@@ -1,9 +1,18 @@
 import React from 'react';
 import { useStore } from '../store';
+import { VoteRecord, Seat } from '../types';
 
-export const VotingChart: React.FC = () => {
+interface VotingChartProps {
+    voteHistory?: VoteRecord[];
+    seats?: Seat[];
+}
+
+export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteHistory, seats: propSeats }) => {
     const { gameState } = useStore();
-    const { voteHistory, seats } = gameState;
+    
+    // 使用 props 或从 store 获取数据
+    const voteHistory = propVoteHistory ?? gameState?.voteHistory ?? [];
+    const seats = propSeats ?? gameState?.seats ?? [];
 
     if (voteHistory.length === 0) {
         return (

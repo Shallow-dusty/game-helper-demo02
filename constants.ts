@@ -1,6 +1,19 @@
 
 import { RoleDef, ScriptDef } from './types';
 
+// Z-Index 层级管理 - 统一管理所有 z-index 值
+export const Z_INDEX = {
+  base: 0,           // 基础层
+  grimoire: 10,      // 魔典画布
+  overlay: 20,       // 遮罩层
+  tooltip: 30,       // 提示框
+  dropdown: 40,      // 下拉菜单
+  modal: 50,         // 模态框
+  toast: 60,         // Toast 通知
+  phaseIndicator: 30, // 阶段指示器
+  contextMenu: 45,   // 右键菜单
+} as const;
+
 export const ROLES: Record<string, RoleDef> = {
   // --- TROUBLE BREWING (TB) ---
   washerwoman: {
@@ -634,12 +647,13 @@ export const TEAM_COLORS = {
 // Night orders are usually dynamic based on script. 
 // For simplicity in this demo, we merge them or check presence.
 // In a real app, define night order per script.
+// NOTE: Only include roles that are defined in ROLES object above.
 export const NIGHT_ORDER_FIRST = [
-  'philosopher', 'barman', 'poisoner', 'snake_charmer', 'bookworm', 'evil_twin', 'witch', 'cerenovus',
+  'philosopher', 'poisoner', 'snake_charmer', 'evil_twin', 'witch', 'cerenovus',
   'minstrel', 'godfather', 'devil_advocate', 'lunatic', 'exorcist', 'innkeeper', 'gambler', 'chambermaid', 'sailor', 'courtier',
-  'grandmother', 'demon', 'imp', 'zombuul', 'pukka', 'shabaloth', 'po', 'fang_gu', 'vigormortis', 'no_dashii', 'vortox',
+  'grandmother', 'imp', 'zombuul', 'pukka', 'shabaloth', 'po', 'fang_gu', 'vigormortis', 'no_dashii', 'vortox',
   'washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller', 'butler', 'spy',
-  'steward', 'knight', 'shaman', 'clockmaker', 'dreamer', 'seamstress', 'mathematician', 'noble', 'pixie'
+  'clockmaker', 'dreamer', 'seamstress', 'mathematician'
 ];
 
 export const NIGHT_ORDER_OTHER = [

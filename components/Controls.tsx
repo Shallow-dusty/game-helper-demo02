@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useStore } from '../store';
 import { ROLES, TEAM_COLORS, PHASE_LABELS, AUDIO_TRACKS, SCRIPTS } from '../constants';
 import { Chat } from './Chat';
@@ -238,7 +239,15 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const clearAiMessages = useStore(state => state.clearAiMessages);
     const deleteAiMessage = useStore(state => state.deleteAiMessage);
 
-    const [activeTab, setActiveTab] = useState<'game' | 'chat' | 'ai' | 'notebook'>('game');
+    const [activeTab, setActiveTab] = useState<'game' | 'chat' | 'ai' | 'notebook'>(() => {
+        const saved = localStorage.getItem('grimoire_active_tab');
+        return (saved === 'game' || saved === 'chat' || saved === 'ai' || saved === 'notebook') ? saved : 'game';
+    });
+
+    useEffect(() => {
+        localStorage.setItem('grimoire_active_tab', activeTab);
+    }, [activeTab]);
+
     const [aiPrompt, setAiPrompt] = useState('');
     const [showHistory, setShowHistory] = useState(false);
     const [showNightAction, setShowNightAction] = useState(false);
@@ -275,6 +284,15 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
     const [width, setWidth] = useState(320); // Default 320px
     const [isResizing, setIsResizing] = useState(false);
+
+    // Mobile detection
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     React.useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
@@ -402,16 +420,18 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     return (
         <div
             className="bg-stone-950 border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif relative transition-none z-50"
-            style={{ width: `${width}px` }}
+            style={{ width: isMobile ? '100%' : `${width}px` }}
         >
             {/* Audio Element */}
             <audio ref={audioRef} loop />
 
-            {/* Drag Handle */}
-            <div
-                className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-purple-500/50 z-50 transition-colors"
-                onMouseDown={() => setIsResizing(true)}
-            />
+            {/* Drag Handle (Desktop Only) */}
+            {!isMobile && (
+                <div
+                    className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-purple-500/50 z-50 transition-colors"
+                    onMouseDown={() => setIsResizing(true)}
+                />
+            )}
 
             {/* --- Header: User Info --- */}
             <div className="p-4 border-b border-stone-800 bg-stone-950 flex items-start justify-between shadow-md z-10">
@@ -425,10 +445,10 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     </div>
                 </div>
 
-                {/* Mobile Close Button - 移除了游戏规则按钮，已在Game Tab中 */}
+                {/* Mobile Close Button */}
                 <div className="flex items-center gap-2">
                     {onClose && (
-                        <button onClick={onClose} className="md:hidden text-stone-400 hover:text-white p-2">
+                        <button onClick={onClose} className="md:hidden text-stone-400 hover:text-white p-2 bg-stone-900 rounded-full w-10 h-10 flex items-center justify-center active:bg-stone-800">
                             ✕
                         </button>
                     )}
@@ -505,33 +525,33 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             )}
 
             {/* --- Tabs --- */}
-            <div className="flex border-b border-stone-800 text-sm bg-stone-950 font-cinzel">
+            <div className="flex border-b border-stone-800 text-sm bg-stone-950 font-cinzel sticky top-0 z-20">
                 <button
                     onClick={() => setActiveTab('game')}
-                    className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'game' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'game' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
                 >
-                    🎮 游戏
+                    <span className="text-lg md:text-base mr-1">🎮</span> 游戏
                 </button>
                 <button
                     onClick={() => setActiveTab('chat')}
-                    className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'chat' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'chat' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
                 >
-                    💬 聊天
+                    <span className="text-lg md:text-base mr-1">💬</span> 聊天
                 </button>
                 {/* AI 助手仅对说书人显示 */}
                 {user.isStoryteller && (
                     <button
                         onClick={() => setActiveTab('ai')}
-                        className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'ai' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                        className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'ai' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
                     >
-                        🤖 助手
+                        <span className="text-lg md:text-base mr-1">🤖</span> 助手
                     </button>
                 )}
                 <button
                     onClick={() => setActiveTab('notebook')}
-                    className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'notebook' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'notebook' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
                 >
-                    📓 笔记
+                    <span className="text-lg md:text-base mr-1">📓</span> 笔记
                 </button>
             </div>
 
@@ -924,14 +944,6 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                     {/* Settings for Player */}
                                     <div className="bg-stone-900 p-3 rounded border border-stone-700 mt-4">
                                         <div className="text-xs font-bold text-stone-500 uppercase mb-2">⚙️ 设置</div>
-                                        <button
-                                            onClick={toggleSkillMode}
-                                            className="w-full bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
-                                        >
-                                            <span className={`px-2 py-1 rounded text-xs ${skillDescriptionMode === 'detailed' ? 'bg-amber-900 text-amber-200' : 'bg-stone-700 text-stone-300'}`}>
-                                                {skillDescriptionMode === 'detailed' ? '详细' : '简略'}
-                                            </span>
-                                        </button>
                                         {/* History Button for Players */}
                                         <button
                                             onClick={() => setShowHistory(true)}
@@ -1036,17 +1048,21 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 )}
             </div>
 
-            {/* --- Modals --- */}
-            {showHistory && <HistoryViewer onClose={() => setShowHistory(false)} />}
-            {showRoleReference && (
+            {/* --- Modals (Portaled to body to avoid z-index/transform issues) --- */}
+            {showHistory && createPortal(
+                <HistoryViewer onClose={() => setShowHistory(false)} />,
+                document.body
+            )}
+            {showRoleReference && createPortal(
                 <RoleReferencePanel
                     isOpen={showRoleReference}
                     onClose={() => setShowRoleReference(false)}
                     playerRoleId={currentSeat?.roleId || null}
                     scriptRoles={SCRIPTS[gameState.currentScriptId]?.roles.map(id => ROLES[id]).filter(Boolean) || []}
-                />
+                />,
+                document.body
             )}
-            {showCompositionGuide && (
+            {showCompositionGuide && createPortal(
                 <ScriptCompositionGuide
                     onClose={() => setShowCompositionGuide(false)}
                     playerCount={gameState.seats.filter(s => s.userId || s.isVirtual).length || gameState.seats.length}
@@ -1100,20 +1116,23 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                         }
                         setShowCompositionGuide(false);
                     }}
-                />
+                />,
+                document.body
             )}
-            {showNightAction && currentNightRole && (
+            {showNightAction && currentNightRole && createPortal(
                 <NightActionPanel
                     roleId={currentNightRole}
                     onComplete={() => setShowNightAction(false)}
-                />
+                />,
+                document.body
             )}
             {/* Player Night Action Modal */}
-            {showNightAction && !user.isStoryteller && currentSeat?.roleId && (
+            {showNightAction && !user.isStoryteller && currentSeat?.roleId && createPortal(
                 <PlayerNightAction
                     roleId={currentSeat.roleId}
                     onComplete={() => setShowNightAction(false)}
-                />
+                />,
+                document.body
             )}
         </div>
     );

@@ -114,12 +114,12 @@ const App = () => {
       {/* --- Atmosphere Overlays --- */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.05] z-0 bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')]"></div>
       <div
-        className={`absolute inset-0 z-10 pointer-events-none transition-all duration-[2000ms] ease-in-out ${isNight ? 'bg-blue-950/60 mix-blend-multiply backdrop-brightness-[0.4] backdrop-blur-[1px]' : 'bg-transparent backdrop-brightness-100'}`}
+        className={`absolute inset-0 z-0 pointer-events-none transition-all duration-[2000ms] ease-in-out ${isNight ? 'bg-blue-950/60 mix-blend-multiply backdrop-brightness-[0.4] backdrop-blur-[1px]' : 'bg-transparent backdrop-brightness-100'}`}
       ></div>
-      <div className="absolute inset-0 z-20 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.7)_100%)]"></div>
+      <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.7)_100%)]"></div>
 
       {/* Main Game Area (Grimoire) */}
-      <div className="flex-1 relative flex items-center justify-center min-h-0 min-w-0 overflow-hidden z-0" ref={containerRef}>
+      <div className="flex-1 relative flex items-center justify-center min-h-0 min-w-0 overflow-hidden z-10" ref={containerRef}>
         {dimensions.width > 0 && dimensions.height > 0 ? (
           <Grimoire width={dimensions.width} height={dimensions.height} />
         ) : (

@@ -18,7 +18,7 @@ export const AudioManager = () => {
         const audio = new Audio();
         audio.loop = true;
         audio.preload = 'auto';
-        audio.crossOrigin = 'anonymous';
+        // audio.crossOrigin = 'anonymous'; // Removed to fix CORS issues with external audio sources
         audioRef.current = audio;
 
         // 添加错误处理

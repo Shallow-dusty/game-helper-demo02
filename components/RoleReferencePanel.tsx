@@ -36,37 +36,37 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
             <div className="bg-stone-900 border border-stone-700 rounded-lg w-full max-w-6xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
 
                 {/* Header */}
-                <div className="p-6 border-b border-stone-800 flex justify-between items-center bg-stone-950">
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-2xl font-bold text-amber-400 font-cinzel tracking-wider">
+                <div className="p-4 md:p-6 border-b border-stone-800 flex justify-between items-center bg-stone-950 sticky top-0 z-10">
+                    <div className="flex items-center gap-3 md:gap-4">
+                        <h2 className="text-xl md:text-2xl font-bold text-amber-400 font-cinzel tracking-wider">
                             📖 规则手册
                         </h2>
                         {activeTab === 'roles' && (
                             <button
                                 onClick={() => setDescriptionMode(descriptionMode === 'simple' ? 'detailed' : 'simple')}
-                                className="px-3 py-1 text-xs bg-stone-800 hover:bg-stone-700 text-amber-300 rounded border border-stone-600 transition-colors flex items-center gap-2"
+                                className="px-2 py-1 md:px-3 text-[10px] md:text-xs bg-stone-800 hover:bg-stone-700 text-amber-300 rounded border border-stone-600 transition-colors flex items-center gap-1 md:gap-2"
                             >
                                 {descriptionMode === 'simple' ? (
-                                    <><span>🔍</span> 显示详细</>
+                                    <><span>🔍</span> <span className="hidden md:inline">显示详细</span><span className="md:hidden">详细</span></>
                                 ) : (
-                                    <><span>📝</span> 显示简略</>
+                                    <><span>📝</span> <span className="hidden md:inline">显示简略</span><span className="md:hidden">简略</span></>
                                 )}
                             </button>
                         )}
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-stone-500 hover:text-stone-200 transition-colors text-xl font-bold"
+                        className="text-stone-500 hover:text-stone-200 transition-colors text-lg md:text-xl font-bold p-2"
                     >
-                        ✕ 关闭
+                        ✕ <span className="hidden md:inline">关闭</span>
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-stone-800 bg-stone-950">
+                <div className="flex border-b border-stone-800 bg-stone-950 sticky top-[60px] md:top-[88px] z-10">
                     <button
                         onClick={() => setActiveTab('roles')}
-                        className={`flex-1 py-3 px-4 text-sm font-cinzel transition-colors border-b-2 ${activeTab === 'roles'
+                        className={`flex-1 py-4 md:py-3 px-4 text-sm font-cinzel transition-colors border-b-2 ${activeTab === 'roles'
                                 ? 'border-amber-600 text-amber-500 bg-stone-900'
                                 : 'border-transparent text-stone-500 hover:text-stone-300'
                             }`}
@@ -75,7 +75,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                     </button>
                     <button
                         onClick={() => setActiveTab('rules')}
-                        className={`flex-1 py-3 px-4 text-sm font-cinzel transition-colors border-b-2 ${activeTab === 'rules'
+                        className={`flex-1 py-4 md:py-3 px-4 text-sm font-cinzel transition-colors border-b-2 ${activeTab === 'rules'
                                 ? 'border-amber-600 text-amber-500 bg-stone-900'
                                 : 'border-transparent text-stone-500 hover:text-stone-300'
                             }`}
@@ -85,7 +85,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 md:space-y-8 scrollbar-thin">
 
                     {activeTab === 'roles' && (
                         <>

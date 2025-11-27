@@ -24,6 +24,7 @@ const getCenter = (p1: { x: number; y: number }, p2: { x: number; y: number }) =
   };
 };
 
+// ...existing code...
 interface SeatNodeProps {
   seat: Seat;
   cx: number;
@@ -44,6 +45,9 @@ const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, 
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
 
   const start = useCallback((e: any) => {
+    // Prevent long press if multiple touches (e.g. pinch zoom)
+    if (e.evt?.touches && e.evt.touches.length > 1) return;
+
     isLongPressRef.current = false;
     startPosRef.current = { x: e.evt?.clientX || 0, y: e.evt?.clientY || 0 };
     timerRef.current = setTimeout(() => {
@@ -83,7 +87,7 @@ const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, 
   };
 };
 
-const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress }) => {
+const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress }) => {
   const x = cx + radius * Math.cos(angle);
   const y = cy + radius * Math.sin(angle);
   const [isHovered, setIsHovered] = React.useState(false);
@@ -91,9 +95,19 @@ const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, 
   const longPressHandlers = useLongPress(onLongPress, onClick);
 
   // --- PRIVACY LOGIC ---
+  // Determine which role ID to display
+  // For ST: Use realRoleId if available (true role), otherwise roleId
+  // For Player: roleId is already filtered to be seenRoleId by the store
+  const displayRoleId = (isST && seat.realRoleId) ? seat.realRoleId : seat.roleId;
+
   // Only show Role if: User is Storyteller, OR User is this Seat
-  const showRole = (isST || isCurrentUser) && seat.roleId;
-  const roleDef = showRole && seat.roleId ? ROLES[seat.roleId] : null;
+  const showRole = (isST || isCurrentUser) && displayRoleId;
+  const roleDef = showRole && displayRoleId ? ROLES[displayRoleId] : null;
+
+  // Check for Drunk/Lunatic/Marionette state (ST Only)
+  // If realRoleId exists and differs from roleId (which stores the "seen" role for compatibility), it's a state
+  const isMisled = isST && seat.realRoleId && seat.roleId && seat.realRoleId !== seat.roleId;
+  const seenRoleDef = isMisled ? ROLES[seat.roleId!] : null;
 
   // Show team color? ST always sees. Player only sees their own color. 
   // Others see grey/default unless we implement complex "known info" logic.
@@ -209,6 +223,22 @@ const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, 
               listening={false}
             />
           )}
+
+          {/* Misled Indicator (ST Only) - Show what the player thinks they are */}
+          {isMisled && seenRoleDef && (
+            <Group x={tokenRadius * 0.5} y={-tokenRadius * 0.8}>
+              <Circle radius={9 * scale} fill="#000" stroke="red" strokeWidth={1} />
+              <Text
+                text={seenRoleDef.name.substring(0, 1)}
+                fontSize={10 * scale}
+                fill="red"
+                x={-5 * scale}
+                y={-5 * scale}
+                fontStyle="bold"
+                listening={false}
+              />
+            </Group>
+          )}
         </Group>
       )}
 
@@ -311,7 +341,7 @@ const SeatNode: React.FC<SeatNodeProps> = ({ seat, cx, cy, radius, angle, isST, 
       )}
     </Group>
   );
-};
+});
 
 export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const gameState = useStore(state => state.gameState);
@@ -542,24 +572,27 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   });
 
   const renderRoleSection = (team: string, title: string, roles: any[]) => (
-    <div className="mb-4" key={team}>
-      <h4 className="text-xs font-bold uppercase tracking-widest mb-2 border-b border-stone-700 pb-1 font-cinzel" style={{ color: TEAM_COLORS[team as keyof typeof TEAM_COLORS] }}>
-        {title} ({roles.length})
+    <div className="mb-6" key={team}>
+      <h4 className="text-sm font-bold uppercase tracking-widest mb-3 border-b border-stone-700 pb-2 font-cinzel flex items-center gap-2" style={{ color: TEAM_COLORS[team as keyof typeof TEAM_COLORS] }}>
+        <span>{team === 'DEMON' ? '👿' : team === 'MINION' ? '🧪' : team === 'OUTSIDER' ? '⚡' : '⚜️'}</span>
+        {title} 
+        <span className="text-stone-600 text-xs ml-auto font-serif normal-case">({roles.length})</span>
       </h4>
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-3">
         {roles.map(role => (
           <button
             key={role.id}
             onClick={() => { assignRole(roleSelectSeat!, role.id); setRoleSelectSeat(null); }}
-            className="p-2 rounded border border-stone-800 bg-stone-950 hover:bg-stone-800 text-xs text-center transition-all flex flex-col items-center justify-center gap-1 h-20 group active:scale-95"
-            style={{ borderColor: TEAM_COLORS[role.team as keyof typeof TEAM_COLORS] + '30' }}
+            className="p-2 rounded border border-stone-800 bg-stone-950 hover:bg-stone-800 text-xs text-center transition-all flex flex-col items-center justify-center gap-2 h-24 md:h-28 group active:scale-95 relative overflow-hidden"
+            style={{ borderColor: TEAM_COLORS[role.team as keyof typeof TEAM_COLORS] + '40' }}
           >
-            <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 shadow-md group-hover:scale-110 transition-transform bg-black/40" style={{ borderColor: TEAM_COLORS[role.team as keyof typeof TEAM_COLORS] }}>
-              <span className="text-lg">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform bg-black/40 z-10" style={{ borderColor: TEAM_COLORS[role.team as keyof typeof TEAM_COLORS] }}>
+              <span className="text-xl md:text-2xl">
                 {role.team === 'DEMON' ? '👿' : role.team === 'MINION' ? '🧪' : role.team === 'OUTSIDER' ? '⚡' : '⚜️'}
               </span>
             </div>
-            <span className="block font-bold text-stone-300 leading-none scale-90">{role.name}</span>
+            <span className="block font-bold text-stone-300 leading-tight scale-95 md:scale-100 z-10 px-1">{role.name}</span>
           </button>
         ))}
       </div>
@@ -573,13 +606,13 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
       onClick={() => { setContextMenu(null); setShowReminderMenu(false); }}
     >
       {/* Mobile Lock Button & Zoom Controls */}
-      <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
-        <div className="flex gap-2">
+      <div className="absolute top-4 right-4 md:right-8 z-40 flex flex-col items-end gap-3 pointer-events-auto">
+        <div className="flex gap-3">
           {/* Zoom Reset Button */}
           {stageScale !== 1 && (
             <button
               onClick={resetZoom}
-              className="p-2 rounded-full shadow-lg bg-stone-800/80 text-stone-400 hover:bg-stone-700 transition-colors"
+              className="w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full shadow-lg bg-stone-800/90 text-stone-400 hover:bg-stone-700 transition-colors backdrop-blur-sm border border-stone-700"
               title="重置缩放"
             >
               🔄
@@ -587,7 +620,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
           )}
           <button
             onClick={() => setIsLocked(!isLocked)}
-            className={`p-2 rounded-full shadow-lg transition-colors ${isLocked ? 'bg-red-600 text-white' : 'bg-stone-800/80 text-stone-400 hover:bg-stone-700'}`}
+            className={`w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full shadow-lg transition-colors backdrop-blur-sm border ${isLocked ? 'bg-red-900/90 border-red-700 text-white' : 'bg-stone-800/90 border-stone-700 text-stone-400 hover:bg-stone-700'}`}
             title={isLocked ? "解锁交互 (Unlock)" : "锁定交互 (Lock)"}
           >
             {isLocked ? '🔒' : '🔓'}
@@ -595,12 +628,12 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
         </div>
         {/* Zoom indicator */}
         {stageScale !== 1 && (
-          <div className="text-[10px] text-amber-400 bg-stone-900/80 px-2 py-1 rounded">
+          <div className="text-xs font-bold text-amber-400 bg-black/60 px-2 py-1 rounded backdrop-blur-sm border border-stone-800">
             {Math.round(stageScale * 100)}%
           </div>
         )}
         {user.isStoryteller && !isLocked && stageScale === 1 && (
-          <div className="text-[10px] text-stone-500 bg-stone-900/80 px-2 py-1 rounded text-right hidden sm:block">
+          <div className="text-[10px] text-stone-400 bg-black/60 px-3 py-1.5 rounded-full text-right hidden sm:block backdrop-blur-sm border border-stone-800">
             💡 长按玩家打开菜单 / 双指缩放
           </div>
         )}

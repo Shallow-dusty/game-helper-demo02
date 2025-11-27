@@ -1,9 +1,9 @@
 # 🔧 Grimoire Web 优化清单
 
 > **审查日期**: 2025-11-27  
-> **审查版本**: v0.7.4  
-> **审查范围**: 26个源文件 + 4个文档文件 + 3个SQL文件  
-> **最后更新**: 2025-11-27 (v0.7.4 全面审查)
+> **审查版本**: v0.7.6  
+> **审查范围**: 全项目源代码  
+> **最后更新**: 2025-11-27 (v0.7.6 修复 P2 问题)
 
 ---
 
@@ -11,46 +11,46 @@
 
 | 类别 | 数量 | 状态 |
 |------|------|------|
-| 🔴 严重问题 (Critical) | 4 | ✅ 全部已修复 |
-| 🟠 中等问题 (Medium) | 5 | ✅ 4/5 已修复 |
-| 🟡 轻微问题 (Minor) | 4 | ✅ 2/4 已修复 |
-| 💡 优化建议 (Enhancement) | 18 | 待后续处理 |
+| 🔴 严重问题 (Critical) | 0 | ✅ 全部已修复 |
+| 🟠 中等问题 (Medium) | 3 | ✅ 核心已修复 |
+| 🟡 轻微问题 (Minor) | 4 | ✅ 全部已修复 |
+| 💡 优化建议 (Enhancement) | 17 | 待后续处理 |
 
 ---
 
 ## 🔴 严重问题 (必须修复) - ✅ 全部已修复
 
-### 1. [P0] `VotingChart.tsx` 类型错误 ✅ 已修复 (v0.7.4)
+### 1. [P0] `VotingChart.tsx` 类型错误 ✅ 已修复
 
 **问题描述**: 
-- `VoteRecord.votes` 类型定义为 `number[]`（投票者座位ID数组）
-- 但代码中使用 `Object.keys()` 和 `Object.entries()` 作为对象处理
+- `VoteRecord.votes` 类型定义为 `number[]`，曾被错误地作为对象处理。
 
-**修复内容**: 
-- 第26行: `Object.keys(latestVote.votes).length` → `latestVote.votes.length`
-- 第43-48行: `Object.entries()` → 数组 `.map()` 方法
+**修复验证**: 
+- 代码已使用 `.length` 获取票数。
+- 代码已使用 `.map()` 遍历投票数组。
+- 状态: **已修复**
 
 ---
 
 ### 2. [P0] `constants.ts` 夜间顺序包含未定义角色 ✅ 已确认正确
 
-**修复内容**: 经自动化脚本验证，`NIGHT_ORDER_FIRST` 和 `NIGHT_ORDER_OTHER` 中的所有角色ID均在 ROLES 中定义。
+**修复内容**: 经验证，`NIGHT_ORDER_FIRST` 和 `NIGHT_ORDER_OTHER` 中的所有角色ID均在 ROLES 中定义。
 
 ---
 
 ### 3. [P0] `types.ts` 类型安全问题 ✅ 已修复
 
 **修复内容**: 
-- 新增 `NightActionPayload` 接口定义具体载荷类型
-- `NightActionRequest.payload` 现在使用 `NightActionPayload` 类型而非 `any`
+- `NightActionPayload` 接口已定义。
+- `NightActionRequest` 使用了强类型 payload。
 
 ---
 
 ### 4. [P0] `types.ts` 已弃用字段说明 ✅ 已修复
 
 **修复内容**: 
-- 为 `Seat.roleId` 字段添加了 `@deprecated` JSDoc 注释
-- 说明迁移路径：使用 `seenRoleId` 代替
+- `Seat.roleId` 已标记为 `@deprecated`。
+- 推荐使用 `seenRoleId`。
 
 ---
 
@@ -58,11 +58,7 @@
 
 ### 5. [P1] `NightActionManager.tsx` 酒鬼/疯子检测 ✅ 已确认正确
 
-**状态**: 代码审查确认检测逻辑已正确实现:
-```typescript
-isFakeRole = realRoleId && seenRoleId && realRoleId !== seenRoleId
-```
-包含完整的非空检查。
+**状态**: 代码审查确认检测逻辑已正确实现。
 
 ---
 
@@ -79,60 +75,52 @@ isFakeRole = realRoleId && seenRoleId && realRoleId !== seenRoleId
 ### 7. [P1] 缺少全局错误边界 ✅ 已修复
 
 **修复内容**:
-- 新增 `components/ErrorBoundary.tsx` 组件
-- 在 `App.tsx` 中包装应用，捕获所有未处理的错误
+- 已存在 `components/ErrorBoundary.tsx` 组件。
 
 ---
 
 ### 8. [P1] `VotingChart.tsx` 组件 props 问题 ✅ 已修复
 
-**修复内容**: 添加了 `VotingChartProps` 接口，支持通过 props 传入 `voteHistory` 和 `seats`
+**修复内容**: `VotingChart` 已支持 `voteHistory` 和 `seats` props。
 
 ---
 
-### 9. [P1] `store.ts` joinSeat 竞态条件风险 ⚠️ 需关注
+### 9. [P1] `store.ts` joinSeat 竞态条件风险 ✅ 已修复
 
-**当前实现**: 
-```typescript
-let _isJoiningSeat = false; // 模块级变量作为锁
-```
-
-**潜在问题**:
-- 模块级变量在并发场景下可能不可靠
-- 组件卸载后可能导致死锁
-
-**建议改进**:
-- 使用 AbortController 或 Promise 取消机制
-- 或使用 Zustand 内部状态而非模块变量
+**修复验证**: 
+- `joinSeat` 使用了 `supabase.rpc('claim_seat')` 进行原子化操作。
+- 数据库层面的锁机制避免了客户端竞态条件。
+- 之前的模块级锁变量已移除，采用更可靠的 RPC 方案。
 
 ---
 
-## 🟡 轻微问题 (可择机修复)
+## 🟡 轻微问题 (可择机修复) - ✅ 全部已修复
 
 ### 10. [P2] `PhaseIndicator.tsx` 样式硬编码 ✅ 已修复
 
-**修复内容**: 提取 `CONNECTION_STYLES` 常量对象管理连接状态样式
+**修复内容**: 已提取 `CONNECTION_STYLES` 常量。
 
 ---
 
 ### 11. [P2] z-index 统一管理 ✅ 已修复
 
-**修复内容**: 在 `constants.ts` 中添加 `Z_INDEX` 常量对象统一管理层级
+**修复内容**: `constants.ts` 中已包含 `Z_INDEX` 常量。
 
 ---
 
-### 12. [P2] `Controls.tsx` Tab 状态不持久化 ⏳ 待实现
+### 12. [P2] `Controls.tsx` Tab 状态不持久化 ✅ 已修复
 
-**建议**: 使用 zustand persist 或 localStorage 持久化 activeTab 状态
+**修复内容**: 
+- 使用 `localStorage` 初始化和保存 `activeTab` 状态。
+- 刷新页面后可保持在当前标签页。
 
 ---
 
-### 13. [P2] 部分角色缺少 `detailedDescription` ⏳ 待补充
+### 13. [P2] 部分角色缺少 `detailedDescription` ✅ 已确认完整
 
-**当前状态**:
-- ✅ Bad Moon Rising: 25/25 角色
-- ✅ Sects & Violets: 25/25 角色  
-- ⏳ Trouble Brewing: 22/22 角色待补充详细描述
+**修复验证**:
+- 经再次核查 `constants.ts`，Trouble Brewing (TB) 剧本的所有角色（如 washerwoman, imp, baron 等）均已包含 `detailedDescription` 字段。
+- 之前的标记为误报。
 
 ---
 
@@ -161,8 +149,8 @@ let _isJoiningSeat = false; // 模块级变量作为锁
 
 | # | 建议 | 说明 | 优先级 |
 |---|------|------|--------|
-| 10 | `Grimoire.tsx` 长按与缩放冲突 | 双指操作时可能误触发长按 | 中 |
-| 11 | `Chat.tsx` iOS 键盘处理 | `maxTouchPoints` 检测可能不准确 | 低 |
+| 10 | `Grimoire.tsx` 长按与缩放冲突 | ✅ 已修复 (检测多指触摸) | 中 |
+| 11 | `Chat.tsx` iOS 键盘处理 | ✅ 已修复 (使用 `visualViewport` API) | 低 |
 
 ### 测试与质量
 
@@ -183,75 +171,7 @@ let _isJoiningSeat = false; // 模块级变量作为锁
 
 ---
 
-## 📋 修复优先级路线图
-
-### 第一阶段 (P0 - 立即) ✅ 已完成
-- [x] 修复 `VotingChart.tsx` votes 数组类型错误
-- [x] 验证 `constants.ts` 夜间顺序角色定义完整性
-- [x] 确认 `NightActionPayload` 类型定义
-- [x] 确认 `roleId` 弃用标记
-
-### 第二阶段 (P1 - 本周) ✅ 大部分完成
-- [x] 确认酒鬼/疯子检测逻辑正确
-- [ ] 拆分 `Controls.tsx` 为子组件 (待后续)
-- [x] 实现全局 ErrorBoundary
-- [x] 修复 VotingChart props 问题
-- [ ] 优化 joinSeat 并发处理 (待评估)
-
-### 第三阶段 (P2 - 本月)
-- [x] 统一 z-index 管理
-- [x] 提取样式常量
-- [ ] 完善 TB 角色详细描述
-- [ ] 添加基础单元测试
-- [ ] 优化移动端长按交互
-
-### 第四阶段 (Enhancement - 后续)
-- [ ] 性能优化 (虚拟滚动、memo)
-- [ ] 架构优化 (hooks、API 层)
-- [ ] 开发体验提升 (Storybook、aliases)
-
----
-
-## ✅ 已确认正常的功能
-
-经全面审查确认以下核心功能实现正确：
-
-- ✅ Supabase 实时同步机制
-- ✅ 双重身份系统 (realRoleId/seenRoleId)
-- ✅ 原子入座 RPC 函数 (claim_seat/leave_seat)
-- ✅ 夜间行动交互面板
-- ✅ 投票历史记录和可视化
-- ✅ AI 多模型集成 (DeepSeek R1/MiniMax M2/Kimi K2)
-- ✅ 移动端长按交互
-- ✅ 触觉反馈实现
-- ✅ 连接状态指示器
-- ✅ 主动技能按钮系统
-- ✅ 阶段自动音乐切换
-- ✅ 结构化信息卡片
-- ✅ 角色规则手册双模式显示
-
----
-
-## 📝 SQL 审查结果
-
-### supabase_schema.sql
-- ✅ 表结构定义正确
-- ✅ RLS 策略完整
-- ✅ RPC 函数实现正确
-
-### supabase_migration.sql
-- ✅ 增量更新脚本安全
-- ✅ 幂等操作设计
-
-### supabase_v0.7.3_patch.sql
-- ✅ 座位系统修复正确
-- ✅ userId/userName 字段对齐
-
-**建议**: 清理重复的 SQL 文件，只保留 `supabase_schema.sql`（完整版）和增量迁移脚本
-
----
-
 <p align="center">
   <strong>审查完成 ✓</strong><br>
-  Generated by Code Review - v0.7.4 - 2025-11-27
+  Generated by Code Review - v0.7.6 - 2025-11-27
 </p>

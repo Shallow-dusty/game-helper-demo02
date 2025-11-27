@@ -71,7 +71,7 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
 
                 {/* Player Selection */}
                 {(nightAction.type === 'choose_player' || nightAction.type === 'choose_two_players') && (
-                    <div className="space-y-2 mb-4 max-h-64 overflow-y-auto scrollbar-thin">
+                    <div className="grid grid-cols-1 gap-2 mb-6 max-h-[50vh] overflow-y-auto scrollbar-thin p-1">
                         {availableSeats.map(seat => {
                             const isSelected = nightAction.type === 'choose_player'
                                 ? selectedPlayer === seat.id
@@ -81,16 +81,21 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                                 <button
                                     key={seat.id}
                                     onClick={() => togglePlayerSelection(seat.id)}
-                                    className={`w-full px-4 py-3 rounded border transition-all text-left ${isSelected
-                                            ? 'bg-purple-900/50 border-purple-600 text-purple-200 shadow-lg'
-                                            : 'bg-stone-800 border-stone-700 text-stone-400 hover:bg-stone-750 hover:border-stone-600'
+                                    className={`w-full px-4 py-4 rounded-lg border transition-all text-left relative overflow-hidden ${isSelected
+                                            ? 'bg-purple-900/60 border-purple-500 text-purple-100 shadow-[0_0_15px_rgba(147,51,234,0.3)]'
+                                            : 'bg-stone-800/80 border-stone-700 text-stone-400 hover:bg-stone-700 hover:border-stone-600'
                                         }`}
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <span className="font-bold">{seat.userName}</span>
-                                        <span className="text-xs opacity-70">座位 {seat.id + 1}</span>
+                                    <div className="flex items-center justify-between relative z-10">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border ${isSelected ? 'bg-purple-800 border-purple-400' : 'bg-stone-900 border-stone-600'}`}>
+                                                {seat.id + 1}
+                                            </div>
+                                            <span className="font-bold text-lg">{seat.userName}</span>
+                                        </div>
+                                        {seat.isDead && <span className="text-xs font-bold text-red-500 bg-red-950/30 px-2 py-1 rounded border border-red-900/50">💀 已死亡</span>}
                                     </div>
-                                    {seat.isDead && <span className="text-xs text-red-400">💀 已死亡</span>}
+                                    {isSelected && <div className="absolute inset-0 bg-purple-600/10 animate-pulse"></div>}
                                 </button>
                             );
                         })}

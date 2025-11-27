@@ -108,11 +108,13 @@ with check (true);
 
 -- ============================================================
 -- Atomic Seat Claiming Function (Prevents Race Conditions)
+-- 修复：使用 userId + userName 代替 player 以匹配前端数据结构
 -- ============================================================
 
 create or replace function claim_seat(
   p_room_code text,
   p_seat_id int,
+  p_user_id text,
   p_player_name text,
   p_client_token text
 ) returns jsonb
@@ -123,7 +125,9 @@ declare
   v_room_data jsonb;
   v_seats jsonb;
   v_target_seat jsonb;
+  v_existing_seat jsonb;
   v_result jsonb;
+  v_seat_index int;
 begin
   -- Lock the room row for update
   select data into v_room_data
@@ -141,26 +145,35 @@ begin
     return jsonb_build_object('success', false, 'error', 'No seats in room');
   end if;
   
+  -- Check if user already has a seat in this room
+  for v_seat_index in 0..jsonb_array_length(v_seats)-1 loop
+    v_existing_seat := v_seats->v_seat_index;
+    if v_existing_seat->>'userId' = p_user_id and v_seat_index != p_seat_id then
+      return jsonb_build_object('success', false, 'error', 'You already have seat ' || (v_seat_index + 1));
+    end if;
+  end loop;
+  
   -- Check if seat is already taken
   v_target_seat := v_seats->p_seat_id;
   
-  if v_target_seat is not null and v_target_seat->>'player' is not null and v_target_seat->>'player' != '' then
-    return jsonb_build_object('success', false, 'error', 'Seat already taken', 'currentPlayer', v_target_seat->>'player');
+  if v_target_seat is not null 
+     and v_target_seat->>'userId' is not null 
+     and v_target_seat->>'userId' != '' 
+     and v_target_seat->>'userId' != p_user_id then
+    return jsonb_build_object('success', false, 'error', 'Seat already taken', 'currentPlayer', v_target_seat->>'userName');
   end if;
   
-  -- Update the seat
+  -- Preserve existing seat data and update player info
   v_seats := jsonb_set(
     v_seats,
     array[p_seat_id::text],
-    jsonb_build_object(
+    (v_target_seat || jsonb_build_object(
       'id', p_seat_id,
-      'player', p_player_name,
-      'roleId', null,
-      'seenRoleId', null,
-      'isDead', false,
-      'hasVoteToken', true,
+      'userId', p_user_id,
+      'userName', p_player_name,
+      'isVirtual', false,
       'clientToken', p_client_token
-    )
+    ))
   );
   
   -- Save updated data
@@ -176,6 +189,7 @@ $$;
 
 -- ============================================================
 -- Leave Seat Function
+-- 修复：使用 userId/userName 代替 player，正确清空座位
 -- ============================================================
 
 create or replace function leave_seat(
@@ -209,17 +223,20 @@ begin
     return jsonb_build_object('success', false, 'error', 'Not your seat');
   end if;
   
-  -- Clear the seat
+  -- Clear the seat (preserve structure, clear user)
   v_seats := jsonb_set(
     v_seats,
     array[p_seat_id::text],
-    jsonb_build_object(
+    (v_target_seat || jsonb_build_object(
+      'userId', null,
+      'userName', '',
+      'isVirtual', false,
+      'clientToken', null
+    )) - 'userId' - 'userName' - 'clientToken' || jsonb_build_object(
       'id', p_seat_id,
-      'player', null,
-      'roleId', null,
-      'seenRoleId', null,
-      'isDead', false,
-      'hasVoteToken', true
+      'userId', null,
+      'userName', '',
+      'isVirtual', false
     )
   );
   

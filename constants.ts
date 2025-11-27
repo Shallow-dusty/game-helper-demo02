@@ -688,12 +688,51 @@ export const STATUS_ICONS: Record<string, string> = {
   'MADNESS': '🤪'
 };
 
-export const AUDIO_TRACKS: Record<string, { name: string, url: string }> = {
-  lobby: { name: '神秘大厅 (Mystery)', url: 'https://cdn.pixabay.com/download/audio/2022/03/24/audio_1be8a84784.mp3' },
-  day_village: { name: '热闹集市 (Day)', url: 'https://cdn.pixabay.com/download/audio/2022/10/28/audio_b82a693e79.mp3' },
-  night_ambience: { name: '静谧午夜 (Quiet)', url: 'https://cdn.pixabay.com/download/audio/2021/11/25/audio_91b0290b7c.mp3' },
-  night_horror: { name: '恐怖时刻 (Horror)', url: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3' },
-  voting: { name: '审判之时 (Voting)', url: 'https://cdn.pixabay.com/download/audio/2020/09/14/audio_a03f5519d3.mp3' },
+export const AUDIO_TRACKS: Record<string, { name: string, url: string, phase?: string }> = {
+  // 使用 Free Music Archive 和其他可靠的免费音源
+  // 所有音频都是免版税的环境音乐
+  lobby: { 
+    name: '神秘大厅 (Mystery)', 
+    url: 'https://assets.mixkit.co/music/preview/mixkit-deep-urban-623.mp3',
+    phase: 'SETUP'
+  },
+  day_village: { 
+    name: '热闘讨论 (Day)', 
+    url: 'https://assets.mixkit.co/music/preview/mixkit-serene-view-443.mp3',
+    phase: 'DAY'
+  },
+  night_ambience: { 
+    name: '静谧夜晚 (Night)', 
+    url: 'https://assets.mixkit.co/music/preview/mixkit-sleepy-cat-135.mp3',
+    phase: 'NIGHT'
+  },
+  voting: { 
+    name: '紧张投票 (Voting)', 
+    url: 'https://assets.mixkit.co/music/preview/mixkit-driving-ambition-32.mp3',
+    phase: 'VOTING'
+  },
+  nomination: {
+    name: '提名阶段 (Nomination)',
+    url: 'https://assets.mixkit.co/music/preview/mixkit-forest-treasure-702.mp3',
+    phase: 'NOMINATION'
+  },
+  victory_good: {
+    name: '善良胜利 (Good Wins)',
+    url: 'https://assets.mixkit.co/music/preview/mixkit-feeling-happy-5.mp3'
+  },
+  victory_evil: {
+    name: '邪恶胜利 (Evil Wins)',
+    url: 'https://assets.mixkit.co/music/preview/mixkit-games-worldbeat-668.mp3'
+  },
+};
+
+// 阶段到音轨的映射
+export const PHASE_AUDIO_MAP: Record<string, string> = {
+  SETUP: 'lobby',
+  DAY: 'day_village',
+  NIGHT: 'night_ambience',
+  NOMINATION: 'nomination',
+  VOTING: 'voting',
 };
 
 export const PRESET_REMINDERS = [

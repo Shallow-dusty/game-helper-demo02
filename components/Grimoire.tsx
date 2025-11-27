@@ -446,6 +446,20 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   }, []);
 
   if (!gameState || !user) return null;
+  
+  // 检查 seats 数组是否有效
+  if (!gameState.seats || !Array.isArray(gameState.seats) || gameState.seats.length === 0) {
+    console.warn('Grimoire: seats 数组无效', gameState.seats);
+    return (
+      <div className="w-full h-full flex items-center justify-center text-stone-400">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <p>正在加载座位数据...</p>
+          <p className="text-xs text-stone-500 mt-2">如果一直显示此消息，请刷新页面</p>
+        </div>
+      </div>
+    );
+  }
 
   const cx = width / 2;
   const cy = height / 2;

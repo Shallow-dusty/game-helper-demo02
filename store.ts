@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { GameState, User, GamePhase, ChatMessage, AudioState, SeatStatus, Seat, NightActionRequest } from './types';
-import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } from './constants';
+import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS, PHASE_AUDIO_MAP } from './constants';
 import OpenAI from 'openai';
 import { createClient, RealtimeChannel } from '@supabase/supabase-js';
 
@@ -571,6 +571,33 @@ export const useStore = create<AppState>((set, get) => ({
         }
     },
 
+    // 强制从云端重新获取数据
+    refreshFromCloud: async () => {
+        const { gameState } = get();
+        if (!gameState) return;
+
+        try {
+            const { data, error } = await supabase
+                .from('game_rooms')
+                .select('data')
+                .eq('room_code', gameState.roomId)
+                .single();
+
+            if (error) {
+                console.error('refreshFromCloud error:', error);
+                return;
+            }
+
+            if (data && data.data) {
+                isReceivingUpdate = true;
+                set({ gameState: data.data });
+                isReceivingUpdate = false;
+            }
+        } catch (err) {
+            console.error('refreshFromCloud error:', err);
+        }
+    },
+
     sync: () => {
         get().syncToCloud();
     },
@@ -611,6 +638,7 @@ export const useStore = create<AppState>((set, get) => ({
             const { data, error } = await supabase.rpc('claim_seat', {
                 p_room_code: gameState.roomId,
                 p_seat_id: seatId,
+                p_user_id: user.id,
                 p_player_name: user.name,
                 p_client_token: clientToken
             });
@@ -821,6 +849,13 @@ export const useStore = create<AppState>((set, get) => ({
             } else if (phase === 'DAY') {
                 gameState.roundInfo.dayCount++;
             }
+
+            // 自动切换对应阶段的背景音乐
+            const audioTrackId = PHASE_AUDIO_MAP[phase];
+            if (audioTrackId && gameState.audio) {
+                gameState.audio.trackId = audioTrackId;
+                // 保持当前播放状态，如果之前在播放则继续播放
+            }
         }
 
         if (phase === 'NIGHT') {
@@ -949,12 +984,22 @@ export const useStore = create<AppState>((set, get) => ({
                     } else {
                         gameState.gameOver = { isOver: true, winner: 'GOOD', reason: '恶魔已死亡' };
                         addSystemMessage(gameState, `🏆 游戏结束！好人胜利 (恶魔死亡)`);
+                        // 播放胜利音乐
+                        if (gameState.audio) {
+                            gameState.audio.trackId = 'victory_good';
+                            gameState.audio.isPlaying = true;
+                        }
                         get().saveGameHistory(gameState); // Save history
                     }
                 }
                 if (role.id === 'saint' && gameState.phase === 'DAY') {
                     gameState.gameOver = { isOver: true, winner: 'EVIL', reason: '圣徒被处决' };
                     addSystemMessage(gameState, `🏆 游戏结束！邪恶胜利 (圣徒被处决)`);
+                    // 播放胜利音乐
+                    if (gameState.audio) {
+                        gameState.audio.trackId = 'victory_evil';
+                        gameState.audio.isPlaying = true;
+                    }
                     get().saveGameHistory(gameState); // Save history
                 }
             }

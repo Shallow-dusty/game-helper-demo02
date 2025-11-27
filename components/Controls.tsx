@@ -693,38 +693,84 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                         className="w-full p-3 flex justify-between items-center text-xs font-bold text-stone-500 uppercase"
                                         onClick={() => toggleSection('audio')}
                                     >
-                                        <span>🎵 氛围音效 (Audio)</span>
+                                        <span className="flex items-center gap-2">
+                                            🎵 氛围音效
+                                            {gameState.audio.isPlaying && (
+                                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="正在播放" />
+                                            )}
+                                        </span>
                                         <span className="text-stone-600">{collapsedSections.audio ? '▼' : '▲'}</span>
                                     </button>
                                     
                                     <div className={`px-3 pb-3 ${collapsedSections.audio ? 'hidden' : ''}`}>
-                                    <select
-                                        className="w-full bg-stone-950 border border-stone-700 rounded text-xs text-stone-300 p-1 mb-2"
-                                        onChange={(e) => setAudioTrack(e.target.value)}
-                                        value={gameState.audio.trackId || ''}
-                                    >
-                                        <option value="">-- 选择音效 --</option>
-                                        {Object.entries(AUDIO_TRACKS).map(([id, track]) => (
-                                            <option key={id} value={id}>{track.name}</option>
-                                        ))}
-                                    </select>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={toggleAudioPlay}
-                                            className={`flex-1 py-1 rounded text-xs font-bold ${gameState.audio.isPlaying ? 'bg-amber-700 text-white' : 'bg-stone-800 text-stone-400'}`}
+                                        {/* 当前播放信息 */}
+                                        {gameState.audio.trackId && AUDIO_TRACKS[gameState.audio.trackId] && (
+                                            <div className="mb-2 p-2 bg-stone-950/50 rounded border border-stone-800 text-xs">
+                                                <div className="flex items-center gap-2 text-stone-400">
+                                                    <span className={`${gameState.audio.isPlaying ? 'text-green-400' : 'text-stone-500'}`}>
+                                                        {gameState.audio.isPlaying ? '🔊' : '🔇'}
+                                                    </span>
+                                                    <span className="text-stone-300 font-medium">
+                                                        {AUDIO_TRACKS[gameState.audio.trackId].name}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* 阶段自动切换提示 */}
+                                        <div className="mb-2 text-[10px] text-stone-500 flex items-center gap-1">
+                                            <span>💡</span>
+                                            <span>切换阶段时音乐会自动更换</span>
+                                        </div>
+                                        
+                                        <select
+                                            className="w-full bg-stone-950 border border-stone-700 rounded text-xs text-stone-300 p-1.5 mb-2"
+                                            onChange={(e) => setAudioTrack(e.target.value)}
+                                            value={gameState.audio.trackId || ''}
                                         >
-                                            {gameState.audio.isPlaying ? '⏸ 暂停' : '▶ 播放'}
-                                        </button>
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="1"
-                                            step="0.1"
-                                            value={gameState.audio.volume}
-                                            onChange={(e) => setAudioVolume(parseFloat(e.target.value))}
-                                            className="w-20 accent-amber-600"
-                                        />
-                                    </div>
+                                            <option value="">-- 手动选择音效 --</option>
+                                            <optgroup label="阶段音乐">
+                                                {Object.entries(AUDIO_TRACKS)
+                                                    .filter(([_, track]) => track.phase)
+                                                    .map(([id, track]) => (
+                                                        <option key={id} value={id}>{track.name}</option>
+                                                    ))}
+                                            </optgroup>
+                                            <optgroup label="特殊音乐">
+                                                {Object.entries(AUDIO_TRACKS)
+                                                    .filter(([_, track]) => !track.phase)
+                                                    .map(([id, track]) => (
+                                                        <option key={id} value={id}>{track.name}</option>
+                                                    ))}
+                                            </optgroup>
+                                        </select>
+                                        
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={toggleAudioPlay}
+                                                className={`flex-1 py-1.5 rounded text-xs font-bold transition-colors ${
+                                                    gameState.audio.isPlaying 
+                                                        ? 'bg-amber-700 hover:bg-amber-600 text-white' 
+                                                        : 'bg-stone-800 hover:bg-stone-700 text-stone-400'
+                                                }`}
+                                            >
+                                                {gameState.audio.isPlaying ? '⏸ 暂停' : '▶ 播放'}
+                                            </button>
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-stone-600 text-xs">🔈</span>
+                                                <input
+                                                    type="range"
+                                                    min="0"
+                                                    max="1"
+                                                    step="0.05"
+                                                    value={gameState.audio.volume}
+                                                    onChange={(e) => setAudioVolume(parseFloat(e.target.value))}
+                                                    className="w-16 accent-amber-600"
+                                                    title={`音量: ${Math.round(gameState.audio.volume * 100)}%`}
+                                                />
+                                                <span className="text-stone-600 text-xs">🔊</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 

@@ -1,20 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../store';
 
 export const WaitingArea: React.FC = () => {
     const gameState = useStore(state => state.gameState);
     const user = useStore(state => state.user);
     const joinSeat = useStore(state => state.joinSeat);
+    const [joiningId, setJoiningId] = useState<number | null>(null);
 
     if (!gameState || !user) return null;
 
-    // Storyteller doesn't need to sit (usually), or if they do, they can use Grimoire.
-    // But let's assume ST manages the game and doesn't sit in a player seat.
+    // 检查 seats 数组是否有效
+    if (!gameState.seats || !Array.isArray(gameState.seats) || gameState.seats.length === 0) {
+        console.warn('WaitingArea: seats 数组无效', gameState.seats);
+        return null;
+    }
+
+    // Storyteller doesn't need to sit
     if (user.isStoryteller) return null;
 
     // Check if user is already seated
     const isSeated = gameState.seats.some(s => s.userId === user.id);
-    if (isSeated) return null; // Don't show if seated
+    if (isSeated) return null;
+
+    const handleJoinSeat = async (seatId: number) => {
+        if (joiningId !== null) return; // 防止重复点击
+        
+        setJoiningId(seatId);
+        try {
+            await joinSeat(seatId);
+        } finally {
+            setJoiningId(null);
+        }
+    };
 
     return (
         <div className="absolute inset-0 z-40 bg-stone-950/95 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
@@ -28,22 +45,30 @@ export const WaitingArea: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-6xl w-full overflow-y-auto p-4 max-h-[70vh] scrollbar-thin">
                 {gameState.seats.map(seat => {
                     const isTaken = !!seat.userId || seat.isVirtual;
+                    const isJoining = joiningId === seat.id;
+                    
                     return (
                         <button
                             key={seat.id}
-                            onClick={() => !isTaken && joinSeat(seat.id)}
-                            disabled={isTaken}
+                            onClick={() => !isTaken && !isJoining && handleJoinSeat(seat.id)}
+                            disabled={isTaken || isJoining}
                             className={`
                                 relative group p-4 rounded-lg border-2 flex flex-col items-center gap-3 transition-all duration-300
-                                ${isTaken
-                                    ? 'border-stone-800 bg-stone-900/30 opacity-60 cursor-not-allowed'
-                                    : 'border-amber-900/50 bg-stone-900 hover:bg-amber-900/20 hover:border-amber-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] cursor-pointer'}
+                                ${isJoining
+                                    ? 'border-amber-500 bg-amber-900/30 cursor-wait animate-pulse'
+                                    : isTaken
+                                        ? 'border-stone-800 bg-stone-900/30 opacity-60 cursor-not-allowed'
+                                        : 'border-amber-900/50 bg-stone-900 hover:bg-amber-900/20 hover:border-amber-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] cursor-pointer'}
                             `}
                         >
                             <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow-inner transition-transform group-hover:scale-110
-                                ${isTaken ? 'bg-stone-800 text-stone-600' : 'bg-gradient-to-br from-amber-900 to-stone-900 text-amber-200 border border-amber-800'}
+                                ${isJoining 
+                                    ? 'bg-amber-900 text-amber-200 border border-amber-600' 
+                                    : isTaken 
+                                        ? 'bg-stone-800 text-stone-600' 
+                                        : 'bg-gradient-to-br from-amber-900 to-stone-900 text-amber-200 border border-amber-800'}
                             `}>
-                                {isTaken ? (seat.isVirtual ? '🤖' : '👤') : '🪑'}
+                                {isJoining ? '⏳' : isTaken ? (seat.isVirtual ? '🤖' : '👤') : '🪑'}
                             </div>
 
                             <div className="flex flex-col items-center">
@@ -51,14 +76,16 @@ export const WaitingArea: React.FC = () => {
                                     {isTaken ? seat.userName : `座位 ${seat.id + 1}`}
                                 </span>
                                 <span className="text-[10px] uppercase tracking-widest mt-1 font-bold">
-                                    {isTaken
-                                        ? (seat.isVirtual ? 'VIRTUAL' : 'TAKEN')
-                                        : <span className="text-green-500 animate-pulse">OPEN</span>
+                                    {isJoining
+                                        ? <span className="text-amber-400">JOINING...</span>
+                                        : isTaken
+                                            ? (seat.isVirtual ? 'VIRTUAL' : 'TAKEN')
+                                            : <span className="text-green-500 animate-pulse">OPEN</span>
                                     }
                                 </span>
                             </div>
 
-                            {!isTaken && (
+                            {!isTaken && !isJoining && (
                                 <div className="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
                             )}
                         </button>

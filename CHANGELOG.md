@@ -6,6 +6,113 @@
 
 ---
 
+## [0.7.4] - 2025-11-27
+
+### 🔍 全面代码审查 (Comprehensive Code Review)
+
+本版本完成了对整个代码库的最终全面审查，覆盖 26 个源文件、4 个文档文件和 3 个 SQL 文件。
+
+#### 🔴 严重修复 (Critical Fixes)
+- **VotingChart.tsx 类型错误**: 修复 `votes` 字段类型不匹配问题
+  - `votes` 定义为 `number[]`（投票者座位ID数组）
+  - 代码中错误使用 `Object.keys()` 和 `Object.entries()`
+  - 已修正为正确的数组操作 `.length` 和 `.map()`
+
+#### ✅ 验证通过 (Verified)
+- **constants.ts 夜间顺序**: 经脚本验证，所有角色ID均已正确定义
+- **NightActionPayload 类型**: 已在 types.ts 中完整定义
+- **roleId 弃用标记**: `@deprecated` JSDoc 注释已添加
+
+#### 📝 文档更新 (Documentation)
+- **OPTIMIZATION_CHECKLIST.md**: 
+  - 更新至 v0.7.4 审查结果
+  - 新增 SQL 文件审查结论
+  - 扩展优化建议至 18 项
+  - 添加移动端优化建议
+
+#### ⚠️ 已识别待处理 (Identified for Future)
+- `store.ts` joinSeat 竞态条件风险（模块级锁变量）
+- `Grimoire.tsx` 长按与双指缩放可能冲突
+- `AudioManager.tsx` play promise 取消逻辑
+- `Controls.tsx` 700+ 行代码待拆分
+
+---
+
+## [0.7.3] - 2025-11-27
+
+### 🐛 座位系统关键修复 (Seat System Critical Fix)
+
+#### 🔴 严重修复 (Critical Fixes)
+- **座位占用失败**: 修复 SQL RPC 使用 `player` 字段但前端使用 `userId`/`userName` 的数据结构不匹配问题
+- **黑屏问题**: 修复进入游戏时 seats 数组无效导致的黑屏问题
+- **座位弹出问题**: 添加互斥锁防止重复点击座位导致的竞态条件
+
+#### ✨ 改进 (Improvements)
+- **WaitingArea 组件**:
+  - 添加 `seats` 数组有效性检查
+  - 添加加入座位时的加载状态 (joiningId)
+  - 防止重复点击导致的并发请求
+  - 显示 "JOINING..." 状态指示
+
+- **Grimoire 组件**:
+  - 添加 seats 数组无效时的友好提示界面
+  - 防止空 seats 导致的渲染崩溃
+
+- **joinSeat 函数 (store.ts)**:
+  - 添加 `_isJoiningSeat` 互斥锁
+  - 失败时调用 `refreshFromCloud()` 重新同步状态
+  - 增强错误处理和用户反馈
+
+#### 📦 SQL 更新 (Database Schema)
+- **claim_seat RPC**: 
+  - 新增 `p_user_id` 参数
+  - 使用 `userId`/`userName` 替代 `player` 字段
+  - 添加重复座位检测（同一用户不能占多个座位）
+  - 保留现有座位属性（不覆盖 roleId 等）
+
+- **leave_seat RPC**:
+  - 正确清空 `userId`/`userName` 字段
+  - 保留座位其他属性
+
+⚠️ **重要**: 需要在 Supabase 中执行 `supabase_migration.sql` 或 `supabase_schema.sql` 以更新函数
+
+---
+
+## [0.7.2] - 2025-11-27
+
+### 🎵 音效系统重构 (Audio System)
+
+#### 🐛 修复 (Fixed)
+- **音频资源 403 错误**: 替换失效的 Pixabay CDN 链接为可靠的 Mixkit 免费音源
+- **音频加载错误处理**: 添加完整的错误监听和用户友好的错误提示
+
+#### ✨ 新增 (Added)
+- **阶段自动音乐切换**: 切换游戏阶段时自动播放对应的背景音乐
+  - SETUP → 神秘大厅
+  - DAY → 热闘讨论
+  - NIGHT → 静谧夜晚
+  - NOMINATION → 提名阶段
+  - VOTING → 紧张投票
+- **胜利音乐**: 游戏结束时自动播放对应阵营的胜利音乐
+  - 好人胜利 → 欢快音乐
+  - 邪恶胜利 → 神秘音乐
+- **增强的音频控制面板**:
+  - 显示当前播放状态指示器
+  - 分组显示阶段音乐和特殊音乐
+  - 音量滑块带视觉指示
+
+#### 🔧 改进 (Changed)
+- **AUDIO_TRACKS 结构**: 新增 `phase` 字段标识阶段关联
+- **PHASE_AUDIO_MAP**: 新增阶段到音轨的映射常量
+- **AudioManager 组件**: 增强错误处理、添加 crossOrigin 支持
+
+### 📦 技术细节 (Technical)
+- 新增 `PHASE_AUDIO_MAP` 常量 (`constants.ts`)
+- `setPhase()` 函数自动切换音轨
+- `toggleDead()` 函数在游戏结束时播放胜利音乐
+
+---
+
 ## [0.7.1] - 2025-11-27
 
 ### 🔍 代码审查 (Code Review)

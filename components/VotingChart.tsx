@@ -28,7 +28,8 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
     const nominator = seats.find(s => s.id === latestVote.nominatorSeatId);
 
     // Calculate stats
-    const totalVotes = Object.keys(latestVote.votes).length;
+    // votes 是投票者座位ID的数组 (number[])
+    const totalVotes = latestVote.votes.length;
     const requiredVotes = Math.ceil(seats.filter(s => !s.isDead).length / 2);
     const isPassed = totalVotes >= requiredVotes;
 
@@ -70,12 +71,11 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
             </div>
 
             <div className="flex flex-wrap gap-1 mt-2">
-                {Object.entries(latestVote.votes).map(([voterId, isVote]) => {
-                    if (!isVote) return null;
-                    const voter = seats.find(s => s.id === parseInt(voterId));
+                {latestVote.votes.map((voterId) => {
+                    const voter = seats.find(s => s.id === voterId);
                     return (
                         <span key={voterId} className="px-1.5 py-0.5 bg-stone-800 rounded text-[10px] text-stone-400 border border-stone-700">
-                            {voter?.userName || voterId}
+                            {voter?.userName || `座位${voterId + 1}`}
                         </span>
                     );
                 })}

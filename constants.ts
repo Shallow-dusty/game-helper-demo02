@@ -689,6 +689,11 @@ export const STATUS_ICONS: Record<string, string> = {
 };
 
 export const AUDIO_TRACKS: Record<string, { name: string, url: string, phase?: string }> = {
+  // 默认静音轨道 (用于测试或占位)
+  silence: {
+    name: '静音 (Silence)',
+    url: 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAgAAAA==',
+  },
   // 使用 SoundJay.com 免费音效 (CC0 公共领域)
   // 注意：这些是短音效循环，适合游戏氛围
   lobby: { 

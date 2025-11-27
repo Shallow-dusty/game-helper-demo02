@@ -494,8 +494,11 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const cx = width / 2;
   const cy = height / 2;
   const minDim = Math.min(width, height);
-  const baseScale = Math.max(0.6, Math.min(1.2, minDim / 800));
-  const r = minDim / 2 - (60 * baseScale);
+  // 优化移动端缩放逻辑：允许更小的缩放比例 (0.4)，并增加边缘留白
+  const baseScale = Math.max(0.4, Math.min(1.2, minDim / 800));
+  // 动态计算半径，确保留出足够空间给名字和状态图标
+  const margin = 50 * baseScale; 
+  const r = (minDim / 2) - margin;
 
   // Handle long press for mobile (opens context menu for ST)
   const handleLongPress = useCallback((e: any, seat: Seat) => {
@@ -608,16 +611,14 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
       {/* Mobile Lock Button & Zoom Controls */}
       <div className="absolute top-4 right-4 md:right-8 z-40 flex flex-col items-end gap-3 pointer-events-auto">
         <div className="flex gap-3">
-          {/* Zoom Reset Button */}
-          {stageScale !== 1 && (
-            <button
-              onClick={resetZoom}
-              className="w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full shadow-lg bg-stone-800/90 text-stone-400 hover:bg-stone-700 transition-colors backdrop-blur-sm border border-stone-700"
-              title="重置缩放"
-            >
-              🔄
-            </button>
-          )}
+          {/* Auto Fit Button */}
+          <button
+            onClick={resetZoom}
+            className="w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full shadow-lg bg-stone-800/90 text-stone-400 hover:bg-stone-700 transition-colors backdrop-blur-sm border border-stone-700"
+            title="适配屏幕 (Fit Screen)"
+          >
+            ⛶
+          </button>
           <button
             onClick={() => setIsLocked(!isLocked)}
             className={`w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full shadow-lg transition-colors backdrop-blur-sm border ${isLocked ? 'bg-red-900/90 border-red-700 text-white' : 'bg-stone-800/90 border-stone-700 text-stone-400 hover:bg-stone-700'}`}

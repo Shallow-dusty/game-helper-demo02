@@ -128,7 +128,8 @@ export const AudioManager = () => {
                             console.log("Audio play aborted (track changed)");
                         } else if (error.name === 'NotSupportedError') {
                             // 音频格式不支持或URL无效，静默处理
-                            console.log("Audio source not supported, skipping playback");
+                            console.warn("Audio format not supported or URL invalid:", audio.src);
+                            setLoadError("不支持的音频格式");
                         } else {
                             console.warn("Audio autoplay blocked by browser:", error);
                             setAudioBlocked(true);
@@ -142,6 +143,12 @@ export const AudioManager = () => {
             const track = AUDIO_TRACKS[audioState.trackId];
             // 只有当音轨有有效 URL 时才加载
             if (track && track.url && track.url !== '') {
+                // 简单的 URL 校验
+                if (!track.url.startsWith('http') && !track.url.startsWith('data:')) {
+                     console.warn("Invalid audio URL:", track.url);
+                     return;
+                }
+
                 // 先暂停当前音频再切换
                 if (playPromiseRef.current) {
                     playPromiseRef.current

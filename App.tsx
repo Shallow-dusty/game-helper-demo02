@@ -14,6 +14,17 @@ import { NotificationSystem } from './components/NotificationSystem';
 import { ToastContainer, useToasts } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
+const getViewportMetrics = () => {
+  if (typeof window === 'undefined') {
+    return { width: 0, height: 0 };
+  }
+  const vv = window.visualViewport;
+  return {
+    width: Math.round(vv?.width || window.innerWidth),
+    height: Math.round(vv?.height || window.innerHeight)
+  };
+};
+
 const App = () => {
   const user = useStore(state => state.user);
   const gameState = useStore(state => state.gameState);
@@ -34,11 +45,41 @@ const App = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [viewportSize, setViewportSize] = useState(() => getViewportMetrics());
 
   useEffect(() => {
     // Initial sync
     sync();
   }, [sync]);
+
+  // Track actual viewport size (accounts for mobile browser UI chrome)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const updateViewport = () => {
+      const next = getViewportMetrics();
+      setViewportSize(next);
+      document.documentElement.style.setProperty('--app-height', `${next.height}px`);
+    };
+
+    updateViewport();
+
+    const handleResize = () => updateViewport();
+    const handleOrientation = () => updateViewport();
+    const vv = window.visualViewport;
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientation);
+    vv?.addEventListener('resize', handleResize);
+    vv?.addEventListener('scroll', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientation);
+      vv?.removeEventListener('resize', handleResize);
+      vv?.removeEventListener('scroll', handleResize);
+    };
+  }, []);
 
   // Separate effect for ResizeObserver - 确保在 DOM 更新后正确测量
   useEffect(() => {
@@ -77,7 +118,7 @@ const App = () => {
       clearTimeout(timeoutId);
       observer.disconnect();
     };
-  }, [gameState]); // 当 gameState 变化时重新设置 observer
+  }, [gameState, viewportSize]); // 当 gameState 或视口变化时重新设置 observer
 
   const handleManualAudioStart = () => {
     // Just toggling it (or re-triggering it) usually helps unlock the audio context
@@ -110,9 +151,16 @@ const App = () => {
 
   // 3. In Game -> Grimoire
   const isNight = gameState?.phase === 'NIGHT';
+  const appHeight = viewportSize.height > 0 ? viewportSize.height : undefined;
 
   return (
-    <div className="flex flex-col h-[100dvh] w-screen bg-stone-950 overflow-hidden relative font-serif">
+    <div
+      className="flex flex-col w-screen bg-stone-950 overflow-hidden relative font-serif"
+      style={{
+        minHeight: appHeight ? `${appHeight}px` : '100vh',
+        height: appHeight ? `${appHeight}px` : '100vh'
+      }}
+    >
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />

@@ -38,9 +38,17 @@ const App = () => {
   useEffect(() => {
     // Initial sync
     sync();
+  }, [sync]);
 
-    // Resize Observer for precise container measurement
+  // Separate effect for ResizeObserver - 确保在 DOM 更新后正确测量
+  useEffect(() => {
     if (!containerRef.current) return;
+
+    // 立即测量一次，确保初始尺寸正确
+    const rect = containerRef.current.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      setDimensions({ width: rect.width, height: rect.height });
+    }
 
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -54,7 +62,7 @@ const App = () => {
     observer.observe(containerRef.current);
 
     return () => observer.disconnect();
-  }, [sync, user]);
+  }, [gameState]); // 当 gameState 变化时重新设置 observer
 
   const handleManualAudioStart = () => {
     // Just toggling it (or re-triggering it) usually helps unlock the audio context
@@ -112,8 +120,14 @@ const App = () => {
 
       {/* Main Game Area (Grimoire) */}
       <div className="flex-1 relative flex items-center justify-center min-h-0 min-w-0 overflow-hidden z-0" ref={containerRef}>
-        {dimensions.width > 0 && dimensions.height > 0 && (
+        {dimensions.width > 0 && dimensions.height > 0 ? (
           <Grimoire width={dimensions.width} height={dimensions.height} />
+        ) : (
+          /* Loading state - 移动端创建房间后的临时加载状态 */
+          <div className="flex flex-col items-center justify-center gap-4 text-stone-500">
+            <div className="w-12 h-12 border-4 border-stone-700 border-t-amber-500 rounded-full animate-spin"></div>
+            <span className="text-sm font-cinzel">正在加载魔典...</span>
+          </div>
         )}
 
         {/* Floating Helper Text */}
@@ -121,16 +135,7 @@ const App = () => {
           {user.isStoryteller ? 'Right Click: Manage • Scroll: Zoom (Beta)' : 'Wait for the Storyteller...'}
         </div>
 
-        {/* Mobile Menu Toggle */}
-        {!isMobileMenuOpen && (
-          <button
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="md:hidden absolute bottom-6 right-6 z-30 bg-red-900/90 text-stone-200 p-4 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.8)] border border-red-800 hover:bg-red-800 active:scale-90 backdrop-blur-sm transition-all"
-          >
-            <span className="text-xl">☰</span>
-          </button>
-        )}
-
+        {/* Mobile Menu Toggle - 移到容器外部确保始终可见 */}
         {/* Audio Unblock Button (Only shows if browser blocked autoplay) */}
         {isAudioBlocked && gameState?.audio.isPlaying && (
           <button
@@ -141,6 +146,17 @@ const App = () => {
           </button>
         )}
       </div>
+      
+      {/* Mobile Menu Toggle - 移到主容器外部，确保在加载时也可见 */}
+      {!isMobileMenuOpen && (
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="md:hidden fixed bottom-6 right-6 z-50 bg-red-900/90 text-stone-200 p-4 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.8)] border border-red-800 hover:bg-red-800 active:scale-90 backdrop-blur-sm transition-all"
+          style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        >
+          <span className="text-xl">☰</span>
+        </button>
+      )}
 
       {/* Sidebar Controls */}
       <div

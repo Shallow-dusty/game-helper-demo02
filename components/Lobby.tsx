@@ -14,11 +14,26 @@ export const Lobby = () => {
     const [hasInteracted, setHasInteracted] = useState(false);
 
     useEffect(() => {
+        // 检查是否有有效的音频URL
+        const lobbyTrack = AUDIO_TRACKS['lobby'];
+        if (!lobbyTrack?.url || lobbyTrack.url === '') {
+            // 没有有效音频，跳过音频初始化
+            setHasInteracted(true); // 直接标记为已交互，跳过音频提示
+            return;
+        }
+        
         // Preload Lobby Music
-        const audio = new Audio(AUDIO_TRACKS['lobby'].url);
+        const audio = new Audio(lobbyTrack.url);
         audio.loop = true;
         audio.volume = 0.4;
         audioRef.current = audio;
+        
+        // 添加错误处理
+        const handleError = () => {
+            console.log('Lobby audio failed to load, skipping');
+            setHasInteracted(true);
+        };
+        audio.addEventListener('error', handleError);
 
         return () => {
             // 彻底清理音频资源
@@ -27,6 +42,7 @@ export const Lobby = () => {
                 fadeIntervalRef.current = null;
             }
             if (audioRef.current) {
+                audioRef.current.removeEventListener('error', handleError);
                 audioRef.current.pause();
                 audioRef.current.src = '';
                 audioRef.current = null;

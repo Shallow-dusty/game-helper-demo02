@@ -24,6 +24,11 @@ export const AudioManager = () => {
         // 添加错误处理
         const handleError = (e: Event) => {
             const audioElement = e.target as HTMLAudioElement;
+            // 如果没有设置 src 或 src 为空，不报错
+            if (!audioElement.src || audioElement.src === '' || audioElement.src === window.location.href) {
+                return;
+            }
+            
             const error = audioElement.error;
             let errorMessage = '音频加载失败';
             
@@ -103,7 +108,10 @@ export const AudioManager = () => {
         };
 
         const attemptPlay = () => {
-            if (!audio.src || audio.src === '') return;
+            // 检查是否有有效的音频源
+            if (!audio.src || audio.src === '' || audio.src === window.location.href) {
+                return;
+            }
             
             const playPromise = audio.play();
             if (playPromise !== undefined) {
@@ -118,6 +126,9 @@ export const AudioManager = () => {
                         if (error.name === 'AbortError') {
                             // 播放被中断（如切换音轨），这是正常的
                             console.log("Audio play aborted (track changed)");
+                        } else if (error.name === 'NotSupportedError') {
+                            // 音频格式不支持或URL无效，静默处理
+                            console.log("Audio source not supported, skipping playback");
                         } else {
                             console.warn("Audio autoplay blocked by browser:", error);
                             setAudioBlocked(true);
@@ -129,7 +140,8 @@ export const AudioManager = () => {
         // Handle Track Change
         if (audioState.trackId && audioState.trackId !== previousTrackRef.current) {
             const track = AUDIO_TRACKS[audioState.trackId];
-            if (track) {
+            // 只有当音轨有有效 URL 时才加载
+            if (track && track.url && track.url !== '') {
                 // 先暂停当前音频再切换
                 if (playPromiseRef.current) {
                     playPromiseRef.current
@@ -152,12 +164,30 @@ export const AudioManager = () => {
                         safePlay();
                     }
                 }
+            } else {
+                // 音轨没有有效URL，停止播放并清空src
+                if (playPromiseRef.current) {
+                    playPromiseRef.current
+                        .then(() => {
+                            audio.pause();
+                            audio.src = '';
+                        })
+                        .catch(() => {
+                            audio.src = '';
+                        });
+                } else {
+                    audio.pause();
+                    audio.src = '';
+                }
             }
             previousTrackRef.current = audioState.trackId;
         }
 
         // Handle Play/Pause state toggles
-        if (audioState.isPlaying && audio.paused && audio.src) {
+        // 只有在有有效音频源时才尝试播放
+        const hasValidSrc = audio.src && audio.src !== '' && audio.src !== window.location.href;
+        
+        if (audioState.isPlaying && audio.paused && hasValidSrc) {
             // If blocked, don't spam try, wait for unblock
             if (!isAudioBlocked) {
                 safePlay();
@@ -174,7 +204,7 @@ export const AudioManager = () => {
         }
 
         // Retry play if unblocked
-        if (!isAudioBlocked && audioState.isPlaying && audio.paused && audio.src) {
+        if (!isAudioBlocked && audioState.isPlaying && audio.paused && hasValidSrc) {
             safePlay();
         }
 

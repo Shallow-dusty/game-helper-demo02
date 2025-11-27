@@ -354,8 +354,15 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
         }
 
         const track = AUDIO_TRACKS[gameState.audio.trackId];
+        
+        // 检查音轨是否存在且有有效的 URL
+        if (!track || !track.url || track.url === '') {
+            audio.pause();
+            audio.src = '';
+            return;
+        }
 
-        if (track && audio.src !== track.url) {
+        if (audio.src !== track.url) {
             audio.src = track.url;
         }
 
@@ -366,8 +373,10 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             const playPromise = audio.play();
             if (playPromise !== undefined) {
                 playPromise.catch(e => {
-                    console.error("Audio play failed (likely browser policy):", e);
-                    // Optionally update state to paused if play fails
+                    // 静默处理播放失败
+                    if (e.name !== 'AbortError' && e.name !== 'NotSupportedError') {
+                        console.log("Audio play blocked by browser policy");
+                    }
                 });
             }
         } else {
@@ -704,7 +713,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                     
                                     <div className={`px-3 pb-3 ${collapsedSections.audio ? 'hidden' : ''}`}>
                                         {/* 当前播放信息 */}
-                                        {gameState.audio.trackId && AUDIO_TRACKS[gameState.audio.trackId] && (
+                                        {gameState.audio.trackId && AUDIO_TRACKS[gameState.audio.trackId] && AUDIO_TRACKS[gameState.audio.trackId].url && (
                                             <div className="mb-2 p-2 bg-stone-950/50 rounded border border-stone-800 text-xs">
                                                 <div className="flex items-center gap-2 text-stone-400">
                                                     <span className={`${gameState.audio.isPlaying ? 'text-green-400' : 'text-stone-500'}`}>
@@ -714,6 +723,13 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                                         {AUDIO_TRACKS[gameState.audio.trackId].name}
                                                     </span>
                                                 </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* 音频不可用提示 */}
+                                        {(!Object.values(AUDIO_TRACKS).some(t => t.url && t.url !== '')) && (
+                                            <div className="mb-2 p-2 bg-amber-950/30 rounded border border-amber-800/50 text-xs text-amber-400">
+                                                <span>⚠️ 音频资源未配置，请在 constants.ts 中设置有效的音频URL</span>
                                             </div>
                                         )}
                                         
@@ -731,14 +747,14 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                             <option value="">-- 手动选择音效 --</option>
                                             <optgroup label="阶段音乐">
                                                 {Object.entries(AUDIO_TRACKS)
-                                                    .filter(([_, track]) => track.phase)
+                                                    .filter(([_, track]) => track.phase && track.url && track.url !== '')
                                                     .map(([id, track]) => (
                                                         <option key={id} value={id}>{track.name}</option>
                                                     ))}
                                             </optgroup>
                                             <optgroup label="特殊音乐">
                                                 {Object.entries(AUDIO_TRACKS)
-                                                    .filter(([_, track]) => !track.phase)
+                                                    .filter(([_, track]) => !track.phase && track.url && track.url !== '')
                                                     .map(([id, track]) => (
                                                         <option key={id} value={id}>{track.name}</option>
                                                     ))}

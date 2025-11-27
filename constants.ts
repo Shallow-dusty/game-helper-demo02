@@ -689,40 +689,40 @@ export const STATUS_ICONS: Record<string, string> = {
 };
 
 export const AUDIO_TRACKS: Record<string, { name: string, url: string, phase?: string }> = {
-  // 使用 Free Music Archive 和其他可靠的免费音源
-  // 所有音频都是免版税的环境音乐
+  // 使用 SoundJay.com 免费音效 (CC0 公共领域)
+  // 注意：这些是短音效循环，适合游戏氛围
   lobby: { 
     name: '神秘大厅 (Mystery)', 
-    url: 'https://assets.mixkit.co/music/preview/mixkit-deep-urban-623.mp3',
+    url: 'https://www.soundjay.com/clock/sounds/grandfather-clock-1.mp3',
     phase: 'SETUP'
   },
   day_village: { 
     name: '热闘讨论 (Day)', 
-    url: 'https://assets.mixkit.co/music/preview/mixkit-serene-view-443.mp3',
+    url: 'https://www.soundjay.com/nature/sounds/crickets-1.mp3',
     phase: 'DAY'
   },
   night_ambience: { 
     name: '静谧夜晚 (Night)', 
-    url: 'https://assets.mixkit.co/music/preview/mixkit-sleepy-cat-135.mp3',
+    url: 'https://www.soundjay.com/ambient/sounds/rain-02.mp3',
     phase: 'NIGHT'
   },
   voting: { 
     name: '紧张投票 (Voting)', 
-    url: 'https://assets.mixkit.co/music/preview/mixkit-driving-ambition-32.mp3',
+    url: 'https://www.soundjay.com/clock/sounds/clock-ticking-4.mp3',
     phase: 'VOTING'
   },
   nomination: {
     name: '提名阶段 (Nomination)',
-    url: 'https://assets.mixkit.co/music/preview/mixkit-forest-treasure-702.mp3',
+    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
     phase: 'NOMINATION'
   },
   victory_good: {
     name: '善良胜利 (Good Wins)',
-    url: 'https://assets.mixkit.co/music/preview/mixkit-feeling-happy-5.mp3'
+    url: 'https://www.soundjay.com/misc/sounds/magic-chime-02.mp3'
   },
   victory_evil: {
     name: '邪恶胜利 (Evil Wins)',
-    url: 'https://assets.mixkit.co/music/preview/mixkit-games-worldbeat-668.mp3'
+    url: 'https://www.soundjay.com/nature/sounds/thunder-01.mp3'
   },
 };
 

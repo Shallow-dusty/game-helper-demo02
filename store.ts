@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { GameState, User, GamePhase, ChatMessage, AudioState, SeatStatus, Seat, NightActionRequest } from './types';
-import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS, PHASE_AUDIO_MAP } from './constants';
+import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS, PHASE_AUDIO_MAP, AUDIO_TRACKS } from './constants';
 import OpenAI from 'openai';
 import { createClient, RealtimeChannel } from '@supabase/supabase-js';
 
@@ -853,8 +853,12 @@ export const useStore = create<AppState>((set, get) => ({
             // 自动切换对应阶段的背景音乐
             const audioTrackId = PHASE_AUDIO_MAP[phase];
             if (audioTrackId && gameState.audio) {
-                gameState.audio.trackId = audioTrackId;
-                // 保持当前播放状态，如果之前在播放则继续播放
+                // 检查音轨是否存在且有有效的 URL
+                const track = AUDIO_TRACKS[audioTrackId];
+                if (track && track.url && track.url !== '') {
+                    gameState.audio.trackId = audioTrackId;
+                    // 保持当前播放状态，如果之前在播放则继续播放
+                }
             }
         }
 
@@ -1118,6 +1122,14 @@ export const useStore = create<AppState>((set, get) => ({
     setAudioTrack: (trackId) => {
         const { gameState } = get();
         if (!gameState) return;
+        
+        // 检查音轨是否存在且有有效的 URL
+        const track = AUDIO_TRACKS[trackId];
+        if (!track || !track.url || track.url === '') {
+            // 音轨无效，不设置
+            return;
+        }
+        
         gameState.audio.trackId = trackId;
         gameState.audio.isPlaying = true;
         set({ gameState: { ...gameState } });

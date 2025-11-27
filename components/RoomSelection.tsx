@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { showWarning } from './Toast';
 
@@ -10,18 +10,57 @@ export const RoomSelection = () => {
 
   const [seatCount, setSeatCount] = useState(12); // Default setup
   const [roomCode, setRoomCode] = useState('');
+  const [lastRoomCode, setLastRoomCode] = useState<string | null>(null);
+  const [isRejoining, setIsRejoining] = useState(false);
+
+  // 检查是否有上次的房间记录
+  useEffect(() => {
+    const savedRoom = localStorage.getItem('grimoire_last_room');
+    if (savedRoom) {
+      setLastRoomCode(savedRoom);
+    }
+  }, []);
+
+  // 监听 localStorage 变化（当 joinGame 失败时会清除记录）
+  useEffect(() => {
+    const checkStorage = () => {
+      const savedRoom = localStorage.getItem('grimoire_last_room');
+      if (!savedRoom && lastRoomCode) {
+        setLastRoomCode(null);
+        setIsRejoining(false);
+      }
+    };
+    
+    // 定时检查（因为同一页面的 localStorage 变化不会触发 storage 事件）
+    const interval = setInterval(checkStorage, 500);
+    return () => clearInterval(interval);
+  }, [lastRoomCode]);
 
   const handleCreate = () => {
     createGame(seatCount);
   };
 
-  const handleJoin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleJoin = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (roomCode.length === 4) {
       joinGame(roomCode);
     } else {
       showWarning("请输入4位房间号");
     }
+  };
+
+  const handleRejoin = async () => {
+    if (lastRoomCode && !isRejoining) {
+      setIsRejoining(true);
+      await joinGame(lastRoomCode);
+      // 如果还在这个页面，说明加入失败了
+      setIsRejoining(false);
+    }
+  };
+
+  const clearLastRoom = () => {
+    localStorage.removeItem('grimoire_last_room');
+    setLastRoomCode(null);
   };
 
   return (
@@ -42,6 +81,36 @@ export const RoomSelection = () => {
           </h1>
           <p className="text-stone-600 italic mt-2 font-serif">Choose your destiny...</p>
         </div>
+
+        {/* 继续上次游戏提示 */}
+        {lastRoomCode && (
+          <div className="mb-8 bg-amber-950/30 border border-amber-800/50 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🔄</span>
+              <div>
+                <p className="text-amber-200 font-bold">检测到上次游戏</p>
+                <p className="text-amber-400/70 text-sm">房间号: {lastRoomCode}</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleRejoin}
+                disabled={isRejoining}
+                className="px-4 py-2 bg-amber-700 hover:bg-amber-600 disabled:bg-amber-800 disabled:cursor-wait text-white rounded font-bold text-sm transition-colors"
+              >
+                {isRejoining ? '连接中...' : '继续游戏'}
+              </button>
+              <button
+                onClick={clearLastRoom}
+                disabled={isRejoining}
+                className="px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-400 rounded text-sm transition-colors disabled:opacity-50"
+                title="清除记录"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-8">
 

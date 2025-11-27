@@ -361,15 +361,8 @@ export const useStore = create<AppState>((set, get) => ({
         const newUser: User = { id, name, isStoryteller, roomId: null };
         set({ user: newUser });
         
-        // 尝试自动重连：检查 localStorage 中的上次房间
-        const lastRoomCode = localStorage.getItem('grimoire_last_room');
-        if (lastRoomCode) {
-            console.log('🔄 检测到上次房间，尝试自动重连:', lastRoomCode);
-            // 延迟执行，确保 user 状态已设置
-            setTimeout(() => {
-                get().joinGame(lastRoomCode);
-            }, 100);
-        }
+        // 注意：不再自动重连，改为在 RoomSelection 中显示"继续上次游戏"按钮
+        // 自动重连容易导致问题（房间已过期、网络错误等）
     },
 
     createGame: async (seatCount) => {
@@ -448,6 +441,8 @@ export const useStore = create<AppState>((set, get) => ({
             if (error || !data) {
                 getToastFunctions().then(({ showError }) => showError("房间不存在！请检查房间号。"));
                 set({ connectionStatus: 'disconnected' });
+                // 清除无效的房间记录
+                localStorage.removeItem('grimoire_last_room');
                 return;
             }
 
@@ -498,6 +493,8 @@ export const useStore = create<AppState>((set, get) => ({
         } catch (error: any) {
             console.error("Join Game Error:", error);
             set({ connectionStatus: 'disconnected' });
+            // 清除可能无效的房间记录
+            localStorage.removeItem('grimoire_last_room');
             getToastFunctions().then(({ showError }) => showError(`加入房间失败: ${error.message}`));
         }
     },

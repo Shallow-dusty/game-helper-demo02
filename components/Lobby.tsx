@@ -69,7 +69,7 @@ export const Lobby = () => {
 
     return (
         <div
-            className="min-h-screen w-full relative font-serif text-stone-200 overflow-x-hidden"
+            className="min-h-screen w-full relative font-serif text-stone-200 overflow-y-auto overflow-x-hidden"
             onClick={handleInteraction} // Capture first click for audio
         >
             {/* Background Image with Overlay */}
@@ -78,9 +78,8 @@ export const Lobby = () => {
             ></div>
             <div className="fixed inset-0 z-0 bg-gradient-to-t from-black via-transparent to-black opacity-80"></div>
 
-            {/* Scrollable Content Container */}
-            <div className="relative z-10 min-h-screen flex flex-col items-center justify-center py-8 px-4">
-            <div className="w-full max-w-lg">
+            {/* Scrollable Content Container - 不使用 flex 居中，改用 padding */}
+            <div className="relative z-10 w-full max-w-lg mx-auto px-4 py-12 md:py-20">
                 {/* Title Section */}
                 <div className="text-center mb-10 relative">
                     <h1 className="text-6xl md:text-7xl font-black text-red-800 tracking-widest drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] font-cinzel" style={{ textShadow: "0 0 20px #500" }}>
@@ -138,10 +137,9 @@ export const Lobby = () => {
                     </form>
                 </div>
 
-                <p className="text-center text-stone-600 text-xs mt-8 font-serif italic">
+                <p className="text-center text-stone-600 text-xs mt-8 font-serif italic pb-8">
                     "恶魔就在我们中间..."
                 </p>
-            </div>
             </div>
         </div>
     );

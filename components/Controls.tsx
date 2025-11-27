@@ -16,31 +16,33 @@ import { showError, showWarning } from './Toast';
 import { RoleDef, Seat, GamePhase } from '../types';
 
 // FR-06: 投票按钮组件 - 带加载状态
-const VoteButton: React.FC<{ isRaised: boolean; onToggle: () => void }> = ({ isRaised, onToggle }) => {
+const VoteButton: React.FC<{ isRaised: boolean; isLocked: boolean; onToggle: () => void }> = ({ isRaised, isLocked, onToggle }) => {
     const [isLoading, setIsLoading] = useState(false);
     
     const handleClick = useCallback(() => {
-        if (isLoading) return;
+        if (isLoading || isLocked) return;
         setIsLoading(true);
         onToggle();
         // 延迟后重置 loading（给予视觉反馈）
         setTimeout(() => setIsLoading(false), 300);
-    }, [isLoading, onToggle]);
+    }, [isLoading, isLocked, onToggle]);
     
     return (
         <div className="animate-bounce">
             <button
                 onClick={handleClick}
-                disabled={isLoading}
+                disabled={isLoading || isLocked}
                 className={`w-full py-4 rounded-sm text-xl font-bold shadow-xl transition-all border-2 font-cinzel tracking-wider ${
-                    isLoading 
-                        ? 'bg-stone-800 border-stone-600 text-stone-500 cursor-wait'
-                        : isRaised 
+                    isLocked
+                        ? 'bg-stone-900 border-stone-700 text-stone-500 cursor-not-allowed'
+                        : isLoading 
+                            ? 'bg-stone-800 border-stone-600 text-stone-500 cursor-wait'
+                            : isRaised 
                             ? 'bg-green-900 border-green-600 hover:bg-green-800 text-green-100' 
                             : 'bg-stone-700 border-stone-500 hover:bg-stone-600 text-stone-300'
                 }`}
             >
-                {isLoading ? '⏳ 处理中...' : isRaised ? '✋ 已投票' : '举手投票？'}
+                {isLocked ? '🔒 状态已锁定' : isLoading ? '⏳ 处理中...' : isRaised ? '✋ 已举手' : '举手投票？'}
             </button>
         </div>
     );
@@ -356,53 +358,6 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
         }
     }, [gameState?.phase, gameState?.nightCurrentIndex, user?.id]);
 
-    // Audio Element Ref
-    const audioRef = React.useRef<HTMLAudioElement>(null);
-
-    // Sync audio state with ref
-    useEffect(() => {
-        if (!audioRef.current) return;
-
-        const audio = audioRef.current;
-        // If trackId is empty, pause and clear src
-        if (!gameState.audio.trackId) {
-            audio.pause();
-            audio.src = '';
-            return;
-        }
-
-        const track = AUDIO_TRACKS[gameState.audio.trackId];
-        
-        // 检查音轨是否存在且有有效的 URL
-        if (!track || !track.url || track.url === '') {
-            audio.pause();
-            audio.src = '';
-            return;
-        }
-
-        if (audio.src !== track.url) {
-            audio.src = track.url;
-        }
-
-        audio.volume = gameState.audio.volume;
-
-        if (gameState.audio.isPlaying) {
-            // Use a promise to handle play(), as it can be interrupted
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(e => {
-                    // 静默处理播放失败
-                    if (e.name !== 'AbortError' && e.name !== 'NotSupportedError') {
-                        console.log("Audio play blocked by browser policy");
-                    }
-                });
-            }
-        } else {
-            audio.pause();
-        }
-    }, [gameState?.audio?.trackId, gameState?.audio?.isPlaying, gameState?.audio?.volume]);
-
-
     if (!user || !gameState) return null;
 
     const currentSeat = gameState.seats.find(s => s.userId === user.id);
@@ -422,9 +377,6 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             className="bg-stone-950 border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif relative transition-none z-50"
             style={{ width: isMobile ? '100%' : `${width}px` }}
         >
-            {/* Audio Element */}
-            <audio ref={audioRef} loop />
-
             {/* Drag Handle (Desktop Only) */}
             {!isMobile && (
                 <div
@@ -920,22 +872,34 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                     )}
 
                                     {gameState.voting?.isOpen && (
-                                        <div className="p-4 bg-amber-900/10 rounded border border-amber-800/50 shadow-[0_0_20px_rgba(180,83,9,0.1)]">
-                                            <h3 className="text-center font-bold text-amber-600 mb-2 flex items-center justify-center gap-2 font-cinzel">
-                                                <span>⚖</span> 审判
-                                            </h3>
-                                            <p className="text-xs text-center text-stone-400 mb-6">
-                                                受审者: <span className="text-amber-100 font-bold text-base ml-1">{gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName}</span>
-                                            </p>
+                                        <div className="p-4 bg-amber-900/10 rounded border border-amber-800/50 shadow-[0_0_20px_rgba(180,83,9,0.1)] space-y-4">
+                                            <div>
+                                                <h3 className="text-center font-bold text-amber-600 mb-2 flex items-center justify-center gap-2 font-cinzel">
+                                                    <span>⚖</span> 审判
+                                                </h3>
+                                                <p className="text-xs text-center text-stone-400">
+                                                    受审者: <span className="text-amber-100 font-bold text-base ml-1">{gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName}</span>
+                                                </p>
+                                            </div>
 
-                                            {gameState.voting.clockHandSeatId === currentSeat?.id ? (
-                                                <VoteButton 
-                                                    isRaised={currentSeat?.isHandRaised || false}
-                                                    onToggle={toggleHand}
-                                                />
+                                            {currentSeat ? (
+                                                <>
+                                                    <VoteButton
+                                                        isRaised={currentSeat.isHandRaised || false}
+                                                        isLocked={currentSeat.voteLocked || false}
+                                                        onToggle={toggleHand}
+                                                    />
+                                                    <div className="text-center text-xs text-stone-500 font-serif">
+                                                        {currentSeat.voteLocked
+                                                            ? '说书人已锁定你的投票。'
+                                                            : gameState.voting.clockHandSeatId === currentSeat.id
+                                                                ? '⏳ 说书人正在结算你的选择...'
+                                                                : '可提前举手 / 放下，等待说书人锁定'}
+                                                    </div>
+                                                </>
                                             ) : (
                                                 <div className="text-center text-stone-600 italic p-3 border border-dashed border-stone-800 rounded-sm font-serif text-sm">
-                                                    时针转动中...
+                                                    请先入座以参与投票
                                                 </div>
                                             )}
                                         </div>

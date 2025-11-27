@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { ChatMessage } from '../types';
 import { VotingChart } from './VotingChart';
-import { useStore } from '../store';
 
 // Initialize Supabase client locally for this component
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -18,6 +17,7 @@ interface HistoryRecord {
     players: any[];
     messages: ChatMessage[];
     created_at: string;
+    state?: any;
 }
 
 interface HistoryViewerProps {
@@ -29,7 +29,9 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
     const [loading, setLoading] = useState(true);
     const [selectedRecord, setSelectedRecord] = useState<HistoryRecord | null>(null);
     const [activeTab, setActiveTab] = useState<'details' | 'votes'>('details');
-    const currentVoteHistory = useStore(state => state.gameState?.voteHistory || []);
+
+    const selectedVoteHistory = selectedRecord?.state?.voteHistory ?? [];
+    const selectedSeats = selectedRecord?.state?.seats ?? [];
 
     useEffect(() => {
         fetchHistory();
@@ -192,7 +194,13 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                                         </div>
                                     </>
                                 ) : (
-                                    <VotingChart voteHistory={currentVoteHistory} />
+                                    selectedVoteHistory.length > 0 ? (
+                                        <VotingChart voteHistory={selectedVoteHistory} seats={selectedSeats} />
+                                    ) : (
+                                        <div className="text-center text-stone-500 text-sm italic">
+                                            该记录未包含投票数据。
+                                        </div>
+                                    )
                                 )}
                             </div>
                         </div>

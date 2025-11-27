@@ -44,24 +44,39 @@ const App = () => {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // 立即测量一次，确保初始尺寸正确
-    const rect = containerRef.current.getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) {
-      setDimensions({ width: rect.width, height: rect.height });
-    }
+    // 使用 requestAnimationFrame 确保 DOM 已完全渲染
+    const measureAndSetDimensions = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      // 只有当尺寸有效时才更新
+      if (rect.width > 10 && rect.height > 10) {
+        setDimensions({ width: Math.floor(rect.width), height: Math.floor(rect.height) });
+      }
+    };
+
+    // 初始测量 - 延迟执行确保布局完成
+    const timeoutId = setTimeout(() => {
+      requestAnimationFrame(measureAndSetDimensions);
+    }, 50);
 
     const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setDimensions({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height
-        });
-      }
+      // 使用 requestAnimationFrame 避免布局抖动
+      requestAnimationFrame(() => {
+        for (const entry of entries) {
+          const { width, height } = entry.contentRect;
+          if (width > 10 && height > 10) {
+            setDimensions({ width: Math.floor(width), height: Math.floor(height) });
+          }
+        }
+      });
     });
 
     observer.observe(containerRef.current);
 
-    return () => observer.disconnect();
+    return () => {
+      clearTimeout(timeoutId);
+      observer.disconnect();
+    };
   }, [gameState]); // 当 gameState 变化时重新设置 observer
 
   const handleManualAudioStart = () => {
@@ -119,10 +134,14 @@ const App = () => {
       <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.7)_100%)]"></div>
 
       {/* Main Content Area: Grimoire + Sidebar */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10 min-h-0">
         
-        {/* Main Game Area (Grimoire) */}
-        <div className="flex-1 relative flex items-center justify-center min-h-0 min-w-0 overflow-hidden" ref={containerRef}>
+        {/* Main Game Area (Grimoire) - 移动端使用固定高度计算 */}
+        <div 
+          className="flex-1 relative flex items-center justify-center overflow-hidden"
+          style={{ minHeight: 0, minWidth: 0 }}
+          ref={containerRef}
+        >
           {dimensions.width > 0 && dimensions.height > 0 ? (
             <Grimoire width={dimensions.width} height={dimensions.height} />
           ) : (

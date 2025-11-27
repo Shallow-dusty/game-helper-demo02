@@ -491,14 +491,26 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
     );
   }
 
-  const cx = width / 2;
-  const cy = height / 2;
-  const minDim = Math.min(width, height);
-  // 优化移动端缩放逻辑：允许更小的缩放比例 (0.4)，并增加边缘留白
-  const baseScale = Math.max(0.4, Math.min(1.2, minDim / 800));
+  // 调试：打印传入的尺寸
+  console.log('[Grimoire] Rendering with dimensions:', { width, height });
+
+  // 安全检查：确保宽高有效
+  const safeWidth = Math.max(width, 100);
+  const safeHeight = Math.max(height, 100);
+
+  const cx = safeWidth / 2;
+  const cy = safeHeight / 2;
+  const minDim = Math.min(safeWidth, safeHeight);
+  
+  // 优化移动端缩放逻辑：基于屏幕大小动态调整
+  const baseScale = Math.max(0.35, Math.min(1.2, minDim / 700));
+  
   // 动态计算半径，确保留出足够空间给名字和状态图标
-  const margin = 50 * baseScale; 
-  const r = (minDim / 2) - margin;
+  // 移动端需要更多边距，因为 Token 和文字会更拥挤
+  const seatCount = gameState.seats.length;
+  const marginFactor = seatCount > 10 ? 80 : 60; // 玩家多时增加边距
+  const margin = marginFactor * baseScale; 
+  const r = Math.max((minDim / 2) - margin, minDim * 0.3); // 确保最小半径
 
   // Handle long press for mobile (opens context menu for ST)
   const handleLongPress = useCallback((e: any, seat: Seat) => {
@@ -643,8 +655,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
 
       <Stage 
         ref={stageRef}
-        width={width} 
-        height={height} 
+        width={safeWidth} 
+        height={safeHeight} 
         listening={!isLocked}
         scaleX={stageScale}
         scaleY={stageScale}

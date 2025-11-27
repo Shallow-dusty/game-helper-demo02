@@ -64,6 +64,16 @@ const App = () => {
     setTimeout(() => toggleAudioPlay(), 100);
   };
 
+  // 游戏内阻止 body 滚动 - 必须在条件返回之前调用
+  useEffect(() => {
+    if (gameState) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [gameState]);
+
   // 1. Not Logged In -> Lobby
   if (!user) {
     return <Lobby />;
@@ -76,14 +86,6 @@ const App = () => {
 
   // 3. In Game -> Grimoire
   const isNight = gameState?.phase === 'NIGHT';
-
-  // 游戏内阻止 body 滚动
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
 
   return (
     <div className="flex flex-col md:flex-row h-[100dvh] w-screen bg-stone-950 overflow-y-auto md:overflow-hidden relative font-serif pt-16">

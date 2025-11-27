@@ -33,6 +33,28 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
 
     useEffect(() => {
         fetchHistory();
+        
+        // 订阅实时更新
+        const channel = supabase
+            .channel('game_history_changes')
+            .on(
+                'postgres_changes',
+                { 
+                    event: 'INSERT', 
+                    schema: 'public', 
+                    table: 'game_history' 
+                },
+                (payload) => {
+                    console.log('📜 New game history:', payload.new);
+                    // 将新记录添加到列表最前面
+                    setRecords(prev => [payload.new as HistoryRecord, ...prev]);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const fetchHistory = async () => {

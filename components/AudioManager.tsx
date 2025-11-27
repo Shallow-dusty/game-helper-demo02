@@ -8,6 +8,7 @@ export const AudioManager = () => {
     const setAudioBlocked = useStore(state => state.setAudioBlocked);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const previousTrackRef = useRef<string | null>(null);
+    const playPromiseRef = useRef<Promise<void> | null>(null);
 
     const isAudioBlocked = useStore(state => state.isAudioBlocked);
 
@@ -18,7 +19,20 @@ export const AudioManager = () => {
         audioRef.current = audio;
 
         return () => {
-            audio.pause();
+            // 安全清理：等待任何挂起的 play promise 完成
+            if (playPromiseRef.current) {
+                playPromiseRef.current
+                    .then(() => {
+                        audio.pause();
+                        audio.src = '';
+                    })
+                    .catch(() => {
+                        // 忽略错误，组件已卸载
+                    });
+            } else {
+                audio.pause();
+                audio.src = '';
+            }
             audioRef.current = null;
         };
     }, []);
@@ -33,14 +47,37 @@ export const AudioManager = () => {
 
         // Helper function to safely play
         const safePlay = () => {
+            // 如果有挂起的 play promise，先等待它
+            if (playPromiseRef.current) {
+                playPromiseRef.current
+                    .then(() => attemptPlay())
+                    .catch(() => attemptPlay());
+                return;
+            }
+            attemptPlay();
+        };
+
+        const attemptPlay = () => {
+            if (!audio.src || audio.src === '') return;
+            
             const playPromise = audio.play();
             if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    setAudioBlocked(false);
-                }).catch(error => {
-                    console.warn("Audio autoplay blocked by browser:", error);
-                    setAudioBlocked(true);
-                });
+                playPromiseRef.current = playPromise;
+                playPromise
+                    .then(() => {
+                        playPromiseRef.current = null;
+                        setAudioBlocked(false);
+                    })
+                    .catch(error => {
+                        playPromiseRef.current = null;
+                        if (error.name === 'AbortError') {
+                            // 播放被中断（如切换音轨），这是正常的
+                            console.log("Audio play aborted (track changed)");
+                        } else {
+                            console.warn("Audio autoplay blocked by browser:", error);
+                            setAudioBlocked(true);
+                        }
+                    });
             }
         };
 
@@ -48,9 +85,27 @@ export const AudioManager = () => {
         if (audioState.trackId && audioState.trackId !== previousTrackRef.current) {
             const track = AUDIO_TRACKS[audioState.trackId];
             if (track) {
-                audio.src = track.url;
-                if (audioState.isPlaying) {
-                    safePlay();
+                // 先暂停当前音频再切换
+                if (playPromiseRef.current) {
+                    playPromiseRef.current
+                        .then(() => {
+                            audio.pause();
+                            audio.src = track.url;
+                            if (audioState.isPlaying) {
+                                attemptPlay();
+                            }
+                        })
+                        .catch(() => {
+                            audio.src = track.url;
+                            if (audioState.isPlaying) {
+                                attemptPlay();
+                            }
+                        });
+                } else {
+                    audio.src = track.url;
+                    if (audioState.isPlaying) {
+                        safePlay();
+                    }
                 }
             }
             previousTrackRef.current = audioState.trackId;
@@ -63,7 +118,14 @@ export const AudioManager = () => {
                 safePlay();
             }
         } else if (!audioState.isPlaying && !audio.paused) {
-            audio.pause();
+            // 安全暂停
+            if (playPromiseRef.current) {
+                playPromiseRef.current
+                    .then(() => audio.pause())
+                    .catch(() => audio.pause());
+            } else {
+                audio.pause();
+            }
         }
 
         // Retry play if unblocked

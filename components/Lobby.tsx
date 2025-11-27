@@ -10,6 +10,7 @@ export const Lobby = () => {
 
     // Local Audio for Lobby
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const fadeIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const [hasInteracted, setHasInteracted] = useState(false);
 
     useEffect(() => {
@@ -20,7 +21,16 @@ export const Lobby = () => {
         audioRef.current = audio;
 
         return () => {
-            audio.pause();
+            // 彻底清理音频资源
+            if (fadeIntervalRef.current) {
+                clearInterval(fadeIntervalRef.current);
+                fadeIntervalRef.current = null;
+            }
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.src = '';
+                audioRef.current = null;
+            }
         };
     }, []);
 
@@ -37,13 +47,19 @@ export const Lobby = () => {
             if (audioRef.current) {
                 // Fade out lobby music
                 let vol = 0.4;
-                const fade = setInterval(() => {
+                fadeIntervalRef.current = setInterval(() => {
                     vol -= 0.05;
                     if (vol <= 0) {
-                        clearInterval(fade);
-                        audioRef.current?.pause();
+                        if (fadeIntervalRef.current) {
+                            clearInterval(fadeIntervalRef.current);
+                            fadeIntervalRef.current = null;
+                        }
+                        if (audioRef.current) {
+                            audioRef.current.pause();
+                            audioRef.current.src = '';
+                        }
                     } else if (audioRef.current) {
-                        audioRef.current.volume = vol;
+                        audioRef.current.volume = Math.max(0, vol);
                     }
                 }, 100);
             }
@@ -53,7 +69,7 @@ export const Lobby = () => {
 
     return (
         <div
-            className="min-h-[100dvh] flex items-center justify-center relative overflow-y-auto font-serif text-stone-200 py-8"
+            className="min-h-screen w-full relative font-serif text-stone-200 overflow-x-hidden"
             onClick={handleInteraction} // Capture first click for audio
         >
             {/* Background Image with Overlay */}
@@ -62,7 +78,9 @@ export const Lobby = () => {
             ></div>
             <div className="fixed inset-0 z-0 bg-gradient-to-t from-black via-transparent to-black opacity-80"></div>
 
-            <div className="relative z-10 w-full max-w-lg px-4">
+            {/* Scrollable Content Container */}
+            <div className="relative z-10 min-h-screen flex flex-col items-center justify-center py-8 px-4">
+            <div className="w-full max-w-lg">
                 {/* Title Section */}
                 <div className="text-center mb-10 relative">
                     <h1 className="text-6xl md:text-7xl font-black text-red-800 tracking-widest drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] font-cinzel" style={{ textShadow: "0 0 20px #500" }}>
@@ -123,6 +141,7 @@ export const Lobby = () => {
                 <p className="text-center text-stone-600 text-xs mt-8 font-serif italic">
                     "恶魔就在我们中间..."
                 </p>
+            </div>
             </div>
         </div>
     );

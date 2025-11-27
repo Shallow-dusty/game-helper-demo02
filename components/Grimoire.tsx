@@ -1,14 +1,28 @@
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Stage, Layer, Circle, Text, Group, Rect, Ring } from 'react-konva';
 import { useStore } from '../store';
 import { ROLES, TEAM_COLORS, PHASE_LABELS, SCRIPTS, STATUS_OPTIONS, STATUS_ICONS, PRESET_REMINDERS } from '../constants';
 import { Seat, Team, SeatStatus } from '../types';
+import Konva from 'konva';
 
 interface GrimoireProps {
   width: number;
   height: number;
 }
+
+// 计算两个触摸点之间的距离
+const getDistance = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
+  return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+};
+
+// 计算两个触摸点的中心点
+const getCenter = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
+  return {
+    x: (p1.x + p2.x) / 2,
+    y: (p1.y + p2.y) / 2,
+  };
+};
 
 interface SeatNodeProps {
   seat: Seat;
@@ -315,6 +329,121 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const [showReminderMenu, setShowReminderMenu] = useState(false);
   const [roleSelectSeat, setRoleSelectSeat] = useState<number | null>(null);
   const [isLocked, setIsLocked] = useState(false); // Mobile Lock State
+  
+  // Pinch-zoom 状态
+  const stageRef = useRef<Konva.Stage>(null);
+  const [stageScale, setStageScale] = useState(1);
+  const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
+  const lastCenter = useRef<{ x: number; y: number } | null>(null);
+  const lastDist = useRef<number>(0);
+  const isPinching = useRef(false);
+
+  // 处理多指触摸开始
+  const handleTouchStart = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
+    const touch = e.evt.touches;
+    if (touch.length === 2) {
+      // 双指触摸 - 开始缩放
+      isPinching.current = true;
+      e.evt.preventDefault();
+      
+      const p1 = { x: touch[0].clientX, y: touch[0].clientY };
+      const p2 = { x: touch[1].clientX, y: touch[1].clientY };
+      
+      lastCenter.current = getCenter(p1, p2);
+      lastDist.current = getDistance(p1, p2);
+    }
+  }, []);
+
+  // 处理多指触摸移动
+  const handleTouchMove = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
+    const touch = e.evt.touches;
+    const stage = stageRef.current;
+    
+    if (touch.length === 2 && stage && lastCenter.current) {
+      e.evt.preventDefault();
+      
+      const p1 = { x: touch[0].clientX, y: touch[0].clientY };
+      const p2 = { x: touch[1].clientX, y: touch[1].clientY };
+      
+      const newCenter = getCenter(p1, p2);
+      const newDist = getDistance(p1, p2);
+      
+      if (lastDist.current === 0) {
+        lastDist.current = newDist;
+        return;
+      }
+      
+      // 计算缩放比例
+      const scaleBy = newDist / lastDist.current;
+      const oldScale = stageScale;
+      let newScale = oldScale * scaleBy;
+      
+      // 限制缩放范围
+      newScale = Math.max(0.5, Math.min(3, newScale));
+      
+      // 计算新的位置，使缩放以双指中心为基准
+      const mousePointTo = {
+        x: (newCenter.x - stagePos.x) / oldScale,
+        y: (newCenter.y - stagePos.y) / oldScale,
+      };
+      
+      const newPos = {
+        x: newCenter.x - mousePointTo.x * newScale + (newCenter.x - lastCenter.current.x),
+        y: newCenter.y - mousePointTo.y * newScale + (newCenter.y - lastCenter.current.y),
+      };
+      
+      setStageScale(newScale);
+      setStagePos(newPos);
+      
+      lastDist.current = newDist;
+      lastCenter.current = newCenter;
+    }
+  }, [stageScale, stagePos]);
+
+  // 处理触摸结束
+  const handleTouchEnd = useCallback(() => {
+    lastCenter.current = null;
+    lastDist.current = 0;
+    isPinching.current = false;
+  }, []);
+
+  // 处理鼠标滚轮缩放（桌面端）
+  const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
+    e.evt.preventDefault();
+    const stage = stageRef.current;
+    if (!stage) return;
+    
+    const scaleBy = 1.1;
+    const oldScale = stageScale;
+    const pointer = stage.getPointerPosition();
+    
+    if (!pointer) return;
+    
+    const mousePointTo = {
+      x: (pointer.x - stagePos.x) / oldScale,
+      y: (pointer.y - stagePos.y) / oldScale,
+    };
+    
+    const direction = e.evt.deltaY > 0 ? -1 : 1;
+    let newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+    
+    // 限制缩放范围
+    newScale = Math.max(0.5, Math.min(3, newScale));
+    
+    const newPos = {
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    };
+    
+    setStageScale(newScale);
+    setStagePos(newPos);
+  }, [stageScale, stagePos]);
+
+  // 重置缩放
+  const resetZoom = useCallback(() => {
+    setStageScale(1);
+    setStagePos({ x: 0, y: 0 });
+  }, []);
 
   if (!gameState || !user) return null;
 
@@ -429,23 +558,58 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
       onContextMenu={(e) => e.preventDefault()}
       onClick={() => { setContextMenu(null); setShowReminderMenu(false); }}
     >
-      {/* Mobile Lock Button & Hint */}
+      {/* Mobile Lock Button & Zoom Controls */}
       <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
-        <button
-          onClick={() => setIsLocked(!isLocked)}
-          className={`p-2 rounded-full shadow-lg transition-colors ${isLocked ? 'bg-red-600 text-white' : 'bg-stone-800/80 text-stone-400 hover:bg-stone-700'}`}
-          title={isLocked ? "解锁交互 (Unlock)" : "锁定交互 (Lock)"}
-        >
-          {isLocked ? '🔒' : '🔓'}
-        </button>
-        {user.isStoryteller && !isLocked && (
+        <div className="flex gap-2">
+          {/* Zoom Reset Button */}
+          {stageScale !== 1 && (
+            <button
+              onClick={resetZoom}
+              className="p-2 rounded-full shadow-lg bg-stone-800/80 text-stone-400 hover:bg-stone-700 transition-colors"
+              title="重置缩放"
+            >
+              🔄
+            </button>
+          )}
+          <button
+            onClick={() => setIsLocked(!isLocked)}
+            className={`p-2 rounded-full shadow-lg transition-colors ${isLocked ? 'bg-red-600 text-white' : 'bg-stone-800/80 text-stone-400 hover:bg-stone-700'}`}
+            title={isLocked ? "解锁交互 (Unlock)" : "锁定交互 (Lock)"}
+          >
+            {isLocked ? '🔒' : '🔓'}
+          </button>
+        </div>
+        {/* Zoom indicator */}
+        {stageScale !== 1 && (
+          <div className="text-[10px] text-amber-400 bg-stone-900/80 px-2 py-1 rounded">
+            {Math.round(stageScale * 100)}%
+          </div>
+        )}
+        {user.isStoryteller && !isLocked && stageScale === 1 && (
           <div className="text-[10px] text-stone-500 bg-stone-900/80 px-2 py-1 rounded text-right hidden sm:block">
-            💡 长按玩家打开菜单
+            💡 长按玩家打开菜单 / 双指缩放
           </div>
         )}
       </div>
 
-      <Stage width={width} height={height} listening={!isLocked}>
+      <Stage 
+        ref={stageRef}
+        width={width} 
+        height={height} 
+        listening={!isLocked}
+        scaleX={stageScale}
+        scaleY={stageScale}
+        x={stagePos.x}
+        y={stagePos.y}
+        draggable={stageScale > 1}
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onDragEnd={(e) => {
+          setStagePos({ x: e.target.x(), y: e.target.y() });
+        }}
+      >
         <Layer>
           {/* Center Circle / Decor */}
           <Circle

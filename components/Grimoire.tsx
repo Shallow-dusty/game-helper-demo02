@@ -605,6 +605,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   return (
     <div
       className="relative w-full h-full"
+      style={{ touchAction: 'none' }}
       onContextMenu={(e) => e.preventDefault()}
       onClick={() => { setContextMenu(null); setShowReminderMenu(false); }}
     >

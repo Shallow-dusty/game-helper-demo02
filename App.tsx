@@ -97,12 +97,12 @@ const App = () => {
   const isNight = gameState?.phase === 'NIGHT';
 
   return (
-    <div className="flex flex-col md:flex-row h-[100dvh] w-screen bg-stone-950 overflow-y-auto md:overflow-hidden relative font-serif pt-16">
+    <div className="flex flex-col h-[100dvh] w-screen bg-stone-950 overflow-hidden relative font-serif">
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
-      {/* Phase Indicator */}
+      {/* Phase Indicator - Now part of flex layout */}
       <PhaseIndicator />
 
       {/* Waiting Area Overlay */}
@@ -111,43 +111,59 @@ const App = () => {
       {/* Audio Manager */}
       <AudioManager />
 
-      {/* --- Atmosphere Overlays --- */}
+      {/* --- Atmosphere Overlays (Background) --- */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.05] z-0 bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')]"></div>
       <div
         className={`absolute inset-0 z-0 pointer-events-none transition-all duration-[2000ms] ease-in-out ${isNight ? 'bg-blue-950/60 mix-blend-multiply backdrop-brightness-[0.4] backdrop-blur-[1px]' : 'bg-transparent backdrop-brightness-100'}`}
       ></div>
       <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.7)_100%)]"></div>
 
-      {/* Main Game Area (Grimoire) */}
-      <div className="flex-1 relative flex items-center justify-center min-h-0 min-w-0 overflow-hidden z-10" ref={containerRef}>
-        {dimensions.width > 0 && dimensions.height > 0 ? (
-          <Grimoire width={dimensions.width} height={dimensions.height} />
-        ) : (
-          /* Loading state - 移动端创建房间后的临时加载状态 */
-          <div className="flex flex-col items-center justify-center gap-4 text-stone-500">
-            <div className="w-12 h-12 border-4 border-stone-700 border-t-amber-500 rounded-full animate-spin"></div>
-            <span className="text-sm font-cinzel">正在加载魔典...</span>
-          </div>
-        )}
+      {/* Main Content Area: Grimoire + Sidebar */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
+        
+        {/* Main Game Area (Grimoire) */}
+        <div className="flex-1 relative flex items-center justify-center min-h-0 min-w-0 overflow-hidden" ref={containerRef}>
+          {dimensions.width > 0 && dimensions.height > 0 ? (
+            <Grimoire width={dimensions.width} height={dimensions.height} />
+          ) : (
+            /* Loading state */
+            <div className="flex flex-col items-center justify-center gap-4 text-stone-500">
+              <div className="w-12 h-12 border-4 border-stone-700 border-t-amber-500 rounded-full animate-spin"></div>
+              <span className="text-sm font-cinzel">正在加载魔典...</span>
+            </div>
+          )}
 
-        {/* Floating Helper Text */}
-        <div className="absolute bottom-6 left-6 z-0 text-stone-500 text-xs select-none pointer-events-none transition-opacity duration-500 font-cinzel opacity-60 md:opacity-40">
-          {user.isStoryteller ? 'Right Click: Manage • Scroll: Zoom (Beta)' : 'Wait for the Storyteller...'}
+          {/* Floating Helper Text */}
+          <div className="absolute bottom-6 left-6 z-0 text-stone-500 text-xs select-none pointer-events-none transition-opacity duration-500 font-cinzel opacity-60 md:opacity-40">
+            {user.isStoryteller ? 'Right Click: Manage • Scroll: Zoom (Beta)' : 'Wait for the Storyteller...'}
+          </div>
+
+          {/* Audio Unblock Button */}
+          {isAudioBlocked && gameState?.audio.isPlaying && (
+            <button
+              onClick={handleManualAudioStart}
+              className="absolute top-6 left-6 z-50 bg-amber-600/90 hover:bg-amber-500 text-white px-4 py-2 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-2 animate-pulse font-bold text-sm"
+            >
+              <span>🔊</span> 启用音效 (Enable Audio)
+            </button>
+          )}
         </div>
 
-        {/* Mobile Menu Toggle - 移到容器外部确保始终可见 */}
-        {/* Audio Unblock Button (Only shows if browser blocked autoplay) */}
-        {isAudioBlocked && gameState?.audio.isPlaying && (
-          <button
-            onClick={handleManualAudioStart}
-            className="absolute top-6 left-6 z-50 bg-amber-600/90 hover:bg-amber-500 text-white px-4 py-2 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-2 animate-pulse font-bold text-sm"
-          >
-            <span>🔊</span> 启用音效 (Enable Audio)
-          </button>
-        )}
+        {/* Sidebar Controls */}
+        <div
+          className={`
+              fixed md:relative inset-y-0 right-0 z-40
+              w-80 max-w-[85vw] md:w-80 md:flex-shrink-0
+              bg-stone-950 shadow-2xl
+              transform transition-transform duration-300 ease-out
+              ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+          `}
+        >
+          <Controls onClose={() => setIsMobileMenuOpen(false)} />
+        </div>
       </div>
       
-      {/* Mobile Menu Toggle - 移到主容器外部，确保在加载时也可见 */}
+      {/* Mobile Menu Toggle */}
       {!isMobileMenuOpen && (
         <button
           onClick={() => setIsMobileMenuOpen(true)}
@@ -157,19 +173,6 @@ const App = () => {
           <span className="text-xl">☰</span>
         </button>
       )}
-
-      {/* Sidebar Controls */}
-      <div
-        className={`
-            fixed md:relative inset-y-0 right-0 z-40
-            w-80 max-w-[85vw] md:w-80 md:flex-shrink-0
-            bg-stone-950 shadow-2xl
-            transform transition-transform duration-300 ease-out
-            ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
-        `}
-      >
-        <Controls onClose={() => setIsMobileMenuOpen(false)} />
-      </div>
 
       {/* Mobile Backdrop */}
       {isMobileMenuOpen && (

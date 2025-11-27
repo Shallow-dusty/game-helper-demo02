@@ -112,7 +112,7 @@ export const PhaseIndicator: React.FC = () => {
     const connDisplay = getConnectionDisplay();
 
     return (
-        <div className={`fixed top-0 left-0 right-0 z-30 ${bgColor} backdrop-blur-sm border-b border-stone-700 shadow-lg`}>
+        <div className={`w-full z-30 ${bgColor} backdrop-blur-sm border-b border-stone-700 shadow-lg flex-shrink-0`}>
             <div className="container mx-auto px-4 py-2 flex items-center justify-between">
                 {/* Left: Connection Status */}
                 <div className="flex items-center gap-2 min-w-[70px]">

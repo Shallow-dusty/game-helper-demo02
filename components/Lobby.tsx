@@ -69,17 +69,17 @@ export const Lobby = () => {
 
     return (
         <div
-            className="min-h-screen w-full relative font-serif text-stone-200 overflow-y-auto overflow-x-hidden"
+            className="absolute inset-0 font-serif text-stone-200 overflow-y-scroll overflow-x-hidden -webkit-overflow-scrolling-touch"
             onClick={handleInteraction} // Capture first click for audio
         >
             {/* Background Image with Overlay */}
             <div
-                className="fixed inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center filter brightness-50 sepia-[.3]"
+                className="fixed inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center filter brightness-50 sepia-[.3] pointer-events-none"
             ></div>
-            <div className="fixed inset-0 z-0 bg-gradient-to-t from-black via-transparent to-black opacity-80"></div>
+            <div className="fixed inset-0 z-0 bg-gradient-to-t from-black via-transparent to-black opacity-80 pointer-events-none"></div>
 
-            {/* Scrollable Content Container - 不使用 flex 居中，改用 padding */}
-            <div className="relative z-10 w-full max-w-lg mx-auto px-4 py-12 md:py-20">
+            {/* Content */}
+            <div className="relative z-10 w-full max-w-lg mx-auto px-4 py-12">
                 {/* Title Section */}
                 <div className="text-center mb-10 relative">
                     <h1 className="text-6xl md:text-7xl font-black text-red-800 tracking-widest drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] font-cinzel" style={{ textShadow: "0 0 20px #500" }}>
@@ -137,7 +137,7 @@ export const Lobby = () => {
                     </form>
                 </div>
 
-                <p className="text-center text-stone-600 text-xs mt-8 font-serif italic pb-8">
+                <p className="text-center text-stone-600 text-xs mt-8 font-serif italic pb-16">
                     "恶魔就在我们中间..."
                 </p>
             </div>

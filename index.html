@@ -25,7 +25,16 @@
       color: #e5e5e5;
       font-family: 'Crimson Text', serif;
       /* Main body font */
-      overflow: hidden;
+      /* overflow: hidden; - 移除，改在需要的组件上单独设置 */
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    
+    /* 仅在游戏主界面阻止滚动 */
+    html, body, #root {
+      height: 100%;
+      margin: 0;
+      padding: 0;
     }
 
     h1,

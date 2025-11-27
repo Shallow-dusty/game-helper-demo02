@@ -64,16 +64,16 @@ export const RoomSelection = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-stone-950 font-serif relative overflow-y-auto overflow-x-hidden">
-      {/* Background Ambience */}
-      <div className="fixed inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-20 pointer-events-none"></div>
-      <div className="fixed inset-0 bg-gradient-to-b from-black/80 via-stone-900/50 to-black/80 pointer-events-none"></div>
+    <div className="absolute inset-0 bg-stone-950 font-serif overflow-y-scroll overflow-x-hidden -webkit-overflow-scrolling-touch">
+      {/* Background Ambience - 使用 absolute 而非 fixed */}
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-20 pointer-events-none" style={{position: 'fixed'}}></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-stone-900/50 to-black/80 pointer-events-none" style={{position: 'fixed'}}></div>
 
-      {/* Scrollable Content - 使用 py 代替 flex 居中，确保可以滚动 */}
-      <div className="relative z-10 w-full max-w-4xl mx-auto px-4 py-8 md:py-12">
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-4xl mx-auto px-4 py-8">
 
         {/* Header */}
-        <div className="text-center mb-8 md:mb-12">
+        <div className="text-center mb-8">
           <h2 className="text-stone-500 font-cinzel text-sm tracking-[0.3em] uppercase mb-2">Welcome, {user?.name}</h2>
           <h1 className="text-4xl md:text-5xl font-bold text-stone-200 font-cinzel text-shadow-lg">
             选择你的命运
@@ -181,7 +181,7 @@ export const RoomSelection = () => {
 
         <button
           onClick={leaveGame}
-          className="mt-8 md:mt-12 mx-auto block text-stone-600 hover:text-stone-400 text-sm font-cinzel tracking-widest transition-colors pb-8"
+          className="mt-8 mx-auto block text-stone-600 hover:text-stone-400 text-sm font-cinzel tracking-widest transition-colors pb-16"
         >
           ← 返回登录 (Back to Login)
         </button>

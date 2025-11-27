@@ -25,10 +25,10 @@ export const RoomSelection = () => {
   };
 
   return (
-    <div className="h-[100dvh] w-full bg-stone-950 flex items-center justify-center p-4 font-serif relative overflow-y-auto">
+    <div className="min-h-[100dvh] w-full bg-stone-950 flex items-center justify-center p-4 py-8 font-serif relative overflow-y-auto">
       {/* Background Ambience */}
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-20"></div>
-      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-stone-900/50 to-black/80 pointer-events-none"></div>
+      <div className="fixed inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-20"></div>
+      <div className="fixed inset-0 bg-gradient-to-b from-black/80 via-stone-900/50 to-black/80 pointer-events-none"></div>
 
       <div className="relative z-10 w-full max-w-4xl">
 

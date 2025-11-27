@@ -461,12 +461,15 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 >
                     💬 聊天
                 </button>
-                <button
-                    onClick={() => setActiveTab('ai')}
-                    className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'ai' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
-                >
-                    🤖 助手
-                </button>
+                {/* AI 助手仅对说书人显示 */}
+                {user.isStoryteller && (
+                    <button
+                        onClick={() => setActiveTab('ai')}
+                        className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'ai' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                    >
+                        🤖 助手
+                    </button>
+                )}
                 <button
                     onClick={() => setActiveTab('notebook')}
                     className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'notebook' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
@@ -743,16 +746,30 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
                                     {/* Player Controls */}
                                     {gameState.phase === 'NIGHT' && (
-                                        <div className="p-6 bg-black/60 rounded border border-indigo-900/50 text-center animate-pulse shadow-[0_0_30px_rgba(30,27,75,0.5)] backdrop-blur-sm">
+                                        <div className="p-6 bg-black/60 rounded border border-indigo-900/50 text-center shadow-[0_0_30px_rgba(30,27,75,0.5)] backdrop-blur-sm">
                                             <div className="text-4xl mb-4 opacity-80">🌙</div>
                                             <h3 className="text-indigo-200 font-bold font-cinzel text-xl tracking-widest">夜幕降临</h3>
                                             <p className="text-xs text-indigo-400 mt-2 font-serif italic">只有被叫到名字时才醒来。</p>
+                                            
+                                            {/* 当前是你的回合 - 始终显示按钮 */}
                                             {currentSeat?.roleId === gameState.nightQueue[gameState.nightCurrentIndex] && (
                                                 <button
                                                     onClick={() => setShowNightAction(true)}
-                                                    className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold animate-bounce shadow-lg"
+                                                    className="mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold shadow-lg animate-pulse border-2 border-indigo-400"
                                                 >
-                                                    执行行动
+                                                    🌙 执行夜间行动
+                                                </button>
+                                            )}
+                                            
+                                            {/* 即使不是当前回合，但有夜间技能的角色也可以查看 */}
+                                            {currentSeat?.roleId && 
+                                             ROLES[currentSeat.roleId]?.nightAction && 
+                                             currentSeat.roleId !== gameState.nightQueue[gameState.nightCurrentIndex] && (
+                                                <button
+                                                    onClick={() => setShowNightAction(true)}
+                                                    className="mt-4 px-4 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded text-sm border border-stone-600"
+                                                >
+                                                    查看我的夜间行动
                                                 </button>
                                             )}
                                         </div>
@@ -860,10 +877,20 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                 <select
                                     value={aiProvider}
                                     onChange={(e) => setAiProvider(e.target.value as any)}
-                                    className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded"
+                                    className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1"
                                 >
-                                    <option value="gemini">Gemini</option>
-                                    <option value="openai">OpenAI</option>
+                                    <optgroup label="官方 API">
+                                        <option value="deepseek">DeepSeek V3 (官方)</option>
+                                        <option value="kimi">Kimi K2 (官方)</option>
+                                    </optgroup>
+                                    <optgroup label="SiliconFlow 代理">
+                                        <option value="sf_r1">🧠 DeepSeek R1 (完整)</option>
+                                        <option value="sf_r1_llama_70b">🦙 R1 Distill Llama 70B</option>
+                                        <option value="sf_r1_qwen_32b">R1 Distill Qwen 32B</option>
+                                        <option value="sf_r1_qwen_7b_pro">R1 Qwen 7B Pro</option>
+                                        <option value="sf_minimax_m2">Minimax M2</option>
+                                        <option value="sf_kimi_k2_thinking">Kimi K2 Thinking</option>
+                                    </optgroup>
                                 </select>
                             </div>
                         )}

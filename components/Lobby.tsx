@@ -53,16 +53,16 @@ export const Lobby = () => {
 
     return (
         <div
-            className="h-[100dvh] flex items-center justify-center relative overflow-y-auto font-serif text-stone-200"
+            className="min-h-[100dvh] flex items-center justify-center relative overflow-y-auto font-serif text-stone-200 py-8"
             onClick={handleInteraction} // Capture first click for audio
         >
             {/* Background Image with Overlay */}
             <div
-                className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center filter brightness-50 sepia-[.3]"
+                className="fixed inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center filter brightness-50 sepia-[.3]"
             ></div>
-            <div className="absolute inset-0 z-0 bg-gradient-to-t from-black via-transparent to-black opacity-80"></div>
+            <div className="fixed inset-0 z-0 bg-gradient-to-t from-black via-transparent to-black opacity-80"></div>
 
-            <div className="relative z-10 w-full max-w-lg p-1">
+            <div className="relative z-10 w-full max-w-lg px-4">
                 {/* Title Section */}
                 <div className="text-center mb-10 relative">
                     <h1 className="text-6xl md:text-7xl font-black text-red-800 tracking-widest drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] font-cinzel" style={{ textShadow: "0 0 20px #500" }}>

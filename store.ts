@@ -360,6 +360,16 @@ export const useStore = create<AppState>((set, get) => ({
         }
         const newUser: User = { id, name, isStoryteller, roomId: null };
         set({ user: newUser });
+        
+        // 尝试自动重连：检查 localStorage 中的上次房间
+        const lastRoomCode = localStorage.getItem('grimoire_last_room');
+        if (lastRoomCode) {
+            console.log('🔄 检测到上次房间，尝试自动重连:', lastRoomCode);
+            // 延迟执行，确保 user 状态已设置
+            setTimeout(() => {
+                get().joinGame(lastRoomCode);
+            }, 100);
+        }
     },
 
     createGame: async (seatCount) => {
@@ -377,6 +387,9 @@ export const useStore = create<AppState>((set, get) => ({
         // Set local state immediately
         set({ user: updatedUser, gameState: newState, isOffline: false });
         addSystemMessage(newState, `${user.name} 创建了房间 ${code}`);
+        
+        // 保存房间号用于断线重连
+        localStorage.setItem('grimoire_last_room', code);
 
         try {
             // 2. Insert into Supabase
@@ -469,6 +482,9 @@ export const useStore = create<AppState>((set, get) => ({
 
             const updatedUser = { ...user, roomId: roomCode };
             set({ user: updatedUser, gameState: gameState, isOffline: false });
+            
+            // 保存房间号用于断线重连
+            localStorage.setItem('grimoire_last_room', roomCode);
 
             // 3. Announce Join
             setTimeout(() => {
@@ -499,6 +515,9 @@ export const useStore = create<AppState>((set, get) => ({
             addSystemMessage(state, `${user.name} 离开了房间。`);
             get().syncToCloud();
         }
+
+        // 清除断线重连信息
+        localStorage.removeItem('grimoire_last_room');
 
         if (realtimeChannel) {
             supabase.removeChannel(realtimeChannel);
@@ -570,20 +589,17 @@ export const useStore = create<AppState>((set, get) => ({
 
             if (error) {
                 console.error('claim_seat RPC error:', error);
-                // 降级到本地处理
-                seat.userId = user.id;
-                seat.userName = user.name;
-                seat.isVirtual = false;
-                addSystemMessage(gameState, `${user.name} 就坐于座位 ${seatId + 1}。`);
-                set({ gameState: { ...gameState } });
-                get().syncToCloud();
+                // 不降级，仅提示错误
+                getToastFunctions().then(({ showWarning }) => {
+                    showWarning?.('网络错误，请重试');
+                });
                 return;
             }
 
             if (data && !data.success) {
                 // RPC 返回失败（座位已被占用）
                 getToastFunctions().then(({ showWarning }) => {
-                    showWarning?.(data.error || '占座失败');
+                    showWarning?.(data.error || '座位已被占用');
                 });
                 return;
             }
@@ -601,13 +617,10 @@ export const useStore = create<AppState>((set, get) => ({
             
         } catch (err) {
             console.error('claim_seat error:', err);
-            // 降级到本地处理
-            seat.userId = user.id;
-            seat.userName = user.name;
-            seat.isVirtual = false;
-            addSystemMessage(gameState, `${user.name} 就坐于座位 ${seatId + 1}。`);
-            set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            // 不降级，仅提示错误
+            getToastFunctions().then(({ showWarning }) => {
+                showWarning?.('网络错误，请稍后重试');
+            });
         }
     },
 

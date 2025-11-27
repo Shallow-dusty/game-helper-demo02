@@ -93,13 +93,19 @@ export const NightActionManager: React.FC = () => {
                     const role = ROLES[request.roleId];
                     const isExpanded = expandedRequest === request.id;
                     const roleQuickReplies = quickReplies[request.roleId] || quickReplies.default;
+                    
+                    // 检测是否是假角色（酒鬼/疯子）：真实角色与显示角色不同
+                    const realRoleId = seat?.realRoleId;
+                    const seenRoleId = seat?.seenRoleId || seat?.roleId;
+                    const isFakeRole = realRoleId && seenRoleId && realRoleId !== seenRoleId;
+                    const realRole = realRoleId ? ROLES[realRoleId] : null;
 
                     return (
                         <div
                             key={request.id}
                             className={`bg-stone-900/80 border rounded-lg transition-all ${
                                 isExpanded ? 'border-indigo-500' : 'border-stone-700'
-                            }`}
+                            } ${isFakeRole ? 'ring-1 ring-amber-500/50' : ''}`}
                         >
                             {/* 请求摘要 */}
                             <div
@@ -109,17 +115,24 @@ export const NightActionManager: React.FC = () => {
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{role?.icon || '❓'}</span>
                                     <div>
-                                        <div className="font-bold text-stone-200">
+                                        <div className="font-bold text-stone-200 flex items-center gap-2">
                                             {seat?.userName} ({role?.name || request.roleId})
+                                            {/* 酒鬼/疯子标记 */}
+                                            {isFakeRole && (
+                                                <span className="text-xs bg-amber-900/50 text-amber-300 px-1.5 py-0.5 rounded border border-amber-700" title={`真实角色: ${realRole?.name}`}>
+                                                    🍷 {realRole?.name === 'drunk' ? '酒鬼' : '伪装'}
+                                                </span>
+                                            )}
                                         </div>
                                         <div className="text-xs text-stone-500">
                                             目标: {getTargetDescription(request)}
+                                            {isFakeRole && <span className="ml-2 text-amber-500">(实际: {realRole?.name})</span>}
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-amber-500 bg-amber-900/30 px-2 py-1 rounded">
-                                        待回复
+                                    <span className={`text-xs px-2 py-1 rounded ${isFakeRole ? 'text-amber-400 bg-amber-900/40' : 'text-amber-500 bg-amber-900/30'}`}>
+                                        {isFakeRole ? '🍷 假行动' : '待回复'}
                                     </span>
                                     <span className="text-stone-500">{isExpanded ? '▲' : '▼'}</span>
                                 </div>
@@ -128,6 +141,13 @@ export const NightActionManager: React.FC = () => {
                             {/* 展开的回复区域 */}
                             {isExpanded && (
                                 <div className="p-3 pt-0 border-t border-stone-700/50">
+                                    {/* 酒鬼提示 */}
+                                    {isFakeRole && (
+                                        <div className="mb-2 p-2 bg-amber-950/30 border border-amber-800/50 rounded text-xs text-amber-300">
+                                            ⚠️ 此玩家的真实角色是 <strong>{realRole?.name}</strong>，但他以为自己是 {role?.name}。
+                                            他的行动<strong>不会生效</strong>，但你可以选择告诉他虚假信息。
+                                        </div>
+                                    )}
                                     {/* 快捷回复 */}
                                     <div className="flex flex-wrap gap-1 mb-2">
                                         {roleQuickReplies.map((reply, idx) => (

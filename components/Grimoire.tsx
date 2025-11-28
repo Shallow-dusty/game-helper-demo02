@@ -2,8 +2,8 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Stage, Layer, Circle, Text, Group, Rect, Ring } from 'react-konva';
 import { useStore } from '../store';
-import { ROLES, TEAM_COLORS, PHASE_LABELS, SCRIPTS, STATUS_OPTIONS, STATUS_ICONS, PRESET_REMINDERS } from '../constants';
-import { Seat, Team, SeatStatus } from '../types';
+import { ROLES, TEAM_COLORS, PHASE_LABELS, SCRIPTS, STATUS_OPTIONS, STATUS_ICONS, PRESET_REMINDERS, Z_INDEX } from '../constants';
+import { Seat, SeatStatus } from '../types';
 import Konva from 'konva';
 import { showWarning } from './Toast';
 
@@ -388,7 +388,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   // 处理多指触摸开始
   const handleTouchStart = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
     const touch = e.evt.touches;
-    if (touch.length === 2) {
+    if (touch.length === 2 && touch[0] && touch[1]) {
       // 双指触摸 - 开始缩放
       isPinching.current = true;
       updateGestureState();
@@ -407,7 +407,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
     const touch = e.evt.touches;
     const stage = stageRef.current;
     
-    if (touch.length === 2 && stage && lastCenter.current) {
+    if (touch.length === 2 && stage && lastCenter.current && touch[0] && touch[1]) {
       e.evt.preventDefault();
       
       const p1 = { x: touch[0].clientX, y: touch[0].clientY };
@@ -609,7 +609,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
 
   currentScriptRoles.forEach(roleId => {
     const role = ROLES[roleId];
-    if (role && rolesByTeam[role.team]) {
+    if (role?.team && role.team in rolesByTeam) {
       rolesByTeam[role.team].push(role);
     }
   });
@@ -937,16 +937,16 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
             <div className="flex justify-between items-center mb-6 border-b border-stone-800 pb-4">
               <h3 className="text-2xl text-stone-200 font-cinzel tracking-widest">
                 <span className="text-red-800 mr-2">✦</span>
-                分配角色 ({SCRIPTS[gameState.currentScriptId].name})
+                分配角色 ({SCRIPTS[gameState.currentScriptId]?.name || '未选择剧本'})
               </h3>
               <button onClick={() => setRoleSelectSeat(null)} className="text-stone-500 hover:text-stone-200 text-2xl">×</button>
             </div>
 
             <div className="space-y-6">
-              {renderRoleSection('TOWNSFOLK', '村民', rolesByTeam.TOWNSFOLK)}
-              {renderRoleSection('OUTSIDER', '外来者', rolesByTeam.OUTSIDER)}
-              {renderRoleSection('MINION', '爪牙', rolesByTeam.MINION)}
-              {renderRoleSection('DEMON', '恶魔', rolesByTeam.DEMON)}
+              {renderRoleSection('TOWNSFOLK', '村民', rolesByTeam.TOWNSFOLK || [])}
+              {renderRoleSection('OUTSIDER', '外来者', rolesByTeam.OUTSIDER || [])}
+              {renderRoleSection('MINION', '爪牙', rolesByTeam.MINION || [])}
+              {renderRoleSection('DEMON', '恶魔', rolesByTeam.DEMON || [])}
             </div>
 
             <div className="mt-8 flex justify-end gap-4">

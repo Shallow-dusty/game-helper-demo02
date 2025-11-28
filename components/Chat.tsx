@@ -1,13 +1,13 @@
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { List, useDynamicRowHeight } from 'react-window';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { List } from 'react-window';
 import { useStore } from '../store';
 import { InfoCard } from './InfoCard';
-import { Message, Seat, User } from '../types';
+import { ChatMessage, Seat } from '../types';
 
 // 消息渲染组件 - 抽取为独立组件以便测量高度
 interface MessageItemProps {
-    msg: Message;
+    msg: ChatMessage;
     isMe: boolean;
     seats: Seat[];
     style?: React.CSSProperties;
@@ -157,8 +157,8 @@ export const Chat = () => {
     // 是否启用虚拟滚动
     const useVirtualScroll = filteredMessages.length > VIRTUAL_SCROLL_THRESHOLD;
 
-    // 动态行高 hook
-    const dynamicRowHeight = useDynamicRowHeight();
+    // 固定行高（简化实现）
+    const rowHeight = 80;
 
     // 监听容器高度变化
     useEffect(() => {
@@ -174,9 +174,13 @@ export const Chat = () => {
         return () => resizeObserver.disconnect();
     }, []);
 
-    // 虚拟列表行组件
+    // 虚拟列表行组件 - react-window v2 要求返回 ReactElement，不能返回 null
     const RowComponent = useCallback(({ index, style }: { index: number; style: React.CSSProperties }) => {
         const msg = filteredMessages[index];
+        if (!msg) {
+            // 返回空占位符而不是 null，满足 react-window v2 的类型要求
+            return <div style={style} />;
+        }
         const isMe = msg.senderId === user?.id;
         
         return (
@@ -189,12 +193,12 @@ export const Chat = () => {
         );
     }, [filteredMessages, user?.id, seats]);
 
-    // 滚动到底部 - 使用 ref
-    const listRef = useRef<{ scrollToItem: (index: number, align?: string) => void } | null>(null);
+    // 滚动到底部 - 使用 useListRef hook (react-window v2 API)
+    const listApiRef = useRef<{ scrollToRow: (params: { index: number; align?: 'auto' | 'center' | 'end' | 'smart' | 'start' }) => void } | null>(null);
     
     useEffect(() => {
-        if (useVirtualScroll && listRef.current) {
-            listRef.current.scrollToItem(filteredMessages.length - 1, 'end');
+        if (useVirtualScroll && listApiRef.current && filteredMessages.length > 0) {
+            listApiRef.current.scrollToRow({ index: filteredMessages.length - 1, align: 'end' });
         } else {
             endRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
@@ -227,15 +231,15 @@ export const Chat = () => {
 
                 {filteredMessages.length > 0 && useVirtualScroll ? (
                     // 虚拟滚动模式 - 大量消息时使用
-                    <List
-                        ref={listRef as any}
-                        height={listHeight}
-                        width="100%"
+                    // react-window v2 自动响应容器大小，只需要 defaultHeight
+                    <List<Record<string, never>>
+                        listRef={listApiRef as any}
+                        defaultHeight={listHeight}
                         rowCount={filteredMessages.length}
-                        rowHeight={dynamicRowHeight}
+                        rowHeight={rowHeight}
                         rowComponent={RowComponent}
-                        rowProps={{ seats, user }}
-                        className="scrollbar-thin"
+                        rowProps={{}}
+                        className="scrollbar-thin h-full w-full"
                     />
                 ) : (
                     // 普通滚动模式 - 少量消息时使用

@@ -468,10 +468,10 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) =>
       )}
 
       {/* --- Modals --- */}
-      {showCompositionGuide && createPortal(
+      {showCompositionGuide && gameState?.seats && createPortal(
         <ScriptCompositionGuide
           onClose={() => setShowCompositionGuide(false)}
-          playerCount={gameState.seats.filter(s => s.userId || s.isVirtual).length || gameState.seats.length}
+          playerCount={gameState.seats.filter(s => s.userId || s.isVirtual).length || gameState.seats.length || 7}
           onApplyStrategy={(strategy, roles) => {
             if (roles) {
               const allRoles = [

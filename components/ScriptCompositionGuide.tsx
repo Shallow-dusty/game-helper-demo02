@@ -281,6 +281,9 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
     const [selectedStrategy, setSelectedStrategy] = useState<CompositionStrategy | null>(null);
     const [generatedRoles, setGeneratedRoles] = useState<{ townsfolk: RoleDef[], outsider: RoleDef[], minion: RoleDef[], demon: RoleDef[] } | null>(null);
 
+    // 安全的玩家数量，确保始终有效
+    const safePlayerCount = (playerCount && playerCount >= 5 && playerCount <= 15) ? playerCount : 7;
+
     // 获取标准配比
     const getStandardComposition = (players: number) => {
         const rules: Record<number, { townsfolk: number; outsider: number; minion: number; demon: number }> = {
@@ -299,17 +302,18 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
         return rules[players] || rules[7];
     };
 
-    const composition = getStandardComposition(playerCount);
+    const composition = getStandardComposition(safePlayerCount);
 
     // 生成具体角色配置
     const generateRoles = (strategy: CompositionStrategy) => {
-        const tbRoles = SCRIPTS.tb?.roles;
-        if (!tbRoles || !composition) return;
-        
-        const townsfolkRoles = tbRoles.filter(id => ROLES[id]?.team === 'TOWNSFOLK');
-        const outsiderRoles = tbRoles.filter(id => ROLES[id]?.team === 'OUTSIDER');
-        const minionRoles = tbRoles.filter(id => ROLES[id]?.team === 'MINION');
-        const demonRoles = tbRoles.filter(id => ROLES[id]?.team === 'DEMON');
+        try {
+            const tbRoles = SCRIPTS.tb?.roles;
+            if (!tbRoles || !composition) return;
+            
+            const townsfolkRoles = tbRoles.filter(id => ROLES[id]?.team === 'TOWNSFOLK');
+            const outsiderRoles = tbRoles.filter(id => ROLES[id]?.team === 'OUTSIDER');
+            const minionRoles = tbRoles.filter(id => ROLES[id]?.team === 'MINION');
+            const demonRoles = tbRoles.filter(id => ROLES[id]?.team === 'DEMON');
 
         // 随机选择角色
         const shuffleArray = <T,>(array: T[]): T[] => [...array].sort(() => Math.random() - 0.5);
@@ -380,12 +384,15 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
             .slice(0, composition.demon)
             .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
 
-        setGeneratedRoles({
-            townsfolk: selectedTownsfolk,
-            outsider: selectedOutsider,
-            minion: selectedMinion,
-            demon: selectedDemon
-        });
+            setGeneratedRoles({
+                townsfolk: selectedTownsfolk,
+                outsider: selectedOutsider,
+                minion: selectedMinion,
+                demon: selectedDemon
+            });
+        } catch (error) {
+            console.error('generateRoles error:', error);
+        }
     };
 
     const handleApply = () => {
@@ -402,7 +409,7 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
                 <div className="p-4 border-b border-stone-800 bg-stone-950 flex justify-between items-center">
                     <div>
                         <h3 className="text-xl font-bold text-stone-200 font-cinzel">📊 板子参考 Script Composition Guide</h3>
-                        <p className="text-xs text-stone-500 mt-1">当前人数: {playerCount}人 | 标准配比: {composition?.townsfolk || 0}镇民+{composition?.outsider || 0}外来者+{composition?.minion || 0}爪牙+{composition?.demon || 0}恶魔</p>
+                        <p className="text-xs text-stone-500 mt-1">当前人数: {safePlayerCount}人 | 标准配比: {composition?.townsfolk || 0}镇民+{composition?.outsider || 0}外来者+{composition?.minion || 0}爪牙+{composition?.demon || 0}恶魔</p>
                     </div>
                     <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl">✕</button>
                 </div>

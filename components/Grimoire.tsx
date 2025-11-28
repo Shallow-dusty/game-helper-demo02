@@ -5,6 +5,7 @@ import { useStore } from '../store';
 import { ROLES, TEAM_COLORS, PHASE_LABELS, SCRIPTS, STATUS_OPTIONS, STATUS_ICONS, PRESET_REMINDERS } from '../constants';
 import { Seat, Team, SeatStatus } from '../types';
 import Konva from 'konva';
+import { showWarning } from './Toast';
 
 interface GrimoireProps {
   width: number;
@@ -36,15 +37,17 @@ interface SeatNodeProps {
   scale: number;
   onClick: (e: any) => void;
   onLongPress: (e: any) => void;
+  disableInteractions?: boolean;
 }
 
 // Long press hook for mobile support
-const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, delay = 500) => {
+const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, delay = 500, disabled = false) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
 
   const start = useCallback((e: any) => {
+    if (disabled) return;
     // Prevent long press if multiple touches (e.g. pinch zoom)
     if (e.evt?.touches && e.evt.touches.length > 1) return;
 
@@ -54,7 +57,7 @@ const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, 
       isLongPressRef.current = true;
       onLongPress(e);
     }, delay);
-  }, [onLongPress, delay]);
+  }, [onLongPress, delay, disabled]);
 
   const clear = useCallback((e: any, shouldClick = false) => {
     if (timerRef.current) {
@@ -77,6 +80,13 @@ const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, 
     }
   }, [clear]);
 
+  useEffect(() => {
+    if (disabled && timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, [disabled]);
+
   return {
     onTouchStart: start,
     onTouchEnd: (e: any) => clear(e, true),
@@ -87,12 +97,12 @@ const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, 
   };
 };
 
-const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress }) => {
+const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress, disableInteractions = false }) => {
   const x = cx + radius * Math.cos(angle);
   const y = cy + radius * Math.sin(angle);
   const [isHovered, setIsHovered] = React.useState(false);
   
-  const longPressHandlers = useLongPress(onLongPress, onClick);
+  const longPressHandlers = useLongPress(onLongPress, onClick, 500, disableInteractions);
 
   // --- PRIVACY LOGIC ---
   // Determine which role ID to display
@@ -367,6 +377,12 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const lastCenter = useRef<{ x: number; y: number } | null>(null);
   const lastDist = useRef<number>(0);
   const isPinching = useRef(false);
+  const draggingRef = useRef(false);
+  const [isGestureActive, setIsGestureActive] = useState(false);
+
+  const updateGestureState = useCallback(() => {
+    setIsGestureActive(isPinching.current || draggingRef.current);
+  }, []);
 
   // 处理多指触摸开始
   const handleTouchStart = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
@@ -374,6 +390,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
     if (touch.length === 2) {
       // 双指触摸 - 开始缩放
       isPinching.current = true;
+      updateGestureState();
       e.evt.preventDefault();
       
       const p1 = { x: touch[0].clientX, y: touch[0].clientY };
@@ -382,7 +399,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
       lastCenter.current = getCenter(p1, p2);
       lastDist.current = getDistance(p1, p2);
     }
-  }, []);
+  }, [updateGestureState]);
 
   // 处理多指触摸移动
   const handleTouchMove = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
@@ -435,7 +452,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
     lastCenter.current = null;
     lastDist.current = 0;
     isPinching.current = false;
-  }, []);
+    updateGestureState();
+  }, [updateGestureState]);
 
   // 处理鼠标滚轮缩放（桌面端）
   const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
@@ -473,6 +491,9 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const resetZoom = useCallback(() => {
     setStageScale(1);
     setStagePos({ x: 0, y: 0 });
+    draggingRef.current = false;
+    isPinching.current = false;
+    setIsGestureActive(false);
   }, []);
 
   if (!gameState || !user) return null;
@@ -514,7 +535,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
 
   // Handle long press for mobile (opens context menu for ST)
   const handleLongPress = useCallback((e: any, seat: Seat) => {
-    if (isLocked) return;
+    if (isLocked || isGestureActive) return;
     if (!user.isStoryteller) return;
     
     e.cancelBubble = true;
@@ -536,11 +557,16 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
     if (x < 20) x = 20;
 
     setContextMenu({ x, y, seatId: seat.id });
-  }, [isLocked, user.isStoryteller]);
+  }, [isLocked, isGestureActive, user.isStoryteller]);
 
   const handleSeatClick = (e: any, seat: Seat) => {
-    if (isLocked) return; // Double check logic
+    if (isLocked || isGestureActive) return; // Double check logic
     e.cancelBubble = true;
+
+    if (seat.isVirtual && !user.isStoryteller) {
+      showWarning('该座位为虚拟玩家占位，请等待说书人安排。');
+      return;
+    }
     
     // Right click for ST context menu (desktop)
     if (e.evt?.button === 2 && user.isStoryteller) {
@@ -662,13 +688,19 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
         scaleY={stageScale}
         x={stagePos.x}
         y={stagePos.y}
-        draggable={stageScale > 1}
+        draggable={!isLocked && stageScale > 1}
         onWheel={handleWheel}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onDragStart={() => {
+          draggingRef.current = true;
+          updateGestureState();
+        }}
         onDragEnd={(e) => {
           setStagePos({ x: e.target.x(), y: e.target.y() });
+          draggingRef.current = false;
+          updateGestureState();
         }}
       >
         <Layer>
@@ -711,6 +743,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
                 scale={baseScale}
                 onClick={(e: any) => handleSeatClick(e, seat)}
                 onLongPress={(e: any) => handleLongPress(e, seat)}
+                disableInteractions={isLocked || isGestureActive}
               />
             );
           })}

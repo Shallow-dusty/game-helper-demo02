@@ -29,9 +29,12 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
 
     // Calculate stats
     // votes 是投票者座位ID的数组 (number[])
+    const aliveSeats = seats.filter(s => (s.userId || s.isVirtual) && !s.isDead);
+    const activeSeatCount = aliveSeats.length;
     const totalVotes = latestVote.votes.length;
-    const requiredVotes = Math.ceil(seats.filter(s => !s.isDead).length / 2);
-    const isPassed = totalVotes >= requiredVotes;
+    const requiredVotes = activeSeatCount > 0 ? Math.floor(activeSeatCount / 2) + 1 : 0;
+    const isPassed = requiredVotes > 0 && totalVotes >= requiredVotes;
+    const progressBase = Math.max(activeSeatCount, 1);
 
     return (
         <div className="bg-stone-900/50 rounded border border-stone-800 p-3 mb-4">
@@ -54,12 +57,12 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
                 <div className="flex-1 bg-stone-950 h-2 rounded-full overflow-hidden relative">
                     <div
                         className={`h-full transition-all duration-500 ${isPassed ? 'bg-red-600' : 'bg-stone-600'}`}
-                        style={{ width: `${Math.min((totalVotes / seats.length) * 100, 100)}%` }}
+                        style={{ width: `${Math.min((totalVotes / progressBase) * 100, 100)}%` }}
                     />
                     {/* Marker for required votes */}
                     <div
                         className="absolute top-0 bottom-0 w-0.5 bg-white/50"
-                        style={{ left: `${(requiredVotes / seats.length) * 100}%` }}
+                        style={{ left: `${(requiredVotes / progressBase) * 100}%` }}
                         title={`所需票数: ${requiredVotes}`}
                     />
                 </div>

@@ -1077,35 +1077,43 @@ export const useStore = create<AppState>((set, get) => ({
         get().syncToCloud();
     },
 
-    addSeat: () => {
-        const { gameState } = get();
-        if (!gameState) return;
-        // 限制最大座位数为 20
-        if (gameState.seats.length >= 20) {
-            getToastFunctions().then(({ showWarning }) => showWarning("座位数已达上限 (20)！"));
-            return;
-        }
-        const newId = gameState.seats.length;
-        gameState.seats = [...gameState.seats, {
-            id: newId,
-            userId: null,
-            userName: `座位 ${newId + 1}`,
-            isDead: false,
-            hasGhostVote: true,
-            roleId: null,
-            realRoleId: null,
-            seenRoleId: null,
-            reminders: [],
-            isHandRaised: false,
-            isNominated: false,
-            hasUsedAbility: false,
-            statuses: [],
-            isVirtual: true, // Default to virtual/empty
-            voteLocked: false
-        }];
-        set({ gameState: { ...gameState } });
-        get().syncToCloud();
-    },
+    addSeat: (() => {
+        let isProcessing = false;
+        return () => {
+            if (isProcessing) return; // 防抖：防止快速重复点击
+            isProcessing = true;
+            setTimeout(() => { isProcessing = false; }, 300); // 300ms 防抖间隔
+
+            const { gameState } = get();
+            if (!gameState) return;
+            // 限制最大座位数为 20
+            if (gameState.seats.length >= 20) {
+                getToastFunctions().then(({ showWarning }) => showWarning("座位数已达上限 (20)！"));
+                return;
+            }
+            const newId = gameState.seats.length;
+            gameState.seats = [...gameState.seats, {
+                id: newId,
+                userId: null,
+                userName: `座位 ${newId + 1}`,
+                isDead: false,
+                hasGhostVote: true,
+                roleId: null,
+                realRoleId: null,
+                seenRoleId: null,
+                reminders: [],
+                isHandRaised: false,
+                isNominated: false,
+                hasUsedAbility: false,
+                statuses: [],
+                isVirtual: false, // 新增座位默认为空座位，不是虚拟玩家
+                voteLocked: false
+            }];
+            addSystemMessage(gameState, `添加了新座位 ${newId + 1}`);
+            set({ gameState: { ...gameState } });
+            get().syncToCloud();
+        };
+    })(),
 
     removeSeat: () => {
         const { gameState } = get();
@@ -1156,13 +1164,22 @@ export const useStore = create<AppState>((set, get) => ({
         get().syncToCloud();
     },
 
-    setAudioVolume: (vol) => {
-        const { gameState } = get();
-        if (!gameState) return;
-        gameState.audio.volume = vol;
-        set({ gameState: { ...gameState } });
-        get().syncToCloud();
-    },
+    setAudioVolume: (() => {
+        let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+        return (vol: number) => {
+            const { gameState } = get();
+            if (!gameState) return;
+            gameState.audio.volume = vol;
+            set({ gameState: { ...gameState } });
+            
+            // 防抖：延迟同步到云端，避免频繁同步
+            if (syncTimeout) clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(() => {
+                get().syncToCloud();
+                syncTimeout = null;
+            }, 500); // 500ms 防抖
+        };
+    })(),
 
     setAudioBlocked: (blocked) => {
         set({ isAudioBlocked: blocked });
@@ -1706,23 +1723,30 @@ export const useStore = create<AppState>((set, get) => ({
 
     // --- NEW ACTIONS IMPLEMENTATION ---
 
-    addVirtualPlayer: () => {
-        const { gameState } = get();
-        if (!gameState) return;
+    addVirtualPlayer: (() => {
+        let isProcessing = false;
+        return () => {
+            if (isProcessing) return; // 防抖：防止快速重复点击
+            isProcessing = true;
+            setTimeout(() => { isProcessing = false; }, 300); // 300ms 防抖间隔
 
-        // Find first empty seat
-        const emptySeat = gameState.seats.find(s => !s.userId && !s.isVirtual);
-        if (emptySeat) {
-            emptySeat.isVirtual = true;
-            emptySeat.userName = `虚拟玩家 ${emptySeat.id + 1}`;
-            emptySeat.voteLocked = false;
-            addSystemMessage(gameState, `说书人添加了虚拟玩家到座位 ${emptySeat.id + 1}`);
-            set({ gameState: { ...gameState } });
-            get().syncToCloud();
-        } else {
-            getToastFunctions().then(({ showWarning }) => showWarning("没有空座位了！"));
-        }
-    },
+            const { gameState } = get();
+            if (!gameState) return;
+
+            // Find first empty seat
+            const emptySeat = gameState.seats.find(s => !s.userId && !s.isVirtual);
+            if (emptySeat) {
+                emptySeat.isVirtual = true;
+                emptySeat.userName = `虚拟玩家 ${emptySeat.id + 1}`;
+                emptySeat.voteLocked = false;
+                addSystemMessage(gameState, `说书人添加了虚拟玩家到座位 ${emptySeat.id + 1}`);
+                set({ gameState: { ...gameState } });
+                get().syncToCloud();
+            } else {
+                getToastFunctions().then(({ showWarning }) => showWarning("没有空座位了！"));
+            }
+        };
+    })(),
 
     removeVirtualPlayer: (seatId: number) => {
         const { gameState } = get();

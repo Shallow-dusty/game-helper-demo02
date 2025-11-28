@@ -13,6 +13,7 @@ import { WaitingArea } from './components/WaitingArea';
 import { NotificationSystem } from './components/NotificationSystem';
 import { ToastContainer, useToasts } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { WelcomeAnnouncement } from './components/WelcomeAnnouncement';
 
 const getViewportMetrics = () => {
   if (typeof window === 'undefined') {
@@ -161,6 +162,9 @@ const App = () => {
         height: appHeight ? `${appHeight}px` : '100vh'
       }}
     >
+
+      {/* Welcome Announcement Modal */}
+      <WelcomeAnnouncement />
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />

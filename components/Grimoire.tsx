@@ -364,6 +364,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const assignRole = useStore(state => state.assignRole);
   const addReminder = useStore(state => state.addReminder);
   const removeReminder = useStore(state => state.removeReminder);
+  const removeVirtualPlayer = useStore(state => state.removeVirtualPlayer);
 
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, seatId: number } | null>(null);
   const [showReminderMenu, setShowReminderMenu] = useState(false);
@@ -830,6 +831,20 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
                   <div className="text-[10px] opacity-70">开始投票流程</div>
                 </div>
               </button>
+
+              {/* Remove Virtual Player - Only shown for virtual seats */}
+              {gameState.seats.find(s => s.id === contextMenu.seatId)?.isVirtual && (
+                <button
+                  onClick={() => { removeVirtualPlayer(contextMenu.seatId); setContextMenu(null); }}
+                  className="p-3 rounded border border-red-800/50 bg-red-950/30 hover:bg-red-900/50 text-red-300 flex items-center gap-3 transition-colors col-span-2"
+                >
+                  <span className="text-2xl">🗑️</span>
+                  <div className="text-left">
+                    <div className="font-bold text-sm">删除虚拟玩家</div>
+                    <div className="text-[10px] opacity-70">将此座位恢复为空座位</div>
+                  </div>
+                </button>
+              )}
             </div>
 
             {/* Status Section */}

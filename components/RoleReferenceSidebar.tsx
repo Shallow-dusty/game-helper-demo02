@@ -133,7 +133,7 @@ export const RoleReferenceSidebar: React.FC<RoleReferenceSidebarProps> = ({
             {/* Sidebar Panel */}
             <div 
                 className={`fixed right-0 top-0 h-screen w-[320px] bg-stone-900 border-l border-stone-700 shadow-2xl transform transition-transform duration-300 ${isExpanded ? 'translate-x-0' : 'translate-x-full'} flex flex-col font-serif`}
-                style={{ zIndex: Z_INDEX.overlay }}
+                style={{ zIndex: Z_INDEX.sidebar }}
             >
 
                 {/* Header */}

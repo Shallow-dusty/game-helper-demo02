@@ -758,7 +758,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
       {/* ST Context Menu (Now a Modal) */}
       {contextMenu && user.isStoryteller && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+          style={{ zIndex: Z_INDEX.modal }}
           onClick={() => setContextMenu(null)}
         >
           <div

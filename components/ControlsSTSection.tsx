@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { ROLES, AUDIO_TRACKS, SCRIPTS, PHASE_LABELS } from '../constants';
+import { ROLES, AUDIO_TRACKS, SCRIPTS } from '../constants';
 import { NightActionManager } from './NightActionManager';
 import { showError } from './Toast';
 
@@ -209,7 +209,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                                     {gameState.audio.isPlaying ? '🔊' : '🔇'}
                                 </span>
                                 <span className="text-stone-300 font-medium">
-                                    {AUDIO_TRACKS[gameState.audio.trackId].name}
+                                    {AUDIO_TRACKS[gameState.audio.trackId]?.name || '未知音轨'}
                                 </span>
                             </div>
                         </div>
@@ -279,7 +279,11 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
             </div>
 
             {/* Night Queue Manager */}
-            {gameState.phase === 'NIGHT' && (
+            {gameState.phase === 'NIGHT' && (() => {
+                const currentRoleId = gameState.nightCurrentIndex >= 0 ? gameState.nightQueue[gameState.nightCurrentIndex] : undefined;
+                const currentRole = currentRoleId ? ROLES[currentRoleId] : undefined;
+                
+                return (
                 <div className="bg-black/30 p-3 rounded border border-indigo-900/50 shadow-lg">
                     <div className="text-xs text-indigo-400/70 mb-2 flex justify-between uppercase tracking-wider">
                         <span>夜间行动顺序</span>
@@ -287,8 +291,8 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     </div>
                     <div className="flex items-center justify-between mb-3 bg-indigo-950/30 p-2 rounded border border-indigo-900/30">
                         <button onClick={nightPrev} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&lt;</button>
-                        <span className={`font-serif text-lg font-bold ${gameState.nightCurrentIndex >= 0 ? 'text-indigo-200' : 'text-stone-600'}`}>
-                            {gameState.nightCurrentIndex >= 0 ? ROLES[gameState.nightQueue[gameState.nightCurrentIndex]]?.name || '天亮' : '入夜'}
+                        <span className={`font-serif text-lg font-bold ${currentRoleId ? 'text-indigo-200' : 'text-stone-600'}`}>
+                            {currentRole?.name || (gameState.nightCurrentIndex >= 0 ? '天亮' : '入夜')}
                         </span>
                         <button onClick={nightNext} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&gt;</button>
                     </div>
@@ -304,9 +308,9 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     </div>
 
                     {/* Night Action Button */}
-                    {gameState.nightCurrentIndex >= 0 && gameState.nightQueue[gameState.nightCurrentIndex] && ROLES[gameState.nightQueue[gameState.nightCurrentIndex]]?.nightAction && (
+                    {currentRoleId && currentRole?.nightAction && (
                         <button
-                            onClick={() => onShowNightAction(gameState.nightQueue[gameState.nightCurrentIndex])}
+                            onClick={() => onShowNightAction(currentRoleId)}
                             className="mt-3 w-full py-2 bg-purple-900/50 hover:bg-purple-800/50 border border-purple-700 text-purple-200 rounded font-bold text-sm transition-all shadow-lg"
                         >
                             🌙 执行夜间动作
@@ -321,7 +325,8 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                         <span>☀</span> 强制天亮
                     </button>
                 </div>
-            )}
+                );
+            })()}
 
             {/* Voting Controls */}
             {gameState.voting?.isOpen && (

@@ -89,7 +89,9 @@ export const getStandardComposition = (playerCount: number): {
         14: { townsfolk: 9, outsider: 1, minion: 3, demon: 1 },
         15: { townsfolk: 9, outsider: 2, minion: 3, demon: 1 }
     };
-    return rules[playerCount] || rules[7];
+    // 如果人数超出范围，默认使用7人规则
+    const rule = rules[playerCount] || rules[7];
+    return rule ?? rules[7]!;
 };
 
 /**

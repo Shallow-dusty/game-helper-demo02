@@ -13,7 +13,7 @@ export const FloatingVoteButton: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     // 获取当前用户的座位
-    const currentSeat = gameState?.seats.find(s => s.userId === user?.odId);
+    const currentSeat = gameState?.seats.find(s => s.userId === user?.id);
 
     // 检查是否应该显示此按钮
     // 1. 必须是玩家（非说书人）
@@ -21,7 +21,7 @@ export const FloatingVoteButton: React.FC = () => {
     // 3. 必须已入座
     // 4. 仅在移动端显示（桌面端使用侧边栏）
     const shouldShow = !user?.isStoryteller &&
-        gameState?.voting?.isActive &&
+        gameState?.voting?.isOpen &&
         currentSeat;
 
     if (!shouldShow || !currentSeat) return null;

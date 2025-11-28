@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useStore } from './store';
 import { useSandboxStore } from './sandboxStore';
 import { Lobby } from './components/Lobby';
@@ -12,7 +12,6 @@ import { FloatingVoteButton } from './components/FloatingVoteButton';
 import { SCRIPTS, ROLES, Z_INDEX } from './constants';
 import { PhaseIndicator } from './components/PhaseIndicator';
 import { WaitingArea } from './components/WaitingArea';
-import { NotificationSystem } from './components/NotificationSystem';
 import { ToastContainer, useToasts } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WelcomeAnnouncement } from './components/WelcomeAnnouncement';
@@ -144,6 +143,7 @@ const App = () => {
         document.body.style.overflow = '';
       };
     }
+    return undefined;
   }, [gameState]);
 
   // 1. Not Logged In -> Lobby
@@ -275,9 +275,10 @@ const App = () => {
           ? null
           : SCRIPTS[gameState.currentScriptId];
 
-        const currentScript = gameState.currentScriptId === 'custom'
+        const currentScript = (gameState.currentScriptId === 'custom'
           ? Object.values(gameState.customRoles)
-          : (scriptDef?.roles || []).map(roleId => ROLES[roleId]).filter(Boolean);
+          : (scriptDef?.roles || []).map(roleId => ROLES[roleId])
+        ).filter((r): r is NonNullable<typeof r> => r !== undefined);
 
         const playerSeat = gameState.seats.find(s => s.userId === user.id);
         const playerRoleId = playerSeat?.roleId || null;

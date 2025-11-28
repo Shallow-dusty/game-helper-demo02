@@ -6,6 +6,59 @@
 
 ---
 
+## [0.8.0] - 2025-11-28
+
+### 🐛 Bug 修复 (Bug Fixes)
+
+本版本修复了 v0.7.5 架构优化后发现的多个关键问题。
+
+#### 🔴 崩溃修复 (Crash Fixes)
+- **AudioManager 内存泄漏**: 
+  - 添加 `timeoutRef` 跟踪 `setTimeout`
+  - 在 `useEffect` 清理时正确取消定时器，防止组件卸载后回调执行导致崩溃
+
+- **FloatingVoteButton 类型错误**:
+  - 修复 `user?.odId` 拼写错误为 `user?.id`
+  - 修复 `voting?.isActive` 错误属性为 `voting?.isOpen`
+
+- **ControlsSTSection nightQueue 类型错误**:
+  - 使用 IIFE 正确处理 `nightQueue` 数组索引的 `undefined` 可能性
+  - 修复 TypeScript 严格模式下的类型推断问题
+
+- **gameLogic.ts 返回类型**:
+  - 修复 `getSetupRules` 函数可能返回 `undefined` 的问题
+  - 添加空值合并保护
+
+#### 🎨 Z-Index 层级修复 (Z-Index Fixes)
+- **RoleReferenceSidebar**: 
+  - 将面板 z-index 从 `Z_INDEX.overlay` (20) 改为 `Z_INDEX.sidebar` (40)
+  - 与切换按钮层级一致，解决层级冲突
+
+- **Grimoire Context Menu**:
+  - 将硬编码的 `z-50` 改为使用 `Z_INDEX.modal` 常量
+  - 统一 z-index 管理
+
+#### 📱 移动端适配修复 (Mobile Fixes)
+- **SandboxView 座位大小**: 
+  - 座位大小从固定的 `w-16 h-16` 改为响应式的 `w-14 h-14 md:w-16 md:h-16`
+  - 添加 `active:scale-95` 触摸反馈
+
+#### 🧹 代码清理 (Code Cleanup)
+- **App.tsx**:
+  - 移除未使用的 `React` 和 `NotificationSystem` 导入
+  - 修复 `useEffect` 未显式返回 `undefined` 的 lint 警告
+  - 使用类型谓词过滤确保 `scriptRoles` 返回正确类型
+
+- **ControlsSTSection.tsx**:
+  - 移除未使用的 `PHASE_LABELS` 导入
+  - 添加音轨名称空值保护 (`?.name || '未知音轨'`)
+
+### ✅ 测试状态
+- 25/25 单元测试全部通过
+- 构建验证通过
+
+---
+
 ## [0.7.5] - 2025-11-28
 
 ### 🏗️ 架构优化与新功能 (Architecture Optimization & New Features)

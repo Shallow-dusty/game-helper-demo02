@@ -288,7 +288,7 @@ const SandboxGrimoire: React.FC<{ width: number; height: number }> = ({ width, h
             return (
               <div
                 key={seat.id}
-                className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border-2 flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-110 ${
+                className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-14 h-14 md:w-16 md:h-16 rounded-full border-2 flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-110 active:scale-95 ${
                   seat.isDead 
                     ? 'bg-stone-800/80 border-stone-600 opacity-60' 
                     : 'bg-stone-700/80 border-stone-500 hover:border-emerald-500'

@@ -11,6 +11,7 @@ export const AudioManager = () => {
     const playPromiseRef = useRef<Promise<void> | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const isPlayingRef = useRef(false); // 跟踪实际播放状态
+    const cleanupTimeoutRef = useRef<number | null>(null); // 用于清理 setTimeout
 
     const isAudioBlocked = useStore(state => state.isAudioBlocked);
 
@@ -80,6 +81,12 @@ export const AudioManager = () => {
             audio.removeEventListener('canplay', handleCanPlay);
             audio.removeEventListener('play', handlePlay);
             audio.removeEventListener('pause', handlePause);
+            
+            // 清理任何挂起的 timeout
+            if (cleanupTimeoutRef.current) {
+                clearTimeout(cleanupTimeoutRef.current);
+                cleanupTimeoutRef.current = null;
+            }
             
             // 安全清理：等待任何挂起的 play promise 完成
             if (playPromiseRef.current) {
@@ -214,11 +221,15 @@ export const AudioManager = () => {
         } else {
             // 音轨没有有效URL，停止播放并清空src
             safePause();
-            // 延迟清空 src 避免潜在问题
-            setTimeout(() => {
+            // 延迟清空 src 避免潜在问题，并确保清理旧的 timeout
+            if (cleanupTimeoutRef.current) {
+                clearTimeout(cleanupTimeoutRef.current);
+            }
+            cleanupTimeoutRef.current = window.setTimeout(() => {
                 if (audioRef.current) {
                     audioRef.current.src = '';
                 }
+                cleanupTimeoutRef.current = null;
             }, 100);
         }
         

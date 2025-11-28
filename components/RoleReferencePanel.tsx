@@ -38,8 +38,6 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
         TRAVELER: false
     });
 
-    if (!isOpen) return null;
-
     const playerRole = scriptRoles.find(r => r.id === playerRoleId);
 
     // 切换阵营折叠状态
@@ -93,6 +91,9 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
     const totalMatchedCount = useMemo(() => {
         return Object.values(filteredRolesByTeam).reduce((sum, roles) => sum + roles.length, 0);
     }, [filteredRolesByTeam]);
+
+    // 早期返回必须放在所有 hooks 之后
+    if (!isOpen) return null;
 
     // 渲染阵营区块
     const renderTeamSection = (team: TeamType) => {

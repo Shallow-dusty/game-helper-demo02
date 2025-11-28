@@ -263,19 +263,7 @@ const addSystemMessage = (gameState: GameState, content: string) => {
     });
 };
 
-const _addAiMessage = (gameState: GameState, content: string, provider: string, recipientId: string | null = null) => {
-    const providerName = AI_CONFIG[provider as AiProvider]?.name || provider;
-    gameState.messages.push({
-        id: Math.random().toString(36).substr(2, 9),
-        senderId: 'ai_guide',
-        senderName: `魔典助手 (${providerName})`,
-        recipientId: recipientId,
-        content,
-        timestamp: Date.now(),
-        type: 'chat',
-        isPrivate: !!recipientId
-    });
-};
+
 
 const fallbackTownsfolk = ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller', 'undertaker', 'monk', 'ravenkeeper'];
 
@@ -298,35 +286,35 @@ const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: string | 
         .filter(s => s.realRoleId && s.id !== seat.id)
         .map(s => s.realRoleId!);
 
-    const pickTownsfolk = () => {
+    const pickTownsfolk = (): string | null => {
         const availableTownsfolk = script?.roles
             .map(id => ROLES[id])
-            .filter(r => r?.team === 'TOWNSFOLK' && !assignedRoles.includes(r.id))
-            .map(r => r.id) || [];
+            .filter(r => r?.team === 'TOWNSFOLK' && r?.id && !assignedRoles.includes(r.id))
+            .map(r => r!.id) || [];
         const pool = availableTownsfolk.length > 0 ? availableTownsfolk : fallbackTownsfolk;
-        return pool[Math.floor(Math.random() * pool.length)];
+        return pool[Math.floor(Math.random() * pool.length)] ?? null;
     };
 
     if (roleId === 'drunk') {
         const fakeRole = pickTownsfolk();
-        seat.seenRoleId = fakeRole;
-        seat.roleId = fakeRole;
+        seat.seenRoleId = fakeRole ?? null;
+        seat.roleId = fakeRole ?? null;
     }
 
     if (roleId === 'lunatic') {
         const demons = script?.roles
             .map(id => ROLES[id])
-            .filter(r => r?.team === 'DEMON')
-            .map(r => r.id) || [];
+            .filter(r => r?.team === 'DEMON' && r?.id)
+            .map(r => r!.id) || [];
         const fakeDemon = demons.length > 0 ? demons[0] : 'imp';
-        seat.seenRoleId = fakeDemon;
-        seat.roleId = fakeDemon;
+        seat.seenRoleId = fakeDemon ?? null;
+        seat.roleId = fakeDemon ?? null;
     }
 
     if (roleId === 'marionette') {
         const fakeRole = pickTownsfolk();
-        seat.seenRoleId = fakeRole;
-        seat.roleId = fakeRole;
+        seat.seenRoleId = fakeRole ?? null;
+        seat.roleId = fakeRole ?? null;
     }
 };
 
@@ -392,6 +380,7 @@ interface AppState {
     distributeRoles: () => void;
     hideRoles: () => void;
     startGame: () => void;
+    applyStrategy: (strategyName: string, roleIds: string[]) => void;
 
     // Note Actions
     addStorytellerNote: (content: string) => void;
@@ -595,7 +584,7 @@ export const useStore = create<AppState>()(
                 set({ connectionStatus: 'disconnected' });
                 // 清除可能无效的房间记录
                 localStorage.removeItem('grimoire_last_room');
-                getToastFunctions().then(({ showError }) => showError(`加入房间失败: ${error.message}`));
+                getToastFunctions().then(({ showError }) => showError?.(`加入房间失败: ${error.message}`));
             }
         },
 
@@ -608,18 +597,26 @@ export const useStore = create<AppState>()(
                 if (seat) {
                     seat.userId = null;
                     seat.userName = `座位 ${seat.id + 1}`;
-                    // BUG-02: 完整清理座位状态
                     seat.roleId = null;
                     seat.realRoleId = null;
                     seat.seenRoleId = null;
                     seat.isHandRaised = false;
-                    (seat as any).clientToken = null;
+                    seat.reminders = [];
+                    seat.statuses = [];
+                    seat.isDead = false;
+                    seat.hasGhostVote = true;
+                    seat.isNominated = false;
+                    seat.hasUsedAbility = false;
+                    seat.voteLocked = false;
                 }
                 addSystemMessage(state, `${user.name} 离开了房间。`);
                 get().syncToCloud();
             }
 
             // 清除断线重连信息
+            if (state?.roomId) {
+                localStorage.removeItem(`seat_token_${state.roomId}`);
+            }
             localStorage.removeItem('grimoire_last_room');
 
             if (realtimeChannel) {
@@ -627,7 +624,6 @@ export const useStore = create<AppState>()(
                 realtimeChannel = null;
             }
 
-            // BUG-02: 完整重置所有状态
             set({
                 user: user ? { ...user, roomId: null } : null,
                 gameState: null,
@@ -685,7 +681,6 @@ export const useStore = create<AppState>()(
         sync: () => {
             get().syncToCloud();
         },
-
 
         // --- ACTIONS ---
 
@@ -748,8 +743,9 @@ export const useStore = create<AppState>()(
                 seat.userId = user.id;
                 seat.userName = user.name;
                 seat.isVirtual = false;
-                // 保存 clientToken 用于后续 leave_seat 验证
-                (seat as any).clientToken = clientToken;
+
+                // SECURITY FIX: 将 clientToken 存储在本地 localStorage，而不是公开的 gameState
+                localStorage.setItem(`seat_token_${gameState.roomId}`, clientToken);
 
                 addSystemMessage(gameState, `${user.name} 就坐于座位 ${seatId + 1}。`);
                 set({ gameState: { ...gameState } });
@@ -777,7 +773,9 @@ export const useStore = create<AppState>()(
                 return;
             }
 
-            const clientToken = (seat as any).clientToken;
+            // SECURITY FIX: 从 localStorage 获取 token
+            const clientToken = localStorage.getItem(`seat_token_${gameState.roomId}`);
+
             const seatId = seat.id;
             const userName = seat.userName;
 
@@ -807,7 +805,16 @@ export const useStore = create<AppState>()(
                 seat.roleId = null;
                 seat.realRoleId = null;
                 seat.seenRoleId = null;
-                (seat as any).clientToken = null;
+                seat.reminders = [];
+                seat.statuses = [];
+                seat.isDead = false;
+                seat.hasGhostVote = true;
+                seat.isNominated = false;
+                seat.hasUsedAbility = false;
+                seat.voteLocked = false;
+
+                // 清除本地 token
+                localStorage.removeItem(`seat_token_${gameState.roomId}`);
 
                 addSystemMessage(gameState, `${userName} 离开了座位 ${seatId + 1}。`);
                 set({ gameState: { ...gameState } });
@@ -821,7 +828,15 @@ export const useStore = create<AppState>()(
                 seat.roleId = null;
                 seat.realRoleId = null;
                 seat.seenRoleId = null;
-                (seat as any).clientToken = null;
+                seat.reminders = [];
+                seat.statuses = [];
+                seat.isDead = false;
+                seat.hasGhostVote = true;
+                seat.isNominated = false;
+                seat.hasUsedAbility = false;
+                seat.voteLocked = false;
+
+                localStorage.removeItem(`seat_token_${gameState.roomId}`);
 
                 addSystemMessage(gameState, `${userName} 离开了座位 ${seatId + 1}。`);
                 set({ gameState: { ...gameState } });
@@ -912,13 +927,13 @@ export const useStore = create<AppState>()(
 
             } catch (e: any) { // Added type annotation for error
                 console.error("Script import failed", e);
-                getToastFunctions().then(({ showError }) => showError("导入失败: 剧本格式不正确"));
+                getToastFunctions().then(({ showError }) => showError?.("导入失败: 剧本格式不正确"));
             }
         },
 
         setPhase: (phase) => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             const prevPhase = gameState.phase;
             gameState.phase = phase;
@@ -935,7 +950,7 @@ export const useStore = create<AppState>()(
                 }
 
                 // 自动切换对应阶段的背景音乐
-                const audioTrackId = PHASE_AUDIO_MAP[phase];
+                const audioTrackId = PHASE_AUDIO_MAP[phase as keyof typeof PHASE_AUDIO_MAP];
                 if (audioTrackId && gameState.audio) {
                     // 检查音轨是否存在且有有效的 URL
                     const track = AUDIO_TRACKS[audioTrackId];
@@ -972,8 +987,8 @@ export const useStore = create<AppState>()(
         },
 
         assignRole: (seatId, roleId) => {
-            const { gameState, user: _user } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             // 游戏开始后禁止修改身份（除非是说书人强制操作）
             if (gameState.setupPhase === 'STARTED') {
@@ -992,8 +1007,8 @@ export const useStore = create<AppState>()(
         },
 
         toggleDead: (seatId) => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             const seat = gameState.seats.find(s => s.id === seatId);
             if (!seat) return;
@@ -1039,8 +1054,8 @@ export const useStore = create<AppState>()(
         },
 
         toggleAbilityUsed: (seatId) => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat) {
                 seat.hasUsedAbility = !seat.hasUsedAbility;
@@ -1050,8 +1065,8 @@ export const useStore = create<AppState>()(
         },
 
         toggleStatus: (seatId, status) => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat) {
                 if (seat.statuses.includes(status)) {
@@ -1065,8 +1080,8 @@ export const useStore = create<AppState>()(
         },
 
         toggleWhispers: () => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
             gameState.allowWhispers = !gameState.allowWhispers;
             addSystemMessage(gameState, gameState.allowWhispers ? "🟢 说书人开启了私聊功能。" : "🔴 说书人禁用了私聊功能。");
             set({ gameState: { ...gameState } });
@@ -1074,8 +1089,8 @@ export const useStore = create<AppState>()(
         },
 
         toggleVibration: () => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
             gameState.vibrationEnabled = !gameState.vibrationEnabled;
             addSystemMessage(gameState, gameState.vibrationEnabled ? "📳 说书人开启了夜间振动提醒。" : "🔇 说书人关闭了夜间振动提醒。");
             set({ gameState: { ...gameState } });
@@ -1083,8 +1098,8 @@ export const useStore = create<AppState>()(
         },
 
         addReminder: (seatId, text, icon, color) => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat) {
                 seat.reminders = [...seat.reminders, {
@@ -1107,11 +1122,11 @@ export const useStore = create<AppState>()(
                 isProcessing = true;
                 setTimeout(() => { isProcessing = false; }, 300); // 300ms 防抖间隔
 
-                const { gameState } = get();
-                if (!gameState) return;
+                const { gameState, user } = get();
+                if (!gameState || !user?.isStoryteller) return;
                 // 限制最大座位数为 20
                 if (gameState.seats.length >= 20) {
-                    getToastFunctions().then(({ showWarning }) => showWarning("座位数已达上限 (20)！"));
+                    getToastFunctions().then(({ showWarning }) => showWarning?.("座位数已达上限 (20)！"));
                     return;
                 }
                 const newId = gameState.seats.length;
@@ -1139,23 +1154,30 @@ export const useStore = create<AppState>()(
         })(),
 
         swapSeats: (seatId1, seatId2) => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             const s1Index = gameState.seats.findIndex(s => s.id === seatId1);
             const s2Index = gameState.seats.findIndex(s => s.id === seatId2);
 
             if (s1Index === -1 || s2Index === -1) return;
 
-            // Swap logic: We keep the seat ID (position) but swap the content (user, role, etc.)
             const s1 = gameState.seats[s1Index];
             const s2 = gameState.seats[s2Index];
+            if (!s1 || !s2) return;
 
-            const newS1 = { ...s2, id: s1.id };
-            const newS2 = { ...s1, id: s2.id };
+            // Swap properties except ID
+            const temp = { ...s1 };
+            const s1Id = s1.id;
+            const s2Id = s2.id;
 
-            gameState.seats[s1Index] = newS1;
-            gameState.seats[s2Index] = newS2;
+            // Assign s2 props to s1, but keep s1.id
+            Object.assign(s1, s2);
+            s1.id = s1Id;
+
+            // Assign temp (s1) props to s2, but keep s2.id
+            Object.assign(s2, temp);
+            s2.id = s2Id;
 
             addSystemMessage(gameState, `座位 ${seatId1 + 1} 和 座位 ${seatId2 + 1} 交换了位置`);
             set({ gameState: { ...gameState } });
@@ -1163,11 +1185,11 @@ export const useStore = create<AppState>()(
         },
 
         removeSeat: () => {
-            const { gameState } = get();
-            if (!gameState || gameState.seats.length === 0) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller || gameState.seats.length === 0) return;
             // 限制最小座位数为 5
             if (gameState.seats.length <= 5) {
-                getToastFunctions().then(({ showWarning }) => showWarning("座位数已达下限 (5)！"));
+                getToastFunctions().then(({ showWarning }) => showWarning?.("座位数已达下限 (5)！"));
                 return;
             }
             // Remove the last seat
@@ -1177,8 +1199,8 @@ export const useStore = create<AppState>()(
         },
 
         removeReminder: (id) => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
             gameState.seats.forEach(s => {
                 s.reminders = s.reminders.filter(r => r.id !== id);
             });
@@ -1187,8 +1209,8 @@ export const useStore = create<AppState>()(
         },
 
         setAudioTrack: (trackId) => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             // 检查音轨是否存在且有有效的 URL
             const track = AUDIO_TRACKS[trackId];
@@ -1204,8 +1226,8 @@ export const useStore = create<AppState>()(
         },
 
         toggleAudioPlay: () => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
             gameState.audio.isPlaying = !gameState.audio.isPlaying;
             set({ gameState: { ...gameState } });
             get().syncToCloud();
@@ -1214,8 +1236,8 @@ export const useStore = create<AppState>()(
         setAudioVolume: (() => {
             let syncTimeout: ReturnType<typeof setTimeout> | null = null;
             return (vol: number) => {
-                const { gameState } = get();
-                if (!gameState) return;
+                const { gameState, user } = get();
+                if (!gameState || !user?.isStoryteller) return;
                 gameState.audio.volume = vol;
                 set({ gameState: { ...gameState } });
 
@@ -1233,8 +1255,8 @@ export const useStore = create<AppState>()(
         },
 
         nightNext: () => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
             if (gameState.nightCurrentIndex < gameState.nightQueue.length - 1) {
                 gameState.nightCurrentIndex++;
             }
@@ -1243,8 +1265,8 @@ export const useStore = create<AppState>()(
         },
 
         nightPrev: () => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
             if (gameState.nightCurrentIndex > 0) {
                 gameState.nightCurrentIndex--;
             }
@@ -1253,12 +1275,13 @@ export const useStore = create<AppState>()(
         },
 
         startVote: (nomineeId) => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             gameState.phase = 'VOTING';
             const startIdx = (nomineeId + 1) % gameState.seats.length;
             const nominee = gameState.seats.find(s => s.id === nomineeId);
+            if (!nominee) return;
 
             gameState.voting = {
                 nominatorSeatId: null,
@@ -1390,8 +1413,8 @@ export const useStore = create<AppState>()(
         })(),
 
         closeVote: () => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             // Record vote in history if voting was actually happening
             if (gameState.voting && gameState.voting.nomineeSeatId !== null) {
@@ -1411,7 +1434,7 @@ export const useStore = create<AppState>()(
                 const voteRecord: import('./types').VoteRecord = {
                     round: gameState.voteHistory.length + 1,
                     nominatorSeatId: votingData.nominatorSeatId || -1,
-                    nomineeSeatId: votingData.nomineeSeatId,
+                    nomineeSeatId: votingData.nomineeSeatId!,
                     votes: votingData.votes,
                     voteCount,
                     timestamp: Date.now(),
@@ -1489,11 +1512,11 @@ export const useStore = create<AppState>()(
                     model: config.model,
                 });
 
-                let reply = completion.choices[0].message.content;
+                let reply = completion.choices[0]?.message?.content || '';
 
                 // Handle DeepSeek R1 "reasoning_content" if available (some APIs might return it this way)
                 // @ts-ignore
-                const reasoning = completion.choices[0].message.reasoning_content;
+                const reasoning = completion.choices[0]?.message?.reasoning_content;
 
                 if (reasoning) {
                     reply = `<think>${reasoning}</think>\n${reply}`;
@@ -1598,8 +1621,8 @@ export const useStore = create<AppState>()(
         },
 
         clearAiMessages: () => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             // 清空 aiMessages 数组
             gameState.aiMessages = [];
@@ -1609,8 +1632,8 @@ export const useStore = create<AppState>()(
         },
 
         deleteAiMessage: (messageId: string) => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             gameState.aiMessages = gameState.aiMessages.filter(m => m.id !== messageId);
 
@@ -1690,8 +1713,8 @@ export const useStore = create<AppState>()(
         },
 
         distributeRoles: () => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             // 验证：检查所有座位（包含虚拟玩家）是否都已分配角色
             const occupiedSeats = gameState.seats.filter(s => s.userId || s.isVirtual);
@@ -1713,8 +1736,8 @@ export const useStore = create<AppState>()(
         },
 
         hideRoles: () => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             gameState.rolesRevealed = false;
             gameState.setupPhase = 'ASSIGNING';
@@ -1726,8 +1749,8 @@ export const useStore = create<AppState>()(
 
 
         assignRoles: () => {
-            const { gameState } = get();
-            if (!gameState?.currentScriptId) return;
+            const { gameState, user } = get();
+            if (!gameState?.currentScriptId || !user?.isStoryteller) return;
 
             const script = SCRIPTS[gameState.currentScriptId];
             if (!script) return;
@@ -1741,7 +1764,9 @@ export const useStore = create<AppState>()(
 
             // TB规则自动分配
             const composition = getComposition(seatCount);
-            const availableRoles = script.roles.map(id => ROLES[id]).filter(Boolean);
+            if (!composition) return;
+
+            const availableRoles = script.roles.map(id => ROLES[id]).filter((r): r is import('./types').RoleDef => !!r);
 
             const townsfolk = availableRoles.filter(r => r.team === 'TOWNSFOLK');
             const outsiders = availableRoles.filter(r => r.team === 'OUTSIDER');
@@ -1768,7 +1793,48 @@ export const useStore = create<AppState>()(
             get().syncToCloud();
         },
 
-        // --- NEW ACTIONS IMPLEMENTATION ---
+        applyStrategy: (strategyName, roleIds) => {
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
+
+            const occupiedSeats = gameState.seats.filter(s => s.userId || s.isVirtual);
+
+            // Clear roles
+            gameState.seats.forEach(seat => {
+                applyRoleAssignment(gameState, seat, null);
+            });
+
+            // Assign new roles
+            const shuffledRoles = [...roleIds].sort(() => Math.random() - 0.5);
+            occupiedSeats.forEach((seat, index) => {
+                if (index < shuffledRoles.length) {
+                    applyRoleAssignment(gameState, seat, shuffledRoles[index] || null);
+                }
+            });
+
+            addSystemMessage(gameState, `📊 已应用 "${strategyName}" 策略，重新分配了 ${shuffledRoles.length} 个角色。`);
+            set({ gameState: { ...gameState } });
+            get().syncToCloud();
+        },
+
+        forceLeaveSeat: (seatId) => {
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
+            const seat = gameState.seats.find(s => s.id === seatId);
+            if (seat) {
+                const userName = seat.userName;
+                seat.userId = null;
+                seat.userName = `座位 ${seat.id + 1}`;
+                seat.roleId = null;
+                seat.realRoleId = null;
+                seat.seenRoleId = null;
+                seat.isHandRaised = false;
+
+                addSystemMessage(gameState, `说书人强制 ${userName} 离开了座位 ${seatId + 1}`);
+                set({ gameState: { ...gameState } });
+                get().syncToCloud();
+            }
+        },
 
         addVirtualPlayer: (() => {
             let isProcessing = false;
@@ -1777,8 +1843,8 @@ export const useStore = create<AppState>()(
                 isProcessing = true;
                 setTimeout(() => { isProcessing = false; }, 300); // 300ms 防抖间隔
 
-                const { gameState } = get();
-                if (!gameState) return;
+                const { gameState, user } = get();
+                if (!gameState || !user?.isStoryteller) return;
 
                 // Find first empty seat
                 const emptySeat = gameState.seats.find(s => !s.userId && !s.isVirtual);
@@ -1790,14 +1856,14 @@ export const useStore = create<AppState>()(
                     set({ gameState: { ...gameState } });
                     get().syncToCloud();
                 } else {
-                    getToastFunctions().then(({ showWarning }) => showWarning("没有空座位了！"));
+                    getToastFunctions().then(({ showWarning }) => showWarning?.("没有空座位了！"));
                 }
             };
         })(),
 
         removeVirtualPlayer: (seatId: number) => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat?.isVirtual) {
                 seat.isVirtual = false;
@@ -1913,8 +1979,8 @@ export const useStore = create<AppState>()(
         },
 
         startGame: () => {
-            const { gameState } = get();
-            if (!gameState) return;
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
             // Validation
             if (gameState.seats.filter(s => s.userId || s.isVirtual).length < 5) {
@@ -2022,7 +2088,9 @@ function shuffle<T>(array: T[]): T[] {
     const result = [...array];
     for (let i = result.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [result[i], result[j]] = [result[j], result[i]];
+        const temp = result[i];
+        result[i] = result[j]!;
+        result[j] = temp!;
     }
     return result;
 }

@@ -604,7 +604,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   currentScriptRoles.forEach(roleId => {
     const role = ROLES[roleId];
     if (role?.team && role.team in rolesByTeam) {
-      (rolesByTeam[role.team] as any[]).push(role);
+      (rolesByTeam[role.team]!).push(role);
     }
   });
 

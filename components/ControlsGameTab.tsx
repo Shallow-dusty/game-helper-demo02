@@ -13,7 +13,7 @@ interface ControlsGameTabProps {
   isMobile: boolean;
 }
 
-export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) => {
+export const ControlsGameTab: React.FC<ControlsGameTabProps> = () => {
   const user = useStore(state => state.user);
   const gameState = useStore(state => state.gameState);
   const setPhase = useStore(state => state.setPhase);
@@ -48,6 +48,7 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) =>
   if (!user || !gameState) return null;
 
   const currentSeat = gameState.seats.find(s => s.userId === user.id);
+  const currentNightRoleId = gameState.nightQueue[gameState.nightCurrentIndex];
 
   return (
     <div className="h-full overflow-y-auto p-4 space-y-6 scrollbar-thin">
@@ -191,8 +192,8 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) =>
                 <button
                   onClick={() => useStore.getState().toggleVibration()}
                   className={`col-span-2 py-2 px-3 rounded text-xs border transition-colors flex items-center justify-center gap-1 ${gameState.vibrationEnabled
-                      ? 'bg-green-900/50 border-green-700 text-green-300 hover:bg-green-800/50'
-                      : 'bg-stone-800 border-stone-600 text-stone-400 hover:bg-stone-700'
+                    ? 'bg-green-900/50 border-green-700 text-green-300 hover:bg-green-800/50'
+                    : 'bg-stone-800 border-stone-600 text-stone-400 hover:bg-stone-700'
                     }`}
                   title="线下游戏应关闭振动，避免暴露玩家身份"
                 >
@@ -227,7 +228,7 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) =>
                       {gameState.audio.isPlaying ? '🔊' : '🔇'}
                     </span>
                     <span className="text-stone-300 font-medium">
-                      {AUDIO_TRACKS[gameState.audio.trackId].name}
+                      {gameState.audio.trackId && AUDIO_TRACKS[gameState.audio.trackId]?.name}
                     </span>
                   </div>
                 </div>
@@ -272,8 +273,8 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) =>
                 <button
                   onClick={toggleAudioPlay}
                   className={`flex-1 py-1.5 rounded text-xs font-bold transition-colors ${gameState.audio.isPlaying
-                      ? 'bg-amber-700 hover:bg-amber-600 text-white'
-                      : 'bg-stone-800 hover:bg-stone-700 text-stone-400'
+                    ? 'bg-amber-700 hover:bg-amber-600 text-white'
+                    : 'bg-stone-800 hover:bg-stone-700 text-stone-400'
                     }`}
                 >
                   {gameState.audio.isPlaying ? '⏸ 暂停' : '▶ 播放'}
@@ -306,7 +307,7 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) =>
               <div className="flex items-center justify-between mb-3 bg-indigo-950/30 p-2 rounded border border-indigo-900/30">
                 <button onClick={nightPrev} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&lt;</button>
                 <span className={`font-serif text-lg font-bold ${gameState.nightCurrentIndex >= 0 ? 'text-indigo-200' : 'text-stone-600'}`}>
-                  {gameState.nightCurrentIndex >= 0 ? ROLES[gameState.nightQueue[gameState.nightCurrentIndex]]?.name || '天亮' : '入夜'}
+                  {(gameState.nightCurrentIndex >= 0 && currentNightRoleId && ROLES[currentNightRoleId]?.name) || '天亮'}
                 </span>
                 <button onClick={nightNext} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&gt;</button>
               </div>
@@ -322,10 +323,10 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) =>
               </div>
 
               {/* Night Action Button */}
-              {gameState.nightCurrentIndex >= 0 && gameState.nightQueue[gameState.nightCurrentIndex] && ROLES[gameState.nightQueue[gameState.nightCurrentIndex]]?.nightAction && (
+              {gameState.nightCurrentIndex >= 0 && currentNightRoleId && ROLES[currentNightRoleId]?.nightAction && (
                 <button
                   onClick={() => {
-                    setCurrentNightRole(gameState.nightQueue[gameState.nightCurrentIndex]);
+                    if (currentNightRoleId) setCurrentNightRole(currentNightRoleId);
                     setShowNightAction(true);
                   }}
                   className="mt-3 w-full py-2 bg-purple-900/50 hover:bg-purple-800/50 border border-purple-700 text-purple-200 rounded font-bold text-sm transition-all shadow-lg"
@@ -380,7 +381,7 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) =>
               <p className="text-xs text-indigo-400 mt-2 font-serif italic">只有被叫到名字时才醒来。</p>
 
               {/* 当前是你的回合 - 始终显示按钮 */}
-              {currentSeat?.roleId === gameState.nightQueue[gameState.nightCurrentIndex] && (
+              {currentSeat?.roleId === currentNightRoleId && (
                 <button
                   onClick={() => setShowNightAction(true)}
                   className="mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold shadow-lg animate-pulse border-2 border-indigo-400"
@@ -392,7 +393,7 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) =>
               {/* 即使不是当前回合，但有夜间技能的角色也可以查看 */}
               {currentSeat?.roleId &&
                 ROLES[currentSeat.roleId]?.nightAction &&
-                currentSeat.roleId !== gameState.nightQueue[gameState.nightCurrentIndex] && (
+                currentSeat.roleId !== currentNightRoleId && (
                   <button
                     onClick={() => setShowNightAction(true)}
                     className="mt-4 px-4 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded text-sm border border-stone-600"
@@ -500,7 +501,7 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) =>
 
               // Then assign new roles only to occupied seats
               occupiedSeats.forEach((seat, index) => {
-                if (index < shuffledRoles.length) {
+                if (index < shuffledRoles.length && shuffledRoles[index]) {
                   assignRole(seat.id, shuffledRoles[index].id);
                 }
               });

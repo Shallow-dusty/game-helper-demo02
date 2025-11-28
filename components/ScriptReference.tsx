@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useStore } from '../store';
+// import { useStore } from '../store';
 import { ROLES, TEAM_COLORS } from '../constants';
 
 export const ScriptReference: React.FC = () => {
-    const { gameState } = useStore();
+    // const { gameState } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
 

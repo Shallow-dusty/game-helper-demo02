@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useStore } from '../store';
 
 export const NotificationSystem = () => {
@@ -13,7 +13,7 @@ export const NotificationSystem = () => {
         const lastMsg = gameState.messages[gameState.messages.length - 1];
 
         // Only show if it's a new message and it's a system message
-        if (lastMsg.senderId === 'system' && lastMsg.id !== lastMsgIdRef.current) {
+        if (lastMsg?.senderId === 'system' && lastMsg.id !== lastMsgIdRef.current) {
             lastMsgIdRef.current = lastMsg.id;
             // Don't show if message is too old (e.g. on page load)
             if (Date.now() - lastMsg.timestamp < 2000) {
@@ -22,6 +22,7 @@ export const NotificationSystem = () => {
                 return () => clearTimeout(timer);
             }
         }
+        return undefined;
     }, [gameState?.messages]);
 
     // Listen for death status

@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../store';
 
 /**
  * 音频启用引导遮罩
  * 在用户首次进入游戏时显示，引导用户点击以启用浏览器音频
  */
-export const AudioEnableOverlay: React.FC = () => {
+export const AudioEnableOverlay = () => {
     const isAudioBlocked = useStore(state => state.isAudioBlocked);
     const setAudioBlocked = useStore(state => state.setAudioBlocked);
     const gameState = useStore(state => state.gameState);
-    
+
     const [isVisible, setIsVisible] = useState(false);
     const [hasInteracted, setHasInteracted] = useState(false);
 
@@ -25,12 +25,13 @@ export const AudioEnableOverlay: React.FC = () => {
         } else {
             setIsVisible(false);
         }
+        return undefined;
     }, [gameState, isAudioBlocked, hasInteracted]);
 
     const handleClick = () => {
         setHasInteracted(true);
         setIsVisible(false);
-        
+
         // 尝试播放静音音频来激活 AudioContext
         try {
             const audio = new Audio();
@@ -56,7 +57,7 @@ export const AudioEnableOverlay: React.FC = () => {
     if (!isVisible) return null;
 
     return (
-        <div 
+        <div
             className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 animate-fade-in cursor-pointer"
             onClick={handleClick}
         >
@@ -67,7 +68,7 @@ export const AudioEnableOverlay: React.FC = () => {
                     浏览器已阻止自动播放音频。<br />
                     点击任意位置以启用游戏音效。
                 </p>
-                <button 
+                <button
                     className="px-8 py-3 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg transition-colors shadow-lg"
                     onClick={handleClick}
                 >

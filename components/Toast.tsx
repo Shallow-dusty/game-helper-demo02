@@ -37,7 +37,6 @@ const typeStyles: Record<ToastType, { bg: string; border: string; icon: string; 
 };
 
 export const Toast: React.FC<ToastProps> = ({ message, type = 'info', duration = 4000, onClose }) => {
-    const [isVisible, setIsVisible] = useState(true);
     const [isExiting, setIsExiting] = useState(false);
     const styles = typeStyles[type];
 

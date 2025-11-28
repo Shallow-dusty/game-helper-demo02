@@ -100,7 +100,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             const role = ROLES[currentSeat.roleId];
             if (role?.nightAction) {
                 setShowNightAction(true);
-                
+
                 // FR-03: 震动 + 音效提醒玩家唤醒（仅在说书人开启时）
                 if (gameState.vibrationEnabled) {
                     // 震动 API
@@ -108,7 +108,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                         navigator.vibrate([200, 100, 200]); // 短-停-短 模式
                     }
                 }
-                
+
                 // 播放唤醒音效（音效不受振动开关影响，音量小不易察觉）
                 try {
                     const wakeSound = new Audio('/sounds/wake.mp3');
@@ -285,13 +285,12 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                             )}
                             {gameState.aiMessages.map(msg => (
                                 <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                                    <div className={`max-w-[85%] p-3 rounded-lg text-sm whitespace-pre-wrap ${
-                                        msg.role === 'user' 
-                                            ? 'bg-stone-800 text-stone-200' 
-                                            : msg.role === 'system'
+                                    <div className={`max-w-[85%] p-3 rounded-lg text-sm whitespace-pre-wrap ${msg.role === 'user'
+                                        ? 'bg-stone-800 text-stone-200'
+                                        : msg.role === 'system'
                                             ? 'bg-red-900/30 text-red-300 border border-red-800/30'
                                             : 'bg-amber-900/30 text-amber-100 border border-amber-800/30'
-                                    }`}>
+                                        }`}>
                                         {msg.content}
                                     </div>
                                     <div className="flex items-center gap-2 mt-1">
@@ -366,7 +365,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     isOpen={showRoleReference}
                     onClose={() => setShowRoleReference(false)}
                     playerRoleId={currentSeat?.roleId || null}
-                    scriptRoles={SCRIPTS[gameState.currentScriptId]?.roles.map(id => ROLES[id]).filter(Boolean) || []}
+                    scriptRoles={SCRIPTS[gameState.currentScriptId]?.roles.map(id => ROLES[id]).filter((r): r is import('../types').RoleDef => !!r) || []}
                 />,
                 document.body
             )}
@@ -381,53 +380,16 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                 ...roles.outsider,
                                 ...roles.minion,
                                 ...roles.demon
-                            ];
+                            ].map(r => r.id);
 
-                            // Shuffle roles
-                            const shuffledRoles = [...allRoles].sort(() => Math.random() - 0.5);
-
-                            // Get seats with players and assignRole function
-                            const currentState = useStore.getState().gameState;
-                            const assignRole = useStore.getState().assignRole;
-                            
-                            // Get only occupied seats (real players + virtual)
-                            const occupiedSeats = currentState.seats.filter(s => s.userId || s.isVirtual);
-
-                            // First, clear ALL seat roles
-                            currentState.seats.forEach(seat => {
-                                assignRole(seat.id, null as any);
-                            });
-
-                            // Then assign new roles only to occupied seats
-                            occupiedSeats.forEach((seat, index) => {
-                                if (index < shuffledRoles.length) {
-                                    assignRole(seat.id, shuffledRoles[index].id);
-                                }
-                            });
-
-                            // Add system message
-                            const addSystemMessage = (content: string) => {
-                                currentState.messages.push({
-                                    id: Math.random().toString(36).substr(2, 9),
-                                    senderId: 'system',
-                                    senderName: '系统',
-                                    recipientId: null,
-                                    content,
-                                    timestamp: Date.now(),
-                                    type: 'system'
-                                });
-                            };
-                            addSystemMessage(`📊 已应用 "${strategy.name}" 策略，重新分配了 ${shuffledRoles.length} 个角色。`);
-                            
-                            useStore.setState({ gameState: { ...currentState } });
-                            useStore.getState().syncToCloud();
+                            useStore.getState().applyStrategy(strategy.name, allRoles);
                         }
                         setShowCompositionGuide(false);
                     }}
                 />,
                 document.body
             )}
-            {showNightAction && currentNightRole && createPortal(
+            {showNightAction && user.isStoryteller && currentNightRole && createPortal(
                 <NightActionPanel
                     roleId={currentNightRole}
                     onComplete={() => setShowNightAction(false)}

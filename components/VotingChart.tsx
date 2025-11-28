@@ -9,7 +9,7 @@ interface VotingChartProps {
 
 export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteHistory, seats: propSeats }) => {
     const { gameState } = useStore();
-    
+
     // 使用 props 或从 store 获取数据
     const voteHistory = propVoteHistory ?? gameState?.voteHistory ?? [];
     const seats = propSeats ?? gameState?.seats ?? [];
@@ -24,6 +24,7 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
 
     // Get the latest vote
     const latestVote = voteHistory[voteHistory.length - 1];
+    if (!latestVote) return null;
     const nominee = seats.find(s => s.id === latestVote.nomineeSeatId);
     const nominator = seats.find(s => s.id === latestVote.nominatorSeatId);
 

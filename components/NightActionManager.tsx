@@ -42,7 +42,7 @@ export const NightActionManager: React.FC = () => {
 
     const getTargetDescription = (request: NightActionRequest): string => {
         if (!gameState) return '';
-        
+
         if (request.payload?.seatId !== undefined) {
             const target = gameState.seats.find(s => s.id === request.payload.seatId);
             return target?.userName || `座位 ${request.payload.seatId + 1}`;
@@ -92,8 +92,8 @@ export const NightActionManager: React.FC = () => {
                     const seat = gameState.seats.find(s => s.id === request.seatId);
                     const role = ROLES[request.roleId];
                     const isExpanded = expandedRequest === request.id;
-                    const roleQuickReplies = quickReplies[request.roleId] || quickReplies.default;
-                    
+                    const roleQuickReplies = quickReplies[request.roleId] || quickReplies.default || [];
+
                     // 检测是否是假角色（酒鬼/疯子）：真实角色与显示角色不同
                     const realRoleId = seat?.realRoleId;
                     const seenRoleId = seat?.seenRoleId || seat?.roleId;
@@ -103,9 +103,8 @@ export const NightActionManager: React.FC = () => {
                     return (
                         <div
                             key={request.id}
-                            className={`bg-stone-900/80 border rounded-lg transition-all ${
-                                isExpanded ? 'border-indigo-500' : 'border-stone-700'
-                            } ${isFakeRole ? 'ring-1 ring-amber-500/50' : ''}`}
+                            className={`bg-stone-900/80 border rounded-lg transition-all ${isExpanded ? 'border-indigo-500' : 'border-stone-700'
+                                } ${isFakeRole ? 'ring-1 ring-amber-500/50' : ''}`}
                         >
                             {/* 请求摘要 */}
                             <div

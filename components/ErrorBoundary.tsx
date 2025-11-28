@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
     children: ReactNode;
@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
     componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
         console.error('ErrorBoundary caught an error:', error, errorInfo);
         this.setState({ errorInfo });
-        
+
         // 可以在这里上报错误到监控服务
         // reportErrorToService(error, errorInfo);
     }

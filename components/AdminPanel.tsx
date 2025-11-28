@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -44,7 +44,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                 .from('game_rooms')
                 .select('*')
                 .order('updated_at', { ascending: false });
-            
+
             if (error) throw error;
             setRooms(data || []);
         } catch (err: any) {
@@ -57,15 +57,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
 
     const closeRoom = async (roomCode: string) => {
         if (!confirm(`确定要关闭房间 ${roomCode} 吗？这将删除该房间的所有数据。`)) return;
-        
+
         try {
             const { error } = await supabase
                 .from('game_rooms')
                 .delete()
                 .eq('room_code', roomCode);
-            
+
             if (error) throw error;
-            
+
             setRooms(prev => prev.filter(r => r.room_code !== roomCode));
         } catch (err: any) {
             console.error('Failed to close room:', err);
@@ -179,7 +179,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                             <p className="text-sm text-stone-400 mb-4">
                                 共 <span className="text-amber-400 font-bold">{rooms.length}</span> 个活跃房间
                             </p>
-                            
+
                             {rooms.map(room => (
                                 <div
                                     key={room.room_code}
@@ -191,12 +191,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                                                 <span className="text-lg font-mono font-bold text-amber-400">
                                                     {room.room_code}
                                                 </span>
-                                                <span className={`text-xs px-2 py-0.5 rounded ${
-                                                    getPhase(room.state) === 'SETUP' ? 'bg-stone-700 text-stone-300' :
-                                                    getPhase(room.state) === 'NIGHT' ? 'bg-indigo-900/50 text-indigo-300' :
-                                                    getPhase(room.state) === 'DAY' ? 'bg-amber-900/50 text-amber-300' :
-                                                    'bg-stone-700 text-stone-400'
-                                                }`}>
+                                                <span className={`text-xs px-2 py-0.5 rounded ${getPhase(room.state) === 'SETUP' ? 'bg-stone-700 text-stone-300' :
+                                                        getPhase(room.state) === 'NIGHT' ? 'bg-indigo-900/50 text-indigo-300' :
+                                                            getPhase(room.state) === 'DAY' ? 'bg-amber-900/50 text-amber-300' :
+                                                                'bg-stone-700 text-stone-400'
+                                                    }`}>
                                                     {getPhase(room.state)}
                                                 </span>
                                             </div>

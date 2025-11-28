@@ -24,22 +24,23 @@ export const FloatingVoteButton: React.FC = () => {
         gameState?.voting?.isOpen &&
         currentSeat;
 
-    if (!shouldShow || !currentSeat) return null;
-
     // 死亡且无幽灵票时禁用
-    const isDead = currentSeat.isDead || false;
-    const hasGhostVote = currentSeat.hasGhostVote ?? true;
+    const isDead = currentSeat?.isDead || false;
+    const hasGhostVote = currentSeat?.hasGhostVote ?? true;
     const isGhostVoteUsed = isDead && !hasGhostVote;
-    const isLocked = currentSeat.voteLocked || false;
-    const isRaised = currentSeat.isHandRaised || false;
+    const isLocked = currentSeat?.voteLocked || false;
+    const isRaised = currentSeat?.isHandRaised || false;
     const isDisabled = isLoading || isLocked || isGhostVoteUsed;
 
     const handleClick = useCallback(() => {
-        if (isDisabled) return;
+        if (isDisabled || !currentSeat) return;
         setIsLoading(true);
         toggleHand();
         setTimeout(() => setIsLoading(false), 300);
-    }, [isDisabled, toggleHand]);
+    }, [isDisabled, toggleHand, currentSeat]);
+
+    // 早期返回必须在所有 hooks 之后
+    if (!shouldShow || !currentSeat) return null;
 
     // 获取按钮样式
     const getButtonStyle = () => {

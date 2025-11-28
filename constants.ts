@@ -692,49 +692,46 @@ export const STATUS_ICONS: Record<string, string> = {
   'MADNESS': '🤪'
 };
 
-// 静音占位符 base64（浏览器兼容）
-const SILENCE_DATA = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAgAAAA==';
-
+// 本地音频文件路径（放置于 public/audio/ 目录）
 export const AUDIO_TRACKS: Record<string, { name: string, url: string, phase?: string }> = {
   // 默认静音轨道
   silence: {
     name: '静音 (Silence)',
-    url: SILENCE_DATA,
+    url: '', // 空URL表示静音
   },
-  // 音频占位：请将自己的音频放入 public/audio/ 目录，并更新下方 URL
-  // 当前使用静音占位，避免外链超时/CORS 问题
+  // 本地音频文件
   lobby: { 
     name: '神秘大厅 (Mystery)', 
-    url: SILENCE_DATA, // 替换为 '/audio/lobby.mp3'
+    url: '/audio/lobby.mp3',
     phase: 'SETUP'
   },
   day_village: { 
     name: '热闘讨论 (Day)', 
-    url: SILENCE_DATA, // 替换为 '/audio/day.mp3'
+    url: '/audio/day.mp3',
     phase: 'DAY'
   },
   night_ambience: { 
     name: '静谧夜晚 (Night)', 
-    url: SILENCE_DATA, // 替换为 '/audio/night.mp3'
+    url: '/audio/night.mp3',
     phase: 'NIGHT'
   },
   voting: { 
     name: '紧张投票 (Voting)', 
-    url: SILENCE_DATA, // 替换为 '/audio/voting.mp3'
+    url: '/audio/voting.mp3',
     phase: 'VOTING'
   },
   nomination: {
     name: '提名阶段 (Nomination)',
-    url: SILENCE_DATA, // 替换为 '/audio/nomination.mp3'
+    url: '/audio/nomination.mp3',
     phase: 'NOMINATION'
   },
   victory_good: {
     name: '善良胜利 (Good Wins)',
-    url: SILENCE_DATA // 替换为 '/audio/victory_good.mp3'
+    url: '/audio/victory_good.mp3'
   },
   victory_evil: {
     name: '邪恶胜利 (Evil Wins)',
-    url: SILENCE_DATA // 替换为 '/audio/victory_evil.mp3'
+    url: '/audio/victory_evil.mp3'
   },
 };
 

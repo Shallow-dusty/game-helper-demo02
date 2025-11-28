@@ -497,6 +497,33 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
     setIsGestureActive(false);
   }, []);
 
+  // Handle long press for mobile (opens context menu for ST)
+  const handleLongPress = useCallback((e: any, seat: Seat) => {
+    if (isLocked || isGestureActive) return;
+    if (!user?.isStoryteller) return;
+    
+    e.cancelBubble = true;
+    
+    // Get touch position for mobile
+    const clientX = e.evt?.touches?.[0]?.clientX || e.evt?.clientX || window.innerWidth / 2;
+    const clientY = e.evt?.touches?.[0]?.clientY || e.evt?.clientY || window.innerHeight / 2;
+    
+    const menuWidth = 240;
+    const menuHeight = 480;
+
+    let x = clientX;
+    let y = clientY;
+
+    // 防止overflow
+    if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 20;
+    if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 20;
+    if (y < 20) y = 20;
+    if (x < 20) x = 20;
+
+    setContextMenu({ x, y, seatId: seat.id });
+  }, [isLocked, isGestureActive, user?.isStoryteller]);
+
+  // 早期返回必须在所有 hooks 之后
   if (!gameState || !user) return null;
   
   // 检查 seats 数组是否有效
@@ -533,32 +560,6 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const marginFactor = seatCount > 10 ? 80 : 60; // 玩家多时增加边距
   const margin = marginFactor * baseScale; 
   const r = Math.max((minDim / 2) - margin, minDim * 0.3); // 确保最小半径
-
-  // Handle long press for mobile (opens context menu for ST)
-  const handleLongPress = useCallback((e: any, seat: Seat) => {
-    if (isLocked || isGestureActive) return;
-    if (!user.isStoryteller) return;
-    
-    e.cancelBubble = true;
-    
-    // Get touch position for mobile
-    const clientX = e.evt?.touches?.[0]?.clientX || e.evt?.clientX || window.innerWidth / 2;
-    const clientY = e.evt?.touches?.[0]?.clientY || e.evt?.clientY || window.innerHeight / 2;
-    
-    const menuWidth = 240;
-    const menuHeight = 480;
-
-    let x = clientX;
-    let y = clientY;
-
-    // 防止overflow
-    if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 20;
-    if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 20;
-    if (y < 20) y = 20;
-    if (x < 20) x = 20;
-
-    setContextMenu({ x, y, seatId: seat.id });
-  }, [isLocked, isGestureActive, user.isStoryteller]);
 
   const handleSeatClick = (e: any, seat: Seat) => {
     if (isLocked || isGestureActive) return; // Double check logic
@@ -756,7 +757,14 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
       </Stage>
 
       {/* ST Context Menu (Now a Modal) */}
-      {contextMenu && user.isStoryteller && (
+      {contextMenu && user.isStoryteller && (() => {
+        const selectedSeat = gameState.seats.find(s => s.id === contextMenu.seatId);
+        if (!selectedSeat) return null;
+        
+        const selectedRole = selectedSeat.roleId ? ROLES[selectedSeat.roleId] : null;
+        const roleTeamIcon = selectedRole?.team === 'DEMON' ? '👿' : selectedRole?.team === 'MINION' ? '🧪' : '⚜️';
+        
+        return (
         <div
           className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
           style={{ zIndex: Z_INDEX.modal }}
@@ -770,17 +778,14 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
             <div className="bg-stone-950 p-4 border-b border-stone-800 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center border border-stone-700 text-xl">
-                  {gameState.seats.find(s => s.id === contextMenu.seatId)?.roleId ?
-                    (ROLES[gameState.seats.find(s => s.id === contextMenu.seatId)?.roleId!]?.team === 'DEMON' ? '👿' :
-                      ROLES[gameState.seats.find(s => s.id === contextMenu.seatId)?.roleId!]?.team === 'MINION' ? '🧪' : '⚜️')
-                    : '👤'}
+                  {selectedSeat.roleId ? roleTeamIcon : '👤'}
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-stone-200 font-cinzel">
-                    {gameState.seats.find(s => s.id === contextMenu.seatId)?.userName}
+                    {selectedSeat.userName}
                   </h3>
                   <p className="text-xs text-stone-500">
-                    座位 {contextMenu.seatId + 1} • {gameState.seats.find(s => s.id === contextMenu.seatId)?.roleId ? ROLES[gameState.seats.find(s => s.id === contextMenu.seatId)?.roleId!]?.name : '未分配角色'}
+                    座位 {contextMenu.seatId + 1} • {selectedRole?.name || '未分配角色'}
                   </p>
                 </div>
               </div>
@@ -792,24 +797,24 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
               {/* Alive/Dead Toggle */}
               <button
                 onClick={() => { toggleDead(contextMenu.seatId); setContextMenu(null); }}
-                className={`p-3 rounded border flex items-center gap-3 transition-colors ${gameState.seats.find(s => s.id === contextMenu.seatId)?.isDead ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
+                className={`p-3 rounded border flex items-center gap-3 transition-colors ${selectedSeat.isDead ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
               >
-                <span className="text-2xl">{gameState.seats.find(s => s.id === contextMenu.seatId)?.isDead ? '💀' : '❤️'}</span>
+                <span className="text-2xl">{selectedSeat.isDead ? '💀' : '❤️'}</span>
                 <div className="text-left">
                   <div className="font-bold text-sm">切换存活</div>
-                  <div className="text-[10px] opacity-70">{gameState.seats.find(s => s.id === contextMenu.seatId)?.isDead ? '当前: 死亡' : '当前: 存活'}</div>
+                  <div className="text-[10px] opacity-70">{selectedSeat.isDead ? '当前: 死亡' : '当前: 存活'}</div>
                 </div>
               </button>
 
               {/* Ability Used Toggle */}
               <button
                 onClick={() => { toggleAbilityUsed(contextMenu.seatId); setContextMenu(null); }}
-                className={`p-3 rounded border flex items-center gap-3 transition-colors ${gameState.seats.find(s => s.id === contextMenu.seatId)?.hasUsedAbility ? 'bg-stone-950 border-stone-800 text-stone-500' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
+                className={`p-3 rounded border flex items-center gap-3 transition-colors ${selectedSeat.hasUsedAbility ? 'bg-stone-950 border-stone-800 text-stone-500' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
               >
                 <span className="text-2xl">🚫</span>
                 <div className="text-left">
                   <div className="font-bold text-sm">技能耗尽</div>
-                  <div className="text-[10px] opacity-70">{gameState.seats.find(s => s.id === contextMenu.seatId)?.hasUsedAbility ? '已使用' : '未使用'}</div>
+                  <div className="text-[10px] opacity-70">{selectedSeat.hasUsedAbility ? '已使用' : '未使用'}</div>
                 </div>
               </button>
 
@@ -838,7 +843,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
               </button>
 
               {/* Remove Virtual Player - Only shown for virtual seats */}
-              {gameState.seats.find(s => s.id === contextMenu.seatId)?.isVirtual && (
+              {selectedSeat.isVirtual && (
                 <button
                   onClick={() => { removeVirtualPlayer(contextMenu.seatId); setContextMenu(null); }}
                   className="p-3 rounded border border-red-800/50 bg-red-950/30 hover:bg-red-900/50 text-red-300 flex items-center gap-3 transition-colors col-span-2"
@@ -861,8 +866,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
                   if (gameState.currentScriptId === 'tb' && status.id === 'MADNESS') return false;
                   return true;
                 }).map(status => {
-                  const seat = gameState.seats.find(s => s.id === contextMenu.seatId);
-                  const hasStatus = seat?.statuses.includes(status.id as SeatStatus);
+                  const hasStatus = selectedSeat.statuses.includes(status.id as SeatStatus);
                   return (
                     <button
                       key={status.id}
@@ -883,7 +887,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
 
               {/* Existing Reminders */}
               <div className="flex flex-wrap gap-2 mb-3">
-                {gameState.seats.find(s => s.id === contextMenu.seatId)?.reminders.map(rem => (
+                {selectedSeat.reminders.map(rem => (
                   <button
                     key={rem.id}
                     onClick={() => removeReminder(rem.id)}
@@ -895,7 +899,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
                     <span className="hidden group-hover:inline ml-1">×</span>
                   </button>
                 ))}
-                {gameState.seats.find(s => s.id === contextMenu.seatId)?.reminders.length === 0 && (
+                {selectedSeat.reminders.length === 0 && (
                   <span className="text-xs text-stone-600 italic">无标记</span>
                 )}
               </div>
@@ -923,7 +927,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Role Selector Modal */}
       {roleSelectSeat !== null && (

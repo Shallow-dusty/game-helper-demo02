@@ -188,6 +188,9 @@ export interface GameState {
   
   // 夜间行动请求队列
   nightActionRequests: NightActionRequest[];
+  
+  // 语音房间链接（可选）
+  voiceRoomUrl?: string;
 }
 
 export interface User {

@@ -6,6 +6,67 @@
 
 ---
 
+## [0.7.5] - 2025-11-28
+
+### 🏗️ 架构优化与新功能 (Architecture Optimization & New Features)
+
+本版本进行了全面的代码架构优化，包括基础设施升级、组件拆分、性能优化和新功能添加。
+
+#### 🔧 基础设施升级 (Infrastructure)
+- **ESLint 9 + TypeScript 严格模式**: 
+  - 添加 `eslint.config.js` 使用 flat config
+  - 启用 `@typescript-eslint/recommended-type-checked` 规则
+  - `tsconfig.json` 启用 `strict: true`
+  
+- **Vitest 测试框架**: 
+  - 添加 `vitest.config.ts` 配置
+  - 创建 `tests/store.test.ts` 包含 25 个单元测试
+  - 覆盖用户管理、游戏状态、阶段管理、角色分配、座位管理、死亡投票、聊天、虚拟玩家、状态提醒等
+
+- **Husky + lint-staged**: 
+  - Git pre-commit hooks 自动检查
+  - 提交前自动运行 ESLint
+
+- **immer 中间件集成**: 
+  - `store.ts` 集成 Zustand immer 中间件
+  - 支持不可变状态更新
+
+#### 🧩 组件拆分 (Component Extraction)
+- **ActiveAbilityButton.tsx**: 从 Controls.tsx 提取主动技能按钮组件
+- **VoteButton.tsx**: 提取投票按钮组件（含加载状态和锁定处理）
+- **ControlsGameTab.tsx**: 说书人游戏控制选项卡
+- **ControlsAITab.tsx**: AI 助手聊天选项卡
+- **hooks/useLongPress.ts**: 从 Grimoire.tsx 提取长按检测 Hook
+
+#### ⚡ 性能优化 (Performance)
+- **Konva 图层分离**: 
+  - `Grimoire.tsx` 分离装饰层和交互层
+  - 装饰层设置 `listening={false}` 减少事件处理开销
+
+#### ✨ 新功能 (New Features)
+- **🧪 沙盒模式 (Sandbox Mode)**:
+  - 新增 `sandboxStore.ts` 独立本地状态管理
+  - 新增 `SandboxView.tsx` 沙盒模式视图
+  - `RoomSelection.tsx` 添加沙盒模式入口
+  - 完全离线运行，无需 Supabase 连接
+  - 适合学习规则、测试剧本配置、熟悉说书人操作
+
+- **🔊 AudioEnableOverlay.tsx**: 浏览器音频激活引导覆盖层
+
+- **🔗 VoiceRoomLink.tsx**: 外部语音房间链接管理组件
+  - `types.ts` 添加 `voiceRoomUrl` 字段
+
+#### 📦 新增依赖 (New Dependencies)
+- `immer@11.0.1` - 不可变状态更新
+- `react-window@2.2.3` - 虚拟滚动（待集成）
+- `eslint@9.39.1` - 代码检查
+- `@typescript-eslint/eslint-plugin@8.48.0` - TS ESLint 插件
+- `vitest@4.0.14` - 测试框架
+- `husky@9.1.7` - Git hooks
+- `lint-staged@16.2.7` - 提交前检查
+
+---
+
 ## [0.7.4] - 2025-11-27
 
 ### 🔍 全面代码审查 (Comprehensive Code Review)

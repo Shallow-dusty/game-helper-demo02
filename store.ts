@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
 import { GameState, User, GamePhase, ChatMessage, AudioState, SeatStatus, Seat, NightActionRequest } from './types';
 import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS, PHASE_AUDIO_MAP, AUDIO_TRACKS } from './constants';
 import OpenAI from 'openai';
@@ -403,7 +404,8 @@ interface AppState {
     deleteAiMessage: (id: string) => void;
 }
 
-export const useStore = create<AppState>((set, get) => ({
+export const useStore = create<AppState>()(
+    immer((set, get) => ({
     user: null,
     gameState: null,
     isAiThinking: false,
@@ -1950,7 +1952,7 @@ export const useStore = create<AppState>((set, get) => ({
     },
 
 
-}));
+})));
 
 // Helper: TB composition rules
 function getComposition(players: number) {

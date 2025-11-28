@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useStore } from './store';
+import { useSandboxStore } from './sandboxStore';
 import { Lobby } from './components/Lobby';
 import { RoomSelection } from './components/RoomSelection';
 import { Grimoire } from './components/Grimoire';
@@ -14,6 +15,7 @@ import { NotificationSystem } from './components/NotificationSystem';
 import { ToastContainer, useToasts } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WelcomeAnnouncement } from './components/WelcomeAnnouncement';
+import { SandboxView } from './components/SandboxView';
 
 const getViewportMetrics = () => {
   if (typeof window === 'undefined') {
@@ -38,6 +40,9 @@ const App = () => {
   const openRolePanel = useStore(state => state.openRolePanel);
   const closeRolePanel = useStore(state => state.closeRolePanel);
   const toggleSidebar = useStore(state => state.toggleSidebar);
+  
+  // Sandbox mode
+  const isSandboxActive = useSandboxStore(state => state.isActive);
   
   // Toast notifications
   const { toasts, removeToast } = useToasts();
@@ -143,6 +148,11 @@ const App = () => {
   // 1. Not Logged In -> Lobby
   if (!user) {
     return <Lobby />;
+  }
+
+  // 1.5. Sandbox Mode Active -> Sandbox View
+  if (isSandboxActive) {
+    return <SandboxView />;
   }
 
   // 2. Logged In but No Game (No Room ID or Sync failed) -> Room Selection

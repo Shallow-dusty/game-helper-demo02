@@ -1,27 +1,52 @@
 {
   "name": "grimoire-web",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.7.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "prepare": "husky"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
     "@supabase/supabase-js": "^2.84.0",
+    "immer": "^11.0.1",
     "openai": "^6.9.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-konva": "^18.2.10",
+    "react-window": "^2.2.3",
     "recharts": "^3.5.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "^22.14.0",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@types/react-window": "^2.0.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "eslint": "^9.39.1",
+    "husky": "^9.1.7",
+    "jsdom": "^27.2.0",
+    "lint-staged": "^16.2.7",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "typescript-eslint": "^8.48.0",
+    "vite": "^6.2.0",
+    "vitest": "^4.0.14"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ]
   }
 }

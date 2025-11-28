@@ -53,6 +53,12 @@
 - **触觉反馈**: 长按时触发振动反馈
 - **魔典锁定**: 防止误触操作
 
+### 🧪 沙盒模式 (v0.7.5 NEW!)
+- **离线练习**: 无需网络连接，本地运行完整游戏逻辑
+- **说书人训练**: 熟悉夜间流程、角色分配、投票操作
+- **剧本测试**: 快速测试不同剧本配置
+- **新手友好**: 无压力环境下学习游戏规则
+
 ### 🤖 AI 增强
 - **多模型支持**: 集成 **DeepSeek R1 系列**、**MiniMax M2**、**Kimi K2 Thinking** 等 6+ 先进大模型
 - **智能规则助手**: 随时解答规则疑问、生成台词、提供判例建议
@@ -65,14 +71,16 @@
 
 | 类别 | 技术 |
 |------|------|
-| **前端框架** | React 18, TypeScript 5.8 |
+| **前端框架** | React 18, TypeScript 5.8 (strict mode) |
 | **构建工具** | Vite 6 |
 | **样式** | Tailwind CSS + Vanilla CSS |
-| **状态管理** | Zustand |
+| **状态管理** | Zustand + immer |
 | **画布渲染** | react-konva |
 | **后端/数据库** | Supabase (PostgreSQL + Realtime + RPC) |
 | **AI 集成** | OpenAI SDK (兼容多模型) |
 | **可视化** | Recharts |
+| **测试** | Vitest |
+| **代码质量** | ESLint 9 + Husky + lint-staged |
 
 ---
 

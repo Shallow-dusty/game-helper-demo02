@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
+import { useSandboxStore } from '../sandboxStore';
 import { showWarning } from './Toast';
 import { AdminPanel } from './AdminPanel';
 
@@ -8,12 +9,17 @@ export const RoomSelection = () => {
   const createGame = useStore(state => state.createGame);
   const joinGame = useStore(state => state.joinGame);
   const leaveGame = useStore(state => state.leaveGame);
+  
+  // 沙盒模式
+  const startSandbox = useSandboxStore(state => state.startSandbox);
+  const isSandboxActive = useSandboxStore(state => state.isActive);
 
   const [seatCount, setSeatCount] = useState(12); // Default setup
   const [roomCode, setRoomCode] = useState('');
   const [lastRoomCode, setLastRoomCode] = useState<string | null>(null);
   const [isRejoining, setIsRejoining] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showSandboxOptions, setShowSandboxOptions] = useState(false);
 
   // 检查是否有上次的房间记录
   useEffect(() => {
@@ -179,6 +185,72 @@ export const RoomSelection = () => {
             </button>
           </div>
 
+        </div>
+
+        {/* SANDBOX MODE SECTION */}
+        <div className="mt-8 border-t border-stone-800 pt-8">
+          <div className="text-center mb-6">
+            <h2 className="text-xl text-stone-400 font-cinzel">或者尝试...</h2>
+          </div>
+          
+          <div className="bg-stone-900/60 border border-stone-700 p-6 rounded shadow-xl group hover:border-emerald-900/50 transition-all hover:shadow-[0_0_30px_rgba(6,78,59,0.2)]">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 bg-stone-800 rounded-full flex items-center justify-center border border-stone-600 group-hover:scale-110 transition-transform group-hover:border-emerald-700 group-hover:bg-emerald-950 shrink-0">
+                <span className="text-3xl">🧪</span>
+              </div>
+              
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-stone-200 font-cinzel mb-1">沙盒模式 (Sandbox)</h3>
+                <p className="text-sm text-stone-500">
+                  本地练习模式，无需联网。适合学习规则、测试剧本配置、熟悉说书人操作。
+                </p>
+              </div>
+              
+              <div className="shrink-0">
+                {showSandboxOptions ? (
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={seatCount}
+                      onChange={(e) => setSeatCount(parseInt(e.target.value))}
+                      className="bg-stone-800 border border-stone-600 text-stone-200 px-3 py-2 rounded text-sm focus:outline-none focus:border-emerald-600"
+                    >
+                      {[5,6,7,8,9,10,11,12,13,14,15].map(n => (
+                        <option key={n} value={n}>{n} 人</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => {
+                        startSandbox(seatCount);
+                      }}
+                      className="px-6 py-2 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded font-cinzel tracking-wider border border-emerald-950 shadow-lg transition-all active:scale-[0.98]"
+                    >
+                      开始
+                    </button>
+                    <button
+                      onClick={() => setShowSandboxOptions(false)}
+                      className="px-3 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded transition-colors"
+                    >
+                      取消
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowSandboxOptions(true)}
+                    className="px-6 py-3 bg-stone-800 hover:bg-emerald-900 text-stone-200 font-bold rounded font-cinzel tracking-wider border border-stone-700 hover:border-emerald-800 shadow-lg transition-all active:scale-[0.98]"
+                  >
+                    进入沙盒 →
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            <div className="mt-4 flex gap-4 text-xs text-stone-600">
+              <span className="flex items-center gap-1"><span className="text-emerald-600">✓</span> 无需网络</span>
+              <span className="flex items-center gap-1"><span className="text-emerald-600">✓</span> 单人操作</span>
+              <span className="flex items-center gap-1"><span className="text-emerald-600">✓</span> 完整功能</span>
+              <span className="flex items-center gap-1"><span className="text-emerald-600">✓</span> 数据不保存</span>
+            </div>
+          </div>
         </div>
 
         <button

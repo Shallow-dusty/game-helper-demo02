@@ -704,7 +704,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
           updateGestureState();
         }}
       >
-        <Layer>
+        {/* Decoration Layer - No event listening for better performance */}
+        <Layer listening={false}>
           {/* Center Circle / Decor */}
           <Circle
             x={cx}
@@ -728,7 +729,10 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
             fontStyle="italic"
             letterSpacing={2}
           />
+        </Layer>
 
+        {/* Interactive Layer - Seats and player interactions */}
+        <Layer>
           {gameState.seats.map((seat, i) => {
             const angle = (i / gameState.seats.length) * 2 * Math.PI - Math.PI / 2;
             return (

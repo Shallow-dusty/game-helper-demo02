@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useStore, AiProvider } from '../store';
+import { useStore, AiProvider, getAiConfig } from '../store';
 
 export const ControlsAITab: React.FC = () => {
   const user = useStore(state => state.user);
@@ -12,6 +12,8 @@ export const ControlsAITab: React.FC = () => {
   const deleteAiMessage = useStore(state => state.deleteAiMessage);
 
   const [aiPrompt, setAiPrompt] = useState('');
+  
+  const aiConfig = getAiConfig();
 
   if (!user || !gameState) return null;
 
@@ -22,6 +24,10 @@ export const ControlsAITab: React.FC = () => {
     setAiPrompt('');
     await askAi(prompt);
   };
+  
+  // 获取当前 provider 的配置状态
+  const currentConfig = aiConfig[aiProvider];
+  const hasApiKey = !!currentConfig?.apiKey;
 
   return (
     <div className="h-full flex flex-col p-4">
@@ -61,6 +67,14 @@ export const ControlsAITab: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* API Key 状态提示 */}
+      {!hasApiKey && (
+        <div className="mb-2 p-2 bg-red-950/30 border border-red-800/50 rounded text-xs text-red-400">
+          ⚠️ 缺少 API Key，请在 <code>.env.local</code> 中配置
+        </div>
+      )}
+      
       <form onSubmit={handleAiSubmit} className="flex gap-2">
         <input
           type="text"
@@ -69,7 +83,7 @@ export const ControlsAITab: React.FC = () => {
           placeholder="询问 AI 助手..."
           className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 focus:border-amber-600 focus:outline-none"
         />
-        <button type="submit" disabled={!aiPrompt.trim() || isAiThinking} className="bg-amber-700 hover:bg-amber-600 disabled:opacity-50 text-white px-3 py-2 rounded">
+        <button type="submit" disabled={!aiPrompt.trim() || isAiThinking || !hasApiKey} className="bg-amber-700 hover:bg-amber-600 disabled:opacity-50 text-white px-3 py-2 rounded">
           发送
         </button>
       </form>
@@ -81,20 +95,23 @@ export const ControlsAITab: React.FC = () => {
             onChange={(e) => setAiProvider(e.target.value as AiProvider)}
             className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1"
           >
-            <optgroup label="官方 API（推荐）">
-              <option value="deepseek">DeepSeek V3 (稳定)</option>
+            <optgroup label="✅ 推荐 (稳定可用)">
+              <option value="deepseek">DeepSeek V3 {aiConfig.deepseek.apiKey ? '✓' : '✗'}</option>
             </optgroup>
-            <optgroup label="其他（可能有 CORS 问题）">
-              <option value="kimi">Kimi K2</option>
-              <option value="sf_r1">DeepSeek R1 (SF)</option>
-              <option value="sf_r1_llama_70b">R1 Llama 70B (SF)</option>
-              <option value="sf_r1_qwen_32b">R1 Qwen 32B (SF)</option>
+            <optgroup label="🌐 需要科学上网">
+              <option value="gemini">Gemini 2.0 Flash {aiConfig.gemini.apiKey ? '✓' : '✗'}</option>
+            </optgroup>
+            <optgroup label="⚠️ 可能有 CORS 问题">
+              <option value="kimi">Kimi {aiConfig.kimi.apiKey ? '✓' : '✗'}</option>
+              <option value="sf_r1">DeepSeek R1 (SF) {aiConfig.sf_r1.apiKey ? '✓' : '✗'}</option>
+              <option value="sf_r1_llama_70b">R1 Llama 70B (SF) {aiConfig.sf_r1_llama_70b.apiKey ? '✓' : '✗'}</option>
+              <option value="sf_r1_qwen_32b">R1 Qwen 32B (SF) {aiConfig.sf_r1_qwen_32b.apiKey ? '✓' : '✗'}</option>
             </optgroup>
           </select>
         </div>
       )}
       <p className="text-[10px] text-stone-600 mt-2 text-center">
-        💡 提示：仅 DeepSeek 官方 API 稳定可用，其他 API 可能因 CORS 策略无法访问
+        {currentConfig?.note || '选择一个 AI 模型'}
       </p>
     </div>
   );

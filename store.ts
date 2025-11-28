@@ -117,6 +117,7 @@ export const filterGameStateForUser = (gameState: GameState, currentUserId: stri
 // --- AI CONFIG ---
 export type AiProvider =
     | 'deepseek'
+    | 'gemini'  // 新增 Gemini (国内无法访问)
     | 'kimi'
     | 'sf_r1'
     | 'sf_r1_llama_70b'
@@ -125,57 +126,75 @@ export type AiProvider =
     | 'sf_minimax_m2'
     | 'sf_kimi_k2_thinking';
 
-const AI_CONFIG = {
+const AI_CONFIG: Record<AiProvider, { apiKey: string; baseURL: string; model: string; name: string; note?: string }> = {
     deepseek: {
-        apiKey: import.meta.env.VITE_DEEPSEEK_KEY,
+        apiKey: import.meta.env.VITE_DEEPSEEK_KEY || '',
         baseURL: 'https://api.deepseek.com',
         model: 'deepseek-chat', // V3.2
-        name: 'DeepSeek V3.2 (Official)'
+        name: 'DeepSeek V3.2 (Official)',
+        note: '✅ 稳定可用，推荐使用'
+    },
+    gemini: {
+        apiKey: import.meta.env.VITE_GEMINI_KEY || '',
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
+        model: 'gemini-2.0-flash',
+        name: 'Gemini 2.0 Flash',
+        note: '⚠️ 国内网络无法访问，需要科学上网'
     },
     kimi: {
-        apiKey: import.meta.env.VITE_KIMI_KEY,
+        apiKey: import.meta.env.VITE_KIMI_KEY || '',
         baseURL: 'https://api.moonshot.cn/v1',
-        model: 'moonshot-v1-8k', // K2
-        name: 'Kimi (Official - Fixing)'
+        model: 'moonshot-v1-8k',
+        name: 'Kimi (Official)',
+        note: '⚠️ 可能有 CORS 问题'
     },
-    // SiliconFlow Models
+    // SiliconFlow Models - 需要 VITE_SILICONFLOW_KEY
     sf_r1: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'deepseek-ai/DeepSeek-R1',
-        name: '🧠 DeepSeek R1 (Full)'
+        name: '🧠 DeepSeek R1 (Full)',
+        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
     },
     sf_r1_llama_70b: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'deepseek-ai/DeepSeek-R1-Distill-Llama-70B',
-        name: '🦙 R1 Distill Llama 70B'
+        name: '🦙 R1 Distill Llama 70B',
+        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
     },
     sf_r1_qwen_32b: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B',
-        name: '🤖 R1 Distill Qwen 32B'
+        name: '🤖 R1 Distill Qwen 32B',
+        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
     },
     sf_r1_qwen_7b_pro: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'Pro/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B',
-        name: '⚡ R1 Distill Qwen 7B Pro'
+        name: '⚡ R1 Distill Qwen 7B Pro',
+        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
     },
     sf_minimax_m2: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'MiniMaxAI/MiniMax-M2',
-        name: '🦄 MiniMax M2 (230B)'
+        name: '🦄 MiniMax M2 (230B)',
+        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
     },
     sf_kimi_k2_thinking: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY,
+        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'moonshotai/Kimi-K2-Thinking',
-        name: '🤔 Kimi K2 Thinking'
+        name: '🤔 Kimi K2 Thinking',
+        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
     }
 };
+
+// 导出配置供组件使用
+export const getAiConfig = () => AI_CONFIG;
 
 // Global variables for subscription
 let realtimeChannel: any = null;

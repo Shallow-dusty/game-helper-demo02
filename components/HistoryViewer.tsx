@@ -34,17 +34,17 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
     const selectedSeats = selectedRecord?.state?.seats ?? [];
 
     useEffect(() => {
-        fetchHistory();
-        
+        void fetchHistory();
+
         // 订阅实时更新
         const channel = supabase
             .channel('game_history_changes')
             .on(
                 'postgres_changes',
-                { 
-                    event: 'INSERT', 
-                    schema: 'public', 
-                    table: 'game_history' 
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'game_history'
                 },
                 (payload) => {
                     console.log('📜 New game history:', payload.new);
@@ -84,7 +84,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                 <div className="w-1/3 border-r border-stone-800 flex flex-col bg-stone-950">
                     <div className="p-4 border-b border-stone-800 flex justify-between items-center bg-stone-900">
                         <h2 className="text-stone-200 font-bold font-cinzel tracking-wider">📜 Chronicles</h2>
-                        <button onClick={fetchHistory} className="text-stone-500 hover:text-stone-300 text-xs">↻ Refresh</button>
+                        <button onClick={() => void fetchHistory()} className="text-stone-500 hover:text-stone-300 text-xs">↻ Refresh</button>
                     </div>
                     <div className="flex-1 overflow-y-auto scrollbar-thin">
                         {loading ? (
@@ -123,8 +123,8 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                                 <button
                                     onClick={() => setActiveTab('details')}
                                     className={`px-4 py-2 font-bold text-sm transition-colors ${activeTab === 'details'
-                                            ? 'text-amber-400 border-b-2 border-amber-600'
-                                            : 'text-stone-500 hover:text-stone-300'
+                                        ? 'text-amber-400 border-b-2 border-amber-600'
+                                        : 'text-stone-500 hover:text-stone-300'
                                         }`}
                                 >
                                     Details
@@ -132,8 +132,8 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                                 <button
                                     onClick={() => setActiveTab('votes')}
                                     className={`px-4 py-2 font-bold text-sm transition-colors ${activeTab === 'votes'
-                                            ? 'text-amber-400 border-b-2 border-amber-600'
-                                            : 'text-stone-500 hover:text-stone-300'
+                                        ? 'text-amber-400 border-b-2 border-amber-600'
+                                        : 'text-stone-500 hover:text-stone-300'
                                         }`}
                                 >
                                     Voting History

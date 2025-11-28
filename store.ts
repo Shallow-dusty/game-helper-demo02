@@ -8,15 +8,19 @@ import { createClient } from '@supabase/supabase-js';
 // --- Toast notification helper (lazy import to avoid circular dependency) ---
 let showErrorFn: ((msg: string) => void) | null = null;
 let showWarningFn: ((msg: string) => void) | null = null;
+let showInfoFn: ((msg: string) => void) | null = null;
+let showSuccessFn: ((msg: string) => void) | null = null;
 
 // Lazy initialize toast functions
 const getToastFunctions = async () => {
     if (!showErrorFn) {
-        const { showError, showWarning } = await import('./components/Toast');
+        const { showError, showWarning, showInfo, showSuccess } = await import('./components/Toast');
         showErrorFn = showError;
         showWarningFn = showWarning;
+        showInfoFn = showInfo;
+        showSuccessFn = showSuccess;
     }
-    return { showError: showErrorFn, showWarning: showWarningFn };
+    return { showError: showErrorFn, showWarning: showWarningFn, showInfo: showInfoFn, showSuccess: showSuccessFn };
 };
 
 // --- SUPABASE CONFIG ---
@@ -226,6 +230,7 @@ const getInitialState = (roomId: string, seatCount: number, currentScriptId = 't
         statuses: [],
         voteLocked: false,
     })),
+    swapRequests: [],
     messages: [],
     gameOver: { isOver: false, winner: null, reason: '' },
     audio: {
@@ -320,7 +325,7 @@ const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: string | 
 
 // --- STORE ---
 
-interface AppState {
+export interface AppState {
     user: User | null;
     gameState: GameState | null;
     isAiThinking: boolean;
@@ -376,7 +381,10 @@ interface AppState {
     removeVirtualPlayer: (seatId: number) => void;
     assignRoles: () => void;
     swapSeats: (seatId1: number, seatId2: number) => void;
+    requestSeatSwap: (toSeatId: number) => void;
+    respondToSwapRequest: (requestId: string, accept: boolean) => void;
     forceLeaveSeat: (seatId: number) => void;
+    resetRoles: () => void;
     distributeRoles: () => void;
     hideRoles: () => void;
     startGame: () => void;
@@ -397,10 +405,10 @@ interface AppState {
     importScript: (jsonContent: string) => void;
 
     // Sync & History
-    syncToCloud: () => void;
+    syncToCloud: () => Promise<void>;
     refreshFromCloud: () => Promise<void>;
     sync: () => void;
-    saveGameHistory: (gameState: GameState) => void;
+    saveGameHistory: (gameState: GameState) => Promise<void>;
 
     // UI State
     openRolePanel: () => void;
@@ -517,10 +525,10 @@ export const useStore = create<AppState>()(
                     // NFR-02: 区分网络错误和房间不存在
                     if (error.code === 'PGRST116') {
                         // 房间不存在
-                        getToastFunctions().then(({ showError }) => showError("房间不存在！请检查房间号。"));
+                        void getToastFunctions().then(({ showError }) => showError("房间不存在！请检查房间号。"));
                     } else {
                         // 网络错误
-                        getToastFunctions().then(({ showError }) => showError("网络连接失败，请检查网络后重试。"));
+                        void getToastFunctions().then(({ showError }) => showError("网络连接失败，请检查网络后重试。"));
                     }
                     set({ connectionStatus: 'disconnected' });
                     // 清除无效的房间记录
@@ -529,7 +537,7 @@ export const useStore = create<AppState>()(
                 }
 
                 if (!data) {
-                    getToastFunctions().then(({ showError }) => showError("房间不存在或已关闭！"));
+                    void getToastFunctions().then(({ showError }) => showError("房间不存在或已关闭！"));
                     set({ connectionStatus: 'disconnected' });
                     localStorage.removeItem('grimoire_last_room');
                     return;
@@ -538,7 +546,7 @@ export const useStore = create<AppState>()(
                 const gameState = data.data as GameState;
 
                 // 2. Subscribe
-                if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+                if (realtimeChannel) void supabase.removeChannel(realtimeChannel);
 
                 const channel = supabase.channel(`room:${roomCode}`)
                     .on(
@@ -575,7 +583,7 @@ export const useStore = create<AppState>()(
                     const currentState = get().gameState;
                     if (currentState) {
                         addSystemMessage(currentState, `${user.name} ${user.isStoryteller ? '(说书人)' : ''} 加入了房间。`);
-                        get().syncToCloud();
+                        void get().syncToCloud();
                     }
                 }, 100);
 
@@ -584,7 +592,7 @@ export const useStore = create<AppState>()(
                 set({ connectionStatus: 'disconnected' });
                 // 清除可能无效的房间记录
                 localStorage.removeItem('grimoire_last_room');
-                getToastFunctions().then(({ showError }) => showError?.(`加入房间失败: ${error.message}`));
+                void getToastFunctions().then(({ showError }) => showError?.(`加入房间失败: ${error.message}`));
             }
         },
 
@@ -610,7 +618,7 @@ export const useStore = create<AppState>()(
                     seat.voteLocked = false;
                 }
                 addSystemMessage(state, `${user.name} 离开了房间。`);
-                get().syncToCloud();
+                void get().syncToCloud();
             }
 
             // 清除断线重连信息
@@ -620,7 +628,7 @@ export const useStore = create<AppState>()(
             localStorage.removeItem('grimoire_last_room');
 
             if (realtimeChannel) {
-                supabase.removeChannel(realtimeChannel);
+                void supabase.removeChannel(realtimeChannel);
                 realtimeChannel = null;
             }
 
@@ -679,7 +687,7 @@ export const useStore = create<AppState>()(
         },
 
         sync: () => {
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         // --- ACTIONS ---
@@ -695,7 +703,7 @@ export const useStore = create<AppState>()(
             const existingSeat = gameState.seats.find(s => s.userId === user.id && s.id !== seatId);
             if (existingSeat) {
                 // 用户已在其他座位，不允许重复入座
-                getToastFunctions().then(({ showWarning }) => {
+                void getToastFunctions().then(({ showWarning }) => {
                     showWarning?.(`你已经在座位 ${existingSeat.id + 1}，不能同时占多个座位。`);
                 });
                 return;
@@ -703,7 +711,7 @@ export const useStore = create<AppState>()(
 
             // 检查座位是否已被占用（本地快速检查）
             if (seat.userId && seat.userId !== user.id && !seat.isVirtual) {
-                getToastFunctions().then(({ showWarning }) => {
+                void getToastFunctions().then(({ showWarning }) => {
                     showWarning?.(`座位 ${seatId + 1} 已被 ${seat.userName} 占用。`);
                 });
                 return;
@@ -725,7 +733,7 @@ export const useStore = create<AppState>()(
                 if (error) {
                     console.error('claim_seat RPC error:', error);
                     // 不降级，仅提示错误
-                    getToastFunctions().then(({ showWarning }) => {
+                    void getToastFunctions().then(({ showWarning }) => {
                         showWarning?.('网络错误，请重试');
                     });
                     return;
@@ -733,7 +741,7 @@ export const useStore = create<AppState>()(
 
                 if (data && !data.success) {
                     // RPC 返回失败（座位已被占用）
-                    getToastFunctions().then(({ showWarning }) => {
+                    void getToastFunctions().then(({ showWarning }) => {
                         showWarning?.(data.error || '座位已被占用');
                     });
                     return;
@@ -754,7 +762,7 @@ export const useStore = create<AppState>()(
             } catch (err) {
                 console.error('claim_seat error:', err);
                 // 不降级，仅提示错误
-                getToastFunctions().then(({ showWarning }) => {
+                void getToastFunctions().then(({ showWarning }) => {
                     showWarning?.('网络错误，请稍后重试');
                 });
             }
@@ -767,7 +775,7 @@ export const useStore = create<AppState>()(
             // 找到用户当前的座位
             const seat = gameState.seats.find(s => s.userId === user.id);
             if (!seat) {
-                getToastFunctions().then(({ showWarning }) => {
+                void getToastFunctions().then(({ showWarning }) => {
                     showWarning?.('你没有座位可以离开。');
                 });
                 return;
@@ -818,7 +826,7 @@ export const useStore = create<AppState>()(
 
                 addSystemMessage(gameState, `${userName} 离开了座位 ${seatId + 1}。`);
                 set({ gameState: { ...gameState } });
-                get().syncToCloud();
+                void get().syncToCloud();
 
             } catch (err) {
                 console.error('leave_seat error:', err);
@@ -840,7 +848,7 @@ export const useStore = create<AppState>()(
 
                 addSystemMessage(gameState, `${userName} 离开了座位 ${seatId + 1}。`);
                 set({ gameState: { ...gameState } });
-                get().syncToCloud();
+                void get().syncToCloud();
             }
         },
 
@@ -864,7 +872,7 @@ export const useStore = create<AppState>()(
             gameState.messages.push(msg);
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
 
@@ -878,7 +886,7 @@ export const useStore = create<AppState>()(
             gameState.currentScriptId = scriptId;
             addSystemMessage(gameState, `剧本已切换为: ${script.name}`);
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         importScript: (jsonContent: string) => {
@@ -923,11 +931,11 @@ export const useStore = create<AppState>()(
                 addSystemMessage(gameState, `成功导入剧本: ${scriptName}`);
                 set({ gameState: { ...gameState } });
                 get().setScript(scriptId);
-                get().syncToCloud();
+                void get().syncToCloud();
 
             } catch (e: any) { // Added type annotation for error
                 console.error("Script import failed", e);
-                getToastFunctions().then(({ showError }) => showError?.("导入失败: 剧本格式不正确"));
+                void getToastFunctions().then(({ showError }) => showError?.("导入失败: 剧本格式不正确"));
             }
         },
 
@@ -983,7 +991,7 @@ export const useStore = create<AppState>()(
             }
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         assignRole: (seatId, roleId) => {
@@ -992,7 +1000,7 @@ export const useStore = create<AppState>()(
 
             // 游戏开始后禁止修改身份（除非是说书人强制操作）
             if (gameState.setupPhase === 'STARTED') {
-                getToastFunctions().then(({ showWarning }) => {
+                void getToastFunctions().then(({ showWarning }) => {
                     showWarning?.('游戏已开始，无法修改角色分配。');
                 });
                 return;
@@ -1003,7 +1011,7 @@ export const useStore = create<AppState>()(
                 applyRoleAssignment(gameState, seat, roleId);
             }
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         toggleDead: (seatId) => {
@@ -1032,7 +1040,7 @@ export const useStore = create<AppState>()(
                                 gameState.audio.trackId = 'victory_good';
                                 gameState.audio.isPlaying = true;
                             }
-                            get().saveGameHistory(gameState); // Save history
+                            void get().saveGameHistory(gameState); // Save history
                         }
                     }
                     if (role.id === 'saint' && gameState.phase === 'DAY') {
@@ -1043,14 +1051,14 @@ export const useStore = create<AppState>()(
                             gameState.audio.trackId = 'victory_evil';
                             gameState.audio.isPlaying = true;
                         }
-                        get().saveGameHistory(gameState); // Save history
+                        void get().saveGameHistory(gameState); // Save history
                     }
                 }
             } else {
                 addSystemMessage(gameState, `${seat.userName} 复活了。`);
             }
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         toggleAbilityUsed: (seatId) => {
@@ -1061,7 +1069,7 @@ export const useStore = create<AppState>()(
                 seat.hasUsedAbility = !seat.hasUsedAbility;
             }
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         toggleStatus: (seatId, status) => {
@@ -1076,7 +1084,7 @@ export const useStore = create<AppState>()(
                 }
             }
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         toggleWhispers: () => {
@@ -1085,7 +1093,7 @@ export const useStore = create<AppState>()(
             gameState.allowWhispers = !gameState.allowWhispers;
             addSystemMessage(gameState, gameState.allowWhispers ? "🟢 说书人开启了私聊功能。" : "🔴 说书人禁用了私聊功能。");
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         toggleVibration: () => {
@@ -1094,7 +1102,7 @@ export const useStore = create<AppState>()(
             gameState.vibrationEnabled = !gameState.vibrationEnabled;
             addSystemMessage(gameState, gameState.vibrationEnabled ? "📳 说书人开启了夜间振动提醒。" : "🔇 说书人关闭了夜间振动提醒。");
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         addReminder: (seatId, text, icon, color) => {
@@ -1112,7 +1120,7 @@ export const useStore = create<AppState>()(
                 }];
             }
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         addSeat: (() => {
@@ -1126,7 +1134,7 @@ export const useStore = create<AppState>()(
                 if (!gameState || !user?.isStoryteller) return;
                 // 限制最大座位数为 20
                 if (gameState.seats.length >= 20) {
-                    getToastFunctions().then(({ showWarning }) => showWarning?.("座位数已达上限 (20)！"));
+                    void getToastFunctions().then(({ showWarning }) => showWarning?.("座位数已达上限 (20)！"));
                     return;
                 }
                 const newId = gameState.seats.length;
@@ -1149,7 +1157,7 @@ export const useStore = create<AppState>()(
                 }];
                 addSystemMessage(gameState, `添加了新座位 ${newId + 1}`);
                 set({ gameState: { ...gameState } });
-                get().syncToCloud();
+                void get().syncToCloud();
             };
         })(),
 
@@ -1181,7 +1189,79 @@ export const useStore = create<AppState>()(
 
             addSystemMessage(gameState, `座位 ${seatId1 + 1} 和 座位 ${seatId2 + 1} 交换了位置`);
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
+        },
+
+        requestSeatSwap: (toSeatId) => {
+            const { gameState, user } = get();
+            if (!gameState || !user) return;
+
+            const fromSeat = gameState.seats.find(s => s.userId === user.id);
+            if (!fromSeat) {
+                void getToastFunctions().then(({ showWarning }) => showWarning?.("你还没有入座！"));
+                return;
+            }
+
+            const toSeat = gameState.seats.find(s => s.id === toSeatId);
+            if (!toSeat) return;
+
+            if (!toSeat.userId) {
+                // Empty seat, just move
+                void get().joinSeat(toSeatId);
+                return;
+            }
+
+            // Check if already requested
+            const existing = gameState.swapRequests.find(
+                r => r.fromUserId === user.id && r.toUserId === toSeat.userId
+            );
+            if (existing) {
+                void getToastFunctions().then(({ showInfo }) => showInfo?.("已发送换座请求，请等待对方回应"));
+                return;
+            }
+
+            const request: import('./types').SwapRequest = {
+                id: Math.random().toString(36).substring(7),
+                fromSeatId: fromSeat.id,
+                fromUserId: user.id,
+                fromName: user.name,
+                toSeatId: toSeat.id,
+                toUserId: toSeat.userId,
+                timestamp: Date.now()
+            };
+
+            gameState.swapRequests.push(request);
+
+            void getToastFunctions().then(({ showSuccess }) => showSuccess?.(`已向 ${toSeat.userName} 发送换座请求`));
+
+            set({ gameState: { ...gameState } });
+            void get().syncToCloud();
+        },
+
+        respondToSwapRequest: (requestId, accept) => {
+            const { gameState, user } = get();
+            if (!gameState || !user) return;
+
+            const requestIndex = gameState.swapRequests.findIndex(r => r.id === requestId);
+            if (requestIndex === -1) return;
+
+            const request = gameState.swapRequests[requestIndex];
+            if (!request) return;
+            if (request.toUserId !== user.id) return; // Only target can respond
+
+            // Remove request
+            gameState.swapRequests.splice(requestIndex, 1);
+
+            if (accept) {
+                // Perform swap
+                get().swapSeats(request.fromSeatId, request.toSeatId);
+            } else {
+                // Notify sender of rejection (optional)
+                void getToastFunctions().then(({ showInfo }) => showInfo?.(`${user.name} 拒绝了换座请求`));
+            }
+
+            set({ gameState: { ...gameState } });
+            void get().syncToCloud();
         },
 
         removeSeat: () => {
@@ -1189,13 +1269,13 @@ export const useStore = create<AppState>()(
             if (!gameState || !user?.isStoryteller || gameState.seats.length === 0) return;
             // 限制最小座位数为 5
             if (gameState.seats.length <= 5) {
-                getToastFunctions().then(({ showWarning }) => showWarning?.("座位数已达下限 (5)！"));
+                void getToastFunctions().then(({ showWarning }) => showWarning?.("座位数已达下限 (5)！"));
                 return;
             }
             // Remove the last seat
             gameState.seats = gameState.seats.slice(0, -1);
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         removeReminder: (id) => {
@@ -1205,7 +1285,7 @@ export const useStore = create<AppState>()(
                 s.reminders = s.reminders.filter(r => r.id !== id);
             });
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         setAudioTrack: (trackId) => {
@@ -1222,7 +1302,7 @@ export const useStore = create<AppState>()(
             gameState.audio.trackId = trackId;
             gameState.audio.isPlaying = true;
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         toggleAudioPlay: () => {
@@ -1230,7 +1310,7 @@ export const useStore = create<AppState>()(
             if (!gameState || !user?.isStoryteller) return;
             gameState.audio.isPlaying = !gameState.audio.isPlaying;
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         setAudioVolume: (() => {
@@ -1244,7 +1324,7 @@ export const useStore = create<AppState>()(
                 // 防抖：延迟同步到云端，避免频繁同步
                 if (syncTimeout) clearTimeout(syncTimeout);
                 syncTimeout = setTimeout(() => {
-                    get().syncToCloud();
+                    void get().syncToCloud();
                     syncTimeout = null;
                 }, 500); // 500ms 防抖
             };
@@ -1261,7 +1341,7 @@ export const useStore = create<AppState>()(
                 gameState.nightCurrentIndex++;
             }
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         nightPrev: () => {
@@ -1271,7 +1351,7 @@ export const useStore = create<AppState>()(
                 gameState.nightCurrentIndex--;
             }
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         startVote: (nomineeId) => {
@@ -1303,7 +1383,7 @@ export const useStore = create<AppState>()(
                 s.voteLocked = false;
             });
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         nextClockHand: (() => {
@@ -1378,7 +1458,7 @@ export const useStore = create<AppState>()(
                     }
 
                     set({ gameState: { ...gameState } });
-                    get().syncToCloud();
+                    void get().syncToCloud();
                 } finally {
                     // 延迟释放锁，避免快速连续点击
                     setTimeout(() => {
@@ -1407,7 +1487,7 @@ export const useStore = create<AppState>()(
                     if (seat.isDead && !seat.hasGhostVote) return;
                     seat.isHandRaised = !seat.isHandRaised;
                     set({ gameState: { ...gameState } });
-                    get().syncToCloud();
+                    void get().syncToCloud();
                 }
             };
         })(),
@@ -1453,7 +1533,7 @@ export const useStore = create<AppState>()(
             });
             addSystemMessage(gameState, `投票被取消。`);
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         setAiProvider: (provider) => {
@@ -1536,7 +1616,7 @@ export const useStore = create<AppState>()(
                     };
                     gameState.aiMessages.push(assistantMsg);
                     set({ gameState: { ...gameState } });
-                    get().syncToCloud();
+                    void get().syncToCloud();
                 }
             } catch (error: any) {
                 console.error(error);
@@ -1585,7 +1665,7 @@ export const useStore = create<AppState>()(
             addSystemMessage(gameState, `说书人转发了 AI 消息给 ${targetName}`);
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         saveGameHistory: async (finalState: GameState) => {
@@ -1628,7 +1708,7 @@ export const useStore = create<AppState>()(
             gameState.aiMessages = [];
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         deleteAiMessage: (messageId: string) => {
@@ -1638,7 +1718,7 @@ export const useStore = create<AppState>()(
             gameState.aiMessages = gameState.aiMessages.filter(m => m.id !== messageId);
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         performNightAction: (action: { roleId: string; payload: any }) => {
@@ -1671,7 +1751,7 @@ export const useStore = create<AppState>()(
             addSystemMessage(gameState, logMessage);
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         sendInfoCard: (card: import('./types').InfoCard, recipientId: string | null) => {
@@ -1693,7 +1773,7 @@ export const useStore = create<AppState>()(
             gameState.messages.push(message);
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         setRoleReferenceMode: (mode: 'modal' | 'sidebar') => {
@@ -1732,7 +1812,25 @@ export const useStore = create<AppState>()(
             addSystemMessage(gameState, '✅ 说书人已发放角色，玩家可查看规则手册');
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
+        },
+
+        resetRoles: () => {
+            const { gameState } = get();
+            if (!gameState) return;
+
+            gameState.seats.forEach(seat => {
+                seat.roleId = null;
+                seat.realRoleId = null;
+                seat.seenRoleId = null;
+            });
+
+            gameState.setupPhase = 'ASSIGNING';
+            gameState.rolesRevealed = false;
+
+            addSystemMessage(gameState, '🔄 说书人重置了所有角色分配');
+            set({ gameState: { ...gameState } });
+            void get().syncToCloud();
         },
 
         hideRoles: () => {
@@ -1743,7 +1841,7 @@ export const useStore = create<AppState>()(
             gameState.setupPhase = 'ASSIGNING';
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
 
@@ -1790,7 +1888,7 @@ export const useStore = create<AppState>()(
             addSystemMessage(gameState, `已自动分配角色 (${seatCount}人: ${composition.townsfolk}镇民+${composition.outsider}外来者+${composition.minion}爪牙+${composition.demon}恶魔)`);
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         applyStrategy: (strategyName, roleIds) => {
@@ -1814,7 +1912,7 @@ export const useStore = create<AppState>()(
 
             addSystemMessage(gameState, `📊 已应用 "${strategyName}" 策略，重新分配了 ${shuffledRoles.length} 个角色。`);
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         forceLeaveSeat: (seatId) => {
@@ -1832,7 +1930,7 @@ export const useStore = create<AppState>()(
 
                 addSystemMessage(gameState, `说书人强制 ${userName} 离开了座位 ${seatId + 1}`);
                 set({ gameState: { ...gameState } });
-                get().syncToCloud();
+                void get().syncToCloud();
             }
         },
 
@@ -1854,9 +1952,9 @@ export const useStore = create<AppState>()(
                     emptySeat.voteLocked = false;
                     addSystemMessage(gameState, `说书人添加了虚拟玩家到座位 ${emptySeat.id + 1}`);
                     set({ gameState: { ...gameState } });
-                    get().syncToCloud();
+                    void get().syncToCloud();
                 } else {
-                    getToastFunctions().then(({ showWarning }) => showWarning?.("没有空座位了！"));
+                    void getToastFunctions().then(({ showWarning }) => showWarning?.("没有空座位了！"));
                 }
             };
         })(),
@@ -1874,7 +1972,7 @@ export const useStore = create<AppState>()(
                 seat.voteLocked = false;
                 addSystemMessage(gameState, `说书人移除了座位 ${seatId + 1} 的虚拟玩家`);
                 set({ gameState: { ...gameState } });
-                get().syncToCloud();
+                void get().syncToCloud();
             }
         },
 
@@ -1921,7 +2019,7 @@ export const useStore = create<AppState>()(
             addSystemMessage(gameState, `🌑 [夜间] ${seat.userName} ${actionDesc}（等待说书人确认）`);
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         resolveNightAction: (requestId: string, result: string) => {
@@ -1969,7 +2067,7 @@ export const useStore = create<AppState>()(
             addSystemMessage(gameState, `✅ 说书人已回复 ${seat?.userName} 的 ${roleName} 行动`);
 
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         getPendingNightActions: () => {
@@ -2009,7 +2107,7 @@ export const useStore = create<AppState>()(
 
             addSystemMessage(gameState, '🌃 游戏开始！进入首个夜晚。');
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         handlePlayerSeating: (seatId: number) => {
@@ -2031,7 +2129,7 @@ export const useStore = create<AppState>()(
                 timestamp: Date.now()
             });
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         updateStorytellerNote: (id, content) => {
@@ -2042,7 +2140,7 @@ export const useStore = create<AppState>()(
                 note.content = content;
                 note.timestamp = Date.now();
                 set({ gameState: { ...gameState } });
-                get().syncToCloud();
+                void get().syncToCloud();
             }
         },
 
@@ -2051,7 +2149,7 @@ export const useStore = create<AppState>()(
             if (!gameState) return;
             gameState.storytellerNotes = gameState.storytellerNotes.filter(n => n.id !== id);
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
         toggleSkillDescriptionMode: () => {
@@ -2059,7 +2157,7 @@ export const useStore = create<AppState>()(
             if (!gameState) return;
             gameState.skillDescriptionMode = gameState.skillDescriptionMode === 'simple' ? 'detailed' : 'simple';
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
+            void get().syncToCloud();
         },
 
 

@@ -15,7 +15,9 @@ import { WaitingArea } from './components/WaitingArea';
 import { ToastContainer, useToasts } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WelcomeAnnouncement } from './components/WelcomeAnnouncement';
+
 import { SandboxView } from './components/SandboxView';
+import { SwapRequestModal } from './components/SwapRequestModal';
 
 const getViewportMetrics = () => {
   if (typeof window === 'undefined') {
@@ -40,10 +42,10 @@ const App = () => {
   const openRolePanel = useStore(state => state.openRolePanel);
   const closeRolePanel = useStore(state => state.closeRolePanel);
   const toggleSidebar = useStore(state => state.toggleSidebar);
-  
+
   // Sandbox mode
   const isSandboxActive = useSandboxStore(state => state.isActive);
-  
+
   // Toast notifications
   const { toasts, removeToast } = useToasts();
 
@@ -187,7 +189,11 @@ const App = () => {
       <WaitingArea />
 
       {/* Audio Manager */}
+      {/* Audio Manager */}
       <AudioManager />
+
+      {/* Swap Request Modal */}
+      <SwapRequestModal />
 
       {/* --- Atmosphere Overlays (Background) --- */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.05] z-0 bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')]"></div>
@@ -198,9 +204,9 @@ const App = () => {
 
       {/* Main Content Area: Grimoire + Sidebar */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10 min-h-0">
-        
+
         {/* Main Game Area (Grimoire) - 移动端使用固定高度计算 */}
-        <div 
+        <div
           className="flex-1 relative flex items-center justify-center overflow-hidden"
           style={{ minHeight: 0, minWidth: 0 }}
           ref={containerRef}
@@ -245,7 +251,7 @@ const App = () => {
           <Controls onClose={() => setIsMobileMenuOpen(false)} />
         </div>
       </div>
-      
+
       {/* Mobile Menu Toggle */}
       {!isMobileMenuOpen && (
         <button

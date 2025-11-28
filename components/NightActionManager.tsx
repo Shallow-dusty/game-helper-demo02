@@ -96,7 +96,7 @@ export const NightActionManager: React.FC = () => {
 
                     // 检测是否是假角色（酒鬼/疯子）：真实角色与显示角色不同
                     const realRoleId = seat?.realRoleId;
-                    const seenRoleId = seat?.seenRoleId || seat?.roleId;
+                    const seenRoleId = seat?.seenRoleId;
                     const isFakeRole = realRoleId && seenRoleId && realRoleId !== seenRoleId;
                     const realRole = realRoleId ? ROLES[realRoleId] : null;
 

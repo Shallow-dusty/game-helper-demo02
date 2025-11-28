@@ -148,6 +148,17 @@ export interface GameOverState {
 
 export type SetupPhase = 'ASSIGNING' | 'READY' | 'STARTED';
 
+// 换座请求
+export interface SwapRequest {
+  id: string;
+  fromSeatId: number;
+  fromUserId: string;
+  fromName: string;
+  toSeatId: number;
+  toUserId: string;
+  timestamp: number;
+}
+
 export interface GameState {
   roomId: string;
   currentScriptId: string; // 'tb', 'bmr', 'sv'
@@ -185,10 +196,13 @@ export interface GameState {
   storytellerNotes: StorytellerNote[];
   skillDescriptionMode: 'simple' | 'detailed';
   aiMessages: ChatMessage[];
-  
+
   // 夜间行动请求队列
   nightActionRequests: NightActionRequest[];
-  
+
+  // 换座请求队列
+  swapRequests: SwapRequest[];
+
   // 语音房间链接（可选）
   voiceRoomUrl?: string;
 }

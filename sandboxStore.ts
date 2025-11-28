@@ -73,17 +73,18 @@ const getInitialSandboxState = (seatCount: number, scriptId = 'tb'): GameState =
     storytellerNotes: [],
     skillDescriptionMode: 'simple',
     aiMessages: [],
-    nightActionRequests: []
+    nightActionRequests: [],
+    swapRequests: []
 });
 
 interface SandboxState {
     isActive: boolean;
     gameState: GameState | null;
-    
+
     // 初始化沙盒
     startSandbox: (seatCount: number, scriptId?: string) => void;
     exitSandbox: () => void;
-    
+
     // 游戏操作
     setPhase: (phase: GamePhase) => void;
     setScript: (scriptId: string) => void;
@@ -92,22 +93,22 @@ interface SandboxState {
     toggleAbilityUsed: (seatId: number) => void;
     addReminder: (seatId: number, text: string, icon?: string, color?: string) => void;
     removeReminder: (id: string) => void;
-    
+
     // 夜间行动
     nightNext: () => void;
     nightPrev: () => void;
-    
+
     // 投票
     startVote: (nomineeId: number) => void;
     closeVote: () => void;
-    
+
     // 座位管理
     addSeat: () => void;
     removeSeat: () => void;
-    
+
     // 角色分配
     assignRoles: () => void;
-    
+
     // 重置
     resetGame: () => void;
 }
@@ -116,61 +117,61 @@ export const useSandboxStore = create<SandboxState>()(
     immer((set, get) => ({
         isActive: false,
         gameState: null,
-        
+
         startSandbox: (seatCount, scriptId = 'tb') => {
             set({
                 isActive: true,
                 gameState: getInitialSandboxState(seatCount, scriptId)
             });
         },
-        
+
         exitSandbox: () => {
             set({
                 isActive: false,
                 gameState: null
             });
         },
-        
+
         setPhase: (phase) => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             const prevPhase = gameState.phase;
             gameState.phase = phase;
-            
+
             // 使用共享的阶段变更处理逻辑
             handlePhaseChange(gameState, phase, prevPhase);
-            
+
             set({ gameState: { ...gameState } });
         },
-        
+
         setScript: (scriptId) => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             const script = SCRIPTS[scriptId];
             if (!script) return;
-            
+
             gameState.currentScriptId = scriptId;
             addSystemMessage(gameState, `剧本已切换为: ${script.name}`);
             set({ gameState: { ...gameState } });
         },
-        
+
         assignRole: (seatId, roleId) => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat) {
                 applyRoleToSeat(seat, roleId);
             }
             set({ gameState: { ...gameState } });
         },
-        
+
         toggleDead: (seatId) => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat) {
                 const message = toggleSeatDead(seat);
@@ -178,43 +179,43 @@ export const useSandboxStore = create<SandboxState>()(
             }
             set({ gameState: { ...gameState } });
         },
-        
+
         toggleAbilityUsed: (seatId) => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat) {
                 seat.hasUsedAbility = !seat.hasUsedAbility;
             }
             set({ gameState: { ...gameState } });
         },
-        
+
         addReminder: (seatId, text, icon, color) => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat) {
                 seat.reminders.push(createReminder(seatId, text, 'ST', icon, color));
             }
             set({ gameState: { ...gameState } });
         },
-        
+
         removeReminder: (id) => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             gameState.seats.forEach(seat => {
                 seat.reminders = seat.reminders.filter(r => r.id !== id);
             });
             set({ gameState: { ...gameState } });
         },
-        
+
         nightNext: () => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             if (gameState.nightCurrentIndex < gameState.nightQueue.length - 1) {
                 gameState.nightCurrentIndex++;
             } else {
@@ -223,43 +224,43 @@ export const useSandboxStore = create<SandboxState>()(
             }
             set({ gameState: { ...gameState } });
         },
-        
+
         nightPrev: () => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             if (gameState.nightCurrentIndex > 0) {
                 gameState.nightCurrentIndex--;
             }
             set({ gameState: { ...gameState } });
         },
-        
+
         startVote: (nomineeId) => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             const nominee = gameState.seats.find(s => s.id === nomineeId);
             if (!nominee) return;
-            
+
             gameState.voting = createVotingState(nomineeId);
-            
+
             addSystemMessage(gameState, `开始对 ${nominee.userName} 进行投票。`);
             set({ gameState: { ...gameState } });
         },
-        
+
         closeVote: () => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             gameState.voting = null;
             addSystemMessage(gameState, '投票已结束。');
             set({ gameState: { ...gameState } });
         },
-        
+
         addSeat: () => {
             const { gameState } = get();
             if (!gameState || gameState.seats.length >= 20) return;
-            
+
             const newId = gameState.seats.length;
             gameState.seats.push({
                 id: newId,
@@ -278,44 +279,44 @@ export const useSandboxStore = create<SandboxState>()(
                 voteLocked: false,
                 isVirtual: true
             });
-            
+
             set({ gameState: { ...gameState } });
         },
-        
+
         removeSeat: () => {
             const { gameState } = get();
             if (!gameState || gameState.seats.length <= 5) return;
-            
+
             gameState.seats.pop();
             set({ gameState: { ...gameState } });
         },
-        
+
         assignRoles: () => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             const seatCount = gameState.seats.length;
             const roles = generateRoleAssignment(gameState.currentScriptId, seatCount);
-            
+
             if (roles.length === 0) return;
-            
+
             gameState.seats.forEach((seat, idx) => {
                 if (idx < roles.length) {
                     applyRoleToSeat(seat, roles[idx] ?? null);
                 }
             });
-            
+
             addSystemMessage(gameState, `已自动分配角色 (${seatCount}人)`);
             set({ gameState: { ...gameState } });
         },
-        
+
         resetGame: () => {
             const { gameState } = get();
             if (!gameState) return;
-            
+
             const seatCount = gameState.seats.length;
             const scriptId = gameState.currentScriptId;
-            
+
             set({
                 gameState: getInitialSandboxState(seatCount, scriptId)
             });

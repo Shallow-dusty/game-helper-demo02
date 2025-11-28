@@ -14,7 +14,7 @@ import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } fr
  * 创建系统消息
  */
 export const createSystemMessage = (content: string): ChatMessage => ({
-    id: Math.random().toString(36).substr(2, 9),
+    id: Math.random().toString(36).slice(2, 11),
     senderId: 'system',
     senderName: '系统',
     recipientId: null,
@@ -40,11 +40,11 @@ export const addSystemMessage = (gameState: GameState, content: string): void =>
  */
 export const buildNightQueue = (seats: Seat[], isFirstNight: boolean): string[] => {
     const availableRoles = seats
-        .filter(s => s.roleId && !s.isDead)
-        .map(s => s.roleId!);
+        .filter(s => s.seenRoleId && !s.isDead)
+        .map(s => s.seenRoleId!);
 
     const order = isFirstNight ? NIGHT_ORDER_FIRST : NIGHT_ORDER_OTHER;
-    
+
     return order.filter(role => {
         const hasRole = availableRoles.includes(role);
         const def = ROLES[role];
@@ -226,7 +226,7 @@ export const createVotingState = (
  */
 export const checkGoodWin = (seats: Seat[]): boolean => {
     const demons = seats.filter(s => {
-        const role = ROLES[s.realRoleId || s.roleId || ''];
+        const role = ROLES[s.realRoleId || s.seenRoleId || ''];
         return role?.team === 'DEMON';
     });
     return demons.every(d => d.isDead);

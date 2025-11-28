@@ -31,7 +31,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
         if (password === ADMIN_PASSWORD) {
             setIsAuthenticated(true);
             setError('');
-            fetchRooms();
+            void fetchRooms();
         } else {
             setError('密码错误');
         }
@@ -192,9 +192,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                                                     {room.room_code}
                                                 </span>
                                                 <span className={`text-xs px-2 py-0.5 rounded ${getPhase(room.state) === 'SETUP' ? 'bg-stone-700 text-stone-300' :
-                                                        getPhase(room.state) === 'NIGHT' ? 'bg-indigo-900/50 text-indigo-300' :
-                                                            getPhase(room.state) === 'DAY' ? 'bg-amber-900/50 text-amber-300' :
-                                                                'bg-stone-700 text-stone-400'
+                                                    getPhase(room.state) === 'NIGHT' ? 'bg-indigo-900/50 text-indigo-300' :
+                                                        getPhase(room.state) === 'DAY' ? 'bg-amber-900/50 text-amber-300' :
+                                                            'bg-stone-700 text-stone-400'
                                                     }`}>
                                                     {getPhase(room.state)}
                                                 </span>
@@ -215,7 +215,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => closeRoom(room.room_code)}
+                                            onClick={() => void closeRoom(room.room_code)}
                                             className="px-3 py-1 bg-red-900/50 hover:bg-red-800 text-red-300 rounded text-sm border border-red-800/50 transition-colors"
                                         >
                                             关闭房间

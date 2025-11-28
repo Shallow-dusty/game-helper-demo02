@@ -108,7 +108,7 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
   // Determine which role ID to display
   // For ST: Use realRoleId if available (true role), otherwise roleId
   // For Player: roleId is already filtered to be seenRoleId by the store
-  const displayRoleId = (isST && seat.realRoleId) ? seat.realRoleId : seat.roleId;
+  const displayRoleId = (isST && seat.realRoleId) ? seat.realRoleId : seat.seenRoleId;
 
   // Only show Role if: User is Storyteller, OR User is this Seat
   const showRole = (isST || isCurrentUser) && displayRoleId;
@@ -116,8 +116,8 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
 
   // Check for Drunk/Lunatic/Marionette state (ST Only)
   // If realRoleId exists and differs from roleId (which stores the "seen" role for compatibility), it's a state
-  const isMisled = isST && seat.realRoleId && seat.roleId && seat.realRoleId !== seat.roleId;
-  const seenRoleDef = isMisled ? ROLES[seat.roleId!] : null;
+  const isMisled = isST && seat.realRoleId && seat.seenRoleId && seat.realRoleId !== seat.seenRoleId;
+  const seenRoleDef = isMisled ? ROLES[seat.seenRoleId!] : null;
 
   // Voting Highlighting
   const votingState = useStore(state => state.gameState?.voting);
@@ -555,6 +555,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const margin = marginFactor * baseScale;
   const r = Math.max((minDim / 2) - margin, minDim * 0.3); // 确保最小半径
 
+  const requestSeatSwap = useStore(state => state.requestSeatSwap);
+
   const handleSeatClick = (e: any, seat: Seat) => {
     if (isLocked || isGestureActive) return; // Double check logic
     e.cancelBubble = true;
@@ -586,9 +588,32 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
       });
       return;
     }
-    // ST can force join? No, let players join themselves mostly.
-    // Or ST can click empty seat to assign? 
-    if (seat.userId === null) joinSeat(seat.id);
+
+    // Player Logic
+    if (!user.isStoryteller) {
+      // Case 1: Empty seat -> Join
+      if (seat.userId === null) {
+        joinSeat(seat.id);
+        return;
+      }
+
+      // Case 2: Occupied seat -> Request Swap (if not self)
+      if (seat.userId !== user.id) {
+        // Confirm dialog using browser native confirm for simplicity, or better, a custom modal.
+        // Since we don't have a generic confirm modal handy, we'll use window.confirm for now
+        // or just trigger the request and let the store handle warnings.
+        // Let's use a simple confirm.
+        if (window.confirm(`是否向 ${seat.userName} 发起换座申请？`)) {
+          requestSeatSwap(seat.id);
+        }
+        return;
+      }
+    }
+
+    // Storyteller Logic for left click (optional, currently does nothing special for occupied seats)
+    if (user.isStoryteller && seat.userId === null) {
+      joinSeat(seat.id);
+    }
   };
 
   // Filter roles based on selected script
@@ -755,7 +780,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
         const selectedSeat = gameState.seats.find(s => s.id === contextMenu.seatId);
         if (!selectedSeat) return null;
 
-        const selectedRole = selectedSeat.roleId ? ROLES[selectedSeat.roleId] : null;
+        const selectedRole = selectedSeat.seenRoleId ? ROLES[selectedSeat.seenRoleId] : null;
         const roleTeamIcon = selectedRole?.team === 'DEMON' ? '👿' : selectedRole?.team === 'MINION' ? '🧪' : '⚜️';
 
         return (
@@ -772,7 +797,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
               <div className="bg-stone-950 p-4 border-b border-stone-800 flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center border border-stone-700 text-xl">
-                    {selectedSeat.roleId ? roleTeamIcon : '👤'}
+                    {selectedSeat.seenRoleId ? roleTeamIcon : '👤'}
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-stone-200 font-cinzel">

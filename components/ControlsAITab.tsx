@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { useStore, AiProvider, getAiConfig } from '../store';
+import { useStore, AiProvider, getAiConfig, AppState } from '../store';
 
 export const ControlsAITab: React.FC = () => {
   const user = useStore(state => state.user);
   const gameState = useStore(state => state.gameState);
   const askAi = useStore(state => state.askAi);
   const isAiThinking = useStore(state => state.isAiThinking);
-  const aiProvider = useStore(state => state.aiProvider);
-  const setAiProvider = useStore(state => state.setAiProvider);
+  const aiProvider = useStore((state: AppState) => state.aiProvider);
+  const setAiProvider = useStore((state: AppState) => state.setAiProvider);
   const clearAiMessages = useStore(state => state.clearAiMessages);
   const deleteAiMessage = useStore(state => state.deleteAiMessage);
 
   const [aiPrompt, setAiPrompt] = useState('');
-  
+
   const aiConfig = getAiConfig();
 
   if (!user || !gameState) return null;
@@ -24,7 +24,7 @@ export const ControlsAITab: React.FC = () => {
     setAiPrompt('');
     await askAi(prompt);
   };
-  
+
   // 获取当前 provider 的配置状态
   const currentConfig = aiConfig[aiProvider];
   const hasApiKey = !!currentConfig?.apiKey;
@@ -42,13 +42,12 @@ export const ControlsAITab: React.FC = () => {
         )}
         {gameState.aiMessages.map(msg => (
           <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-            <div className={`max-w-[85%] p-3 rounded-lg text-sm whitespace-pre-wrap ${
-              msg.role === 'user'
-                ? 'bg-stone-800 text-stone-200'
-                : msg.role === 'system'
-                  ? 'bg-red-900/30 text-red-300 border border-red-800/30'
-                  : 'bg-amber-900/30 text-amber-100 border border-amber-800/30'
-            }`}>
+            <div className={`max-w-[85%] p-3 rounded-lg text-sm whitespace-pre-wrap ${msg.role === 'user'
+              ? 'bg-stone-800 text-stone-200'
+              : msg.role === 'system'
+                ? 'bg-red-900/30 text-red-300 border border-red-800/30'
+                : 'bg-amber-900/30 text-amber-100 border border-amber-800/30'
+              }`}>
               {msg.content}
             </div>
             <div className="flex items-center gap-2 mt-1">
@@ -67,14 +66,14 @@ export const ControlsAITab: React.FC = () => {
           </div>
         )}
       </div>
-      
+
       {/* API Key 状态提示 */}
       {!hasApiKey && (
         <div className="mb-2 p-2 bg-red-950/30 border border-red-800/50 rounded text-xs text-red-400">
           ⚠️ 缺少 API Key，请在 <code>.env.local</code> 中配置
         </div>
       )}
-      
+
       <form onSubmit={handleAiSubmit} className="flex gap-2">
         <input
           type="text"
@@ -95,17 +94,23 @@ export const ControlsAITab: React.FC = () => {
             onChange={(e) => setAiProvider(e.target.value as AiProvider)}
             className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1"
           >
-            <optgroup label="✅ 推荐 (稳定可用)">
-              <option value="deepseek">DeepSeek V3 {aiConfig.deepseek.apiKey ? '✓' : '✗'}</option>
+            <optgroup label="✅ 官方直连 (推荐)">
+              <option value="deepseek">DeepSeek V3 (Chat) {aiConfig.deepseek.apiKey ? '✓' : '✗'}</option>
+              <option value="deepseek_r1">DeepSeek R1 (Reasoner) {aiConfig.deepseek_r1.apiKey ? '✓' : '✗'}</option>
             </optgroup>
-            <optgroup label="🌐 需要科学上网">
+            <optgroup label="🌐 官方 (需代理/VPN)">
               <option value="gemini">Gemini 2.0 Flash {aiConfig.gemini.apiKey ? '✓' : '✗'}</option>
+              <option value="kimi">Kimi (Moonshot) {aiConfig.kimi.apiKey ? '✓' : '✗'}</option>
             </optgroup>
-            <optgroup label="⚠️ 可能有 CORS 问题">
-              <option value="kimi">Kimi {aiConfig.kimi.apiKey ? '✓' : '✗'}</option>
-              <option value="sf_r1">DeepSeek R1 (SF) {aiConfig.sf_r1.apiKey ? '✓' : '✗'}</option>
-              <option value="sf_r1_llama_70b">R1 Llama 70B (SF) {aiConfig.sf_r1_llama_70b.apiKey ? '✓' : '✗'}</option>
-              <option value="sf_r1_qwen_32b">R1 Qwen 32B (SF) {aiConfig.sf_r1_qwen_32b.apiKey ? '✓' : '✗'}</option>
+            <optgroup label="⚡ SiliconFlow (高速中转)">
+              <option value="sf_deepseek_v3">DeepSeek V3 Pro {aiConfig.sf_deepseek_v3.apiKey ? '✓' : '✗'}</option>
+              <option value="sf_r1">DeepSeek R1 (Full) {aiConfig.sf_r1.apiKey ? '✓' : '✗'}</option>
+              <option value="sf_r1_llama_70b">R1 Llama 70B {aiConfig.sf_r1_llama_70b.apiKey ? '✓' : '✗'}</option>
+              <option value="sf_r1_qwen_32b">R1 Qwen 32B {aiConfig.sf_r1_qwen_32b.apiKey ? '✓' : '✗'}</option>
+              <option value="sf_minimax_m2">MiniMax M2 {aiConfig.sf_minimax_m2.apiKey ? '✓' : '✗'}</option>
+              <option value="sf_glm_4_6">GLM 4.6 {aiConfig.sf_glm_4_6.apiKey ? '✓' : '✗'}</option>
+              <option value="sf_qwen_32b_vl">Qwen3 VL 32B {aiConfig.sf_qwen_32b_vl.apiKey ? '✓' : '✗'}</option>
+              <option value="sf_qwen_32b_vl_thinking">Qwen3 VL 32B (Thinking) {aiConfig.sf_qwen_32b_vl_thinking.apiKey ? '✓' : '✗'}</option>
             </optgroup>
           </select>
         </div>

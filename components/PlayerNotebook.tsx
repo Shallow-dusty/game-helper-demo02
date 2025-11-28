@@ -30,7 +30,7 @@ export const PlayerNotebook: React.FC = () => {
     const addNote = () => {
         if (!newNote.trim()) return;
         const note: Note = {
-            id: Math.random().toString(36).substr(2, 9),
+            id: Math.random().toString(36).slice(2, 11),
             content: newNote,
             timestamp: Date.now()
         };

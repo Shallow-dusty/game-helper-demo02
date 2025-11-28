@@ -91,7 +91,20 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = () => {
             </div>
             <select
               value={gameState.currentScriptId}
-              onChange={(e) => setScript(e.target.value)}
+              onChange={(e) => {
+                const newScriptId = e.target.value;
+                // Check if any roles are distributed
+                const hasRoles = gameState.seats.some(s => s.roleId);
+
+                if (hasRoles) {
+                  if (window.confirm('切换剧本将清除所有已分发的角色。是否继续？')) {
+                    useStore.getState().resetRoles();
+                    setScript(newScriptId);
+                  }
+                } else {
+                  setScript(newScriptId);
+                }
+              }}
               className="w-full bg-stone-950 border border-stone-700 rounded text-sm text-stone-300 p-2"
             >
               <optgroup label="官方剧本">
@@ -148,6 +161,22 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = () => {
                   title="随机分配角色给所有玩家"
                 >
                   <span>🎲</span> 自动分配角色
+                </button>
+                <button
+                  onClick={() => {
+                    // Simple prompt for now, or we could open a modal.
+                    // Given the user request "player initiated", this ST button is less critical but good to have.
+                    // Let's implement a simple prompt-based swap for ST for now to match the "Force Swap" requirement.
+                    const s1 = parseInt(prompt('请输入第一个座位号 (1-15):') || '0') - 1;
+                    const s2 = parseInt(prompt('请输入第二个座位号 (1-15):') || '0') - 1;
+                    if (!isNaN(s1) && !isNaN(s2) && s1 >= 0 && s2 >= 0) {
+                      useStore.getState().swapSeats(s1, s2);
+                    }
+                  }}
+                  className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
+                  title="交换两个座位"
+                >
+                  <span>🔄</span> 强制换座
                 </button>
                 <button
                   onClick={() => {
@@ -508,7 +537,7 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = () => {
 
               // Add system message
               currentState.messages.push({
-                id: Math.random().toString(36).substr(2, 9),
+                id: Math.random().toString(36).slice(2, 11),
                 senderId: 'system',
                 senderName: '系统',
                 recipientId: null,

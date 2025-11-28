@@ -1,7 +1,70 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { List, useDynamicRowHeight } from 'react-window';
 import { useStore } from '../store';
 import { InfoCard } from './InfoCard';
+import { Message, Seat, User } from '../types';
+
+// 消息渲染组件 - 抽取为独立组件以便测量高度
+interface MessageItemProps {
+    msg: Message;
+    isMe: boolean;
+    seats: Seat[];
+    style?: React.CSSProperties;
+}
+
+const MessageItem: React.FC<MessageItemProps> = ({ msg, isMe, seats, style }) => {
+    const isSystem = msg.type === 'system';
+    const isPrivate = msg.recipientId !== null;
+
+    // --- SYSTEM LOG RENDER ---
+    if (isSystem) {
+        return (
+            <div style={style} className="px-4 py-1">
+                <div className="flex items-start gap-2 my-2 text-stone-400 border-l-2 border-stone-700 pl-2 py-1 bg-black/20 rounded-r">
+                    <span className="text-[10px] mt-0.5">📜</span>
+                    <span className="text-xs font-serif leading-relaxed">{msg.content}</span>
+                </div>
+            </div>
+        );
+    }
+
+    // --- CHAT RENDER ---
+    const senderSeat = seats.find(s => s.userId === msg.senderId);
+    const displayName = senderSeat ? `[${senderSeat.id + 1}] ${msg.senderName}` : msg.senderName;
+
+    return (
+        <div style={style} className="px-4 py-1">
+            <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-in slide-in-from-bottom-2 duration-300`}>
+                <div className="flex items-center gap-2 mb-0.5">
+                    <span className={`text-[10px] font-bold ${isPrivate ? 'text-purple-400' : 'text-stone-500'}`}>
+                        {displayName}
+                        {isPrivate && !isMe && " (悄悄话)"}
+                        {isPrivate && isMe && ` ➜ ${seats.find(s => s.userId === msg.recipientId)?.userName || '未知'}`}
+                    </span>
+                </div>
+                <div
+                    className={`px-3 py-2 rounded-lg text-sm max-w-[90%] break-words shadow-sm relative ${isPrivate
+                        ? 'bg-purple-900/40 text-purple-100 border border-purple-700/50 italic'
+                        : isMe
+                            ? 'bg-red-900 text-stone-100 rounded-tr-none'
+                            : 'bg-stone-800 text-stone-300 rounded-tl-none border border-stone-700'
+                        }`}
+                >
+                    {/* Render InfoCard if present, otherwise plain text */}
+                    {msg.card ? (
+                        <InfoCard card={msg.card} />
+                    ) : (
+                        msg.content
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// 虚拟滚动消息列表阈值 - 超过此数量启用虚拟滚动
+const VIRTUAL_SCROLL_THRESHOLD = 50;
 
 export const Chat = () => {
     const messages = useStore(state => state.gameState?.messages || []);
@@ -87,6 +150,56 @@ export const Chat = () => {
     // FR-05: 过滤掉虚拟玩家，只显示真实玩家
     const availableRecipients = seats.filter(s => s.userId && s.userId !== user?.id && !s.isVirtual);
 
+    // 虚拟滚动相关状态
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [listHeight, setListHeight] = useState(400);
+    
+    // 是否启用虚拟滚动
+    const useVirtualScroll = filteredMessages.length > VIRTUAL_SCROLL_THRESHOLD;
+
+    // 动态行高 hook
+    const dynamicRowHeight = useDynamicRowHeight();
+
+    // 监听容器高度变化
+    useEffect(() => {
+        if (!containerRef.current) return;
+        
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                setListHeight(entry.contentRect.height);
+            }
+        });
+        
+        resizeObserver.observe(containerRef.current);
+        return () => resizeObserver.disconnect();
+    }, []);
+
+    // 虚拟列表行组件
+    const RowComponent = useCallback(({ index, style }: { index: number; style: React.CSSProperties }) => {
+        const msg = filteredMessages[index];
+        const isMe = msg.senderId === user?.id;
+        
+        return (
+            <MessageItem
+                msg={msg}
+                isMe={isMe}
+                seats={seats}
+                style={style}
+            />
+        );
+    }, [filteredMessages, user?.id, seats]);
+
+    // 滚动到底部 - 使用 ref
+    const listRef = useRef<{ scrollToItem: (index: number, align?: string) => void } | null>(null);
+    
+    useEffect(() => {
+        if (useVirtualScroll && listRef.current) {
+            listRef.current.scrollToItem(filteredMessages.length - 1, 'end');
+        } else {
+            endRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [filteredMessages.length, useVirtualScroll, activeChannel]);
+
     return (
         <div className="flex flex-col h-full bg-stone-900 font-serif">
 
@@ -107,58 +220,40 @@ export const Chat = () => {
             </div>
 
             {/* Message List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
+            <div ref={containerRef} className="flex-1 overflow-hidden">
                 {filteredMessages.length === 0 && (
-                    <div className="text-center text-stone-600 text-sm mt-10 italic opacity-50">暂无消息...</div>
+                    <div className="text-center text-stone-600 text-sm mt-10 italic opacity-50 p-4">暂无消息...</div>
                 )}
 
-                {filteredMessages.map(msg => {
-                    const isMe = msg.senderId === user?.id;
-                    const isSystem = msg.type === 'system';
-                    const isPrivate = msg.recipientId !== null;
-
-                    // --- SYSTEM LOG RENDER ---
-                    if (isSystem) {
-                        return (
-                            <div key={msg.id} className="flex items-start gap-2 my-2 text-stone-400 border-l-2 border-stone-700 pl-2 py-1 bg-black/20 rounded-r">
-                                <span className="text-[10px] mt-0.5">📜</span>
-                                <span className="text-xs font-serif leading-relaxed">{msg.content}</span>
-                            </div>
-                        );
-                    }
-
-                    // --- CHAT RENDER ---
-                    const senderSeat = seats.find(s => s.userId === msg.senderId);
-                    const displayName = senderSeat ? `[${senderSeat.id + 1}] ${msg.senderName}` : msg.senderName;
-
-                    return (
-                        <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-in slide-in-from-bottom-2 duration-300`}>
-                            <div className="flex items-center gap-2 mb-0.5">
-                                <span className={`text-[10px] font-bold ${isPrivate ? 'text-purple-400' : 'text-stone-500'}`}>
-                                    {displayName}
-                                    {isPrivate && !isMe && " (悄悄话)"}
-                                    {isPrivate && isMe && ` ➜ ${seats.find(s => s.userId === msg.recipientId)?.userName || '未知'}`}
-                                </span>
-                            </div>
-                            <div
-                                className={`px-3 py-2 rounded-lg text-sm max-w-[90%] break-words shadow-sm relative ${isPrivate
-                                    ? 'bg-purple-900/40 text-purple-100 border border-purple-700/50 italic'
-                                    : isMe
-                                        ? 'bg-red-900 text-stone-100 rounded-tr-none'
-                                        : 'bg-stone-800 text-stone-300 rounded-tl-none border border-stone-700'
-                                    }`}
-                            >
-                                {/* Render InfoCard if present, otherwise plain text */}
-                                {msg.card ? (
-                                    <InfoCard card={msg.card} />
-                                ) : (
-                                    msg.content
-                                )}
-                            </div>
-                        </div>
-                    )
-                })}
-                <div ref={endRef} />
+                {filteredMessages.length > 0 && useVirtualScroll ? (
+                    // 虚拟滚动模式 - 大量消息时使用
+                    <List
+                        ref={listRef as any}
+                        height={listHeight}
+                        width="100%"
+                        rowCount={filteredMessages.length}
+                        rowHeight={dynamicRowHeight}
+                        rowComponent={RowComponent}
+                        rowProps={{ seats, user }}
+                        className="scrollbar-thin"
+                    />
+                ) : (
+                    // 普通滚动模式 - 少量消息时使用
+                    <div className="h-full overflow-y-auto p-4 space-y-3 scrollbar-thin">
+                        {filteredMessages.map(msg => {
+                            const isMe = msg.senderId === user?.id;
+                            return (
+                                <MessageItem
+                                    key={msg.id}
+                                    msg={msg}
+                                    isMe={isMe}
+                                    seats={seats}
+                                />
+                            );
+                        })}
+                        <div ref={endRef} />
+                    </div>
+                )}
             </div>
 
             {/* Input Area */}

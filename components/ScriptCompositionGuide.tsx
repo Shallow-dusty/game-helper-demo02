@@ -8,84 +8,95 @@ interface CompositionStrategy {
     description: string;
     difficulty: '新手' | '中等' | '困难';
     guidelines: {
-        infoRolesRatio: { min: number; max: number }; // 信息类占比
-        powerRolesRatio: { min: number; max: number }; // 功能类占比
+        strongRoles: { min: number; max: number; roles: string[] };      // 强力角色
+        mediumStrongRoles: { min: number; max: number; roles: string[] }; // 中强角色
+        mediumRoles: { roles: string[] };                                  // 中等角色（填充用）
         recommendedMinions: string[];
         recommendedOutsiders: string[];
         tips: string[];
     };
 }
 
+// 角色强度分类（基于暗流涌动剧本）
+const ROLE_STRENGTH = {
+    // 强力角色：能提供关键信息或强力保护
+    strong: ['fortune_teller', 'empath', 'virgin', 'monk', 'soldier'],
+    // 中强角色：提供有用但有限的信息
+    mediumStrong: ['undertaker', 'ravenkeeper', 'investigator', 'chef', 'librarian'],
+    // 中等角色：有条件或风险的角色
+    medium: ['butler', 'recluse', 'washerwoman', 'saint']
+};
+
 const STRATEGIES: CompositionStrategy[] = [
     {
         id: 'balanced',
         name: '平衡打法',
-        description: '双方势均力敌，适合常规游戏',
+        description: '适合标准游戏体验，善恶双方都有充足的工具',
         difficulty: '中等',
         guidelines: {
-            infoRolesRatio: { min: 0.4, max: 0.5 },
-            powerRolesRatio: { min: 0.3, max: 0.4 },
+            strongRoles: { min: 1, max: 2, roles: ROLE_STRENGTH.strong },
+            mediumStrongRoles: { min: 2, max: 3, roles: ROLE_STRENGTH.mediumStrong },
+            mediumRoles: { roles: ROLE_STRENGTH.medium },
             recommendedMinions: ['poisoner', 'spy', 'baron'],
             recommendedOutsiders: ['drunk', 'recluse'],
             tips: [
-                '2-3个首夜信息 + 1-2个持续信息',
-                '下毒者或间谍优先',
-                '醉酒者必选'
+                '保证至少有1个强力信息角色',
+                '邪恶角色选择中等强度',
+                '避免过多的"确认"类角色'
             ]
         }
     },
     {
         id: 'evil_favored',
         name: '邪恶优势',
-        description: '增加好人难度，适合经验玩家',
+        description: '增加游戏难度，适合有经验的好人玩家',
         difficulty: '困难',
         guidelines: {
-            infoRolesRatio: { min: 0.2, max: 0.3 },
-            powerRolesRatio: { min: 0.4, max: 0.5 },
+            strongRoles: { min: 0, max: 1, roles: ['fortune_teller'] },
+            mediumStrongRoles: { min: 1, max: 2, roles: ['undertaker', 'empath'] },
+            mediumRoles: { roles: ['butler', 'recluse', 'washerwoman', 'saint', 'chef'] },
             recommendedMinions: ['poisoner', 'spy'],
             recommendedOutsiders: ['drunk', 'recluse', 'saint'],
             tips: [
-                '仅1个首夜信息角色',
-                '下毒者+间谍组合',
-                '2个局外人',
-                '说书人积极使用下毒'
+                '减少确定性信息角色',
+                '增加可能给假信息的角色（如隐士、酒鬼）',
+                '考虑选用更强的恶魔和爪牙'
             ]
         }
     },
     {
         id: 'good_favored',
         name: '好人优势',
-        description: '降低难度，适合新手或熟人局',
+        description: '降低游戏难度，适合新手玩家',
         difficulty: '新手',
         guidelines: {
-            infoRolesRatio: { min: 0.5, max: 0.6 },
-            powerRolesRatio: { min: 0.2, max: 0.3 },
+            strongRoles: { min: 2, max: 3, roles: ROLE_STRENGTH.strong },
+            mediumStrongRoles: { min: 2, max: 3, roles: ROLE_STRENGTH.mediumStrong },
+            mediumRoles: { roles: [] },
             recommendedMinions: ['scarlet_woman', 'baron'],
             recommendedOutsiders: ['drunk'],
             tips: [
-                '3-4个首夜信息角色',
-                '包含处女/杀手等确认角色',
-                '猩红女巫优先（较弱）',
-                '仅醉酒者或0个局外人',
-                '说书人谨慎使用下毒'
+                '增加强力信息角色',
+                '减少负面效果角色',
+                '选用较弱的恶魔和爪牙'
             ]
         }
     },
     {
         id: 'chaotic',
         name: '混乱模式',
-        description: '高不确定性，趣味优先',
+        description: '充满不确定性，适合追求刺激的玩家',
         difficulty: '困难',
         guidelines: {
-            infoRolesRatio: { min: 0.6, max: 0.7 },
-            powerRolesRatio: { min: 0.1, max: 0.2 },
+            strongRoles: { min: 0, max: 1, roles: [] },
+            mediumStrongRoles: { min: 0, max: 1, roles: [] },
+            mediumRoles: { roles: ['butler', 'recluse', 'washerwoman', 'saint', 'soldier'] },
             recommendedMinions: ['poisoner', 'baron'],
             recommendedOutsiders: ['drunk', 'saint', 'recluse'],
             tips: [
-                '4+个信息角色（信息过载）',
-                '下毒者必选（破坏信息）',
-                '男爵必选（增加局外人）',
-                '包含复杂局外人（圣徒/隐士）'
+                '选择会产生假信息的角色',
+                '增加角色之间的相互影响',
+                '考虑选用特殊规则的恶魔'
             ]
         }
     }
@@ -100,12 +111,11 @@ interface ScriptCompositionGuideProps {
 // 策略详情弹窗组件
 const StrategyDetailModal: React.FC<{
     strategy: CompositionStrategy;
-    composition: { townsfolk: number; outsider: number; minion: number; demon: number };
     generatedRoles: { townsfolk: RoleDef[], outsider: RoleDef[], minion: RoleDef[], demon: RoleDef[] } | null;
     onGenerate: () => void;
     onApply: () => void;
     onClose: () => void;
-}> = ({ strategy, composition, generatedRoles, onGenerate, onApply, onClose }) => {
+}> = ({ strategy, generatedRoles, onGenerate, onApply, onClose }) => {
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4 backdrop-blur-sm" onClick={onClose}>
             <div className="bg-stone-900 rounded-lg border border-amber-700 w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
@@ -131,15 +141,28 @@ const StrategyDetailModal: React.FC<{
                     {/* 配置建议 */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         <div className="bg-stone-950/50 p-4 rounded border border-stone-800">
-                            <h4 className="text-sm font-bold text-stone-300 mb-2">📊 推荐配置</h4>
-                            <div className="space-y-1 text-xs text-stone-400">
-                                <p>信息类角色: {Math.round(strategy.guidelines.infoRolesRatio.min * composition.townsfolk)}-{Math.round(strategy.guidelines.infoRolesRatio.max * composition.townsfolk)}个</p>
-                                <p>推荐爪牙: {strategy.guidelines.recommendedMinions.map(id => ROLES[id]?.name || id).join(', ')}</p>
-                                <p>推荐局外人: {strategy.guidelines.recommendedOutsiders.map(id => ROLES[id]?.name || id).join(', ')}</p>
+                            <h4 className="text-sm font-bold text-stone-300 mb-2">📊 角色强度配置</h4>
+                            <div className="space-y-2 text-xs text-stone-400">
+                                <div>
+                                    <p className="text-amber-400">强力角色（建议{strategy.guidelines.strongRoles.min}-{strategy.guidelines.strongRoles.max}个）</p>
+                                    <p className="text-stone-500">{strategy.guidelines.strongRoles.roles.map(id => ROLES[id]?.name || id).join('、') || '无'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-blue-400">中强角色（建议{strategy.guidelines.mediumStrongRoles.min}-{strategy.guidelines.mediumStrongRoles.max}个）</p>
+                                    <p className="text-stone-500">{strategy.guidelines.mediumStrongRoles.roles.map(id => ROLES[id]?.name || id).join('、') || '无'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-stone-400">中等角色（填充用）</p>
+                                    <p className="text-stone-500">{strategy.guidelines.mediumRoles.roles.map(id => ROLES[id]?.name || id).join('、') || '无'}</p>
+                                </div>
+                                <div className="pt-2 border-t border-stone-700">
+                                    <p>推荐爪牙: {strategy.guidelines.recommendedMinions.map(id => ROLES[id]?.name || id).join('、')}</p>
+                                    <p>推荐局外人: {strategy.guidelines.recommendedOutsiders.map(id => ROLES[id]?.name || id).join('、')}</p>
+                                </div>
                             </div>
                         </div>
                         <div className="bg-stone-950/50 p-4 rounded border border-stone-800">
-                            <h4 className="text-sm font-bold text-stone-300 mb-2">💡 说书人建议</h4>
+                            <h4 className="text-sm font-bold text-stone-300 mb-2">💡 选取建议</h4>
                             <ul className="space-y-1">
                                 {strategy.guidelines.tips.map((tip, i) => (
                                     <li key={i} className="text-xs text-stone-400 flex items-start gap-1">
@@ -241,7 +264,9 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
 
     // 生成具体角色配置
     const generateRoles = (strategy: CompositionStrategy) => {
-        const tbRoles = SCRIPTS.tb.roles;
+        const tbRoles = SCRIPTS.tb?.roles;
+        if (!tbRoles || !composition) return;
+        
         const townsfolkRoles = tbRoles.filter(id => ROLES[id]?.team === 'TOWNSFOLK');
         const outsiderRoles = tbRoles.filter(id => ROLES[id]?.team === 'OUTSIDER');
         const minionRoles = tbRoles.filter(id => ROLES[id]?.team === 'MINION');
@@ -250,9 +275,51 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
         // 随机选择角色
         const shuffleArray = <T,>(array: T[]): T[] => [...array].sort(() => Math.random() - 0.5);
 
-        const selectedTownsfolk = shuffleArray(townsfolkRoles)
-            .slice(0, composition.townsfolk)
-            .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
+        // 根据策略的角色强度分级来选择镇民
+        const { strongRoles, mediumStrongRoles, mediumRoles } = strategy.guidelines;
+        
+        // 计算每个强度等级需要的数量
+        const strongCount = Math.floor(Math.random() * (strongRoles.max - strongRoles.min + 1)) + strongRoles.min;
+        const mediumStrongCount = Math.floor(Math.random() * (mediumStrongRoles.max - mediumStrongRoles.min + 1)) + mediumStrongRoles.min;
+        const remainingCount = composition.townsfolk - strongCount - mediumStrongCount;
+        
+        // 从各强度池中选择角色
+        const availableStrong = shuffleArray(strongRoles.roles.filter(id => townsfolkRoles.includes(id)));
+        const availableMediumStrong = shuffleArray(mediumStrongRoles.roles.filter(id => townsfolkRoles.includes(id)));
+        const availableMedium = shuffleArray(mediumRoles.roles.filter(id => townsfolkRoles.includes(id)));
+        
+        // 已选择的角色ID（避免重复）
+        const selectedTownsfolkIds: string[] = [];
+        
+        // 选择强力角色
+        for (let i = 0; i < strongCount && i < availableStrong.length; i++) {
+            const roleId = availableStrong[i];
+            if (roleId) selectedTownsfolkIds.push(roleId);
+        }
+        
+        // 选择中强角色
+        for (let i = 0; i < mediumStrongCount && i < availableMediumStrong.length; i++) {
+            const roleId = availableMediumStrong[i];
+            if (roleId && !selectedTownsfolkIds.includes(roleId)) {
+                selectedTownsfolkIds.push(roleId);
+            }
+        }
+        
+        // 用中等角色填充剩余位置
+        for (let i = 0; i < remainingCount && i < availableMedium.length; i++) {
+            const roleId = availableMedium[i];
+            if (roleId && !selectedTownsfolkIds.includes(roleId)) {
+                selectedTownsfolkIds.push(roleId);
+            }
+        }
+        
+        // 如果还不够，从剩余镇民中随机选择
+        const remainingTownsfolk = shuffleArray(townsfolkRoles.filter(id => !selectedTownsfolkIds.includes(id)));
+        while (selectedTownsfolkIds.length < composition.townsfolk && remainingTownsfolk.length > 0) {
+            selectedTownsfolkIds.push(remainingTownsfolk.shift()!);
+        }
+        
+        const selectedTownsfolk = selectedTownsfolkIds.map(id => ROLES[id]).filter(Boolean) as RoleDef[];
 
         // 外来者：优先推荐角色 + 其余随机，确保数量正确
         const recommendedOutsiderIds = strategy.guidelines.recommendedOutsiders.filter(id => outsiderRoles.includes(id));
@@ -296,7 +363,7 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
                 <div className="p-4 border-b border-stone-800 bg-stone-950 flex justify-between items-center">
                     <div>
                         <h3 className="text-xl font-bold text-stone-200 font-cinzel">📊 板子参考 Script Composition Guide</h3>
-                        <p className="text-xs text-stone-500 mt-1">当前人数: {playerCount}人 | 标准配比: {composition.townsfolk}镇民+{composition.outsider}外来者+{composition.minion}爪牙+{composition.demon}恶魔</p>
+                        <p className="text-xs text-stone-500 mt-1">当前人数: {playerCount}人 | 标准配比: {composition?.townsfolk || 0}镇民+{composition?.outsider || 0}外来者+{composition?.minion || 0}爪牙+{composition?.demon || 0}恶魔</p>
                     </div>
                     <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl">✕</button>
                 </div>
@@ -305,19 +372,19 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
                 <div className="p-6 overflow-y-auto max-h-[calc(90vh-8rem)]">
                     {/* 角色强度说明 */}
                     <div className="mb-6 p-4 bg-stone-950/50 rounded border border-stone-800">
-                        <h4 className="text-sm font-bold text-amber-400 mb-2 font-cinzel">💡 角色强度参考</h4>
+                        <h4 className="text-sm font-bold text-amber-400 mb-2 font-cinzel">💡 角色强度参考（暗流涌动）</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                             <div>
-                                <p className="text-stone-400 font-bold mb-1">Strong 强力</p>
-                                <p className="text-stone-500">首夜/持续信息角色、下毒者、间谍</p>
+                                <p className="text-amber-400 font-bold mb-1">强力角色</p>
+                                <p className="text-stone-500">{ROLE_STRENGTH.strong.map(id => ROLES[id]?.name || id).join('、')}</p>
                             </div>
                             <div>
-                                <p className="text-stone-400 font-bold mb-1">Medium-Strong 中强</p>
-                                <p className="text-stone-500">僧侣、处女、杀手等功能角色</p>
+                                <p className="text-blue-400 font-bold mb-1">中强角色</p>
+                                <p className="text-stone-500">{ROLE_STRENGTH.mediumStrong.map(id => ROLES[id]?.name || id).join('、')}</p>
                             </div>
                             <div>
-                                <p className="text-stone-400 font-bold mb-1">Medium 中等</p>
-                                <p className="text-stone-500">渡鸦守卫、管家等有条件角色</p>
+                                <p className="text-stone-400 font-bold mb-1">中等角色</p>
+                                <p className="text-stone-500">{ROLE_STRENGTH.medium.map(id => ROLES[id]?.name || id).join('、')}</p>
                             </div>
                         </div>
                     </div>
@@ -356,7 +423,6 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
             {selectedStrategy && (
                 <StrategyDetailModal
                     strategy={selectedStrategy}
-                    composition={composition}
                     generatedRoles={generatedRoles}
                     onGenerate={() => generateRoles(selectedStrategy)}
                     onApply={handleApply}

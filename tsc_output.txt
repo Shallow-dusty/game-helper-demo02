@@ -1,0 +1,129 @@
+components/AdminPanel.tsx(1,27): error TS6133: 'useEffect' is declared but its value is never read.
+components/AdminPanel.tsx(4,21): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+components/AdminPanel.tsx(4,33): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+components/AdminPanel.tsx(5,25): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+components/AdminPanel.tsx(5,37): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+components/AdminPanel.tsx(9,24): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+components/AdminPanel.tsx(9,36): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+components/AudioEnableOverlay.tsx(17,15): error TS7030: Not all code paths return a value.
+components/AudioManager.tsx(2,8): error TS6133: 'React' is declared but its value is never read.
+components/Controls.tsx(369,21): error TS2322: Type '(RoleDef | undefined)[]' is not assignable to type 'RoleDef[]'.
+  Type 'RoleDef | undefined' is not assignable to type 'RoleDef'.
+    Type 'undefined' is not assignable to type 'RoleDef'.
+components/Controls.tsx(394,51): error TS18047: 'currentState' is possibly 'null'.
+components/Controls.tsx(397,29): error TS18047: 'currentState' is possibly 'null'.
+components/Controls.tsx(404,57): error TS2532: Object is possibly 'undefined'.
+components/Controls.tsx(410,33): error TS18047: 'currentState' is possibly 'null'.
+components/Controls.tsx(422,49): error TS2322: Type '{ roomId?: string | undefined; currentScriptId?: string | undefined; phase?: GamePhase | undefined; setupPhase?: SetupPhase | undefined; rolesRevealed?: boolean | undefined; ... 17 more ...; voiceRoomUrl?: string; }' is not assignable to type 'GameState'.
+  Types of property 'roomId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+components/ControlsGameTab.tsx(16,65): error TS6133: 'isMobile' is declared but its value is never read.
+components/ControlsGameTab.tsx(230,24): error TS2532: Object is possibly 'undefined'.
+components/ControlsGameTab.tsx(309,61): error TS2538: Type 'undefined' cannot be used as an index type.
+components/ControlsGameTab.tsx(325,111): error TS2538: Type 'undefined' cannot be used as an index type.
+components/ControlsGameTab.tsx(328,41): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'SetStateAction<string | null>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<string | null>'.
+components/ControlsGameTab.tsx(504,39): error TS2532: Object is possibly 'undefined'.
+components/ErrorBoundary.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+components/Grimoire.tsx(124,9): error TS6133: 'teamColor' is declared but its value is never read.
+components/Grimoire.tsx(129,9): error TS6133: 'isNominee' is declared but its value is never read.
+components/Grimoire.tsx(370,10): error TS6133: 'showReminderMenu' is declared but its value is never read.
+components/Grimoire.tsx(613,7): error TS2532: Object is possibly 'undefined'.
+components/HistoryViewer.tsx(7,21): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+components/HistoryViewer.tsx(7,33): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+components/HistoryViewer.tsx(8,25): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+components/HistoryViewer.tsx(8,37): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+components/NightActionManager.tsx(153,42): error TS18048: 'roleQuickReplies' is possibly 'undefined'.
+components/NotificationSystem.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+components/NotificationSystem.tsx(11,15): error TS7030: Not all code paths return a value.
+components/NotificationSystem.tsx(16,13): error TS18048: 'lastMsg' is possibly 'undefined'.
+components/NotificationSystem.tsx(16,46): error TS18048: 'lastMsg' is possibly 'undefined'.
+components/NotificationSystem.tsx(17,36): error TS18048: 'lastMsg' is possibly 'undefined'.
+components/NotificationSystem.tsx(19,30): error TS18048: 'lastMsg' is possibly 'undefined'.
+components/NotificationSystem.tsx(20,37): error TS18048: 'lastMsg' is possibly 'undefined'.
+components/ScriptReference.tsx(6,11): error TS6133: 'gameState' is declared but its value is never read.
+components/Toast.tsx(40,12): error TS6133: 'isVisible' is declared but its value is never read.
+components/Toast.tsx(40,23): error TS6133: 'setIsVisible' is declared but its value is never read.
+components/VotingChart.tsx(27,46): error TS18048: 'latestVote' is possibly 'undefined'.
+components/VotingChart.tsx(28,48): error TS18048: 'latestVote' is possibly 'undefined'.
+components/VotingChart.tsx(34,24): error TS18048: 'latestVote' is possibly 'undefined'.
+components/VotingChart.tsx(77,18): error TS18048: 'latestVote' is possibly 'undefined'.
+store.ts(15,50): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', or 'nodenext'.
+store.ts(23,21): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+store.ts(23,33): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+store.ts(24,25): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+store.ts(24,37): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+store.ts(131,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+store.ts(131,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+store.ts(138,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+store.ts(138,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+store.ts(145,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+store.ts(145,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+store.ts(153,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+store.ts(153,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+store.ts(160,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+store.ts(160,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+store.ts(167,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+store.ts(167,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+store.ts(174,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+store.ts(174,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+store.ts(181,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+store.ts(181,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+store.ts(188,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', or 'nodenext'.
+store.ts(188,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+store.ts(266,7): error TS6133: '_addAiMessage' is declared but its value is never read.
+store.ts(305,23): error TS18048: 'r' is possibly 'undefined'.
+store.ts(312,9): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+store.ts(313,9): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+store.ts(320,23): error TS18048: 'r' is possibly 'undefined'.
+store.ts(322,9): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+store.ts(323,9): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+store.ts(328,9): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+store.ts(329,9): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+store.ts(429,25): error TS2741: Property 'forceLeaveSeat' is missing in type '{ user: null; gameState: null; isAiThinking: false; isAudioBlocked: false; isOffline: false; connectionStatus: ConnectionStatus; aiProvider: "deepseek"; roleReferenceMode: "modal"; ... 61 more ...; toggleSkillDescriptionMode: () => void; }' but required in type 'AppState'.
+store.ts(1114,67): error TS2721: Cannot invoke an object which is possibly 'null'.
+store.ts(1154,40): error TS18048: 's1' is possibly 'undefined'.
+store.ts(1155,40): error TS18048: 's2' is possibly 'undefined'.
+store.ts(1157,13): error TS2322: Type '{ id: number; userId?: string | null | undefined; userName?: string | undefined; isDead?: boolean | undefined; hasGhostVote?: boolean | undefined; roleId?: string | null | undefined; ... 8 more ...; voteLocked?: boolean; }' is not assignable to type 'Seat'.
+  Types of property 'userId' are incompatible.
+    Type 'string | null | undefined' is not assignable to type 'string | null'.
+      Type 'undefined' is not assignable to type 'string | null'.
+store.ts(1158,13): error TS2322: Type '{ id: number; userId?: string | null | undefined; userName?: string | undefined; isDead?: boolean | undefined; hasGhostVote?: boolean | undefined; roleId?: string | null | undefined; ... 8 more ...; voteLocked?: boolean; }' is not assignable to type 'Seat'.
+  Types of property 'userId' are incompatible.
+    Type 'string | null | undefined' is not assignable to type 'string | null'.
+      Type 'undefined' is not assignable to type 'string | null'.
+store.ts(1170,63): error TS2721: Cannot invoke an object which is possibly 'null'.
+store.ts(1414,21): error TS2322: Type 'number | null' is not assignable to type 'number'.
+  Type 'null' is not assignable to type 'number'.
+store.ts(1492,29): error TS2532: Object is possibly 'undefined'.
+store.ts(1746,58): error TS18048: 'r' is possibly 'undefined'.
+store.ts(1747,58): error TS18048: 'r' is possibly 'undefined'.
+store.ts(1748,56): error TS18048: 'r' is possibly 'undefined'.
+store.ts(1749,55): error TS18048: 'r' is possibly 'undefined'.
+store.ts(1753,63): error TS18048: 'composition' is possibly 'undefined'.
+store.ts(1753,95): error TS18048: 'r' is possibly 'undefined'.
+store.ts(1754,63): error TS18048: 'composition' is possibly 'undefined'.
+store.ts(1754,94): error TS18048: 'r' is possibly 'undefined'.
+store.ts(1755,61): error TS18048: 'composition' is possibly 'undefined'.
+store.ts(1755,90): error TS18048: 'r' is possibly 'undefined'.
+store.ts(1756,60): error TS18048: 'composition' is possibly 'undefined'.
+store.ts(1756,88): error TS18048: 'r' is possibly 'undefined'.
+store.ts(1765,68): error TS18048: 'composition' is possibly 'undefined'.
+store.ts(1765,95): error TS18048: 'composition' is possibly 'undefined'.
+store.ts(1765,122): error TS18048: 'composition' is possibly 'undefined'.
+store.ts(1765,146): error TS18048: 'composition' is possibly 'undefined'.
+store.ts(1793,67): error TS2721: Cannot invoke an object which is possibly 'null'.
+store.ts(2025,10): error TS2322: Type 'T | undefined' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+store.ts(2025,21): error TS2322: Type 'T | undefined' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+tests/store.test.ts(1,44): error TS6133: 'vi' is declared but its value is never read.
+tests/store.test.ts(3,1): error TS6192: All imports in import declaration are unused.
+tests/store.test.ts(239,11): error TS6133: 'gameOver' is declared but its value is never read.

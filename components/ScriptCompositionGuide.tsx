@@ -1,4 +1,5 @@
 import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
+import { useStore } from '../store';
 import { ROLES, SCRIPTS } from '../constants';
 import type { RoleDef } from '../types';
 
@@ -162,11 +163,10 @@ const StrategyDetailModal: React.FC<{
                 <div className="p-4 border-b border-stone-700 bg-stone-950 flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <h3 className="text-lg font-bold text-amber-400 font-cinzel">{strategy.name}</h3>
-                        <span className={`text-xs px-2 py-0.5 rounded ${
-                            strategy.difficulty === '新手' ? 'bg-green-950/50 text-green-400 border border-green-800' :
+                        <span className={`text-xs px-2 py-0.5 rounded ${strategy.difficulty === '新手' ? 'bg-green-950/50 text-green-400 border border-green-800' :
                             strategy.difficulty === '中等' ? 'bg-blue-950/50 text-blue-400 border border-blue-800' :
-                            'bg-red-950/50 text-red-400 border border-red-800'
-                        }`}>
+                                'bg-red-950/50 text-red-400 border border-red-800'
+                            }`}>
                             {strategy.difficulty}
                         </span>
                     </div>
@@ -262,11 +262,10 @@ const StrategyDetailModal: React.FC<{
                         <button
                             onClick={onApply}
                             disabled={!generatedRoles}
-                            className={`w-full py-3 px-4 rounded font-bold text-sm transition-colors ${
-                                generatedRoles 
-                                    ? 'bg-amber-600 hover:bg-amber-500 text-white' 
-                                    : 'bg-stone-800 text-stone-600 cursor-not-allowed'
-                            }`}
+                            className={`w-full py-3 px-4 rounded font-bold text-sm transition-colors ${generatedRoles
+                                ? 'bg-amber-600 hover:bg-amber-500 text-white'
+                                : 'bg-stone-800 text-stone-600 cursor-not-allowed'
+                                }`}
                         >
                             {generatedRoles ? `✅ 应用 "${strategy.name}" 策略` : '请先生成角色配置'}
                         </button>
@@ -304,85 +303,89 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
 
     const composition = getStandardComposition(safePlayerCount);
 
+    // Get current script from store
+    const currentScriptId = useStore(state => state.gameState?.currentScriptId) || 'tb';
+    const currentScript = SCRIPTS[currentScriptId] || SCRIPTS.tb;
+
     // 生成具体角色配置
     const generateRoles = (strategy: CompositionStrategy) => {
         try {
-            const tbRoles = SCRIPTS.tb?.roles;
-            if (!tbRoles || !composition) return;
-            
-            const townsfolkRoles = tbRoles.filter(id => ROLES[id]?.team === 'TOWNSFOLK');
-            const outsiderRoles = tbRoles.filter(id => ROLES[id]?.team === 'OUTSIDER');
-            const minionRoles = tbRoles.filter(id => ROLES[id]?.team === 'MINION');
-            const demonRoles = tbRoles.filter(id => ROLES[id]?.team === 'DEMON');
+            const scriptRoles = currentScript?.roles;
+            if (!scriptRoles || !composition) return;
 
-        // 随机选择角色
-        const shuffleArray = <T,>(array: T[]): T[] => [...array].sort(() => Math.random() - 0.5);
+            const townsfolkRoles = scriptRoles.filter(id => ROLES[id]?.team === 'TOWNSFOLK');
+            const outsiderRoles = scriptRoles.filter(id => ROLES[id]?.team === 'OUTSIDER');
+            const minionRoles = scriptRoles.filter(id => ROLES[id]?.team === 'MINION');
+            const demonRoles = scriptRoles.filter(id => ROLES[id]?.team === 'DEMON');
 
-        // 根据策略的角色强度分级来选择镇民
-        const { strongRoles, mediumStrongRoles, mediumRoles } = strategy.guidelines;
-        
-        // 计算每个强度等级需要的数量
-        const strongCount = Math.floor(Math.random() * (strongRoles.max - strongRoles.min + 1)) + strongRoles.min;
-        const mediumStrongCount = Math.floor(Math.random() * (mediumStrongRoles.max - mediumStrongRoles.min + 1)) + mediumStrongRoles.min;
-        const remainingCount = composition.townsfolk - strongCount - mediumStrongCount;
-        
-        // 从各强度池中选择角色
-        const availableStrong = shuffleArray(strongRoles.roles.filter(id => townsfolkRoles.includes(id)));
-        const availableMediumStrong = shuffleArray(mediumStrongRoles.roles.filter(id => townsfolkRoles.includes(id)));
-        const availableMedium = shuffleArray(mediumRoles.roles.filter(id => townsfolkRoles.includes(id)));
-        
-        // 已选择的角色ID（避免重复）
-        const selectedTownsfolkIds: string[] = [];
-        
-        // 选择强力角色
-        for (let i = 0; i < strongCount && i < availableStrong.length; i++) {
-            const roleId = availableStrong[i];
-            if (roleId) selectedTownsfolkIds.push(roleId);
-        }
-        
-        // 选择中强角色
-        for (let i = 0; i < mediumStrongCount && i < availableMediumStrong.length; i++) {
-            const roleId = availableMediumStrong[i];
-            if (roleId && !selectedTownsfolkIds.includes(roleId)) {
-                selectedTownsfolkIds.push(roleId);
+            // 随机选择角色
+            const shuffleArray = <T,>(array: T[]): T[] => [...array].sort(() => Math.random() - 0.5);
+
+            // 根据策略的角色强度分级来选择镇民
+            const { strongRoles, mediumStrongRoles, mediumRoles } = strategy.guidelines;
+
+            // 计算每个强度等级需要的数量
+            const strongCount = Math.floor(Math.random() * (strongRoles.max - strongRoles.min + 1)) + strongRoles.min;
+            const mediumStrongCount = Math.floor(Math.random() * (mediumStrongRoles.max - mediumStrongRoles.min + 1)) + mediumStrongRoles.min;
+            const remainingCount = composition.townsfolk - strongCount - mediumStrongCount;
+
+            // 从各强度池中选择角色
+            const availableStrong = shuffleArray(strongRoles.roles.filter(id => townsfolkRoles.includes(id)));
+            const availableMediumStrong = shuffleArray(mediumStrongRoles.roles.filter(id => townsfolkRoles.includes(id)));
+            const availableMedium = shuffleArray(mediumRoles.roles.filter(id => townsfolkRoles.includes(id)));
+
+            // 已选择的角色ID（避免重复）
+            const selectedTownsfolkIds: string[] = [];
+
+            // 选择强力角色
+            for (let i = 0; i < strongCount && i < availableStrong.length; i++) {
+                const roleId = availableStrong[i];
+                if (roleId) selectedTownsfolkIds.push(roleId);
             }
-        }
-        
-        // 用中等角色填充剩余位置
-        for (let i = 0; i < remainingCount && i < availableMedium.length; i++) {
-            const roleId = availableMedium[i];
-            if (roleId && !selectedTownsfolkIds.includes(roleId)) {
-                selectedTownsfolkIds.push(roleId);
+
+            // 选择中强角色
+            for (let i = 0; i < mediumStrongCount && i < availableMediumStrong.length; i++) {
+                const roleId = availableMediumStrong[i];
+                if (roleId && !selectedTownsfolkIds.includes(roleId)) {
+                    selectedTownsfolkIds.push(roleId);
+                }
             }
-        }
-        
-        // 如果还不够，从剩余镇民中随机选择
-        const remainingTownsfolk = shuffleArray(townsfolkRoles.filter(id => !selectedTownsfolkIds.includes(id)));
-        while (selectedTownsfolkIds.length < composition.townsfolk && remainingTownsfolk.length > 0) {
-            selectedTownsfolkIds.push(remainingTownsfolk.shift()!);
-        }
-        
-        const selectedTownsfolk = selectedTownsfolkIds.map(id => ROLES[id]).filter(Boolean) as RoleDef[];
 
-        // 外来者：优先推荐角色 + 其余随机，确保数量正确
-        const recommendedOutsiderIds = strategy.guidelines.recommendedOutsiders.filter(id => outsiderRoles.includes(id));
-        const otherOutsiderIds = outsiderRoles.filter(id => !recommendedOutsiderIds.includes(id));
-        const outsiderPool = [...recommendedOutsiderIds, ...shuffleArray(otherOutsiderIds)];
-        const selectedOutsider = outsiderPool
-            .slice(0, composition.outsider)
-            .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
+            // 用中等角色填充剩余位置
+            for (let i = 0; i < remainingCount && i < availableMedium.length; i++) {
+                const roleId = availableMedium[i];
+                if (roleId && !selectedTownsfolkIds.includes(roleId)) {
+                    selectedTownsfolkIds.push(roleId);
+                }
+            }
 
-        // 爪牙：优先推荐角色 + 其余随机
-        const recommendedMinionIds = strategy.guidelines.recommendedMinions.filter(id => minionRoles.includes(id));
-        const otherMinionIds = minionRoles.filter(id => !recommendedMinionIds.includes(id));
-        const minionPool = [...recommendedMinionIds, ...shuffleArray(otherMinionIds)];
-        const selectedMinion = minionPool
-            .slice(0, composition.minion)
-            .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
+            // 如果还不够，从剩余镇民中随机选择
+            const remainingTownsfolk = shuffleArray(townsfolkRoles.filter(id => !selectedTownsfolkIds.includes(id)));
+            while (selectedTownsfolkIds.length < composition.townsfolk && remainingTownsfolk.length > 0) {
+                selectedTownsfolkIds.push(remainingTownsfolk.shift()!);
+            }
 
-        const selectedDemon = shuffleArray(demonRoles)
-            .slice(0, composition.demon)
-            .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
+            const selectedTownsfolk = selectedTownsfolkIds.map(id => ROLES[id]).filter(Boolean) as RoleDef[];
+
+            // 外来者：优先推荐角色 + 其余随机，确保数量正确
+            const recommendedOutsiderIds = strategy.guidelines.recommendedOutsiders.filter(id => outsiderRoles.includes(id));
+            const otherOutsiderIds = outsiderRoles.filter(id => !recommendedOutsiderIds.includes(id));
+            const outsiderPool = [...recommendedOutsiderIds, ...shuffleArray(otherOutsiderIds)];
+            const selectedOutsider = outsiderPool
+                .slice(0, composition.outsider)
+                .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
+
+            // 爪牙：优先推荐角色 + 其余随机
+            const recommendedMinionIds = strategy.guidelines.recommendedMinions.filter(id => minionRoles.includes(id));
+            const otherMinionIds = minionRoles.filter(id => !recommendedMinionIds.includes(id));
+            const minionPool = [...recommendedMinionIds, ...shuffleArray(otherMinionIds)];
+            const selectedMinion = minionPool
+                .slice(0, composition.minion)
+                .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
+
+            const selectedDemon = shuffleArray(demonRoles)
+                .slice(0, composition.demon)
+                .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
 
             setGeneratedRoles({
                 townsfolk: selectedTownsfolk,
@@ -450,11 +453,10 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
                                 <div className="flex justify-between items-start mb-2">
                                     <h4 className="text-sm font-bold text-stone-200 font-cinzel group-hover:text-amber-400 transition-colors">{strategy.name}</h4>
                                 </div>
-                                <span className={`text-xs px-2 py-0.5 rounded inline-block mb-2 ${
-                                    strategy.difficulty === '新手' ? 'bg-green-950/50 text-green-400 border border-green-800' :
+                                <span className={`text-xs px-2 py-0.5 rounded inline-block mb-2 ${strategy.difficulty === '新手' ? 'bg-green-950/50 text-green-400 border border-green-800' :
                                     strategy.difficulty === '中等' ? 'bg-blue-950/50 text-blue-400 border border-blue-800' :
-                                    'bg-red-950/50 text-red-400 border border-red-800'
-                                }`}>
+                                        'bg-red-950/50 text-red-400 border border-red-800'
+                                    }`}>
                                     {strategy.difficulty}
                                 </span>
                                 <p className="text-xs text-stone-500">{strategy.description}</p>

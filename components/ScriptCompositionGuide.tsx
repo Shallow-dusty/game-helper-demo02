@@ -241,7 +241,7 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
 
     // 生成具体角色配置
     const generateRoles = (strategy: CompositionStrategy) => {
-        const tbRoles = SCRIPTS['tb'].roles;
+        const tbRoles = SCRIPTS.tb.roles;
         const townsfolkRoles = tbRoles.filter(id => ROLES[id]?.team === 'TOWNSFOLK');
         const outsiderRoles = tbRoles.filter(id => ROLES[id]?.team === 'OUTSIDER');
         const minionRoles = tbRoles.filter(id => ROLES[id]?.team === 'MINION');

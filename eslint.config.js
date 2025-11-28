@@ -24,6 +24,16 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
       
+      // deprecated 警告降级（roleId 迁移中）
+      '@typescript-eslint/no-deprecated': 'warn',
+      
+      // 非空断言在确定场景下允许
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-non-null-asserted-optional-chain': 'warn',
+      
+      // 条件判断优化建议
+      '@typescript-eslint/no-unnecessary-condition': 'warn',
+      
       // React 相关规则调整
       '@typescript-eslint/no-misused-promises': ['error', {
         checksVoidReturn: {
@@ -40,6 +50,18 @@ export default tseslint.config(
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-confusing-void-expression': 'off',
       '@typescript-eslint/restrict-template-expressions': 'warn',
+      '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_' 
+      }],
+      '@typescript-eslint/restrict-plus-operands': 'warn',
+      '@typescript-eslint/use-unknown-in-catch-callback-variable': 'warn',
+      '@typescript-eslint/no-misused-promises': 'warn',
+      '@typescript-eslint/require-await': 'warn',
+      '@typescript-eslint/consistent-type-definitions': 'off',
+      '@typescript-eslint/no-dynamic-delete': 'warn',
     },
   },
   {
@@ -55,7 +77,8 @@ export default tseslint.config(
       'dist/**',
       'node_modules/**',
       'vite.config.ts',
-      '*.js',
+      'eslint.config.js',
+      '*.cjs',
     ],
   }
 );

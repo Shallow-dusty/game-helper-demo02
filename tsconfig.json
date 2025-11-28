@@ -44,6 +44,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "include": ["**/*.ts", "**/*.tsx", "tests/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -307,7 +307,7 @@ const SandboxGrimoire: React.FC<{ width: number; height: number }> = ({ width, h
                 {seat.isDead && (
                   <span className="absolute -top-1 -right-1 text-lg">💀</span>
                 )}
-                {seat.hasGhostVote === false && seat.isDead && (
+                {!seat.hasGhostVote && seat.isDead && (
                   <span className="absolute -bottom-1 -right-1 text-xs">🚫</span>
                 )}
               </div>

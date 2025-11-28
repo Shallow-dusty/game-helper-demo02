@@ -3,11 +3,11 @@ export type GamePhase = 'SETUP' | 'NIGHT' | 'DAY' | 'NOMINATION' | 'VOTING';
 
 export type Team = 'TOWNSFOLK' | 'OUTSIDER' | 'MINION' | 'DEMON' | 'TRAVELER';
 
-export type NightActionDef = {
+export interface NightActionDef {
   type: 'choose_player' | 'choose_two_players' | 'binary' | 'confirm';
   prompt: string;
   options?: string[]; // For binary choices
-};
+}
 
 export type InfoCardType = 'role_info' | 'ability' | 'hint' | 'custom';
 

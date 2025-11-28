@@ -133,7 +133,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove
 
 // Hook for using toasts
 let toastIdCounter = 0;
-const toastListeners: Set<(toasts: ToastItem[]) => void> = new Set();
+const toastListeners = new Set<(toasts: ToastItem[]) => void>();
 let toastList: ToastItem[] = [];
 
 const notifyListeners = () => {

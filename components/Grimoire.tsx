@@ -944,7 +944,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
             </div>
 
             <div className="mt-8 flex justify-end gap-4">
-              <button onClick={() => { assignRole(roleSelectSeat!, null as any); setRoleSelectSeat(null); }} className="px-6 py-2 text-stone-500 hover:text-red-400 text-xs uppercase tracking-widest transition-colors">
+              <button onClick={() => { assignRole(roleSelectSeat, null as any); setRoleSelectSeat(null); }} className="px-6 py-2 text-stone-500 hover:text-red-400 text-xs uppercase tracking-widest transition-colors">
                 清除角色
               </button>
               <button onClick={() => setRoleSelectSeat(null)} className="px-8 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded font-cinzel text-sm transition-colors">

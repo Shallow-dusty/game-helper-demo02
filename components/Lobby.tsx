@@ -15,7 +15,7 @@ export const Lobby = () => {
 
     useEffect(() => {
         // 检查是否有有效的音频URL
-        const lobbyTrack = AUDIO_TRACKS['lobby'];
+        const lobbyTrack = AUDIO_TRACKS.lobby;
         if (!lobbyTrack?.url || lobbyTrack.url === '') {
             // 没有有效音频，跳过音频初始化
             setHasInteracted(true); // 直接标记为已交互，跳过音频提示

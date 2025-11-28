@@ -220,10 +220,10 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = ({ isMobile }) =>
 
             <div className={`px-3 pb-3 ${collapsedSections.audio ? 'hidden' : ''}`}>
               {/* 当前播放信息 */}
-              {gameState.audio.trackId && AUDIO_TRACKS[gameState.audio.trackId] && AUDIO_TRACKS[gameState.audio.trackId].url && (
+              {gameState.audio.trackId && AUDIO_TRACKS[gameState.audio.trackId]?.url && (
                 <div className="mb-2 p-2 bg-stone-950/50 rounded border border-stone-800 text-xs">
                   <div className="flex items-center gap-2 text-stone-400">
-                    <span className={`${gameState.audio.isPlaying ? 'text-green-400' : 'text-stone-500'}`}>
+                    <span className={gameState.audio.isPlaying ? 'text-green-400' : 'text-stone-500'}>
                       {gameState.audio.isPlaying ? '🔊' : '🔇'}
                     </span>
                     <span className="text-stone-300 font-medium">

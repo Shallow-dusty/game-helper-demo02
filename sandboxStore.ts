@@ -9,7 +9,7 @@ import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } fr
  * 说书人可以模拟操作魔典、分配角色、结算夜间行动
  */
 
-const getInitialSandboxState = (seatCount: number, scriptId: string = 'tb'): GameState => ({
+const getInitialSandboxState = (seatCount: number, scriptId = 'tb'): GameState => ({
     roomId: 'SANDBOX',
     currentScriptId: scriptId,
     phase: 'SETUP',

@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { GameState, User, GamePhase, ChatMessage, AudioState, SeatStatus, Seat, NightActionRequest } from './types';
+import { GameState, User, GamePhase, ChatMessage, SeatStatus, Seat, NightActionRequest } from './types';
 import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS, PHASE_AUDIO_MAP, AUDIO_TRACKS } from './constants';
 import OpenAI from 'openai';
-import { createClient, RealtimeChannel } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 // --- Toast notification helper (lazy import to avoid circular dependency) ---
 let showErrorFn: ((msg: string) => void) | null = null;
@@ -183,7 +183,7 @@ let isReceivingUpdate = false;
 
 // --- STATE HELPERS ---
 
-const getInitialState = (roomId: string, seatCount: number, currentScriptId: string = 'tb'): GameState => ({
+const getInitialState = (roomId: string, seatCount: number, currentScriptId = 'tb'): GameState => ({
     roomId,
     currentScriptId,
     phase: 'SETUP',
@@ -244,7 +244,7 @@ const addSystemMessage = (gameState: GameState, content: string) => {
     });
 };
 
-const addAiMessage = (gameState: GameState, content: string, provider: string, recipientId: string | null = null) => {
+const _addAiMessage = (gameState: GameState, content: string, provider: string, recipientId: string | null = null) => {
     const providerName = AI_CONFIG[provider as AiProvider]?.name || provider;
     gameState.messages.push({
         id: Math.random().toString(36).substr(2, 9),
@@ -277,12 +277,12 @@ const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: string | 
 
     const assignedRoles = gameState.seats
         .filter(s => s.realRoleId && s.id !== seat.id)
-        .map(s => s.realRoleId as string);
+        .map(s => s.realRoleId!);
 
     const pickTownsfolk = () => {
         const availableTownsfolk = script?.roles
             .map(id => ROLES[id])
-            .filter(r => r && r.team === 'TOWNSFOLK' && !assignedRoles.includes(r.id))
+            .filter(r => r?.team === 'TOWNSFOLK' && !assignedRoles.includes(r.id))
             .map(r => r.id) || [];
         const pool = availableTownsfolk.length > 0 ? availableTownsfolk : fallbackTownsfolk;
         return pool[Math.floor(Math.random() * pool.length)];
@@ -297,7 +297,7 @@ const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: string | 
     if (roleId === 'lunatic') {
         const demons = script?.roles
             .map(id => ROLES[id])
-            .filter(r => r && r.team === 'DEMON')
+            .filter(r => r?.team === 'DEMON')
             .map(r => r.id) || [];
         const fakeDemon = demons.length > 0 ? demons[0] : 'imp';
         seat.seenRoleId = fakeDemon;
@@ -437,7 +437,7 @@ export const useStore = create<AppState>()(
         set({ connectionStatus: 'connecting' });
 
         // 1. Prepare Data
-        let code = Math.floor(1000 + Math.random() * 9000).toString();
+        const code = Math.floor(1000 + Math.random() * 9000).toString();
         // 2. Create Game State
         const newState = getInitialState(code, seatCount);
         const updatedUser = { ...user, roomId: code };
@@ -463,7 +463,7 @@ export const useStore = create<AppState>()(
                     'postgres_changes',
                     { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `room_code=eq.${code}` },
                     (payload) => {
-                        if (payload.new && payload.new.data) {
+                        if (payload.new?.data) {
                             isReceivingUpdate = true;
                             set({ gameState: payload.new.data });
                             isReceivingUpdate = false;
@@ -535,7 +535,7 @@ export const useStore = create<AppState>()(
                     'postgres_changes',
                     { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `room_code=eq.${roomCode}` },
                     (payload) => {
-                        if (payload.new && payload.new.data) {
+                        if (payload.new?.data) {
                             isReceivingUpdate = true;
                             set({ gameState: payload.new.data });
                             isReceivingUpdate = false;
@@ -651,7 +651,7 @@ export const useStore = create<AppState>()(
                 return;
             }
 
-            if (data && data.data) {
+            if (data?.data) {
                 isReceivingUpdate = true;
                 set({ gameState: data.data });
                 isReceivingUpdate = false;
@@ -918,7 +918,7 @@ export const useStore = create<AppState>()(
             if (audioTrackId && gameState.audio) {
                 // 检查音轨是否存在且有有效的 URL
                 const track = AUDIO_TRACKS[audioTrackId];
-                if (track && track.url && track.url !== '') {
+                if (track?.url && track.url !== '') {
                     gameState.audio.trackId = audioTrackId;
                     // 保持当前播放状态，如果之前在播放则继续播放
                 }
@@ -951,7 +951,7 @@ export const useStore = create<AppState>()(
     },
 
     assignRole: (seatId, roleId) => {
-        const { gameState, user } = get();
+        const { gameState, user: _user } = get();
         if (!gameState) return;
 
         // 游戏开始后禁止修改身份（除非是说书人强制操作）
@@ -1147,7 +1147,7 @@ export const useStore = create<AppState>()(
         
         // 检查音轨是否存在且有有效的 URL
         const track = AUDIO_TRACKS[trackId];
-        if (!track || !track.url || track.url === '') {
+        if (!track?.url || track.url === '') {
             // 音轨无效，不设置
             return;
         }
@@ -1248,7 +1248,7 @@ export const useStore = create<AppState>()(
             
             try {
                 const { gameState } = get();
-                if (!gameState || !gameState.voting) {
+                if (!gameState?.voting) {
                     isProcessing = false;
                     return;
                 }
@@ -1286,7 +1286,7 @@ export const useStore = create<AppState>()(
                     addSystemMessage(gameState, `投票结束。共 ${voteCount} 票（过半需要 ${majority} 票）。`);
                     
                     // 自动结算结果
-                    let result: 'executed' | 'survived' = majority > 0 && voteCount >= majority ? 'executed' : 'survived';
+                    const result: 'executed' | 'survived' = majority > 0 && voteCount >= majority ? 'executed' : 'survived';
                     
                     if (result === 'executed') {
                         addSystemMessage(gameState, `🪦 ${nominee?.userName || '被提名者'} 票数达标，可被处决。`);
@@ -1298,7 +1298,7 @@ export const useStore = create<AppState>()(
                     const voteRecord: import('./types').VoteRecord = {
                         round: gameState.voteHistory.length + 1,
                         nominatorSeatId: gameState.voting.nominatorSeatId || -1,
-                        nomineeSeatId: gameState.voting.nomineeSeatId!,
+                        nomineeSeatId: gameState.voting.nomineeSeatId,
                         votes: gameState.voting.votes,
                         voteCount,
                         timestamp: Date.now(),
@@ -1330,7 +1330,7 @@ export const useStore = create<AppState>()(
             lastToggle = now;
             
             const { user, gameState } = get();
-            if (!user || !gameState || !gameState.voting || !gameState.voting.isOpen) return;
+            if (!user || !gameState?.voting?.isOpen) return;
 
             const seat = gameState.seats.find(s => s.userId === user.id);
 
@@ -1682,7 +1682,7 @@ export const useStore = create<AppState>()(
 
     assignRoles: () => {
         const { gameState } = get();
-        if (!gameState || !gameState.currentScriptId) return;
+        if (!gameState?.currentScriptId) return;
 
         const script = SCRIPTS[gameState.currentScriptId];
         if (!script) return;
@@ -1754,7 +1754,7 @@ export const useStore = create<AppState>()(
         const { gameState } = get();
         if (!gameState) return;
         const seat = gameState.seats.find(s => s.id === seatId);
-        if (seat && seat.isVirtual) {
+        if (seat?.isVirtual) {
             seat.isVirtual = false;
             seat.userName = `座位 ${seat.id + 1}`;
             seat.roleId = null;

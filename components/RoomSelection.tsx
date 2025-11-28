@@ -12,7 +12,6 @@ export const RoomSelection = () => {
   
   // 沙盒模式
   const startSandbox = useSandboxStore(state => state.startSandbox);
-  const isSandboxActive = useSandboxStore(state => state.isActive);
 
   const [seatCount, setSeatCount] = useState(12); // Default setup
   const [roomCode, setRoomCode] = useState('');

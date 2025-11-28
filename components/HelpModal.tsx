@@ -7,7 +7,7 @@ interface HelpModalProps {
 
 export const HelpModal: React.FC<HelpModalProps> = ({ onClose, embedded = false }) => {
     const content = (
-        <div className={`${embedded ? '' : 'bg-stone-900 border border-stone-700 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col'}`}>
+        <div className={embedded ? '' : 'bg-stone-900 border border-stone-700 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col'}>
             {!embedded && (
                 <div className="p-4 border-b border-stone-800 flex justify-between items-center bg-stone-950">
                     <h2 className="text-xl font-bold text-stone-200 font-cinzel flex items-center gap-2">
@@ -18,7 +18,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose, embedded = false 
                     </button>
                 </div>
             )}
-            <div className={`${embedded ? '' : 'p-6 overflow-y-auto'}`}>
+            <div className={embedded ? '' : 'p-6 overflow-y-auto'}>
                 <div className="space-y-6">
                     <section>
                         <h3 className="text-lg font-bold text-stone-200 mb-3 flex items-center gap-2">

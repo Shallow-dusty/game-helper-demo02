@@ -184,7 +184,7 @@ export const AudioManager = () => {
         const track = AUDIO_TRACKS[audioState.trackId];
         
         // 只有当音轨有有效 URL 时才加载
-        if (track && track.url && track.url !== '') {
+        if (track?.url && track.url !== '') {
             // 简单的 URL 校验
             if (!track.url.startsWith('http') && !track.url.startsWith('data:')) {
                 console.warn("Invalid audio URL:", track.url);

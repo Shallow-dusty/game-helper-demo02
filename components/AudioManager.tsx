@@ -1,22 +1,26 @@
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../store';
 import { AUDIO_TRACKS } from '../constants';
 
 export const AudioManager = () => {
-    const audioState = useStore(state => state.gameState?.audio);
+    // 使用更精细的选择器，避免不必要的重渲染
+    const audioTrackId = useStore(state => state.gameState?.audio?.trackId);
+    const audioIsPlaying = useStore(state => state.gameState?.audio?.isPlaying);
+    const audioVolume = useStore(state => state.gameState?.audio?.volume);
     const setAudioBlocked = useStore(state => state.setAudioBlocked);
+    const isAudioBlocked = useStore(state => state.isAudioBlocked);
+    
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const previousTrackRef = useRef<string | null>(null);
     const playPromiseRef = useRef<Promise<void> | null>(null);
-    const [loadError, setLoadError] = useState<string | null>(null);
     const isPlayingRef = useRef(false); // 跟踪实际播放状态
     const cleanupTimeoutRef = useRef<number | null>(null); // 用于清理 setTimeout
-
-    const isAudioBlocked = useStore(state => state.isAudioBlocked);
+    const isMountedRef = useRef(true); // 跟踪组件是否已卸载
 
     // Create audio element on mount
     useEffect(() => {
+        isMountedRef.current = true;
         const audio = new Audio();
         audio.loop = true;
         audio.preload = 'auto';
@@ -24,6 +28,8 @@ export const AudioManager = () => {
 
         // 添加错误处理
         const handleError = (e: Event) => {
+            if (!isMountedRef.current) return;
+            
             const audioElement = e.target as HTMLAudioElement;
             // 如果没有设置 src 或 src 为空，不报错
             if (!audioElement.src || audioElement.src === '' || audioElement.src === window.location.href) {
@@ -31,54 +37,31 @@ export const AudioManager = () => {
             }
             
             const error = audioElement.error;
-            let errorMessage = '音频加载失败';
-            
             if (error) {
-                switch (error.code) {
-                    case MediaError.MEDIA_ERR_ABORTED:
-                        errorMessage = '音频加载被中断';
-                        break;
-                    case MediaError.MEDIA_ERR_NETWORK:
-                        errorMessage = '网络错误，无法加载音频';
-                        break;
-                    case MediaError.MEDIA_ERR_DECODE:
-                        errorMessage = '音频解码失败';
-                        break;
-                    case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-                        errorMessage = '不支持的音频格式';
-                        break;
-                }
+                console.warn('Audio error:', error.code, error.message);
             }
-            console.warn('Audio error:', errorMessage, error);
-            setLoadError(errorMessage);
-        };
-
-        const handleLoadStart = () => {
-            setLoadError(null);
-        };
-
-        const handleCanPlay = () => {
-            setLoadError(null);
         };
 
         const handlePlay = () => {
-            isPlayingRef.current = true;
+            if (isMountedRef.current) {
+                isPlayingRef.current = true;
+            }
         };
 
         const handlePause = () => {
-            isPlayingRef.current = false;
+            if (isMountedRef.current) {
+                isPlayingRef.current = false;
+            }
         };
 
         audio.addEventListener('error', handleError);
-        audio.addEventListener('loadstart', handleLoadStart);
-        audio.addEventListener('canplay', handleCanPlay);
         audio.addEventListener('play', handlePlay);
         audio.addEventListener('pause', handlePause);
 
         return () => {
+            isMountedRef.current = false;
+            
             audio.removeEventListener('error', handleError);
-            audio.removeEventListener('loadstart', handleLoadStart);
-            audio.removeEventListener('canplay', handleCanPlay);
             audio.removeEventListener('play', handlePlay);
             audio.removeEventListener('pause', handlePause);
             
@@ -97,10 +80,13 @@ export const AudioManager = () => {
                     })
                     .catch(() => {
                         // 忽略错误，组件已卸载
+                        try { audio.pause(); } catch(e) { /* ignore */ }
                     });
             } else {
-                audio.pause();
-                audio.src = '';
+                try {
+                    audio.pause();
+                    audio.src = '';
+                } catch(e) { /* ignore */ }
             }
             audioRef.current = null;
         };
@@ -109,14 +95,16 @@ export const AudioManager = () => {
     // 单独处理音量变化 - 直接设置，无需重新触发播放逻辑
     useEffect(() => {
         const audio = audioRef.current;
-        if (!audio || audioState?.volume === undefined) return;
+        if (!audio || audioVolume === undefined) return;
         
         // 直接设置音量，不触发其他逻辑
-        audio.volume = audioState.volume;
-    }, [audioState?.volume]);
+        audio.volume = audioVolume;
+    }, [audioVolume]);
 
-    // 安全播放函数
+    // 安全播放函数 - 使用 ref 避免不必要的依赖
     const attemptPlay = useCallback(() => {
+        if (!isMountedRef.current) return;
+        
         const audio = audioRef.current;
         if (!audio) return;
         
@@ -136,17 +124,20 @@ export const AudioManager = () => {
             playPromise
                 .then(() => {
                     playPromiseRef.current = null;
-                    setAudioBlocked(false);
+                    if (isMountedRef.current) {
+                        setAudioBlocked(false);
+                    }
                 })
                 .catch(error => {
                     playPromiseRef.current = null;
+                    if (!isMountedRef.current) return;
+                    
                     if (error.name === 'AbortError') {
                         // 播放被中断（如切换音轨），这是正常的
                         console.log("Audio play aborted (track changed)");
                     } else if (error.name === 'NotSupportedError') {
                         // 音频格式不支持或URL无效，静默处理
                         console.warn("Audio format not supported or URL invalid:", audio.src);
-                        setLoadError("不支持的音频格式");
                     } else {
                         console.warn("Audio autoplay blocked by browser:", error);
                         setAudioBlocked(true);
@@ -157,6 +148,8 @@ export const AudioManager = () => {
 
     // 安全播放（处理挂起的 Promise）
     const safePlay = useCallback(() => {
+        if (!isMountedRef.current) return;
+        
         if (playPromiseRef.current) {
             playPromiseRef.current
                 .then(() => attemptPlay())
@@ -173,36 +166,39 @@ export const AudioManager = () => {
 
         if (playPromiseRef.current) {
             playPromiseRef.current
-                .then(() => audio.pause())
-                .catch(() => audio.pause());
+                .then(() => { try { audio.pause(); } catch(e) { /* ignore */ } })
+                .catch(() => { try { audio.pause(); } catch(e) { /* ignore */ } });
         } else {
-            audio.pause();
+            try { audio.pause(); } catch(e) { /* ignore */ }
         }
     }, []);
 
-    // 处理音轨切换
+    // 处理音轨切换 - 简化依赖
     useEffect(() => {
+        if (!isMountedRef.current) return;
+        
         const audio = audioRef.current;
-        if (!audio || !audioState?.trackId) return;
+        if (!audio || !audioTrackId) return;
         
         // 只有当音轨真正变化时才处理
-        if (audioState.trackId === previousTrackRef.current) return;
+        if (audioTrackId === previousTrackRef.current) return;
 
-        const track = AUDIO_TRACKS[audioState.trackId];
+        const track = AUDIO_TRACKS[audioTrackId];
         
         // 只有当音轨有有效 URL 时才加载
         if (track?.url && track.url !== '') {
             // 简单的 URL 校验
             if (!track.url.startsWith('http') && !track.url.startsWith('data:')) {
                 console.warn("Invalid audio URL:", track.url);
-                previousTrackRef.current = audioState.trackId;
+                previousTrackRef.current = audioTrackId;
                 return;
             }
 
             // 先暂停当前音频再切换
             const loadAndPlay = () => {
-                audio.src = track.url;
-                if (audioState.isPlaying) {
+                if (!isMountedRef.current || !audioRef.current) return;
+                audioRef.current.src = track.url;
+                if (audioIsPlaying) {
                     attemptPlay();
                 }
             };
@@ -210,12 +206,16 @@ export const AudioManager = () => {
             if (playPromiseRef.current) {
                 playPromiseRef.current
                     .then(() => {
-                        audio.pause();
+                        if (!isMountedRef.current) return;
+                        try { audio.pause(); } catch(e) { /* ignore */ }
                         loadAndPlay();
                     })
-                    .catch(() => loadAndPlay());
+                    .catch(() => {
+                        if (!isMountedRef.current) return;
+                        loadAndPlay();
+                    });
             } else {
-                audio.pause();
+                try { audio.pause(); } catch(e) { /* ignore */ }
                 loadAndPlay();
             }
         } else {
@@ -226,43 +226,47 @@ export const AudioManager = () => {
                 clearTimeout(cleanupTimeoutRef.current);
             }
             cleanupTimeoutRef.current = window.setTimeout(() => {
-                if (audioRef.current) {
+                if (audioRef.current && isMountedRef.current) {
                     audioRef.current.src = '';
                 }
                 cleanupTimeoutRef.current = null;
             }, 100);
         }
         
-        previousTrackRef.current = audioState.trackId;
-    }, [audioState?.trackId, audioState?.isPlaying, attemptPlay, safePause]);
+        previousTrackRef.current = audioTrackId;
+    }, [audioTrackId, audioIsPlaying, attemptPlay, safePause]);
 
     // 处理播放/暂停状态切换（不依赖音量）
     useEffect(() => {
+        if (!isMountedRef.current) return;
+        
         const audio = audioRef.current;
-        if (!audio || !audioState) return;
+        if (!audio || audioIsPlaying === undefined) return;
 
         const hasValidSrc = audio.src && audio.src !== '' && audio.src !== window.location.href;
         
-        if (audioState.isPlaying && audio.paused && hasValidSrc) {
+        if (audioIsPlaying && audio.paused && hasValidSrc) {
             if (!isAudioBlocked) {
                 safePlay();
             }
-        } else if (!audioState.isPlaying && !audio.paused) {
+        } else if (!audioIsPlaying && !audio.paused) {
             safePause();
         }
-    }, [audioState?.isPlaying, isAudioBlocked, safePlay, safePause]);
+    }, [audioIsPlaying, isAudioBlocked, safePlay, safePause]);
 
     // 处理解除阻塞后重试播放
     useEffect(() => {
+        if (!isMountedRef.current) return;
+        
         const audio = audioRef.current;
-        if (!audio || !audioState) return;
+        if (!audio || audioIsPlaying === undefined) return;
 
         const hasValidSrc = audio.src && audio.src !== '' && audio.src !== window.location.href;
         
-        if (!isAudioBlocked && audioState.isPlaying && audio.paused && hasValidSrc) {
+        if (!isAudioBlocked && audioIsPlaying && audio.paused && hasValidSrc) {
             safePlay();
         }
-    }, [isAudioBlocked, audioState?.isPlaying, safePlay]);
+    }, [isAudioBlocked, audioIsPlaying, safePlay]);
 
     return null; // Invisible component
 };

@@ -35,7 +35,7 @@ export const NotificationSystem = () => {
             setTimeout(() => setToast(null), 5000);
         }
         setWasDead(currentSeat.isDead);
-    }, [currentSeat?.isDead]);
+    }, [currentSeat?.isDead, wasDead]);
 
     // Listen for ability usage
     const [hasUsedAbility, setHasUsedAbility] = useState(currentSeat?.hasUsedAbility || false);
@@ -47,7 +47,7 @@ export const NotificationSystem = () => {
             setTimeout(() => setToast(null), 3000);
         }
         setHasUsedAbility(currentSeat.hasUsedAbility);
-    }, [currentSeat?.hasUsedAbility]);
+    }, [currentSeat?.hasUsedAbility, hasUsedAbility]);
 
     if (!toast) return null;
 

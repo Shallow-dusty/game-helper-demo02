@@ -1,6 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
 import { ROLES, SCRIPTS } from '../constants';
 import type { RoleDef } from '../types';
+
+// 简单的错误边界组件，用于捕获渲染错误
+class ModalErrorBoundary extends Component<{ children: ReactNode; onClose: () => void }, { hasError: boolean }> {
+    constructor(props: { children: ReactNode; onClose: () => void }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(): { hasError: boolean } {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+        console.error('ScriptCompositionGuide error:', error, errorInfo);
+    }
+
+    render(): ReactNode {
+        if (this.state.hasError) {
+            return (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm" onClick={this.props.onClose}>
+                    <div className="bg-stone-900 rounded-lg border border-red-700 p-6 max-w-md" onClick={e => e.stopPropagation()}>
+                        <div className="text-center">
+                            <span className="text-4xl">⚠️</span>
+                            <h3 className="text-lg font-bold text-red-400 mt-2">加载出错</h3>
+                            <p className="text-stone-400 text-sm mt-2">板子参考加载失败，请重试。</p>
+                            <button
+                                onClick={this.props.onClose}
+                                className="mt-4 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded"
+                            >
+                                关闭
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
 
 interface CompositionStrategy {
     id: string;
@@ -189,26 +228,26 @@ const StrategyDetailModal: React.FC<{
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
                                     <p className="text-blue-400 font-bold text-xs mb-2">镇民 ({generatedRoles.townsfolk.length})</p>
-                                    {generatedRoles.townsfolk.map(role => (
-                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
+                                    {generatedRoles.townsfolk.map((role, index) => (
+                                        role ? <p key={role.id || index} className="text-xs text-stone-400">• {role.name || '未知'}</p> : null
                                     ))}
                                 </div>
                                 <div>
                                     <p className="text-yellow-400 font-bold text-xs mb-2">外来者 ({generatedRoles.outsider.length})</p>
-                                    {generatedRoles.outsider.map(role => (
-                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
+                                    {generatedRoles.outsider.map((role, index) => (
+                                        role ? <p key={role.id || index} className="text-xs text-stone-400">• {role.name || '未知'}</p> : null
                                     ))}
                                 </div>
                                 <div>
                                     <p className="text-orange-400 font-bold text-xs mb-2">爪牙 ({generatedRoles.minion.length})</p>
-                                    {generatedRoles.minion.map(role => (
-                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
+                                    {generatedRoles.minion.map((role, index) => (
+                                        role ? <p key={role.id || index} className="text-xs text-stone-400">• {role.name || '未知'}</p> : null
                                     ))}
                                 </div>
                                 <div>
                                     <p className="text-red-400 font-bold text-xs mb-2">恶魔 ({generatedRoles.demon.length})</p>
-                                    {generatedRoles.demon.map(role => (
-                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
+                                    {generatedRoles.demon.map((role, index) => (
+                                        role ? <p key={role.id || index} className="text-xs text-stone-400">• {role.name || '未知'}</p> : null
                                     ))}
                                 </div>
                             </div>
@@ -238,7 +277,7 @@ const StrategyDetailModal: React.FC<{
     );
 };
 
-export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ onClose, playerCount, onApplyStrategy }) => {
+const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ onClose, playerCount, onApplyStrategy }) => {
     const [selectedStrategy, setSelectedStrategy] = useState<CompositionStrategy | null>(null);
     const [generatedRoles, setGeneratedRoles] = useState<{ townsfolk: RoleDef[], outsider: RoleDef[], minion: RoleDef[], demon: RoleDef[] } | null>(null);
 
@@ -435,3 +474,10 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
         </div>
     );
 };
+
+// 包装错误边界的导出
+export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = (props) => (
+    <ModalErrorBoundary onClose={props.onClose}>
+        <ScriptCompositionGuideInner {...props} />
+    </ModalErrorBoundary>
+);

@@ -252,23 +252,27 @@ export const ScriptCompositionGuide: React.FC<ScriptCompositionGuideProps> = ({ 
 
         const selectedTownsfolk = shuffleArray(townsfolkRoles)
             .slice(0, composition.townsfolk)
-            .map(id => ROLES[id]).filter(Boolean);
+            .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
 
-        const selectedOutsider = strategy.guidelines.recommendedOutsiders
-            .filter(id => outsiderRoles.includes(id))
-            .concat(shuffleArray(outsiderRoles.filter(id => !strategy.guidelines.recommendedOutsiders.includes(id))))
+        // 外来者：优先推荐角色 + 其余随机，确保数量正确
+        const recommendedOutsiderIds = strategy.guidelines.recommendedOutsiders.filter(id => outsiderRoles.includes(id));
+        const otherOutsiderIds = outsiderRoles.filter(id => !recommendedOutsiderIds.includes(id));
+        const outsiderPool = [...recommendedOutsiderIds, ...shuffleArray(otherOutsiderIds)];
+        const selectedOutsider = outsiderPool
             .slice(0, composition.outsider)
-            .map(id => ROLES[id]).filter(Boolean);
+            .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
 
-        const selectedMinion = strategy.guidelines.recommendedMinions
-            .filter(id => minionRoles.includes(id))
-            .concat(shuffleArray(minionRoles.filter(id => !strategy.guidelines.recommendedMinions.includes(id))))
+        // 爪牙：优先推荐角色 + 其余随机
+        const recommendedMinionIds = strategy.guidelines.recommendedMinions.filter(id => minionRoles.includes(id));
+        const otherMinionIds = minionRoles.filter(id => !recommendedMinionIds.includes(id));
+        const minionPool = [...recommendedMinionIds, ...shuffleArray(otherMinionIds)];
+        const selectedMinion = minionPool
             .slice(0, composition.minion)
-            .map(id => ROLES[id]).filter(Boolean);
+            .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
 
         const selectedDemon = shuffleArray(demonRoles)
             .slice(0, composition.demon)
-            .map(id => ROLES[id]).filter(Boolean);
+            .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
 
         setGeneratedRoles({
             townsfolk: selectedTownsfolk,

@@ -688,46 +688,49 @@ export const STATUS_ICONS: Record<string, string> = {
   'MADNESS': '🤪'
 };
 
+// 静音占位符 base64（浏览器兼容）
+const SILENCE_DATA = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAgAAAA==';
+
 export const AUDIO_TRACKS: Record<string, { name: string, url: string, phase?: string }> = {
-  // 默认静音轨道 (用于测试或占位)
+  // 默认静音轨道
   silence: {
     name: '静音 (Silence)',
-    url: 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAgAAAA==',
+    url: SILENCE_DATA,
   },
-  // 使用 SoundJay.com 免费音效 (CC0 公共领域)
-  // 注意：这些是短音效循环，适合游戏氛围
+  // 音频占位：请将自己的音频放入 public/audio/ 目录，并更新下方 URL
+  // 当前使用静音占位，避免外链超时/CORS 问题
   lobby: { 
     name: '神秘大厅 (Mystery)', 
-    url: 'https://www.soundjay.com/clock/sounds/grandfather-clock-1.mp3',
+    url: SILENCE_DATA, // 替换为 '/audio/lobby.mp3'
     phase: 'SETUP'
   },
   day_village: { 
     name: '热闘讨论 (Day)', 
-    url: 'https://www.soundjay.com/nature/sounds/crickets-1.mp3',
+    url: SILENCE_DATA, // 替换为 '/audio/day.mp3'
     phase: 'DAY'
   },
   night_ambience: { 
     name: '静谧夜晚 (Night)', 
-    url: 'https://www.soundjay.com/ambient/sounds/rain-02.mp3',
+    url: SILENCE_DATA, // 替换为 '/audio/night.mp3'
     phase: 'NIGHT'
   },
   voting: { 
     name: '紧张投票 (Voting)', 
-    url: 'https://www.soundjay.com/clock/sounds/clock-ticking-4.mp3',
+    url: SILENCE_DATA, // 替换为 '/audio/voting.mp3'
     phase: 'VOTING'
   },
   nomination: {
     name: '提名阶段 (Nomination)',
-    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
+    url: SILENCE_DATA, // 替换为 '/audio/nomination.mp3'
     phase: 'NOMINATION'
   },
   victory_good: {
     name: '善良胜利 (Good Wins)',
-    url: 'https://www.soundjay.com/misc/sounds/magic-chime-02.mp3'
+    url: SILENCE_DATA // 替换为 '/audio/victory_good.mp3'
   },
   victory_evil: {
     name: '邪恶胜利 (Evil Wins)',
-    url: 'https://www.soundjay.com/nature/sounds/thunder-01.mp3'
+    url: SILENCE_DATA // 替换为 '/audio/victory_evil.mp3'
   },
 };
 

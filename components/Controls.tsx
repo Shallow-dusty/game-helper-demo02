@@ -945,15 +945,28 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     <div className="h-full flex flex-col p-4">
                         <div className="flex-1 overflow-y-auto space-y-4 mb-4 scrollbar-thin">
                             {/* AI Messages */}
+                            {gameState.aiMessages.length === 0 && (
+                                <div className="text-center text-stone-500 py-8">
+                                    <div className="text-3xl mb-2">🤖</div>
+                                    <p className="text-sm">AI 助手就绪</p>
+                                    <p className="text-xs text-stone-600 mt-1">输入问题，获取游戏建议</p>
+                                </div>
+                            )}
                             {gameState.aiMessages.map(msg => (
                                 <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                                    <div className={`max-w-[85%] p-3 rounded-lg text-sm ${msg.role === 'user' ? 'bg-stone-800 text-stone-200' : 'bg-amber-900/30 text-amber-100 border border-amber-800/30'}`}>
+                                    <div className={`max-w-[85%] p-3 rounded-lg text-sm whitespace-pre-wrap ${
+                                        msg.role === 'user' 
+                                            ? 'bg-stone-800 text-stone-200' 
+                                            : msg.role === 'system'
+                                            ? 'bg-red-900/30 text-red-300 border border-red-800/30'
+                                            : 'bg-amber-900/30 text-amber-100 border border-amber-800/30'
+                                    }`}>
                                         {msg.content}
                                     </div>
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="text-[10px] text-stone-600">{new Date(msg.timestamp).toLocaleTimeString()}</span>
-                                        {user.isStoryteller && (
-                                            <button onClick={() => deleteAiMessage(msg.id)} className="text-[10px] text-red-900 hover:text-red-500">Del</button>
+                                        {user.isStoryteller && msg.role !== 'user' && (
+                                            <button onClick={() => deleteAiMessage(msg.id)} className="text-[10px] text-red-900 hover:text-red-500">删除</button>
                                         )}
                                     </div>
                                 </div>
@@ -961,7 +974,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                             {isAiThinking && (
                                 <div className="flex items-start">
                                     <div className="bg-amber-900/30 text-amber-100 p-3 rounded-lg text-sm border border-amber-800/30 animate-pulse">
-                                        Thinking...
+                                        思考中...
                                     </div>
                                 </div>
                             )}
@@ -971,36 +984,36 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                 type="text"
                                 value={aiPrompt}
                                 onChange={(e) => setAiPrompt(e.target.value)}
-                                placeholder="Ask AI helper..."
+                                placeholder="询问 AI 助手..."
                                 className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 focus:border-amber-600 focus:outline-none"
                             />
                             <button type="submit" disabled={!aiPrompt.trim() || isAiThinking} className="bg-amber-700 hover:bg-amber-600 disabled:opacity-50 text-white px-3 py-2 rounded">
-                                Send
+                                发送
                             </button>
                         </form>
                         {user.isStoryteller && (
-                            <div className="mt-2 flex justify-between">
-                                <button onClick={clearAiMessages} className="text-xs text-stone-500 hover:text-stone-300">Clear History</button>
+                            <div className="mt-2 flex justify-between items-center">
+                                <button onClick={clearAiMessages} className="text-xs text-stone-500 hover:text-stone-300">清空记录</button>
                                 <select
                                     value={aiProvider}
                                     onChange={(e) => setAiProvider(e.target.value as any)}
                                     className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1"
                                 >
-                                    <optgroup label="官方 API">
-                                        <option value="deepseek">DeepSeek V3 (官方)</option>
-                                        <option value="kimi">Kimi K2 (官方)</option>
+                                    <optgroup label="官方 API（推荐）">
+                                        <option value="deepseek">DeepSeek V3 (稳定)</option>
                                     </optgroup>
-                                    <optgroup label="SiliconFlow 代理">
-                                        <option value="sf_r1">🧠 DeepSeek R1 (完整)</option>
-                                        <option value="sf_r1_llama_70b">🦙 R1 Distill Llama 70B</option>
-                                        <option value="sf_r1_qwen_32b">R1 Distill Qwen 32B</option>
-                                        <option value="sf_r1_qwen_7b_pro">R1 Qwen 7B Pro</option>
-                                        <option value="sf_minimax_m2">Minimax M2</option>
-                                        <option value="sf_kimi_k2_thinking">Kimi K2 Thinking</option>
+                                    <optgroup label="其他（可能有 CORS 问题）">
+                                        <option value="kimi">Kimi K2</option>
+                                        <option value="sf_r1">DeepSeek R1 (SF)</option>
+                                        <option value="sf_r1_llama_70b">R1 Llama 70B (SF)</option>
+                                        <option value="sf_r1_qwen_32b">R1 Qwen 32B (SF)</option>
                                     </optgroup>
                                 </select>
                             </div>
                         )}
+                        <p className="text-[10px] text-stone-600 mt-2 text-center">
+                            💡 提示：仅 DeepSeek 官方 API 稳定可用，其他 API 可能因 CORS 策略无法访问
+                        </p>
                     </div>
                 )}
 

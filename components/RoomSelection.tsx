@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { showWarning } from './Toast';
+import { AdminPanel } from './AdminPanel';
 
 export const RoomSelection = () => {
   const user = useStore(state => state.user);
@@ -12,6 +13,7 @@ export const RoomSelection = () => {
   const [roomCode, setRoomCode] = useState('');
   const [lastRoomCode, setLastRoomCode] = useState<string | null>(null);
   const [isRejoining, setIsRejoining] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   // 检查是否有上次的房间记录
   useEffect(() => {
@@ -185,6 +187,18 @@ export const RoomSelection = () => {
         >
           ← 返回登录 (Back to Login)
         </button>
+
+        {/* 管理员入口 - 隐藏在角落 */}
+        <button
+          onClick={() => setShowAdmin(true)}
+          className="fixed bottom-4 right-4 w-10 h-10 bg-stone-800/50 hover:bg-stone-700 text-stone-600 hover:text-amber-400 rounded-full flex items-center justify-center transition-colors border border-stone-700/50"
+          title="管理员"
+        >
+          👑
+        </button>
+
+        {/* 管理员面板 */}
+        {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
 
       </div>
     </div>

@@ -1080,6 +1080,11 @@ export const useStore = create<AppState>((set, get) => ({
     addSeat: () => {
         const { gameState } = get();
         if (!gameState) return;
+        // 限制最大座位数为 20
+        if (gameState.seats.length >= 20) {
+            getToastFunctions().then(({ showWarning }) => showWarning("座位数已达上限 (20)！"));
+            return;
+        }
         const newId = gameState.seats.length;
         gameState.seats = [...gameState.seats, {
             id: newId,
@@ -1105,6 +1110,11 @@ export const useStore = create<AppState>((set, get) => ({
     removeSeat: () => {
         const { gameState } = get();
         if (!gameState || gameState.seats.length === 0) return;
+        // 限制最小座位数为 5
+        if (gameState.seats.length <= 5) {
+            getToastFunctions().then(({ showWarning }) => showWarning("座位数已达下限 (5)！"));
+            return;
+        }
         // Remove the last seat
         gameState.seats = gameState.seats.slice(0, -1);
         set({ gameState: { ...gameState } });
@@ -1369,8 +1379,26 @@ export const useStore = create<AppState>((set, get) => ({
 
         set({ isAiThinking: true });
 
+        // 添加用户消息到 aiMessages
+        const userMsg: ChatMessage = {
+            id: Math.random().toString(36).substr(2, 9),
+            senderId: user.id,
+            senderName: user.name,
+            recipientId: null,
+            content: prompt,
+            timestamp: Date.now(),
+            type: 'chat',
+            role: 'user'
+        };
+        gameState.aiMessages.push(userMsg);
+        set({ gameState: { ...gameState } });
+
         try {
             const config = AI_CONFIG[aiProvider];
+            if (!config.apiKey) {
+                throw new Error(`缺少 ${config.name} 的 API Key，请在 .env.local 中配置`);
+            }
+            
             const openai = new OpenAI({
                 apiKey: config.apiKey,
                 baseURL: config.baseURL,
@@ -1391,7 +1419,7 @@ export const useStore = create<AppState>((set, get) => ({
 
             const completion = await openai.chat.completions.create({
                 messages: [
-                    { role: "system", content: "You are an expert 'Blood on the Clocktower' Storyteller assistant. Keep answers concise and helpful." },
+                    { role: "system", content: "You are an expert 'Blood on the Clocktower' Storyteller assistant. Keep answers concise and helpful. Respond in Chinese." },
                     { role: "user", content: `Context: ${JSON.stringify(gameContext)}. User Question: ${prompt}` }
                 ],
                 model: config.model,
@@ -1408,16 +1436,36 @@ export const useStore = create<AppState>((set, get) => ({
             }
 
             if (reply) {
-                // Send as private message to ST
-                addAiMessage(gameState, reply, aiProvider, user.id);
+                // 添加AI回复到 aiMessages
+                const assistantMsg: ChatMessage = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    senderId: 'ai_guide',
+                    senderName: AI_CONFIG[aiProvider]?.name || 'AI Assistant',
+                    recipientId: null,
+                    content: reply,
+                    timestamp: Date.now(),
+                    type: 'chat',
+                    role: 'assistant'
+                };
+                gameState.aiMessages.push(assistantMsg);
                 set({ gameState: { ...gameState } });
                 get().syncToCloud();
             }
         } catch (error: any) {
             console.error(error);
-            addSystemMessage(gameState, `AI 助手 (${aiProvider}) 连接失败: ${error.message}`);
+            // 添加错误消息到 aiMessages
+            const errorMsg: ChatMessage = {
+                id: Math.random().toString(36).substr(2, 9),
+                senderId: 'system',
+                senderName: '系统',
+                recipientId: null,
+                content: `❌ AI 助手连接失败: ${error.message}`,
+                timestamp: Date.now(),
+                type: 'system',
+                role: 'system'
+            };
+            gameState.aiMessages.push(errorMsg);
             set({ gameState: { ...gameState } });
-            get().syncToCloud();
         } finally {
             set({ isAiThinking: false });
         }
@@ -1489,8 +1537,8 @@ export const useStore = create<AppState>((set, get) => ({
         const { gameState } = get();
         if (!gameState) return;
 
-        // Filter out AI messages (senderId = 'ai_guide')
-        gameState.messages = gameState.messages.filter(m => m.senderId !== 'ai_guide');
+        // 清空 aiMessages 数组
+        gameState.aiMessages = [];
 
         set({ gameState: { ...gameState } });
         get().syncToCloud();
@@ -1500,7 +1548,7 @@ export const useStore = create<AppState>((set, get) => ({
         const { gameState } = get();
         if (!gameState) return;
 
-        gameState.messages = gameState.messages.filter(m => m.id !== messageId);
+        gameState.aiMessages = gameState.aiMessages.filter(m => m.id !== messageId);
 
         set({ gameState: { ...gameState } });
         get().syncToCloud();

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { ROLES } from '../constants';
+import { ROLES, Z_INDEX } from '../constants';
 
 interface NightActionPanelProps {
     roleId: string;
@@ -54,7 +54,10 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
+        <div 
+            className="fixed inset-0 bg-black/70 flex items-center justify-center backdrop-blur-sm"
+            style={{ zIndex: Z_INDEX.floatingPanel }}
+        >
             <div className="bg-stone-900 border-2 border-purple-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl shadow-purple-900/50">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-4 border-b border-purple-900/30 pb-3">

@@ -8,7 +8,8 @@ import { Controls } from './components/Controls';
 import { AudioManager } from './components/AudioManager';
 import { RoleReferencePanel } from './components/RoleReferencePanel';
 import { RoleReferenceSidebar } from './components/RoleReferenceSidebar';
-import { SCRIPTS, ROLES } from './constants';
+import { FloatingVoteButton } from './components/FloatingVoteButton';
+import { SCRIPTS, ROLES, Z_INDEX } from './constants';
 import { PhaseIndicator } from './components/PhaseIndicator';
 import { WaitingArea } from './components/WaitingArea';
 import { NotificationSystem } from './components/NotificationSystem';
@@ -233,12 +234,13 @@ const App = () => {
         {/* Sidebar Controls */}
         <div
           className={`
-              fixed md:relative inset-y-0 right-0 z-40
+              fixed md:relative inset-y-0 right-0
               w-80 max-w-[85vw] md:w-80 md:flex-shrink-0
               bg-stone-950 shadow-2xl
               transform transition-transform duration-300 ease-out
               ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
           `}
+          style={{ zIndex: Z_INDEX.sidebar }}
         >
           <Controls onClose={() => setIsMobileMenuOpen(false)} />
         </div>
@@ -255,10 +257,14 @@ const App = () => {
         </button>
       )}
 
+      {/* 移动端悬浮投票按钮 - 仅在投票阶段显示 */}
+      <FloatingVoteButton />
+
       {/* Mobile Backdrop */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/80 z-30 md:hidden backdrop-blur-[2px] transition-opacity duration-300"
+          className="fixed inset-0 bg-black/80 md:hidden backdrop-blur-[2px] transition-opacity duration-300"
+          style={{ zIndex: Z_INDEX.sidebarBackdrop }}
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

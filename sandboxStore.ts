@@ -1,7 +1,16 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { GameState, GamePhase } from './types';
-import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } from './constants';
+import { SCRIPTS } from './constants';
+import {
+    addSystemMessage,
+    applyRoleToSeat,
+    toggleSeatDead,
+    handlePhaseChange,
+    createVotingState,
+    createReminder,
+    generateRoleAssignment
+} from './lib/gameLogic';
 
 /**
  * 沙盒模式 Store
@@ -103,18 +112,6 @@ interface SandboxState {
     resetGame: () => void;
 }
 
-const addSystemMessage = (gameState: GameState, content: string) => {
-    gameState.messages.push({
-        id: Math.random().toString(36).substr(2, 9),
-        senderId: 'system',
-        senderName: '系统',
-        recipientId: null,
-        content,
-        timestamp: Date.now(),
-        type: 'system'
-    });
-};
-
 export const useSandboxStore = create<SandboxState>()(
     immer((set, get) => ({
         isActive: false,
@@ -141,31 +138,8 @@ export const useSandboxStore = create<SandboxState>()(
             const prevPhase = gameState.phase;
             gameState.phase = phase;
             
-            if (prevPhase !== phase) {
-                addSystemMessage(gameState, `阶段变更为: ${PHASE_LABELS[phase]}`);
-                
-                if (phase === 'NIGHT') {
-                    gameState.roundInfo.nightCount++;
-                    gameState.roundInfo.totalRounds++;
-                    
-                    // 构建夜间队列
-                    const isFirstNight = !gameState.seats.some(s => s.isDead);
-                    const availableRoles = gameState.seats
-                        .filter(s => s.roleId && !s.isDead)
-                        .map(s => s.roleId!);
-                    
-                    const order = isFirstNight ? NIGHT_ORDER_FIRST : NIGHT_ORDER_OTHER;
-                    gameState.nightQueue = order.filter(role => {
-                        const hasRole = availableRoles.includes(role);
-                        const def = ROLES[role];
-                        if (!def) return false;
-                        return hasRole || def.team === 'MINION' || def.team === 'DEMON';
-                    });
-                    gameState.nightCurrentIndex = 0;
-                } else if (phase === 'DAY') {
-                    gameState.roundInfo.dayCount++;
-                }
-            }
+            // 使用共享的阶段变更处理逻辑
+            handlePhaseChange(gameState, phase, prevPhase);
             
             set({ gameState: { ...gameState } });
         },
@@ -188,11 +162,7 @@ export const useSandboxStore = create<SandboxState>()(
             
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat) {
-                seat.roleId = roleId;
-                seat.realRoleId = roleId;
-                seat.seenRoleId = roleId;
-                seat.hasUsedAbility = false;
-                seat.statuses = [];
+                applyRoleToSeat(seat, roleId);
             }
             set({ gameState: { ...gameState } });
         },
@@ -203,13 +173,8 @@ export const useSandboxStore = create<SandboxState>()(
             
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat) {
-                seat.isDead = !seat.isDead;
-                if (seat.isDead) {
-                    seat.hasGhostVote = true;
-                    addSystemMessage(gameState, `${seat.userName} 死亡了。`);
-                } else {
-                    addSystemMessage(gameState, `${seat.userName} 复活了。`);
-                }
+                const message = toggleSeatDead(seat);
+                addSystemMessage(gameState, message);
             }
             set({ gameState: { ...gameState } });
         },
@@ -231,14 +196,7 @@ export const useSandboxStore = create<SandboxState>()(
             
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat) {
-                seat.reminders.push({
-                    id: Math.random().toString(36),
-                    text,
-                    sourceRole: 'ST',
-                    seatId,
-                    icon,
-                    color
-                });
+                seat.reminders.push(createReminder(seatId, text, 'ST', icon, color));
             }
             set({ gameState: { ...gameState } });
         },
@@ -283,13 +241,7 @@ export const useSandboxStore = create<SandboxState>()(
             const nominee = gameState.seats.find(s => s.id === nomineeId);
             if (!nominee) return;
             
-            gameState.voting = {
-                nominatorSeatId: null,
-                nomineeSeatId: nomineeId,
-                clockHandSeatId: null,
-                votes: [],
-                isOpen: true
-            };
+            gameState.voting = createVotingState(nomineeId);
             
             addSystemMessage(gameState, `开始对 ${nominee.userName} 进行投票。`);
             set({ gameState: { ...gameState } });
@@ -342,35 +294,14 @@ export const useSandboxStore = create<SandboxState>()(
             const { gameState } = get();
             if (!gameState) return;
             
-            const script = SCRIPTS[gameState.currentScriptId];
-            if (!script) return;
-            
             const seatCount = gameState.seats.length;
-            const composition = getComposition(seatCount);
+            const roles = generateRoleAssignment(gameState.currentScriptId, seatCount);
             
-            if (!composition) return;
-            
-            const availableRoles = script.roles.map(id => ROLES[id]).filter(Boolean);
-            const townsfolk = availableRoles.filter(r => r?.team === 'TOWNSFOLK');
-            const outsiders = availableRoles.filter(r => r?.team === 'OUTSIDER');
-            const minions = availableRoles.filter(r => r?.team === 'MINION');
-            const demons = availableRoles.filter(r => r?.team === 'DEMON');
-            
-            const shuffle = <T,>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
-            
-            const selectedRoles: string[] = [];
-            selectedRoles.push(...shuffle(townsfolk).slice(0, composition.townsfolk).map(r => r?.id).filter((id): id is string => !!id));
-            selectedRoles.push(...shuffle(outsiders).slice(0, composition.outsider).map(r => r?.id).filter((id): id is string => !!id));
-            selectedRoles.push(...shuffle(minions).slice(0, composition.minion).map(r => r?.id).filter((id): id is string => !!id));
-            selectedRoles.push(...shuffle(demons).slice(0, composition.demon).map(r => r?.id).filter((id): id is string => !!id));
-            
-            const shuffledRoles = shuffle(selectedRoles);
+            if (roles.length === 0) return;
             
             gameState.seats.forEach((seat, idx) => {
-                if (idx < shuffledRoles.length) {
-                    seat.roleId = shuffledRoles[idx] ?? null;
-                    seat.realRoleId = shuffledRoles[idx] ?? null;
-                    seat.seenRoleId = shuffledRoles[idx] ?? null;
+                if (idx < roles.length) {
+                    applyRoleToSeat(seat, roles[idx] ?? null);
                 }
             });
             
@@ -391,21 +322,3 @@ export const useSandboxStore = create<SandboxState>()(
         }
     }))
 );
-
-// Helper: TB composition rules
-function getComposition(players: number) {
-    const rules: Record<number, { townsfolk: number; outsider: number; minion: number; demon: number }> = {
-        5: { townsfolk: 3, outsider: 0, minion: 1, demon: 1 },
-        6: { townsfolk: 3, outsider: 1, minion: 1, demon: 1 },
-        7: { townsfolk: 5, outsider: 0, minion: 1, demon: 1 },
-        8: { townsfolk: 5, outsider: 1, minion: 1, demon: 1 },
-        9: { townsfolk: 5, outsider: 2, minion: 1, demon: 1 },
-        10: { townsfolk: 7, outsider: 0, minion: 2, demon: 1 },
-        11: { townsfolk: 7, outsider: 1, minion: 2, demon: 1 },
-        12: { townsfolk: 7, outsider: 2, minion: 2, demon: 1 },
-        13: { townsfolk: 9, outsider: 0, minion: 3, demon: 1 },
-        14: { townsfolk: 9, outsider: 1, minion: 3, demon: 1 },
-        15: { townsfolk: 9, outsider: 2, minion: 3, demon: 1 }
-    };
-    return rules[players];
-}

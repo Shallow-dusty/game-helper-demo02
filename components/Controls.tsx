@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../store';
-import { ROLES, TEAM_COLORS, PHASE_LABELS, AUDIO_TRACKS, SCRIPTS } from '../constants';
+import { ROLES, TEAM_COLORS, PHASE_LABELS, AUDIO_TRACKS, SCRIPTS, Z_INDEX } from '../constants';
 import { Chat } from './Chat';
 import { HistoryViewer } from './HistoryViewer';
 import { NightActionPanel } from './NightActionPanel';
@@ -13,40 +13,8 @@ import { RoleReferencePanel } from './RoleReferencePanel';
 import { VotingChart } from './VotingChart';
 import { ScriptCompositionGuide } from './ScriptCompositionGuide';
 import { showError, showWarning } from './Toast';
+import { VoteButton } from './VoteButton';
 import { RoleDef, Seat, GamePhase } from '../types';
-
-// FR-06: 投票按钮组件 - 带加载状态
-const VoteButton: React.FC<{ isRaised: boolean; isLocked: boolean; onToggle: () => void }> = ({ isRaised, isLocked, onToggle }) => {
-    const [isLoading, setIsLoading] = useState(false);
-    
-    const handleClick = useCallback(() => {
-        if (isLoading || isLocked) return;
-        setIsLoading(true);
-        onToggle();
-        // 延迟后重置 loading（给予视觉反馈）
-        setTimeout(() => setIsLoading(false), 300);
-    }, [isLoading, isLocked, onToggle]);
-    
-    return (
-        <div className="animate-bounce">
-            <button
-                onClick={handleClick}
-                disabled={isLoading || isLocked}
-                className={`w-full py-4 rounded-sm text-xl font-bold shadow-xl transition-all border-2 font-cinzel tracking-wider ${
-                    isLocked
-                        ? 'bg-stone-900 border-stone-700 text-stone-500 cursor-not-allowed'
-                        : isLoading 
-                            ? 'bg-stone-800 border-stone-600 text-stone-500 cursor-wait'
-                            : isRaised 
-                            ? 'bg-green-900 border-green-600 hover:bg-green-800 text-green-100' 
-                            : 'bg-stone-700 border-stone-500 hover:bg-stone-600 text-stone-300'
-                }`}
-            >
-                {isLocked ? '🔒 状态已锁定' : isLoading ? '⏳ 处理中...' : isRaised ? '✋ 已举手' : '举手投票？'}
-            </button>
-        </div>
-    );
-};
 
 // Roles with active day abilities
 const ACTIVE_ABILITY_ROLES: Record<string, { 
@@ -374,13 +342,14 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
     return (
         <div
-            className="bg-stone-950 border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif relative transition-none z-50"
+            className="bg-stone-950 border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif relative transition-none"
             style={{ width: isMobile ? '100%' : `${width}px` }}
         >
             {/* Drag Handle (Desktop Only) */}
             {!isMobile && (
                 <div
-                    className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-purple-500/50 z-50 transition-colors"
+                    className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-purple-500/50 transition-colors"
+                    style={{ zIndex: Z_INDEX.dropdown }}
                     onMouseDown={() => setIsResizing(true)}
                 />
             )}
@@ -887,6 +856,8 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                                     <VoteButton
                                                         isRaised={currentSeat.isHandRaised || false}
                                                         isLocked={currentSeat.voteLocked || false}
+                                                        isDead={currentSeat.isDead || false}
+                                                        hasGhostVote={currentSeat.hasGhostVote ?? true}
                                                         onToggle={toggleHand}
                                                     />
                                                     <div className="text-center text-xs text-stone-500 font-serif">

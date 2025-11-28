@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { ROLES } from '../constants';
+import { ROLES, Z_INDEX } from '../constants';
 
 interface PlayerNightActionProps {
     roleId: string;
@@ -57,7 +57,10 @@ export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, on
 
     // FR-02: 改为底部浮层，不阻挡魔典
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom duration-300">
+        <div 
+            className="fixed bottom-0 left-0 right-0 animate-in slide-in-from-bottom duration-300"
+            style={{ zIndex: Z_INDEX.floatingPanel }}
+        >
             {/* 半透明背景遮罩 - 点击可关闭 */}
             <div 
                 className="absolute inset-0 -top-screen bg-black/40 backdrop-blur-sm"

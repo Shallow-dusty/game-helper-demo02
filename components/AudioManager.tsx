@@ -15,7 +15,7 @@ export const AudioManager = () => {
     const previousTrackRef = useRef<string | null>(null);
     const playPromiseRef = useRef<Promise<void> | null>(null);
     const isPlayingRef = useRef(false); // 跟踪实际播放状态
-    const cleanupTimeoutRef = useRef<number | null>(null); // 用于清理 setTimeout
+    const cleanupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // 用于清理 setTimeout
     const isMountedRef = useRef(true); // 跟踪组件是否已卸载
 
     // Create audio element on mount
@@ -229,7 +229,7 @@ export const AudioManager = () => {
             if (cleanupTimeoutRef.current) {
                 clearTimeout(cleanupTimeoutRef.current);
             }
-            cleanupTimeoutRef.current = window.setTimeout(() => {
+            cleanupTimeoutRef.current = setTimeout(() => {
                 if (audioRef.current && isMountedRef.current) {
                     audioRef.current.src = '';
                 }

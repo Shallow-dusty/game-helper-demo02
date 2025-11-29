@@ -57,32 +57,36 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'info', duration =
     return (
         <div
             className={`
-                fixed top-20 left-1/2 -translate-x-1/2 z-[100]
-                min-w-[300px] max-w-[90vw] md:max-w-[500px]
-                ${styles.bg} ${styles.border} border
-                rounded-lg shadow-2xl backdrop-blur-sm
-                transition-all duration-300 ease-out
-                ${isExiting ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'}
+                pointer-events-auto
+                w-full max-w-sm
+                glass-panel border-l-4
+                rounded-r-lg shadow-2xl
+                transition-all duration-300 ease-out transform
+                ${styles.border}
+                ${isExiting ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'}
             `}
         >
-            <div className="flex items-start gap-3 p-4">
-                <span className={`text-xl ${styles.iconColor}`}>{styles.icon}</span>
-                <div className="flex-1 min-w-0">
-                    <p className="text-sm text-stone-200 leading-relaxed break-words">
+            <div className="flex items-start gap-3 p-4 relative overflow-hidden">
+                {/* Background Glow */}
+                <div className={`absolute -left-4 -top-4 w-16 h-16 rounded-full blur-2xl opacity-20 ${styles.bg.replace('/95', '')}`} />
+
+                <span className={`text-xl ${styles.iconColor} relative z-10`}>{styles.icon}</span>
+                <div className="flex-1 min-w-0 relative z-10">
+                    <p className="text-sm font-medium text-stone-200 leading-relaxed break-words font-serif">
                         {message}
                     </p>
                 </div>
                 <button
                     onClick={handleClose}
-                    className="text-stone-500 hover:text-stone-300 transition-colors text-lg leading-none"
+                    className="text-stone-500 hover:text-stone-300 transition-colors text-lg leading-none relative z-10"
                 >
                     ✕
                 </button>
             </div>
             {/* Progress bar */}
-            <div className="h-1 bg-stone-800 rounded-b-lg overflow-hidden">
+            <div className="h-0.5 bg-stone-800/50 w-full">
                 <div
-                    className={`h-full ${type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : type === 'warning' ? 'bg-amber-600' : 'bg-blue-600'}`}
+                    className={`h-full ${type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'}`}
                     style={{
                         animation: `shrink ${duration}ms linear forwards`
                     }}
@@ -112,21 +116,16 @@ interface ToastContainerProps {
 
 export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove }) => {
     return (
-        <>
-            {toasts.map((toast, index) => (
-                <div
+        <div className="fixed top-20 right-4 z-[100] flex flex-col gap-3 pointer-events-none">
+            {toasts.map((toast) => (
+                <Toast
                     key={toast.id}
-                    style={{ top: `${80 + index * 80}px` }}
-                    className="fixed left-1/2 -translate-x-1/2 z-[100]"
-                >
-                    <Toast
-                        message={toast.message}
-                        type={toast.type}
-                        onClose={() => onRemove(toast.id)}
-                    />
-                </div>
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => onRemove(toast.id)}
+                />
             ))}
-        </>
+        </div>
     );
 };
 

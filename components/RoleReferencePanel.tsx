@@ -149,78 +149,82 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
     };
 
     return (
-        <div 
-            className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-200 font-serif"
+        <div
+            className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 font-serif"
             style={{ zIndex: Z_INDEX.modal }}
         >
-            <div className="bg-stone-900 border border-stone-700 rounded-lg w-full max-w-6xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="glass-panel w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden relative">
+                {/* Decorative glow */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent blur-sm" />
 
                 {/* Header */}
-                <div className="p-4 md:p-6 border-b border-stone-800 flex justify-between items-center bg-stone-950 sticky top-0 z-10">
+                <div className="p-4 md:p-6 border-b border-stone-800 flex justify-between items-center bg-stone-950/50 sticky top-0 z-10">
                     <div className="flex items-center gap-3 md:gap-4">
-                        <h2 className="text-xl md:text-2xl font-bold text-amber-400 font-cinzel tracking-wider">
-                            📖 规则手册
+                        <div className="w-10 h-10 rounded-full bg-amber-900/20 border border-amber-700/50 flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                            <span className="text-2xl">📖</span>
+                        </div>
+                        <h2 className="text-xl md:text-2xl font-bold text-amber-100 font-cinzel tracking-wider drop-shadow-md">
+                            规则手册 <span className="text-amber-600 text-lg">Grimoire</span>
                         </h2>
                         {activeTab === 'roles' && (
                             <button
                                 onClick={() => setDescriptionMode(descriptionMode === 'simple' ? 'detailed' : 'simple')}
-                                className="px-2 py-1 md:px-3 text-[10px] md:text-xs bg-stone-800 hover:bg-stone-700 text-amber-300 rounded border border-stone-600 transition-colors flex items-center gap-1 md:gap-2"
+                                className="ml-2 px-3 py-1 text-xs bg-stone-800/50 hover:bg-stone-700/50 text-amber-200/80 hover:text-amber-100 rounded-full border border-stone-700 transition-all flex items-center gap-2 group"
                             >
-                                {descriptionMode === 'simple' ? (
-                                    <><span>🔍</span> <span className="hidden md:inline">显示详细</span><span className="md:hidden">详细</span></>
-                                ) : (
-                                    <><span>📝</span> <span className="hidden md:inline">显示简略</span><span className="md:hidden">简略</span></>
-                                )}
+                                <span className="group-hover:scale-110 transition-transform">{descriptionMode === 'simple' ? '🔍' : '📝'}</span>
+                                <span className="hidden md:inline">{descriptionMode === 'simple' ? '显示详细' : '显示简略'}</span>
                             </button>
                         )}
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-stone-500 hover:text-stone-200 transition-colors text-lg md:text-xl font-bold p-2"
+                        className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-100 hover:bg-stone-800/50 transition-all"
                     >
-                        ✕ <span className="hidden md:inline">关闭</span>
+                        ✕
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-stone-800 bg-stone-950 sticky top-[60px] md:top-[88px] z-10">
+                <div className="flex border-b border-stone-800 bg-stone-950/30 sticky top-[60px] md:top-[88px] z-10 backdrop-blur-sm">
                     <button
                         onClick={() => setActiveTab('roles')}
-                        className={`flex-1 py-4 md:py-3 px-4 text-sm font-cinzel transition-colors border-b-2 ${activeTab === 'roles'
-                                ? 'border-amber-600 text-amber-500 bg-stone-900'
-                                : 'border-transparent text-stone-500 hover:text-stone-300'
+                        className={`flex-1 py-4 text-sm font-cinzel font-bold tracking-widest transition-all border-b-2 relative overflow-hidden group ${activeTab === 'roles'
+                            ? 'border-amber-600 text-amber-400 bg-amber-900/10'
+                            : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/20'
                             }`}
                     >
-                        🎭 角色能力
+                        <span className="relative z-10 group-hover:scale-110 inline-block transition-transform duration-300">🎭 角色能力</span>
+                        {activeTab === 'roles' && <div className="absolute inset-0 bg-amber-500/5 animate-pulse-glow" />}
                     </button>
                     <button
                         onClick={() => setActiveTab('rules')}
-                        className={`flex-1 py-4 md:py-3 px-4 text-sm font-cinzel transition-colors border-b-2 ${activeTab === 'rules'
-                                ? 'border-amber-600 text-amber-500 bg-stone-900'
-                                : 'border-transparent text-stone-500 hover:text-stone-300'
+                        className={`flex-1 py-4 text-sm font-cinzel font-bold tracking-widest transition-all border-b-2 relative overflow-hidden group ${activeTab === 'rules'
+                            ? 'border-amber-600 text-amber-400 bg-amber-900/10'
+                            : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/20'
                             }`}
                     >
-                        📜 游戏规则
+                        <span className="relative z-10 group-hover:scale-110 inline-block transition-transform duration-300">📜 游戏规则</span>
+                        {activeTab === 'rules' && <div className="absolute inset-0 bg-amber-500/5 animate-pulse-glow" />}
                     </button>
                 </div>
 
                 {/* 搜索栏和折叠控制 - 仅在角色标签页显示 */}
                 {activeTab === 'roles' && (
-                    <div className="p-3 md:p-4 border-b border-stone-800 bg-stone-900/50 flex flex-col md:flex-row gap-3 items-stretch md:items-center sticky top-[108px] md:top-[136px] z-10">
+                    <div className="p-3 md:p-4 border-b border-stone-800 bg-stone-900/40 flex flex-col md:flex-row gap-3 items-stretch md:items-center sticky top-[108px] md:top-[136px] z-10 backdrop-blur-md">
                         {/* 搜索框 */}
-                        <div className="relative flex-1">
+                        <div className="relative flex-1 group">
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="🔍 搜索角色名或技能关键字..."
-                                className="w-full px-4 py-2 pl-10 bg-stone-800 border border-stone-700 rounded-lg text-stone-200 placeholder-stone-500 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 text-sm"
+                                className="w-full px-4 py-2.5 pl-10 bg-black/40 border border-stone-700 rounded-lg text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-600/50 focus:ring-1 focus:ring-amber-600/50 text-sm transition-all group-hover:border-stone-600"
                             />
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500">🔍</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 group-focus-within:text-amber-500 transition-colors">🔍</span>
                             {searchQuery && (
                                 <button
                                     onClick={() => setSearchQuery('')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300 w-5 h-5 flex items-center justify-center rounded-full hover:bg-stone-800"
                                 >
                                     ✕
                                 </button>
@@ -229,7 +233,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
 
                         {/* 搜索结果计数 */}
                         {searchQuery && (
-                            <span className="text-xs text-stone-500 whitespace-nowrap">
+                            <span className="text-xs text-stone-500 whitespace-nowrap px-2">
                                 找到 <span className="text-amber-400 font-bold">{totalMatchedCount}</span> 个角色
                             </span>
                         )}
@@ -238,13 +242,13 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                         <div className="flex gap-2">
                             <button
                                 onClick={() => toggleAllTeams(true)}
-                                className="px-3 py-1.5 text-xs bg-stone-800 hover:bg-stone-700 text-stone-300 rounded border border-stone-600 transition-colors whitespace-nowrap"
+                                className="px-3 py-2 text-xs bg-stone-800/50 hover:bg-stone-700/50 text-stone-300 rounded border border-stone-700 hover:border-stone-500 transition-all whitespace-nowrap"
                             >
                                 📁 全部折叠
                             </button>
                             <button
                                 onClick={() => toggleAllTeams(false)}
-                                className="px-3 py-1.5 text-xs bg-stone-800 hover:bg-stone-700 text-stone-300 rounded border border-stone-600 transition-colors whitespace-nowrap"
+                                className="px-3 py-2 text-xs bg-stone-800/50 hover:bg-stone-700/50 text-stone-300 rounded border border-stone-700 hover:border-stone-500 transition-all whitespace-nowrap"
                             >
                                 📂 全部展开
                             </button>

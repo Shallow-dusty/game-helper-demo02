@@ -203,41 +203,46 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
 
             {/* --- Tabs --- */}
-            <div className="flex border-b border-stone-800 text-sm bg-stone-950 font-cinzel sticky top-0 z-20">
+            <div className="flex border-b border-stone-800 text-sm bg-stone-950/95 backdrop-blur font-cinzel sticky top-0 z-20 shadow-lg">
                 <button
                     onClick={() => setActiveTab('game')}
-                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'game' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group ${activeTab === 'game' ? 'border-amber-600 text-amber-500 bg-stone-900/50' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'}`}
                 >
-                    <span className="text-lg md:text-base mr-1">🎮</span> 游戏
+                    <span className="text-lg md:text-base mr-1 group-hover:scale-110 inline-block transition-transform">🎮</span> 游戏
+                    {activeTab === 'game' && <div className="absolute inset-0 bg-amber-600/5 pointer-events-none animate-pulse-glow" />}
                 </button>
                 <button
                     onClick={() => setActiveTab('chat')}
-                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'chat' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group ${activeTab === 'chat' ? 'border-amber-600 text-amber-500 bg-stone-900/50' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'}`}
                 >
-                    <span className="text-lg md:text-base mr-1">💬</span> 聊天
+                    <span className="text-lg md:text-base mr-1 group-hover:scale-110 inline-block transition-transform">💬</span> 聊天
+                    {activeTab === 'chat' && <div className="absolute inset-0 bg-amber-600/5 pointer-events-none animate-pulse-glow" />}
                 </button>
                 {/* AI 助手仅对说书人显示 */}
                 {user.isStoryteller && (
                     <button
                         onClick={() => setActiveTab('ai')}
-                        className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'ai' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                        className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group ${activeTab === 'ai' ? 'border-purple-600 text-purple-400 bg-stone-900/50' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'}`}
                     >
-                        <span className="text-lg md:text-base mr-1">🤖</span> 助手
+                        <span className="text-lg md:text-base mr-1 group-hover:scale-110 inline-block transition-transform">🤖</span> 助手
+                        {activeTab === 'ai' && <div className="absolute inset-0 bg-purple-600/5 pointer-events-none animate-pulse-glow" />}
                     </button>
                 )}
                 {user.isStoryteller && (
                     <button
                         onClick={() => setActiveTab('audio')}
-                        className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'audio' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                        className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group ${activeTab === 'audio' ? 'border-amber-600 text-amber-500 bg-stone-900/50' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'}`}
                     >
-                        <span className="text-lg md:text-base mr-1">🎵</span> 音效
+                        <span className="text-lg md:text-base mr-1 group-hover:scale-110 inline-block transition-transform">🎵</span> 音效
+                        {activeTab === 'audio' && <div className="absolute inset-0 bg-amber-600/5 pointer-events-none animate-pulse-glow" />}
                     </button>
                 )}
                 <button
                     onClick={() => setActiveTab('notebook')}
-                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'notebook' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group ${activeTab === 'notebook' ? 'border-amber-600 text-amber-500 bg-stone-900/50' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'}`}
                 >
-                    <span className="text-lg md:text-base mr-1">📓</span> 笔记
+                    <span className="text-lg md:text-base mr-1 group-hover:scale-110 inline-block transition-transform">📓</span> 笔记
+                    {activeTab === 'notebook' && <div className="absolute inset-0 bg-amber-600/5 pointer-events-none animate-pulse-glow" />}
                 </button>
             </div>
 

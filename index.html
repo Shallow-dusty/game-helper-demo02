@@ -15,28 +15,34 @@
 
   <style>
     :root {
-      --color-bg: #0f0f10;
-      --color-paper: #d4c5a9;
-      --color-blood: #8a1c1c;
+      --color-bg: #0c0a09;
+      --color-paper: #e7e5e4;
+      --color-blood: #7f1d1d;
+      --color-blood-bright: #dc2626;
+      --color-gold: #b45309;
+      --color-gold-bright: #fbbf24;
+      --color-stone-dark: #1c1917;
+      --color-stone-light: #a8a29e;
     }
 
     body {
       background-color: var(--color-bg);
-      color: #e5e5e5;
+      color: var(--color-paper);
       font-family: 'Crimson Text', serif;
-      /* Main body font */
-      /* overflow: hidden; - 移除，改在需要的组件上单独设置 */
       min-height: 100vh;
       min-height: 100dvh;
+      overflow-x: hidden;
     }
-    
+
     /* 仅在游戏主界面阻止滚动 */
-    html, body, #root {
+    html,
+    body,
+    #root {
       height: 100%;
       margin: 0;
       padding: 0;
-      touch-action: manipulation; /* Prevent double-tap zoom */
-      -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     h1,
@@ -46,31 +52,98 @@
     button,
     .font-cinzel {
       font-family: 'Cinzel', serif;
-      /* Headings font */
     }
 
     /* Custom scrollbar */
     ::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
+      height: 8px;
     }
 
     ::-webkit-scrollbar-track {
-      background: #1a1a1a;
+      background: #0c0a09;
+      border-left: 1px solid #292524;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: #4a4a4a;
-      border-radius: 3px;
+      background: #44403c;
+      border-radius: 4px;
+      border: 1px solid #292524;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: #666;
+      background: #57534e;
+      border-color: #78350f;
     }
 
-    /* Utility for wood/paper textures if needed later */
-    .texture-paper {
-      background-color: #eaddcf;
-      background-image: url("https://www.transparenttextures.com/patterns/aged-paper.png");
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+
+      100% {
+        transform: translateY(0px);
+      }
+    }
+
+    @keyframes pulse-glow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 10px rgba(220, 38, 38, 0.2);
+      }
+
+      50% {
+        box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% center;
+      }
+
+      100% {
+        background-position: 200% center;
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+
+    .animate-float {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    /* Utility classes */
+    .glass-panel {
+      background: rgba(12, 10, 9, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(168, 162, 158, 0.1);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .text-shadow-glow {
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
     }
   </style>
 

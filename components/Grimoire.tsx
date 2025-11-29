@@ -798,43 +798,47 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
             {/* Auto Fit Button */}
             <button
               onClick={resetZoom}
-              className="w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full shadow-lg bg-stone-800/90 text-stone-400 hover:bg-stone-700 transition-colors backdrop-blur-sm border border-stone-700"
-              title="适配屏幕 (Fit Screen)"
+              className="w-10 h-10 md:w-12 md:h-12 bg-stone-900/80 hover:bg-stone-800 text-stone-200 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-stone-700 flex items-center justify-center backdrop-blur-sm transition-all active:scale-95"
+              title="重置视图 (Reset View)"
             >
-              ⛶
+              <span className="text-lg">🎯</span>
             </button>
+
+            {/* Mobile Lock Toggle */}
             <button
               onClick={() => setIsLocked(!isLocked)}
-              className={`w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full shadow-lg transition-colors backdrop-blur-sm border ${isLocked ? 'bg-red-900/90 border-red-700 text-white' : 'bg-stone-800/90 border-stone-700 text-stone-400 hover:bg-stone-700'}`}
-              title={isLocked ? "解锁交互 (Unlock)" : "锁定交互 (Lock)"}
+              className={`w-10 h-10 md:w-12 md:h-12 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.5)] border flex items-center justify-center backdrop-blur-sm transition-all active:scale-95 ${isLocked
+                ? 'bg-red-900/80 border-red-700 text-red-100 shadow-[0_0_15px_rgba(220,38,38,0.4)]'
+                : 'bg-stone-900/80 border-stone-700 text-stone-400 hover:text-stone-200'
+                }`}
+              title={isLocked ? "已锁定 (Locked)" : "未锁定 (Unlocked)"}
             >
-              {isLocked ? '🔒' : '🔓'}
+              <span className="text-lg">{isLocked ? '🔒' : '🔓'}</span>
             </button>
           </div>
-          {/* Zoom indicator */}
+
+          {/* Zoom Indicator (Optional) */}
           {stageScale !== 1 && (
-            <div className="text-xs font-bold text-amber-400 bg-black/60 px-2 py-1 rounded backdrop-blur-sm border border-stone-800">
+            <div className="bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-md border border-stone-800">
               {Math.round(stageScale * 100)}%
-            </div>
-          )}
-          {user.isStoryteller && !isLocked && stageScale === 1 && (
-            <div className="text-[10px] text-stone-400 bg-black/60 px-3 py-1.5 rounded-full text-right hidden sm:block backdrop-blur-sm border border-stone-800">
-              💡 长按玩家打开菜单 / 双指缩放
             </div>
           )}
         </div>
       )}
 
+
       {/* Jinx / Hint Bar (Top Center) */}
-      {activeJinxes.length > 0 && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 flex flex-col gap-2 pointer-events-none w-full max-w-lg px-4">
-          {activeJinxes.map(jinx => (
-            <div key={jinx.id} className="bg-amber-900/80 backdrop-blur-sm border border-amber-600/50 text-amber-100 px-4 py-2 rounded shadow-lg text-xs md:text-sm text-center animate-in slide-in-from-top-4 fade-in duration-500">
-              {jinx.description}
-            </div>
-          ))}
-        </div>
-      )}
+      {
+        activeJinxes.length > 0 && (
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 flex flex-col gap-2 pointer-events-none w-full max-w-lg px-4">
+            {activeJinxes.map(jinx => (
+              <div key={jinx.id} className="bg-amber-900/80 backdrop-blur-sm border border-amber-600/50 text-amber-100 px-4 py-2 rounded shadow-lg text-xs md:text-sm text-center animate-in slide-in-from-top-4 fade-in duration-500">
+                {jinx.description}
+              </div>
+            ))}
+          </div>
+        )
+      }
 
       <Stage
         ref={stageRef}
@@ -914,190 +918,192 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
       </Stage>
 
       {/* ST Context Menu (Now a Modal) */}
-      {contextMenu && user.isStoryteller && (() => {
-        const selectedSeat = gameState.seats.find(s => s.id === contextMenu.seatId);
-        if (!selectedSeat) return null;
+      {
+        contextMenu && user.isStoryteller && (() => {
+          const selectedSeat = gameState.seats.find(s => s.id === contextMenu.seatId);
+          if (!selectedSeat) return null;
 
-        const selectedRole = selectedSeat.seenRoleId ? ROLES[selectedSeat.seenRoleId] : null;
-        const roleTeamIcon = selectedRole?.team === 'DEMON' ? '👿' : selectedRole?.team === 'MINION' ? '🧪' : '⚜️';
+          const selectedRole = selectedSeat.seenRoleId ? ROLES[selectedSeat.seenRoleId] : null;
+          const roleTeamIcon = selectedRole?.team === 'DEMON' ? '👿' : selectedRole?.team === 'MINION' ? '🧪' : '⚜️';
 
-        return (
-          <div
-            className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-            style={{ zIndex: Z_INDEX.modal }}
-            onClick={() => setContextMenu(null)}
-          >
+          return (
             <div
-              className="bg-stone-900 border border-stone-600 rounded-lg shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100"
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+              style={{ zIndex: Z_INDEX.modal }}
+              onClick={() => setContextMenu(null)}
             >
-              {/* Header */}
-              <div className="bg-stone-950 p-4 border-b border-stone-800 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center border border-stone-700 text-xl">
-                    {selectedSeat.seenRoleId ? roleTeamIcon : '👤'}
+              <div
+                className="bg-stone-900 border border-stone-600 rounded-lg shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="bg-stone-950 p-4 border-b border-stone-800 flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center border border-stone-700 text-xl">
+                      {selectedSeat.seenRoleId ? roleTeamIcon : '👤'}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-stone-200 font-cinzel">
+                        {selectedSeat.userName}
+                      </h3>
+                      <p className="text-xs text-stone-500">
+                        座位 {contextMenu.seatId + 1} • {selectedRole?.name || '未分配角色'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-stone-200 font-cinzel">
-                      {selectedSeat.userName}
-                    </h3>
-                    <p className="text-xs text-stone-500">
-                      座位 {contextMenu.seatId + 1} • {selectedRole?.name || '未分配角色'}
-                    </p>
-                  </div>
+                  <button onClick={() => setContextMenu(null)} className="text-stone-500 hover:text-stone-300 p-2">✕</button>
                 </div>
-                <button onClick={() => setContextMenu(null)} className="text-stone-500 hover:text-stone-300 p-2">✕</button>
-              </div>
 
-              {/* Actions Grid */}
-              <div className="p-4 grid grid-cols-2 gap-3">
-                {/* Alive/Dead Toggle */}
-                <button
-                  onClick={() => { toggleDead(contextMenu.seatId); setContextMenu(null); }}
-                  className={`p-3 rounded border flex items-center gap-3 transition-colors ${selectedSeat.isDead ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
-                >
-                  <span className="text-2xl">{selectedSeat.isDead ? '💀' : '❤️'}</span>
-                  <div className="text-left">
-                    <div className="font-bold text-sm">切换存活</div>
-                    <div className="text-[10px] opacity-70">{selectedSeat.isDead ? '当前: 死亡' : '当前: 存活'}</div>
-                  </div>
-                </button>
-
-                {/* Ability Used Toggle */}
-                <button
-                  onClick={() => { toggleAbilityUsed(contextMenu.seatId); setContextMenu(null); }}
-                  className={`p-3 rounded border flex items-center gap-3 transition-colors ${selectedSeat.hasUsedAbility ? 'bg-stone-950 border-stone-800 text-stone-500' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
-                >
-                  <span className="text-2xl">🚫</span>
-                  <div className="text-left">
-                    <div className="font-bold text-sm">技能耗尽</div>
-                    <div className="text-[10px] opacity-70">{selectedSeat.hasUsedAbility ? '已使用' : '未使用'}</div>
-                  </div>
-                </button>
-
-                {/* Assign Role */}
-                <button
-                  onClick={() => { setRoleSelectSeat(contextMenu.seatId); setContextMenu(null); }}
-                  className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
-                >
-                  <span className="text-2xl">🎭</span>
-                  <div className="text-left">
-                    <div className="font-bold text-sm">分配角色</div>
-                    <div className="text-[10px] opacity-70">更改玩家角色</div>
-                  </div>
-                </button>
-
-                {/* Nominate */}
-                <button
-                  onClick={() => { startVote(contextMenu.seatId); setContextMenu(null); }}
-                  className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
-                >
-                  <span className="text-2xl">⚖️</span>
-                  <div className="text-left">
-                    <div className="font-bold text-sm">发起提名</div>
-                    <div className="text-[10px] opacity-70">开始投票流程</div>
-                  </div>
-                </button>
-
-                {/* Remove Virtual Player - Only shown for virtual seats */}
-                {selectedSeat.isVirtual && (
+                {/* Actions Grid */}
+                <div className="p-4 grid grid-cols-2 gap-3">
+                  {/* Alive/Dead Toggle */}
                   <button
-                    onClick={() => { removeVirtualPlayer(contextMenu.seatId); setContextMenu(null); }}
-                    className="p-3 rounded border border-red-800/50 bg-red-950/30 hover:bg-red-900/50 text-red-300 flex items-center gap-3 transition-colors col-span-2"
+                    onClick={() => { toggleDead(contextMenu.seatId); setContextMenu(null); }}
+                    className={`p-3 rounded border flex items-center gap-3 transition-colors ${selectedSeat.isDead ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
                   >
-                    <span className="text-2xl">🗑️</span>
+                    <span className="text-2xl">{selectedSeat.isDead ? '💀' : '❤️'}</span>
                     <div className="text-left">
-                      <div className="font-bold text-sm">删除虚拟玩家</div>
-                      <div className="text-[10px] opacity-70">将此座位恢复为空座位</div>
+                      <div className="font-bold text-sm">切换存活</div>
+                      <div className="text-[10px] opacity-70">{selectedSeat.isDead ? '当前: 死亡' : '当前: 存活'}</div>
                     </div>
                   </button>
-                )}
 
-                {/* Swap Seat */}
-                <button
-                  onClick={() => { setSwapSourceId(contextMenu.seatId); setContextMenu(null); showWarning('请点击另一个座位进行交换'); }}
-                  className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
-                >
-                  <span className="text-2xl">⇄</span>
-                  <div className="text-left">
-                    <div className="font-bold text-sm">交换座位</div>
-                    <div className="text-[10px] opacity-70">选择此座位进行交换</div>
-                  </div>
-                </button>
-              </div>
+                  {/* Ability Used Toggle */}
+                  <button
+                    onClick={() => { toggleAbilityUsed(contextMenu.seatId); setContextMenu(null); }}
+                    className={`p-3 rounded border flex items-center gap-3 transition-colors ${selectedSeat.hasUsedAbility ? 'bg-stone-950 border-stone-800 text-stone-500' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
+                  >
+                    <span className="text-2xl">🚫</span>
+                    <div className="text-left">
+                      <div className="font-bold text-sm">技能耗尽</div>
+                      <div className="text-[10px] opacity-70">{selectedSeat.hasUsedAbility ? '已使用' : '未使用'}</div>
+                    </div>
+                  </button>
 
-              {/* Status Section */}
-              <div className="px-4 pb-4">
-                <h4 className="text-xs font-bold text-stone-500 uppercase mb-2">状态 (Status)</h4>
-                <div className="flex flex-wrap gap-2">
-                  {STATUS_OPTIONS.filter(status => {
-                    // Filter logic: TB script doesn't have Madness
-                    if (gameState.currentScriptId === 'tb' && status.id === 'MADNESS') return false;
-                    return true;
-                  }).map(status => {
-                    const hasStatus = selectedSeat.statuses.includes(status.id as SeatStatus);
-                    return (
-                      <button
-                        key={status.id}
-                        onClick={() => toggleStatus(contextMenu.seatId, status.id as SeatStatus)}
-                        className={`px-3 py-1.5 rounded-full text-xs border flex items-center gap-1.5 transition-all ${hasStatus ? 'bg-amber-900/50 border-amber-600 text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'bg-stone-950 border-stone-800 text-stone-500 hover:border-stone-600'}`}
-                      >
-                        <span>{status.icon}</span>
-                        <span>{status.label.split(' ')[0]}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                  {/* Assign Role */}
+                  <button
+                    onClick={() => { setRoleSelectSeat(contextMenu.seatId); setContextMenu(null); }}
+                    className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
+                  >
+                    <span className="text-2xl">🎭</span>
+                    <div className="text-left">
+                      <div className="font-bold text-sm">分配角色</div>
+                      <div className="text-[10px] opacity-70">更改玩家角色</div>
+                    </div>
+                  </button>
 
-              {/* Reminders Section */}
-              <div className="px-4 pb-4 border-t border-stone-800 pt-4">
-                <h4 className="text-xs font-bold text-stone-500 uppercase mb-2">标记 (Reminders)</h4>
+                  {/* Nominate */}
+                  <button
+                    onClick={() => { startVote(contextMenu.seatId); setContextMenu(null); }}
+                    className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
+                  >
+                    <span className="text-2xl">⚖️</span>
+                    <div className="text-left">
+                      <div className="font-bold text-sm">发起提名</div>
+                      <div className="text-[10px] opacity-70">开始投票流程</div>
+                    </div>
+                  </button>
 
-                {/* Existing Reminders */}
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {selectedSeat.reminders.map(rem => (
+                  {/* Remove Virtual Player - Only shown for virtual seats */}
+                  {selectedSeat.isVirtual && (
                     <button
-                      key={rem.id}
-                      onClick={() => removeReminder(rem.id)}
-                      className="px-2 py-1 rounded bg-stone-800 border border-stone-600 text-xs text-stone-300 hover:bg-red-900/30 hover:border-red-800 hover:text-red-300 flex items-center gap-1 transition-colors group"
-                      title="点击删除"
+                      onClick={() => { removeVirtualPlayer(contextMenu.seatId); setContextMenu(null); }}
+                      className="p-3 rounded border border-red-800/50 bg-red-950/30 hover:bg-red-900/50 text-red-300 flex items-center gap-3 transition-colors col-span-2"
                     >
-                      <span>{rem.icon || '🔸'}</span>
-                      <span>{rem.text}</span>
-                      <span className="hidden group-hover:inline ml-1">×</span>
+                      <span className="text-2xl">🗑️</span>
+                      <div className="text-left">
+                        <div className="font-bold text-sm">删除虚拟玩家</div>
+                        <div className="text-[10px] opacity-70">将此座位恢复为空座位</div>
+                      </div>
                     </button>
-                  ))}
-                  {selectedSeat.reminders.length === 0 && (
-                    <span className="text-xs text-stone-600 italic">无标记</span>
                   )}
+
+                  {/* Swap Seat */}
+                  <button
+                    onClick={() => { setSwapSourceId(contextMenu.seatId); setContextMenu(null); showWarning('请点击另一个座位进行交换'); }}
+                    className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
+                  >
+                    <span className="text-2xl">⇄</span>
+                    <div className="text-left">
+                      <div className="font-bold text-sm">交换座位</div>
+                      <div className="text-[10px] opacity-70">选择此座位进行交换</div>
+                    </div>
+                  </button>
                 </div>
 
-                {/* Add Reminder Buttons */}
-                <div className="grid grid-cols-4 gap-2">
-                  {PRESET_REMINDERS.map(preset => (
-                    <button
-                      key={preset.text}
-                      onClick={() => {
-                        if (preset.text === '自定义') {
-                          const text = prompt("输入标记内容:");
-                          if (text) addReminder(contextMenu.seatId, text, preset.icon, preset.color);
-                        } else {
-                          addReminder(contextMenu.seatId, preset.text, preset.icon, preset.color);
-                        }
-                      }}
-                      className="p-2 rounded bg-stone-950 border border-stone-800 hover:bg-stone-800 text-center transition-colors flex flex-col items-center justify-center gap-1"
-                    >
-                      <span className="text-lg">{preset.icon}</span>
-                      <span className="text-[10px] text-stone-400">{preset.text}</span>
-                    </button>
-                  ))}
+                {/* Status Section */}
+                <div className="px-4 pb-4">
+                  <h4 className="text-xs font-bold text-stone-500 uppercase mb-2">状态 (Status)</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {STATUS_OPTIONS.filter(status => {
+                      // Filter logic: TB script doesn't have Madness
+                      if (gameState.currentScriptId === 'tb' && status.id === 'MADNESS') return false;
+                      return true;
+                    }).map(status => {
+                      const hasStatus = selectedSeat.statuses.includes(status.id as SeatStatus);
+                      return (
+                        <button
+                          key={status.id}
+                          onClick={() => toggleStatus(contextMenu.seatId, status.id as SeatStatus)}
+                          className={`px-3 py-1.5 rounded-full text-xs border flex items-center gap-1.5 transition-all ${hasStatus ? 'bg-amber-900/50 border-amber-600 text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'bg-stone-950 border-stone-800 text-stone-500 hover:border-stone-600'}`}
+                        >
+                          <span>{status.icon}</span>
+                          <span>{status.label.split(' ')[0]}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Reminders Section */}
+                <div className="px-4 pb-4 border-t border-stone-800 pt-4">
+                  <h4 className="text-xs font-bold text-stone-500 uppercase mb-2">标记 (Reminders)</h4>
+
+                  {/* Existing Reminders */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {selectedSeat.reminders.map(rem => (
+                      <button
+                        key={rem.id}
+                        onClick={() => removeReminder(rem.id)}
+                        className="px-2 py-1 rounded bg-stone-800 border border-stone-600 text-xs text-stone-300 hover:bg-red-900/30 hover:border-red-800 hover:text-red-300 flex items-center gap-1 transition-colors group"
+                        title="点击删除"
+                      >
+                        <span>{rem.icon || '🔸'}</span>
+                        <span>{rem.text}</span>
+                        <span className="hidden group-hover:inline ml-1">×</span>
+                      </button>
+                    ))}
+                    {selectedSeat.reminders.length === 0 && (
+                      <span className="text-xs text-stone-600 italic">无标记</span>
+                    )}
+                  </div>
+
+                  {/* Add Reminder Buttons */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {PRESET_REMINDERS.map(preset => (
+                      <button
+                        key={preset.text}
+                        onClick={() => {
+                          if (preset.text === '自定义') {
+                            const text = prompt("输入标记内容:");
+                            if (text) addReminder(contextMenu.seatId, text, preset.icon, preset.color);
+                          } else {
+                            addReminder(contextMenu.seatId, preset.text, preset.icon, preset.color);
+                          }
+                        }}
+                        className="p-2 rounded bg-stone-950 border border-stone-800 hover:bg-stone-800 text-center transition-colors flex flex-col items-center justify-center gap-1"
+                      >
+                        <span className="text-lg">{preset.icon}</span>
+                        <span className="text-[10px] text-stone-400">{preset.text}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()
+      }
 
       {/* Role Selector Modal */}
       {

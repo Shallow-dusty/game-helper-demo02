@@ -194,7 +194,7 @@ const App = () => {
       ></div>
       <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.7)_100%)]"></div>
 
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10 min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative min-h-0">
         <div
           className="flex-1 relative flex items-center justify-center overflow-hidden"
           style={{ minHeight: 0, minWidth: 0 }}

@@ -154,38 +154,38 @@ const AI_CONFIG: Record<AiProvider, { apiKey: string; baseURL: string; model: st
     // SiliconFlow Models - 需要 VITE_SILICONFLOW_KEY
     sf_r1: {
         apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: '/api/sf',
+        baseURL: 'https://api.siliconflow.cn/v1',
         model: 'deepseek-ai/DeepSeek-R1',
         name: '🧠 DeepSeek R1 (Full)',
-        note: '⚠️ SiliconFlow 代理'
+        note: '⚠️ SiliconFlow 直连'
     },
     sf_qwen_2_5_72b: {
         apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: '/api/sf',
+        baseURL: 'https://api.siliconflow.cn/v1',
         model: 'Qwen/Qwen2.5-72B-Instruct',
         name: '🤖 Qwen 2.5 72B',
-        note: '⚠️ SiliconFlow 代理'
+        note: '⚠️ SiliconFlow 直连'
     },
     sf_glm_4_9b: {
         apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: '/api/sf',
+        baseURL: 'https://api.siliconflow.cn/v1',
         model: 'THUDM/glm-4-9b-chat',
         name: '📘 GLM-4 9B',
-        note: '⚠️ SiliconFlow 代理'
+        note: '⚠️ SiliconFlow 直连'
     },
     sf_glm_4_plus: {
         apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: '/api/sf',
+        baseURL: 'https://api.siliconflow.cn/v1',
         model: 'THUDM/glm-4-plus',
         name: '🌟 GLM-4 Plus (Exp)',
-        note: '⚠️ SiliconFlow 代理 (可能不稳定)'
+        note: '⚠️ SiliconFlow 直连 (可能不稳定)'
     },
     sf_kimi_k2: {
         apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: '/api/sf',
+        baseURL: 'https://api.siliconflow.cn/v1',
         model: 'moonshotai/Kimi-K2-Thinking',
         name: '🤔 Kimi K2 Thinking (Exp)',
-        note: '⚠️ SiliconFlow 代理 (可能不稳定)'
+        note: '⚠️ SiliconFlow 直连 (可能不稳定)'
     }
 };
 

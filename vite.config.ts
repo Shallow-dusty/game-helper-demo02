@@ -8,13 +8,6 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       host: '0.0.0.0',
-      proxy: {
-        '/api/sf': {
-          target: 'https://api.siliconflow.cn/v1',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/sf/, ''),
-        },
-      },
     },
     plugins: [react()],
     define: {

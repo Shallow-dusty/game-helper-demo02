@@ -1,32 +1,4 @@
-App.tsx(38,40): error TS2339: Property 'sync' does not exist on type 'AppState'.
-App.tsx(44,49): error TS2339: Property 'openRolePanel' does not exist on type 'AppState'.
-App.tsx(45,50): error TS2339: Property 'closeRolePanel' does not exist on type 'AppState'.
-App.tsx(46,49): error TS2551: Property 'toggleSidebar' does not exist on type 'AppState'. Did you mean 'toggleDead'?
-App.tsx(204,90): error TS2339: Property 'isObserver' does not exist on type 'User'.
-App.tsx(213,87): error TS2339: Property 'isObserver' does not exist on type 'User'.
-App.tsx(226,16): error TS2339: Property 'isObserver' does not exist on type 'User'.
-App.tsx(242,35): error TS2339: Property 'isObserver' does not exist on type 'User'.
-App.tsx(252,14): error TS2339: Property 'isObserver' does not exist on type 'User'.
-components/ControlsSTSection.tsx(64,74): error TS2339: Property 'importScript' does not exist on type 'AppState'.
-components/ScriptCompositionGuide.tsx(365,43): error TS2345: Argument of type '{}' is not assignable to parameter of type 'string'.
-components/ScriptCompositionGuide.tsx(376,34): error TS2538: Type 'unknown' cannot be used as an index type.
-components/ScriptCompositionGuide.tsx(384,34): error TS2538: Type 'unknown' cannot be used as an index type.
-components/ScriptCompositionGuide.tsx(388,34): error TS2538: Type 'unknown' cannot be used as an index type.
-components/ScriptManager.tsx(12,50): error TS2339: Property 'importScript' does not exist on type 'AppState'.
-constants.ts(2,19): error TS2305: Module '"./types"' has no exported member 'ScriptDef'.
-lib/gameLogic.ts(120,11): error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
-  Type 'unknown' is not assignable to type 'string'.
-store.ts(417,25): error TS2741: Property 'clearAiMessages' is missing in type '{ user: null; gameState: null; isAiThinking: false; isAudioBlocked: false; isOffline: false; connectionStatus: ConnectionStatus; aiProvider: "deepseek"; roleReferenceMode: "modal"; ... 67 more ...; fetchGameHistory: () => Promise<...>; }' but required in type 'AppState'.
-store.ts(435,19): error TS2741: Property 'isSeated' is missing in type '{ id: string; name: string; isStoryteller: boolean; roomId: null; }' but required in type 'User'.
-store.ts(645,25): error TS2353: Object literal may only specify known properties, and 'isObserver' does not exist in type 'User'.
-store.ts(660,60): error TS2339: Property 'isObserver' does not exist on type 'User'.
-store.ts(1779,23): error TS2322: Type '{ roomId?: string | undefined; currentScriptId?: string | undefined; phase?: GamePhase | undefined; setupPhase?: SetupPhase | undefined; rolesRevealed?: boolean | undefined; ... 18 more ...; voiceRoomUrl?: string; }' is not assignable to type 'GameState'.
-  Types of property 'roomId' are incompatible.
-    Type 'string | undefined' is not assignable to type 'string'.
-      Type 'undefined' is not assignable to type 'string'.
-store.ts(1948,95): error TS18046: 'r' is of type 'unknown'.
-store.ts(1949,94): error TS18046: 'r' is of type 'unknown'.
-store.ts(1950,90): error TS18046: 'r' is of type 'unknown'.
-store.ts(1951,88): error TS18046: 'r' is of type 'unknown'.
-store.ts(2236,9): error TS1117: An object literal cannot have multiple properties with the same name.
-store.ts(2264,9): error TS1117: An object literal cannot have multiple properties with the same name.
+components/ScriptEditor.tsx(1,27): error TS6133: 'useEffect' is declared but its value is never read.
+components/ScriptEditor.tsx(3,17): error TS6133: 'SCRIPTS' is declared but its value is never read.
+components/ScriptEditor.tsx(35,13): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type 'ScriptDefinition'.
+store.ts(997,21): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type 'ScriptDefinition'.

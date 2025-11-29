@@ -10,6 +10,7 @@ import { PlayerNotebook } from './PlayerNotebook';
 import { PlayerNightAction } from './PlayerNightAction';
 import { RoleReferencePanel } from './RoleReferencePanel';
 import { ScriptCompositionGuide } from './ScriptCompositionGuide';
+import { ScriptEditor } from './ScriptEditor';
 import { ControlsSTSection } from './ControlsSTSection';
 import { ControlsPlayerSection } from './ControlsPlayerSection';
 import { ControlsAudioTab } from './ControlsAudioTab';
@@ -47,6 +48,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const [showRoleReference, setShowRoleReference] = useState(false);
     const [showCompositionGuide, setShowCompositionGuide] = useState(false);
     const [currentNightRole, setCurrentNightRole] = useState<string | null>(null);
+    const [showScriptEditor, setShowScriptEditor] = useState(false);
 
     const [width, setWidth] = useState(320); // Default 320px
     const [isResizing, setIsResizing] = useState(false);
@@ -261,6 +263,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                     setShowNightAction(true);
                                 }}
                                 onShowHistory={() => setShowHistory(true)}
+                                onShowScriptEditor={() => setShowScriptEditor(true)}
                             />
                         )}
 
@@ -417,6 +420,10 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     roleId={currentSeat.roleId}
                     onComplete={() => setShowNightAction(false)}
                 />,
+                document.body
+            )}
+            {showScriptEditor && createPortal(
+                <ScriptEditor onClose={() => setShowScriptEditor(false)} />,
                 document.body
             )}
         </div>

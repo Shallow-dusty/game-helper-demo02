@@ -75,8 +75,10 @@ export interface ScriptDefinition {
   id: string;
   name: string;
   author?: string;
+  description?: string;
   roles: string[]; // Role IDs
   meta?: any; // Extra metadata
+  isCustom?: boolean;
 }
 
 export interface Reminder {

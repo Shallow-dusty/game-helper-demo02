@@ -361,6 +361,11 @@ export interface AppState {
     closeRolePanel: () => void;
     importScript: (jsonContent: string) => void;
 
+    // Custom Scripts
+    saveCustomScript: (script: import('./types').ScriptDefinition) => void;
+    deleteCustomScript: (scriptId: string) => void;
+    loadCustomScript: (scriptId: string) => void;
+
     askAi: (prompt: string) => Promise<void>;
     setAiProvider: (provider: AiProvider) => void;
 
@@ -958,53 +963,111 @@ export const useStore = create<AppState>()(
 
             try {
                 const data = JSON.parse(jsonContent);
-                if (!Array.isArray(data)) throw new Error("Invalid format: Expected array of roles");
+                // Handle both array format (official tool export) and object format (our export)
+                let roles: string[] = [];
+                let name = `Custom Script ${new Date().toLocaleTimeString()}`;
+                let author = '';
+                let description = '';
+                let id = `custom_${Date.now()}`;
 
-                const scriptId = `custom_${Date.now()}`;
-                const scriptName = data.find((item: any) => item.id === '_meta')?.name || `Custom Script ${new Date().toLocaleTimeString()}`;
-
-                const roles: string[] = [];
-
-                data.forEach((item: any) => {
-                    if (item.id === '_meta') return;
-
-                    if (item.id && item.name && item.team) {
-                        gameState.customRoles[item.id] = {
-                            id: item.id,
-                            name: item.name,
-                            team: item.team,
-                            ability: item.ability || item.description || '',
-                            firstNight: item.firstNightReminder ? true : false,
-                            otherNight: item.otherNightReminder ? true : false,
-                            icon: item.image || undefined,
-                            reminders: item.reminders || []
-                        };
-                        roles.push(item.id);
+                if (Array.isArray(data)) {
+                    // Official tool format: Array of objects
+                    const meta = data.find((item: any) => item.id === '_meta');
+                    if (meta) {
+                        name = meta.name || name;
+                        author = meta.author || '';
+                        description = meta.description || '';
                     }
-                });
+                    roles = data.filter((item: any) => item.id !== '_meta').map((item: any) => item.id);
+                } else if (data.roles && Array.isArray(data.roles)) {
+                    // Our format
+                    roles = data.roles;
+                    name = data.name || name;
+                    author = data.author || '';
+                    description = data.description || '';
+                    id = data.id || id;
+                } else {
+                    throw new Error("Invalid format");
+                }
 
-                if (roles.length === 0) throw new Error("No valid roles found");
-
-                gameState.customScripts[scriptId] = {
-                    id: scriptId,
-                    name: scriptName,
-                    roles: roles
+                const script: import('./types').ScriptDefinition = {
+                    id,
+                    name,
+                    author,
+                    description,
+                    roles,
+                    isCustom: true
                 };
 
-                addSystemMessage(gameState, `成功导入剧本: ${scriptName}`);
-                set({ gameState: { ...gameState } });
-                get().setScript(scriptId);
-                void get().syncToCloud();
+                get().saveCustomScript(script);
+                get().setScript(script.id);
 
-            } catch (e: any) { // Added type annotation for error
-                console.error("Script import failed", e);
-                void getToastFunctions().then(({ showError }) => showError?.("导入失败: 剧本格式不正确"));
+                void getToastFunctions().then(({ showSuccess }) => showSuccess?.(`剧本 "${name}" 导入成功！`));
+            } catch (e) {
+                console.error("Import failed:", e);
+                void getToastFunctions().then(({ showError }) => showError?.("导入失败：无效的 JSON 格式"));
             }
         },
 
+        saveCustomScript: (script) => {
+            const { gameState } = get();
+            if (!gameState) return;
+
+            if (!gameState.customScripts) gameState.customScripts = {};
+            gameState.customScripts[script.id] = script;
+
+            set({ gameState: { ...gameState } });
+            // Persist to local storage
+            try {
+                const saved = JSON.parse(localStorage.getItem('custom_scripts') || '{}');
+                saved[script.id] = script;
+                localStorage.setItem('custom_scripts', JSON.stringify(saved));
+            } catch (e) { console.error(e); }
+
+            void get().syncToCloud();
+        },
+
+        deleteCustomScript: (scriptId) => {
+            const { gameState } = get();
+            if (!gameState) return;
+
+            if (gameState.customScripts?.[scriptId]) {
+                delete gameState.customScripts[scriptId];
+
+                // If current script is deleted, switch to default
+                if (gameState.currentScriptId === scriptId) {
+                    gameState.currentScriptId = 'trouble_brewing';
+                }
+
+                set({ gameState: { ...gameState } });
+
+                try {
+                    const saved = JSON.parse(localStorage.getItem('custom_scripts') || '{}');
+                    delete saved[scriptId];
+                    localStorage.setItem('custom_scripts', JSON.stringify(saved));
+                } catch (e) { console.error(e); }
+
+                void get().syncToCloud();
+            }
+        },
+
+        loadCustomScript: (scriptId) => {
+            const { gameState } = get();
+            if (!gameState) return;
+
+            try {
+                const saved = JSON.parse(localStorage.getItem('custom_scripts') || '{}');
+                if (saved[scriptId]) {
+                    if (!gameState.customScripts) gameState.customScripts = {};
+                    gameState.customScripts[scriptId] = saved[scriptId];
+                    set({ gameState: { ...gameState } });
+                }
+            } catch (e) { console.error(e); }
+        },
+
         setPhase: (phase) => {
-            const { gameState, user } = get();
-            if (!gameState || !user?.isStoryteller) return;
+            const { gameState } = get();
+            if (!gameState) return;
 
             const prevPhase = gameState.phase;
             gameState.phase = phase;
@@ -1616,7 +1679,7 @@ export const useStore = create<AppState>()(
                 // We should refund ghost votes for anyone who voted in this incomplete/cancelled round.
                 gameState.voting.votes.forEach(voterSeatId => {
                     const voter = gameState.seats.find(s => s.id === voterSeatId);
-                    if (voter && voter.isDead) {
+                    if (voter?.isDead) {
                         voter.hasGhostVote = true;
                         // Optional: Add individual message? Might be too spammy.
                     }

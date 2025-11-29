@@ -1,4 +1,0 @@
-components/ScriptEditor.tsx(1,27): error TS6133: 'useEffect' is declared but its value is never read.
-components/ScriptEditor.tsx(3,17): error TS6133: 'SCRIPTS' is declared but its value is never read.
-components/ScriptEditor.tsx(35,13): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type 'ScriptDefinition'.
-store.ts(997,21): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type 'ScriptDefinition'.

@@ -1695,16 +1695,11 @@ export const useStore = create<AppState>()(
                 // The logic above sets result to 'cancelled' if not executed/survived.
                 // However, closeVote is often called to FORCE cancel.
                 // Let's assume if it wasn't a completed vote (which is handled in nextClockHand usually), it's a cancel.
-                // Actually, nextClockHand handles the 'executed'/'survived' logic and closes the vote.
-                // closeVote is typically manual intervention or "Cancel".
-
-                // If we are here, it means we are manually closing/cancelling.
                 // We should refund ghost votes for anyone who voted in this incomplete/cancelled round.
                 gameState.voting.votes.forEach(voterSeatId => {
                     const voter = gameState.seats.find(s => s.id === voterSeatId);
                     if (voter?.isDead) {
                         voter.hasGhostVote = true;
-                        // Optional: Add individual message? Might be too spammy.
                     }
                 });
                 if (gameState.voting.votes.some(sid => gameState.seats.find(s => s.id === sid)?.isDead)) {
@@ -1749,7 +1744,19 @@ export const useStore = create<AppState>()(
             set({ gameState: { ...gameState } });
 
             try {
-                const config = AI_CONFIG[aiProvider];
+                let config = AI_CONFIG[aiProvider];
+
+                // Fallback if provider is invalid (e.g. removed from config)
+                if (!config) {
+                    console.warn(`Invalid AI provider: ${aiProvider}, falling back to deepseek`);
+                    set({ aiProvider: 'deepseek' });
+                    config = AI_CONFIG.deepseek;
+                }
+
+                if (!config) {
+                    throw new Error('AI Configuration Error: No valid provider found.');
+                }
+
                 if (!config.apiKey) {
                     throw new Error(`缺少 ${config.name} 的 API Key，请在 .env.local 中配置`);
                 }
@@ -1807,14 +1814,25 @@ export const useStore = create<AppState>()(
                     void get().syncToCloud();
                 }
             } catch (error: any) {
-                console.error(error);
-                // 添加错误消息到 aiMessages
+                console.error('AI Request Failed:', error);
+                let errorMessage = error.message || 'Unknown error';
+
+                if (errorMessage.includes('401')) {
+                    errorMessage = 'API Key 无效或过期 (401 Unauthorized)';
+                } else if (errorMessage.includes('403')) {
+                    errorMessage = '无权访问该模型 (403 Forbidden) - 请检查余额或权限';
+                } else if (errorMessage.includes('404')) {
+                    errorMessage = '模型不存在或路径错误 (404 Not Found)';
+                } else if (errorMessage.includes('Network Error') || errorMessage.includes('Connection error')) {
+                    errorMessage = 'Connection error. (可能是跨域问题，请尝试使用代理或检查网络)';
+                }
+
                 const errorMsg: ChatMessage = {
                     id: Math.random().toString(36).substr(2, 9),
                     senderId: 'system',
-                    senderName: '系统',
+                    senderName: 'System',
                     recipientId: null,
-                    content: `❌ AI 助手连接失败: ${error.message}`,
+                    content: `❌ AI 助手连接失败: ${errorMessage}`,
                     timestamp: Date.now(),
                     type: 'system',
                     role: 'system'
@@ -2116,29 +2134,22 @@ export const useStore = create<AppState>()(
             }
         },
 
-        addVirtualPlayer: (() => {
-            let isProcessing = false;
-            return () => {
-                if (isProcessing) return; // 防抖
-                isProcessing = true;
-                setTimeout(() => { isProcessing = false; }, 300);
+        addVirtualPlayer: () => {
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
 
-                const { gameState, user } = get();
-                if (!gameState || !user?.isStoryteller) return;
-
-                const emptySeat = gameState.seats.find(s => !s.userId && !s.isVirtual);
-                if (emptySeat) {
-                    emptySeat.isVirtual = true;
-                    emptySeat.userName = `虚拟玩家 ${emptySeat.id + 1}`;
-                    emptySeat.voteLocked = false;
-                    addSystemMessage(gameState, `说书人添加了虚拟玩家到座位 ${emptySeat.id + 1}`);
-                    set({ gameState: { ...gameState } });
-                    void get().syncToCloud();
-                } else {
-                    void getToastFunctions().then(({ showWarning }) => showWarning?.("没有空座位了！"));
-                }
-            };
-        })(),
+            const emptySeat = gameState.seats.find(s => !s.userId && !s.isVirtual);
+            if (emptySeat) {
+                emptySeat.isVirtual = true;
+                emptySeat.userName = `虚拟玩家 ${emptySeat.id + 1}`;
+                emptySeat.voteLocked = false;
+                addSystemMessage(gameState, `说书人添加了虚拟玩家到座位 ${emptySeat.id + 1}`);
+                set({ gameState: { ...gameState } });
+                void get().syncToCloud();
+            } else {
+                void getToastFunctions().then(({ showWarning }) => showWarning?.("没有空座位了！"));
+            }
+        },
 
         removeVirtualPlayer: (seatId: number) => {
             const { gameState, user } = get();

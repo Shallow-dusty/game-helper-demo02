@@ -1,6 +1,0 @@
-﻿components/SwapRequestModal.tsx(36,69): error TS18048: 'request' is possibly 'undefined'.
-components/SwapRequestModal.tsx(40,29): error TS18048: 'request' is possibly 'undefined'.
-components/SwapRequestModal.tsx(40,60): error TS18048: 'request' is possibly 'undefined'.
-components/SwapRequestModal.tsx(46,61): error TS18048: 'request' is possibly 'undefined'.
-components/SwapRequestModal.tsx(52,61): error TS18048: 'request' is possibly 'undefined'.
-sandboxStore.ts(21,84): error TS2741: Property 'swapRequests' is missing in type '{ roomId: string; currentScriptId: string; phase: "SETUP"; setupPhase: "ASSIGNING"; rolesRevealed: false; allowWhispers: true; vibrationEnabled: false; seats: { id: number; userId: string; userName: string; ... 11 more ...; isVirtual: true; }[]; ... 13 more ...; nightActionRequests: never[]; }' but required in type 'GameState'.

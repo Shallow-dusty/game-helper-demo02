@@ -260,6 +260,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                     setCurrentNightRole(roleId);
                                     setShowNightAction(true);
                                 }}
+                                onShowHistory={() => setShowHistory(true)}
                             />
                         )}
 

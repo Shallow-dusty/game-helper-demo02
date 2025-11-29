@@ -7,11 +7,13 @@ import { showError } from './Toast';
 interface ControlsSTSectionProps {
     onShowCompositionGuide: () => void;
     onShowNightAction: (roleId: string) => void;
+    onShowHistory: () => void;
 }
 
 export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
     onShowCompositionGuide,
-    onShowNightAction
+    onShowNightAction,
+    onShowHistory
 }) => {
     const gameState = useStore(state => state.gameState);
     const setPhase = useStore(state => state.setPhase);
@@ -151,6 +153,13 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                         >
                             <span>📊</span> 板子参考
                         </button>
+                        <button
+                            onClick={onShowHistory}
+                            className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
+                            title="查看游戏历史记录"
+                        >
+                            <span>📜</span> 历史记录
+                        </button>
 
                         {/* Phase Switch Button */}
                         {gameState.phase === 'SETUP' || gameState.phase === 'DAY' ? (
@@ -173,8 +182,8 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                         <button
                             onClick={() => useStore.getState().toggleVibration()}
                             className={`col-span-2 py-2 px-3 rounded text-xs border transition-colors flex items-center justify-center gap-1 ${gameState.vibrationEnabled
-                                    ? 'bg-green-900/50 border-green-700 text-green-300 hover:bg-green-800/50'
-                                    : 'bg-stone-800 border-stone-600 text-stone-400 hover:bg-stone-700'
+                                ? 'bg-green-900/50 border-green-700 text-green-300 hover:bg-green-800/50'
+                                : 'bg-stone-800 border-stone-600 text-stone-400 hover:bg-stone-700'
                                 }`}
                             title="线下游戏应关闭振动，避免暴露玩家身份"
                         >
@@ -254,8 +263,8 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                         <button
                             onClick={toggleAudioPlay}
                             className={`flex-1 py-1.5 rounded text-xs font-bold transition-colors ${gameState.audio.isPlaying
-                                    ? 'bg-amber-700 hover:bg-amber-600 text-white'
-                                    : 'bg-stone-800 hover:bg-stone-700 text-stone-400'
+                                ? 'bg-amber-700 hover:bg-amber-600 text-white'
+                                : 'bg-stone-800 hover:bg-stone-700 text-stone-400'
                                 }`}
                         >
                             {gameState.audio.isPlaying ? '⏸ 暂停' : '▶ 播放'}
@@ -282,49 +291,49 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
             {gameState.phase === 'NIGHT' && (() => {
                 const currentRoleId = gameState.nightCurrentIndex >= 0 ? gameState.nightQueue[gameState.nightCurrentIndex] : undefined;
                 const currentRole = currentRoleId ? ROLES[currentRoleId] : undefined;
-                
+
                 return (
-                <div className="bg-black/30 p-3 rounded border border-indigo-900/50 shadow-lg">
-                    <div className="text-xs text-indigo-400/70 mb-2 flex justify-between uppercase tracking-wider">
-                        <span>夜间行动顺序</span>
-                        <span>{gameState.nightCurrentIndex + 1} / {gameState.nightQueue.length}</span>
-                    </div>
-                    <div className="flex items-center justify-between mb-3 bg-indigo-950/30 p-2 rounded border border-indigo-900/30">
-                        <button onClick={nightPrev} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&lt;</button>
-                        <span className={`font-serif text-lg font-bold ${currentRoleId ? 'text-indigo-200' : 'text-stone-600'}`}>
-                            {currentRole?.name || (gameState.nightCurrentIndex >= 0 ? '天亮' : '入夜')}
-                        </span>
-                        <button onClick={nightNext} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&gt;</button>
-                    </div>
-                    <div className="text-[10px] text-stone-500 flex flex-wrap gap-1.5">
-                        {gameState.nightQueue.map((rid, idx) => (
-                            <span
-                                key={idx}
-                                className={`px-1.5 py-0.5 rounded transition-all border ${idx === gameState.nightCurrentIndex ? 'bg-indigo-900 text-indigo-100 border-indigo-500 shadow-[0_0_10px_#4f46e5]' : idx < gameState.nightCurrentIndex ? 'text-stone-700 border-transparent decoration-stone-700 line-through' : 'bg-stone-800 text-stone-500 border-stone-700'}`}
-                            >
-                                {ROLES[rid]?.name}
+                    <div className="bg-black/30 p-3 rounded border border-indigo-900/50 shadow-lg">
+                        <div className="text-xs text-indigo-400/70 mb-2 flex justify-between uppercase tracking-wider">
+                            <span>夜间行动顺序</span>
+                            <span>{gameState.nightCurrentIndex + 1} / {gameState.nightQueue.length}</span>
+                        </div>
+                        <div className="flex items-center justify-between mb-3 bg-indigo-950/30 p-2 rounded border border-indigo-900/30">
+                            <button onClick={nightPrev} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&lt;</button>
+                            <span className={`font-serif text-lg font-bold ${currentRoleId ? 'text-indigo-200' : 'text-stone-600'}`}>
+                                {currentRole?.name || (gameState.nightCurrentIndex >= 0 ? '天亮' : '入夜')}
                             </span>
-                        ))}
-                    </div>
+                            <button onClick={nightNext} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&gt;</button>
+                        </div>
+                        <div className="text-[10px] text-stone-500 flex flex-wrap gap-1.5">
+                            {gameState.nightQueue.map((rid, idx) => (
+                                <span
+                                    key={idx}
+                                    className={`px-1.5 py-0.5 rounded transition-all border ${idx === gameState.nightCurrentIndex ? 'bg-indigo-900 text-indigo-100 border-indigo-500 shadow-[0_0_10px_#4f46e5]' : idx < gameState.nightCurrentIndex ? 'text-stone-700 border-transparent decoration-stone-700 line-through' : 'bg-stone-800 text-stone-500 border-stone-700'}`}
+                                >
+                                    {ROLES[rid]?.name}
+                                </span>
+                            ))}
+                        </div>
 
-                    {/* Night Action Button */}
-                    {currentRoleId && currentRole?.nightAction && (
+                        {/* Night Action Button */}
+                        {currentRoleId && currentRole?.nightAction && (
+                            <button
+                                onClick={() => onShowNightAction(currentRoleId)}
+                                className="mt-3 w-full py-2 bg-purple-900/50 hover:bg-purple-800/50 border border-purple-700 text-purple-200 rounded font-bold text-sm transition-all shadow-lg"
+                            >
+                                🌙 执行夜间动作
+                            </button>
+                        )}
+
+                        {/* Manual Day Switch (Backup) */}
                         <button
-                            onClick={() => onShowNightAction(currentRoleId)}
-                            className="mt-3 w-full py-2 bg-purple-900/50 hover:bg-purple-800/50 border border-purple-700 text-purple-200 rounded font-bold text-sm transition-all shadow-lg"
+                            onClick={() => setPhase('DAY')}
+                            className="mt-3 w-full py-2 bg-amber-900/30 hover:bg-amber-800/50 text-amber-500 rounded text-xs border border-amber-900/50 transition-colors flex items-center justify-center gap-2"
                         >
-                            🌙 执行夜间动作
+                            <span>☀</span> 强制天亮
                         </button>
-                    )}
-
-                    {/* Manual Day Switch (Backup) */}
-                    <button
-                        onClick={() => setPhase('DAY')}
-                        className="mt-3 w-full py-2 bg-amber-900/30 hover:bg-amber-800/50 text-amber-500 rounded text-xs border border-amber-900/50 transition-colors flex items-center justify-center gap-2"
-                    >
-                        <span>☀</span> 强制天亮
-                    </button>
-                </div>
+                    </div>
                 );
             })()}
 

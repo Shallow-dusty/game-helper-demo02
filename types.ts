@@ -103,6 +103,14 @@ export interface StorytellerNote {
   id: string;
   content: string;
   timestamp: number;
+  type: 'manual' | 'auto'; // 笔记类型
+
+  // v2 新增特性
+  isCollapsed?: boolean;   // 是否折叠
+  color?: string;          // 标记颜色 (Tailwind class or hex)
+  isFloating?: boolean;    // 是否为悬浮状态
+  position?: { x: number; y: number }; // 悬浮位置
+  size?: { width: number; height: number }; // 悬浮尺寸
 }
 
 export interface Seat {

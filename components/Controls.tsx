@@ -114,7 +114,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
                 // 播放唤醒音效（音效不受振动开关影响，音量小不易察觉）
                 try {
-                    const wakeSound = new Audio('/sounds/wake.mp3');
+                    const wakeSound = new Audio('/audio/sfx/wake.mp3');
                     wakeSound.volume = 0.3;
                     wakeSound.play().catch(e => console.log('音效播放被浏览器阻止:', e));
                 } catch (e) {

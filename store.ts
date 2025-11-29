@@ -121,14 +121,13 @@ export const filterGameStateForUser = (gameState: GameState, currentUserId: stri
 // --- AI CONFIG ---
 export type AiProvider =
     | 'deepseek'
-    | 'gemini'  // 新增 Gemini (国内无法访问)
+    | 'gemini'
     | 'kimi'
     | 'sf_r1'
-    | 'sf_r1_llama_70b'
-    | 'sf_r1_qwen_32b'
-    | 'sf_r1_qwen_7b_pro'
-    | 'sf_minimax_m2'
-    | 'sf_kimi_k2_thinking';
+    | 'sf_qwen_2_5_72b'
+    | 'sf_glm_4_9b'
+    | 'sf_glm_4_plus'
+    | 'sf_kimi_k2';
 
 const AI_CONFIG: Record<AiProvider, { apiKey: string; baseURL: string; model: string; name: string; note?: string }> = {
     deepseek: {
@@ -139,10 +138,10 @@ const AI_CONFIG: Record<AiProvider, { apiKey: string; baseURL: string; model: st
         note: '✅ 稳定可用，推荐使用'
     },
     gemini: {
-        apiKey: import.meta.env.VITE_GEMINI_KEY || '',
+        apiKey: import.meta.env.VITE_GEMINI_KEY || import.meta.env.GEMINI_API_KEY || '',
         baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
-        model: 'gemini-2.0-flash',
-        name: 'Gemini 2.0 Flash',
+        model: 'gemini-2.0-flash-exp',
+        name: 'Gemini 2.0 Flash (Exp)',
         note: '⚠️ 国内网络无法访问，需要科学上网'
     },
     kimi: {
@@ -155,45 +154,38 @@ const AI_CONFIG: Record<AiProvider, { apiKey: string; baseURL: string; model: st
     // SiliconFlow Models - 需要 VITE_SILICONFLOW_KEY
     sf_r1: {
         apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: 'https://api.siliconflow.cn/v1',
+        baseURL: '/api/sf',
         model: 'deepseek-ai/DeepSeek-R1',
         name: '🧠 DeepSeek R1 (Full)',
-        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
+        note: '⚠️ SiliconFlow 代理'
     },
-    sf_r1_llama_70b: {
+    sf_qwen_2_5_72b: {
         apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: 'https://api.siliconflow.cn/v1',
-        model: 'deepseek-ai/DeepSeek-R1-Distill-Llama-70B',
-        name: '🦙 R1 Distill Llama 70B',
-        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
+        baseURL: '/api/sf',
+        model: 'Qwen/Qwen2.5-72B-Instruct',
+        name: '🤖 Qwen 2.5 72B',
+        note: '⚠️ SiliconFlow 代理'
     },
-    sf_r1_qwen_32b: {
+    sf_glm_4_9b: {
         apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: 'https://api.siliconflow.cn/v1',
-        model: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B',
-        name: '🤖 R1 Distill Qwen 32B',
-        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
+        baseURL: '/api/sf',
+        model: 'THUDM/glm-4-9b-chat',
+        name: '📘 GLM-4 9B',
+        note: '⚠️ SiliconFlow 代理'
     },
-    sf_r1_qwen_7b_pro: {
+    sf_glm_4_plus: {
         apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: 'https://api.siliconflow.cn/v1',
-        model: 'Pro/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B',
-        name: '⚡ R1 Distill Qwen 7B Pro',
-        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
+        baseURL: '/api/sf',
+        model: 'THUDM/glm-4-plus',
+        name: '🌟 GLM-4 Plus (Exp)',
+        note: '⚠️ SiliconFlow 代理 (可能不稳定)'
     },
-    sf_minimax_m2: {
+    sf_kimi_k2: {
         apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: 'https://api.siliconflow.cn/v1',
-        model: 'MiniMaxAI/MiniMax-M2',
-        name: '🦄 MiniMax M2 (230B)',
-        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
-    },
-    sf_kimi_k2_thinking: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: 'https://api.siliconflow.cn/v1',
+        baseURL: '/api/sf',
         model: 'moonshotai/Kimi-K2-Thinking',
-        name: '🤔 Kimi K2 Thinking',
-        note: '⚠️ SiliconFlow 代理，可能有 CORS 问题'
+        name: '🤔 Kimi K2 Thinking (Exp)',
+        note: '⚠️ SiliconFlow 代理 (可能不稳定)'
     }
 };
 
@@ -400,8 +392,13 @@ export interface AppState {
 
     // Note Actions
     addStorytellerNote: (content: string) => void;
+    addAutoNote: (content: string, color?: string) => void; // New
     updateStorytellerNote: (id: string, content: string) => void;
     deleteStorytellerNote: (id: string) => void;
+    toggleNoteFloating: (id: string) => void; // New
+    updateNotePosition: (id: string, x: number, y: number) => void; // New
+    setNoteColor: (id: string, color: string) => void; // New
+    toggleNoteCollapse: (id: string) => void; // New
     sendInfoCard: (card: import('./types').InfoCard, recipientId: string | null) => void;
 
     // Night Actions
@@ -1135,6 +1132,16 @@ export const useStore = create<AppState>()(
             const seat = gameState.seats.find(s => s.id === seatId);
             if (seat) {
                 applyRoleAssignment(gameState, seat, roleId);
+                // Auto-log role assignment
+                const roleName = roleId ? (ROLES[roleId]?.name || gameState.customRoles[roleId]?.name || roleId) : '空';
+                const noteContent = `分配角色: ${seat.userName} -> ${roleName}`;
+                gameState.storytellerNotes.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    content: noteContent,
+                    timestamp: Date.now(),
+                    type: 'auto',
+                    color: 'blue'
+                });
             }
             set({ gameState: { ...gameState } });
             void get().syncToCloud();
@@ -1580,8 +1587,24 @@ export const useStore = create<AppState>()(
 
                         if (result === 'executed') {
                             addSystemMessage(gameState, `🪦 ${nominee?.userName || '被提名者'} 票数达标，可被处决。`);
+                            // Auto-log execution
+                            gameState.storytellerNotes.push({
+                                id: Math.random().toString(36).substr(2, 9),
+                                content: `投票结果: ${nominee?.userName} 被处决 (票数: ${voteCount})`,
+                                timestamp: Date.now(),
+                                type: 'auto',
+                                color: 'red'
+                            });
                         } else {
                             addSystemMessage(gameState, `✅ ${nominee?.userName || '被提名者'} 票数不足，存活。`);
+                            // Auto-log survival
+                            gameState.storytellerNotes.push({
+                                id: Math.random().toString(36).substr(2, 9),
+                                content: `投票结果: ${nominee?.userName} 存活 (票数: ${voteCount})`,
+                                timestamp: Date.now(),
+                                type: 'auto',
+                                color: 'green'
+                            });
                         }
 
                         // 记录投票历史
@@ -1953,12 +1976,15 @@ export const useStore = create<AppState>()(
             if (!gameState || !user?.isStoryteller) return;
 
             // 验证：检查所有座位（包含虚拟玩家）是否都已分配角色
+            // 验证：检查所有座位是否都已分配角色（如果座位上有玩家）
+            // 现在的逻辑是：角色已经绑定在座位上了。发放角色只是让玩家看到 seenRoleId。
+            // 我们只需要确保所有有人的座位都有角色即可。
             const occupiedSeats = gameState.seats.filter(s => s.userId || s.isVirtual);
-            const unassignedSeats = occupiedSeats.filter(s => !s.roleId);
+            const unassignedOccupiedSeats = occupiedSeats.filter(s => !s.roleId);
 
-            if (unassignedSeats.length > 0) {
-                const seatNumbers = unassignedSeats.map(s => s.id + 1).join(', ');
-                addSystemMessage(gameState, `❌ 无法发放角色：座位 ${seatNumbers} 还未分配角色。请先完成角色分配。`);
+            if (unassignedOccupiedSeats.length > 0) {
+                const seatNumbers = unassignedOccupiedSeats.map(s => s.id + 1).join(', ');
+                addSystemMessage(gameState, `❌ 无法发放角色：座位 ${seatNumbers} 有玩家但未分配角色。`);
                 set({ gameState: { ...gameState } });
                 return;
             }
@@ -2009,9 +2035,9 @@ export const useStore = create<AppState>()(
             const script = SCRIPTS[gameState.currentScriptId];
             if (!script) return;
 
-            const seatCount = gameState.seats.filter(s => s.userId || s.isVirtual).length;
+            const seatCount = gameState.seats.length;
             if (seatCount < 5) {
-                addSystemMessage(gameState, '玩家人数不足5人（含虚拟玩家），无法自动分配');
+                addSystemMessage(gameState, '座位数不足5个，无法自动分配');
                 set({ gameState: { ...gameState } });
                 return;
             }
@@ -2036,7 +2062,7 @@ export const useStore = create<AppState>()(
 
             const shuffledRoles = shuffle(selectedRoles);
             gameState.seats.forEach((seat, i) => {
-                if ((seat.userId || seat.isVirtual) && shuffledRoles[i]) {
+                if (shuffledRoles[i]) {
                     applyRoleAssignment(gameState, seat, shuffledRoles[i]);
                 }
             });
@@ -2212,6 +2238,15 @@ export const useStore = create<AppState>()(
 
             addSystemMessage(gameState, `✅ 说书人已回复 ${seat?.userName} 的 ${roleName} 行动`);
 
+            // Auto-log night action result
+            gameState.storytellerNotes.push({
+                id: Math.random().toString(36).substr(2, 9),
+                content: `夜间行动 (${roleName}): ${seat?.userName} -> ${result}`,
+                timestamp: Date.now(),
+                type: 'auto',
+                color: 'indigo'
+            });
+
             set({ gameState: { ...gameState } });
             void get().syncToCloud();
         },
@@ -2267,7 +2302,22 @@ export const useStore = create<AppState>()(
             gameState.storytellerNotes.push({
                 id: Math.random().toString(36).substr(2, 9),
                 content,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                type: 'manual'
+            });
+            set({ gameState: { ...gameState } });
+            void get().syncToCloud();
+        },
+
+        addAutoNote: (content, color = 'gray') => {
+            const { gameState } = get();
+            if (!gameState) return;
+            gameState.storytellerNotes.push({
+                id: Math.random().toString(36).substr(2, 9),
+                content,
+                timestamp: Date.now(),
+                type: 'auto',
+                color
             });
             set({ gameState: { ...gameState } });
             void get().syncToCloud();
@@ -2291,6 +2341,54 @@ export const useStore = create<AppState>()(
             gameState.storytellerNotes = gameState.storytellerNotes.filter(n => n.id !== id);
             set({ gameState: { ...gameState } });
             void get().syncToCloud();
+        },
+
+        toggleNoteFloating: (id) => {
+            const { gameState } = get();
+            if (!gameState) return;
+            const note = gameState.storytellerNotes.find(n => n.id === id);
+            if (note) {
+                note.isFloating = !note.isFloating;
+                if (note.isFloating && !note.position) {
+                    note.position = { x: 100, y: 100 }; // Default position
+                }
+                set({ gameState: { ...gameState } });
+                void get().syncToCloud();
+            }
+        },
+
+        updateNotePosition: (id, x, y) => {
+            const { gameState } = get();
+            if (!gameState) return;
+            const note = gameState.storytellerNotes.find(n => n.id === id);
+            if (note) {
+                note.position = { x, y };
+                set({ gameState: { ...gameState } });
+                // Debounce sync? For now direct sync is fine for low frequency
+                void get().syncToCloud();
+            }
+        },
+
+        setNoteColor: (id, color) => {
+            const { gameState } = get();
+            if (!gameState) return;
+            const note = gameState.storytellerNotes.find(n => n.id === id);
+            if (note) {
+                note.color = color;
+                set({ gameState: { ...gameState } });
+                void get().syncToCloud();
+            }
+        },
+
+        toggleNoteCollapse: (id) => {
+            const { gameState } = get();
+            if (!gameState) return;
+            const note = gameState.storytellerNotes.find(n => n.id === id);
+            if (note) {
+                note.isCollapsed = !note.isCollapsed;
+                set({ gameState: { ...gameState } });
+                void get().syncToCloud();
+            }
         },
 
         toggleSkillDescriptionMode: () => {

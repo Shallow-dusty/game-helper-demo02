@@ -149,7 +149,7 @@ export const RoleCard: React.FC<RoleCardProps> = ({
         <div className={`${sizeClasses[size]} rounded-lg border-2 ${cardClasses[color as keyof typeof cardClasses] || cardClasses.stone} bg-stone-900 hover:bg-stone-800 transition-all hover:scale-105 hover:shadow-lg cursor-pointer h-full flex flex-col`}>
             {/* Role Name */}
             <div className="flex items-center justify-between mb-2">
-                <h4 className={`${titleSizeClasses[size]} font-bold ${titleClasses[color as keyof typeof titleClasses] || titleClasses.stone} font-cinzel`}>
+                <h4 className={`${titleSizeClasses[size]} font-bold ${titleClasses[color as keyof typeof titleClasses] || titleClasses.stone} font-cinzel ${role.name.length > 4 ? 'text-[10px]' : ''}`}>
                     {role.name}
                 </h4>
                 <span className={`text-[10px] uppercase tracking-wider ${badgeTextClasses[color as keyof typeof badgeTextClasses] || badgeTextClasses.stone} px-2 py-0.5 rounded`}>

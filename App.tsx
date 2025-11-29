@@ -17,7 +17,9 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { WelcomeAnnouncement } from './components/WelcomeAnnouncement';
 
 import { SandboxView } from './components/SandboxView';
+import { TownSquare } from './components/TownSquare';
 import { SwapRequestModal } from './components/SwapRequestModal';
+import { Confetti } from './components/Confetti';
 
 const getViewportMetrics = () => {
   if (typeof window === 'undefined') {
@@ -89,27 +91,23 @@ const App = () => {
     };
   }, []);
 
-  // Separate effect for ResizeObserver - 确保在 DOM 更新后正确测量
+  // Separate effect for ResizeObserver
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // 使用 requestAnimationFrame 确保 DOM 已完全渲染
     const measureAndSetDimensions = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      // 只有当尺寸有效时才更新
       if (rect.width > 10 && rect.height > 10) {
         setDimensions({ width: Math.floor(rect.width), height: Math.floor(rect.height) });
       }
     };
 
-    // 初始测量 - 延迟执行确保布局完成
     const timeoutId = setTimeout(() => {
       requestAnimationFrame(measureAndSetDimensions);
     }, 50);
 
     const observer = new ResizeObserver((entries) => {
-      // 使用 requestAnimationFrame 避免布局抖动
       requestAnimationFrame(() => {
         for (const entry of entries) {
           const { width, height } = entry.contentRect;
@@ -126,18 +124,13 @@ const App = () => {
       clearTimeout(timeoutId);
       observer.disconnect();
     };
-  }, [gameState, viewportSize]); // 当 gameState 或视口变化时重新设置 observer
+  }, [gameState, viewportSize]);
 
   const handleManualAudioStart = () => {
-    // Just toggling it (or re-triggering it) usually helps unlock the audio context
-    // The user interaction event here is key.
     toggleAudioPlay();
-    // Force a retry effectively by toggling off and on again if needed, 
-    // but usually just interacting with the page unlocks the AudioContext for the existing elements.
     setTimeout(() => toggleAudioPlay(), 100);
   };
 
-  // 游戏内阻止 body 滚动 - 必须在条件返回之前调用
   useEffect(() => {
     if (gameState) {
       document.body.style.overflow = 'hidden';
@@ -147,6 +140,11 @@ const App = () => {
     }
     return undefined;
   }, [gameState]);
+
+  // 0. Town Square Mode (Public View)
+  if (window.location.pathname === '/townsquare' || window.location.search.includes('mode=townsquare')) {
+    return <TownSquare />;
+  }
 
   // 1. Not Logged In -> Lobby
   if (!user) {
@@ -175,58 +173,46 @@ const App = () => {
         height: appHeight ? `${appHeight}px` : '100vh'
       }}
     >
+      <Confetti
+        active={!!gameState?.gameOver?.winner}
+        colors={gameState?.gameOver?.winner === 'GOOD'
+          ? ['#3b82f6', '#fbbf24', '#60a5fa', '#f59e0b', '#ffffff']
+          : ['#ef4444', '#a855f7', '#dc2626', '#7c3aed', '#000000']
+        }
+      />
 
-      {/* Welcome Announcement Modal */}
       <WelcomeAnnouncement />
-
-      {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-
-      {/* Phase Indicator - Now part of flex layout */}
       <PhaseIndicator />
-
-      {/* Waiting Area Overlay */}
       <WaitingArea />
-
-      {/* Audio Manager */}
-      {/* Audio Manager */}
       <AudioManager />
-
-      {/* Swap Request Modal */}
       <SwapRequestModal />
 
-      {/* --- Atmosphere Overlays (Background) --- */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.05] z-0 bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')]"></div>
       <div
         className={`absolute inset-0 z-0 pointer-events-none transition-all duration-[2000ms] ease-in-out ${isNight ? 'bg-blue-950/60 mix-blend-multiply backdrop-brightness-[0.4] backdrop-blur-[1px]' : 'bg-transparent backdrop-brightness-100'}`}
       ></div>
       <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.7)_100%)]"></div>
 
-      {/* Main Content Area: Grimoire + Sidebar */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10 min-h-0">
-
-        {/* Main Game Area (Grimoire) - 移动端使用固定高度计算 */}
         <div
           className="flex-1 relative flex items-center justify-center overflow-hidden"
           style={{ minHeight: 0, minWidth: 0 }}
           ref={containerRef}
         >
           {dimensions.width > 0 && dimensions.height > 0 ? (
-            <Grimoire width={dimensions.width} height={dimensions.height} />
+            <Grimoire width={dimensions.width} height={dimensions.height} readOnly={user.isObserver} />
           ) : (
-            /* Loading state */
             <div className="flex flex-col items-center justify-center gap-4 text-stone-500">
               <div className="w-12 h-12 border-4 border-stone-700 border-t-amber-500 rounded-full animate-spin"></div>
               <span className="text-sm font-cinzel">正在加载魔典...</span>
             </div>
           )}
 
-          {/* Floating Helper Text */}
           <div className="absolute bottom-6 left-6 z-0 text-stone-500 text-xs select-none pointer-events-none transition-opacity duration-500 font-cinzel opacity-60 md:opacity-40">
-            {user.isStoryteller ? 'Right Click: Manage • Scroll: Zoom (Beta)' : 'Wait for the Storyteller...'}
+            {user.isStoryteller ? 'Right Click: Manage • Scroll: Zoom (Beta)' : (user.isObserver ? 'Spectating Mode' : 'Wait for the Storyteller...')}
           </div>
 
-          {/* Audio Unblock Button */}
           {isAudioBlocked && gameState?.audio.isPlaying && (
             <button
               onClick={handleManualAudioStart}
@@ -237,23 +223,23 @@ const App = () => {
           )}
         </div>
 
-        {/* Sidebar Controls */}
-        <div
-          className={`
-              fixed md:relative inset-y-0 right-0
-              w-80 max-w-[85vw] md:w-80 md:flex-shrink-0
-              bg-stone-950 shadow-2xl
-              transform transition-transform duration-300 ease-out
-              ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
-          `}
-          style={{ zIndex: Z_INDEX.sidebar }}
-        >
-          <Controls onClose={() => setIsMobileMenuOpen(false)} />
-        </div>
+        {!user.isObserver && (
+          <div
+            className={`
+                fixed md:relative inset-y-0 right-0
+                w-80 max-w-[85vw] md:w-80 md:flex-shrink-0
+                bg-stone-950 shadow-2xl
+                transform transition-transform duration-300 ease-out
+                ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+            `}
+            style={{ zIndex: Z_INDEX.sidebar }}
+          >
+            <Controls onClose={() => setIsMobileMenuOpen(false)} />
+          </div>
+        )}
       </div>
 
-      {/* Mobile Menu Toggle */}
-      {!isMobileMenuOpen && (
+      {!isMobileMenuOpen && !user.isObserver && (
         <button
           onClick={() => setIsMobileMenuOpen(true)}
           className="md:hidden fixed bottom-6 right-6 z-50 bg-red-900/90 text-stone-200 p-4 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.8)] border border-red-800 hover:bg-red-800 active:scale-90 backdrop-blur-sm transition-all"
@@ -263,10 +249,8 @@ const App = () => {
         </button>
       )}
 
-      {/* 移动端悬浮投票按钮 - 仅在投票阶段显示 */}
-      <FloatingVoteButton />
+      {!user.isObserver && <FloatingVoteButton />}
 
-      {/* Mobile Backdrop */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/80 md:hidden backdrop-blur-[2px] transition-opacity duration-300"
@@ -275,7 +259,6 @@ const App = () => {
         />
       )}
 
-      {/* Role Reference Components */}
       {gameState && (() => {
         const scriptDef = gameState.currentScriptId === 'custom'
           ? null
@@ -291,7 +274,6 @@ const App = () => {
 
         return (
           <>
-            {/* Modal Mode */}
             {roleReferenceMode === 'modal' && (
               <RoleReferencePanel
                 isOpen={isRolePanelOpen}
@@ -301,7 +283,6 @@ const App = () => {
               />
             )}
 
-            {/* Sidebar Mode (Desktop only) */}
             {roleReferenceMode === 'sidebar' && window.innerWidth >= 768 && (
               <RoleReferenceSidebar
                 isExpanded={isSidebarExpanded}
@@ -314,7 +295,6 @@ const App = () => {
         );
       })()}
 
-      {/* Role Handbook Button (Floating Action Button) */}
       {gameState && (
         <button
           onClick={() => roleReferenceMode === 'modal' ? openRolePanel() : toggleSidebar()}
@@ -329,7 +309,6 @@ const App = () => {
   );
 };
 
-// 包装 ErrorBoundary 的导出
 const AppWithErrorBoundary = () => (
   <ErrorBoundary>
     <App />

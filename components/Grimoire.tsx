@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Stage, Layer, Circle, Text, Group, Rect, Ring } from 'react-konva';
+import { Stage, Layer, Circle, Text, Group, Rect, Ring, Arc } from 'react-konva';
 import { useStore } from '../store';
-import { ROLES, TEAM_COLORS, PHASE_LABELS, SCRIPTS, STATUS_OPTIONS, STATUS_ICONS, PRESET_REMINDERS, Z_INDEX } from '../constants';
+import { ROLES, TEAM_COLORS, PHASE_LABELS, SCRIPTS, STATUS_OPTIONS, STATUS_ICONS, PRESET_REMINDERS, Z_INDEX, JINX_DEFINITIONS } from '../constants';
 import { Seat, SeatStatus } from '../types';
 import Konva from 'konva';
 import { showWarning } from './Toast';
@@ -10,6 +10,10 @@ import { showWarning } from './Toast';
 interface GrimoireProps {
   width: number;
   height: number;
+  readOnly?: boolean;
+  publicOnly?: boolean;
+  gameState?: import('../types').GameState;
+  isStorytellerView?: boolean;
 }
 
 // 计算两个触摸点之间的距离
@@ -38,6 +42,8 @@ interface SeatNodeProps {
   onClick: (e: any) => void;
   onLongPress: (e: any) => void;
   disableInteractions?: boolean;
+  isSwapSource?: boolean;
+  publicOnly?: boolean;
 }
 
 // Long press hook for mobile support
@@ -45,6 +51,7 @@ const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
+  const [isPressing, setIsPressing] = useState(false);
 
   const start = useCallback((e: any) => {
     if (disabled) return;
@@ -53,8 +60,11 @@ const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, 
 
     isLongPressRef.current = false;
     startPosRef.current = { x: e.evt?.clientX || 0, y: e.evt?.clientY || 0 };
+    setIsPressing(true);
+
     timerRef.current = setTimeout(() => {
       isLongPressRef.current = true;
+      setIsPressing(false);
       onLongPress(e);
     }, delay);
   }, [onLongPress, delay, disabled]);
@@ -64,6 +74,7 @@ const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, 
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
+    setIsPressing(false);
     if (shouldClick && !isLongPressRef.current) {
       onClick(e);
     }
@@ -84,34 +95,68 @@ const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, 
     if (disabled && timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
+      setIsPressing(false);
     }
   }, [disabled]);
 
   return {
-    onTouchStart: start,
-    onTouchEnd: (e: any) => clear(e, true),
-    onTouchMove: move,
-    onMouseDown: start,
-    onMouseUp: (e: any) => clear(e, true),
-    onMouseLeave: (e: any) => clear(e, false),
+    handlers: {
+      onTouchStart: start,
+      onTouchEnd: (e: any) => clear(e, true),
+      onTouchMove: move,
+      onMouseDown: start,
+      onMouseUp: (e: any) => clear(e, true),
+      onMouseLeave: (e: any) => clear(e, false),
+    },
+    isPressing
   };
 };
 
-const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress, disableInteractions = false }) => {
+const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress, disableInteractions = false, isSwapSource = false, publicOnly = false }) => {
   const x = cx + radius * Math.cos(angle);
   const y = cy + radius * Math.sin(angle);
   const [isHovered, setIsHovered] = React.useState(false);
 
-  const longPressHandlers = useLongPress(onLongPress, onClick, 500, disableInteractions);
+  const { handlers: longPressHandlers, isPressing } = useLongPress(onLongPress, onClick, 500, disableInteractions);
+
+  // Animation Ref for the progress ring
+  const progressRingRef = useRef<Konva.Arc>(null);
+
+  useEffect(() => {
+    const node = progressRingRef.current;
+    if (isPressing && node) {
+      // Reset
+      node.angle(0);
+      node.opacity(1);
+
+      // Animate
+      const tween = new Konva.Tween({
+        node: node,
+        duration: 0.5,
+        angle: 360,
+        easing: Konva.Easings.Linear,
+      });
+      tween.play();
+
+      return () => {
+        tween.destroy();
+      };
+    }
+    return undefined;
+  }, [isPressing]);
 
   // --- PRIVACY LOGIC ---
   // Determine which role ID to display
   // For ST: Use realRoleId if available (true role), otherwise roleId
   // For Player: roleId is already filtered to be seenRoleId by the store
+  // For Public: Only show if role is explicitly revealed (e.g. by ST or game logic - though currently we don't have a 'revealed' flag, so we'll assume publicOnly means NO roles unless we add a mechanism later. For now, Town Square usually shows tokens if they are public. Let's assume publicOnly hides all roles for now unless we add a 'isRevealed' prop to seat later.)
+  // Actually, standard Town Square shows tokens. But in online play, usually you hide them.
+  // Let's stick to: publicOnly hides role unless it's a "public" role like Virgin confirmed?
+  // For simplicity: publicOnly = hide all roles.
   const displayRoleId = (isST && seat.realRoleId) ? seat.realRoleId : seat.seenRoleId;
 
-  // Only show Role if: User is Storyteller, OR User is this Seat
-  const showRole = (isST || isCurrentUser) && displayRoleId;
+  // Only show Role if: User is Storyteller, OR User is this Seat, AND NOT publicOnly
+  const showRole = !publicOnly && (isST || isCurrentUser) && displayRoleId;
   const roleDef = showRole && displayRoleId ? ROLES[displayRoleId] : null;
 
   // Check for Drunk/Lunatic/Marionette state (ST Only)
@@ -138,9 +183,34 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={(e) => { setIsHovered(false); longPressHandlers.onMouseLeave(e); }}
     >
+      {/* Long Press Progress Ring */}
+      {isPressing && (
+        <Arc
+          ref={progressRingRef}
+          innerRadius={tokenRadius + 8}
+          outerRadius={tokenRadius + 12}
+          angle={0}
+          fill="#f59e0b"
+          opacity={0.8}
+          listening={false}
+        />
+      )}
+
       {/* Clock Hand Indicator */}
       {isClockHand && (
         <Ring innerRadius={tokenRadius + 3} outerRadius={tokenRadius + 9} fill="#fbbf24" listening={false} />
+      )}
+
+      {/* Swap Source Indicator */}
+      {isSwapSource && (
+        <Ring
+          innerRadius={tokenRadius + 5}
+          outerRadius={tokenRadius + 8}
+          stroke="#06b6d4"
+          strokeWidth={2}
+          dash={[10, 5]}
+          listening={false}
+        />
       )}
 
       {/* Seat Circle (Token Base) */}
@@ -165,12 +235,14 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
       />
 
       {/* Dead Indicator (X) */}
-      {seat.isDead && (
-        <Group>
-          <Rect x={-tokenRadius / 1.5} y={-3} width={tokenRadius * 1.3} height={6} fill="#dc2626" rotation={45} cornerRadius={2} />
-          <Rect x={-tokenRadius / 1.5} y={-3} width={tokenRadius * 1.3} height={6} fill="#dc2626" rotation={-45} cornerRadius={2} />
-        </Group>
-      )}
+      {
+        seat.isDead && (
+          <Group>
+            <Rect x={-tokenRadius / 1.5} y={-3} width={tokenRadius * 1.3} height={6} fill="#dc2626" rotation={45} cornerRadius={2} />
+            <Rect x={-tokenRadius / 1.5} y={-3} width={tokenRadius * 1.3} height={6} fill="#dc2626" rotation={-45} cornerRadius={2} />
+          </Group>
+        )
+      }
 
       {/* Name */}
       <Text
@@ -191,166 +263,192 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
       />
 
       {/* Role Info (Hidden for others) */}
-      {roleDef && (
-        <Group>
-          {/* Role Name Abbreviation */}
-          <Text
-            y={-fontSizeRole / 3}
-            text={roleDef.name.substring(0, 2)}
-            fontSize={fontSizeRole}
-            fontStyle="bold"
-            fontFamily="Cinzel"
-            fill={seat.hasUsedAbility ? '#777' : '#fff'} // Dim if ability used
-            width={tokenRadius * 2}
-            offsetX={tokenRadius}
-            align="center"
-            listening={false}
-          />
-
-          {/* Ability Used Status (Top Right) */}
-          {seat.hasUsedAbility && (
+      {
+        roleDef && (
+          <Group>
+            {/* Role Name Abbreviation */}
             <Text
-              x={tokenRadius * 0.3}
-              y={-tokenRadius * 0.7}
-              text="🚫"
-              fontSize={statusIconSize}
+              y={-fontSizeRole / 3}
+              text={roleDef.name.substring(0, 2)}
+              fontSize={fontSizeRole}
+              fontStyle="bold"
+              fontFamily="Cinzel"
+              fill={seat.hasUsedAbility ? '#777' : '#fff'} // Dim if ability used
+              width={tokenRadius * 2}
+              offsetX={tokenRadius}
+              align="center"
               listening={false}
             />
-          )}
 
-          {/* Role Icon/Passive Indicator (Top Left) */}
-          {roleDef.icon && (
-            <Text
-              x={-tokenRadius * 0.7}
-              y={-tokenRadius * 0.7}
-              text={roleDef.icon}
-              fontSize={iconSize}
-              listening={false}
-            />
-          )}
-
-          {/* Misled Indicator (ST Only) - Show what the player thinks they are */}
-          {isMisled && seenRoleDef && (
-            <Group x={tokenRadius * 0.5} y={-tokenRadius * 0.8}>
-              <Circle radius={9 * scale} fill="#000" stroke="red" strokeWidth={1} />
+            {/* Ability Used Status (Top Right) */}
+            {seat.hasUsedAbility && (
               <Text
-                text={seenRoleDef.name.substring(0, 1)}
-                fontSize={10 * scale}
-                fill="red"
-                x={-5 * scale}
-                y={-5 * scale}
-                fontStyle="bold"
+                x={tokenRadius * 0.3}
+                y={-tokenRadius * 0.7}
+                text="🚫"
+                fontSize={statusIconSize}
                 listening={false}
               />
-            </Group>
-          )}
-        </Group>
-      )}
+            )}
+
+            {/* Role Icon/Passive Indicator (Top Left) */}
+            {roleDef.icon && (
+              <Text
+                x={-tokenRadius * 0.7}
+                y={-tokenRadius * 0.7}
+                text={roleDef.icon}
+                fontSize={iconSize}
+                listening={false}
+              />
+            )}
+
+            {/* Misled Indicator (ST Only) - Show what the player thinks they are */}
+            {isMisled && seenRoleDef && (
+              <Group x={tokenRadius * 0.5} y={-tokenRadius * 0.8}>
+                <Circle radius={9 * scale} fill="#000" stroke="red" strokeWidth={1} />
+                <Text
+                  text={seenRoleDef.name.substring(0, 1)}
+                  fontSize={10 * scale}
+                  fill="red"
+                  x={-5 * scale}
+                  y={-5 * scale}
+                  fontStyle="bold"
+                  listening={false}
+                />
+              </Group>
+            )}
+          </Group>
+        )
+      }
 
       {/* Status Icons (ST Only) */}
-      {isST && seat.statuses.length > 0 && (
-        <Group y={tokenRadius * 0.5} x={0}>
-          {seat.statuses.map((status, idx) => (
-            <Text
-              key={status}
-              x={(idx - (seat.statuses.length - 1) / 2) * 14}
-              y={0}
-              text={STATUS_ICONS[status]}
-              fontSize={12}
-              offsetX={6}
-            />
-          ))}
-        </Group>
-      )}
+      {
+        isST && seat.statuses.length > 0 && (
+          <Group y={tokenRadius * 0.5} x={0}>
+            {seat.statuses.map((status, idx) => (
+              <Text
+                key={status}
+                x={(idx - (seat.statuses.length - 1) / 2) * 14}
+                y={0}
+                text={STATUS_ICONS[status]}
+                fontSize={12}
+                offsetX={6}
+              />
+            ))}
+          </Group>
+        )
+      }
 
       {/* Voting Hand */}
-      {seat.isHandRaised && (
-        <Group y={-tokenRadius - 10} x={tokenRadius / 2}>
-          <Circle radius={10 * scale} fill="#fbbf24" shadowBlur={5} />
-          <Text text="✋" x={-7 * scale} y={-7 * scale} fontSize={14 * scale} />
-        </Group>
-      )}
+      {
+        seat.isHandRaised && (
+          <Group y={-tokenRadius - 10} x={tokenRadius / 2}>
+            <Circle radius={10 * scale} fill="#fbbf24" shadowBlur={5} />
+            <Text text="✋" x={-7 * scale} y={-7 * scale} fontSize={14 * scale} />
+          </Group>
+        )
+      }
 
       {/* Ghost Vote Token */}
-      {seat.isDead && (
-        <Group x={tokenRadius * 0.7} y={tokenRadius * 0.7}>
-          <Circle
-            radius={8 * scale}
-            fill={seat.hasGhostVote ? "#ffffff" : "#444444"}
-            stroke={seat.hasGhostVote ? "#ffffff" : "#222"}
-            strokeWidth={1}
-            shadowBlur={seat.hasGhostVote ? 8 : 0}
-            shadowColor="white"
-          />
-          {!seat.hasGhostVote && (
-            <Text text="×" fontSize={10 * scale} x={-3 * scale} y={-5 * scale} fill="#888" />
-          )}
-        </Group>
-      )}
+      {
+        seat.isDead && (
+          <Group x={tokenRadius * 0.7} y={tokenRadius * 0.7}>
+            <Circle
+              radius={8 * scale}
+              fill={seat.hasGhostVote ? "#ffffff" : "#444444"}
+              stroke={seat.hasGhostVote ? "#ffffff" : "#222"}
+              strokeWidth={1}
+              shadowBlur={seat.hasGhostVote ? 8 : 0}
+              shadowColor="white"
+            />
+            {!seat.hasGhostVote && (
+              <Text text="×" fontSize={10 * scale} x={-3 * scale} y={-5 * scale} fill="#888" />
+            )}
+          </Group>
+        )
+      }
 
       {/* Virtual Player Indicator */}
-      {seat.isVirtual && (
-        <Text
-          x={-tokenRadius * 0.8}
-          y={tokenRadius * 0.5}
-          text="🤖"
-          fontSize={16 * scale}
-          listening={false}
-        />
-      )}
+      {
+        seat.isVirtual && (
+          <Text
+            x={-tokenRadius * 0.8}
+            y={tokenRadius * 0.5}
+            text="🤖"
+            fontSize={16 * scale}
+            listening={false}
+          />
+        )
+      }
 
       {/* Tooltip for Name (on hover) */}
-      {isHovered && (
-        <Group y={tokenRadius + 25}>
-          <Rect
-            x={-((seat.userName.length * fontSizeName) / 1.5)}
-            width={(seat.userName.length * fontSizeName) / 0.7}
-            height={fontSizeName + 10}
-            fill="#000000"
-            opacity={0.9}
-            cornerRadius={4}
-            shadowColor="black"
-            shadowBlur={4}
-          />
-          <Text
-            text={seat.userName}
-            x={-((seat.userName.length * fontSizeName) / 1.5)}
-            width={(seat.userName.length * fontSizeName) / 0.7}
-            padding={5}
-            align="center"
-            fontSize={fontSizeName}
-            fill="#ffffff"
-            fontFamily="sans-serif"
-          />
-        </Group>
-      )}
+      {
+        isHovered && (
+          <Group y={tokenRadius + 25}>
+            <Rect
+              x={-((seat.userName.length * fontSizeName) / 1.5)}
+              width={(seat.userName.length * fontSizeName) / 0.7}
+              height={fontSizeName + 10}
+              fill="#000000"
+              opacity={0.9}
+              cornerRadius={4}
+              shadowColor="black"
+              shadowBlur={4}
+            />
+            <Text
+              text={seat.userName}
+              x={-((seat.userName.length * fontSizeName) / 1.5)}
+              width={(seat.userName.length * fontSizeName) / 0.7}
+              padding={5}
+              align="center"
+              fontSize={fontSizeName}
+              fill="#ffffff"
+              fontFamily="sans-serif"
+            />
+          </Group>
+        )
+      }
 
       {/* Reminders (ST Only) */}
-      {isST && seat.reminders.length > 0 && (
-        <Group y={-tokenRadius} x={-tokenRadius}>
-          {seat.reminders.map((rem, i) => (
-            <Group key={rem.id} y={i * -16 * scale}>
-              {rem.icon ? (
-                <Text
-                  text={rem.icon}
-                  fontSize={14 * scale}
-                  shadowColor="black"
-                  shadowBlur={2}
-                />
-              ) : (
-                <Rect width={10 * scale} height={10 * scale} fill="yellow" cornerRadius={2} stroke="black" strokeWidth={1} />
-              )}
-            </Group>
-          ))}
-        </Group>
-      )}
-    </Group>
+      {
+        isST && seat.reminders.length > 0 && (
+          <Group y={-tokenRadius} x={-tokenRadius}>
+            {seat.reminders.map((rem, i) => (
+              <Group key={rem.id} y={i * -16 * scale}>
+                {rem.icon ? (
+                  <Text
+                    text={rem.icon}
+                    fontSize={14 * scale}
+                    shadowColor="black"
+                    shadowBlur={2}
+                  />
+                ) : (
+                  <Rect width={10 * scale} height={10 * scale} fill="yellow" cornerRadius={2} stroke="black" strokeWidth={1} />
+                )}
+              </Group>
+            ))}
+          </Group>
+        )
+      }
+    </Group >
   );
 });
 
-export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
-  const gameState = useStore(state => state.gameState);
-  const user = useStore(state => state.user);
+export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = false, publicOnly = false, gameState: propsGameState, isStorytellerView = false }) => {
+  const storeGameState = useStore(state => state.gameState);
+  const storeUser = useStore(state => state.user);
+
+  const gameState = propsGameState || storeGameState;
+
+  // If in replay mode (propsGameState provided), mock the user
+  const user = propsGameState ? {
+    id: 'spectator',
+    name: 'Spectator',
+    isStoryteller: isStorytellerView,
+    roomId: propsGameState.roomId,
+    isObserver: true
+  } : storeUser;
+
   const joinSeat = useStore(state => state.joinSeat);
   const toggleDead = useStore(state => state.toggleDead);
   const toggleAbilityUsed = useStore(state => state.toggleAbilityUsed);
@@ -360,10 +458,14 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const addReminder = useStore(state => state.addReminder);
   const removeReminder = useStore(state => state.removeReminder);
   const removeVirtualPlayer = useStore(state => state.removeVirtualPlayer);
+  const swapSeats = useStore(state => state.swapSeats);
+  const requestSeatSwap = useStore(state => state.requestSeatSwap);
 
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, seatId: number } | null>(null);
   const [roleSelectSeat, setRoleSelectSeat] = useState<number | null>(null);
+  const [swapSourceId, setSwapSourceId] = useState<number | null>(null);
   const [isLocked, setIsLocked] = useState(false); // Mobile Lock State
+  const [joiningId, setJoiningId] = useState<number | null>(null);
 
   // Pinch-zoom 状态
   const stageRef = useRef<Konva.Stage>(null);
@@ -493,7 +595,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
 
   // Handle long press for mobile (opens context menu for ST)
   const handleLongPress = useCallback((e: any, seat: Seat) => {
-    if (isLocked || isGestureActive) return;
+    if (readOnly || isLocked || isGestureActive) return;
     if (!user?.isStoryteller) return;
 
     e.cancelBubble = true;
@@ -515,7 +617,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
     if (x < 20) x = 20;
 
     setContextMenu({ x, y, seatId: seat.id });
-  }, [isLocked, isGestureActive, user?.isStoryteller]);
+  }, [isLocked, isGestureActive, user?.isStoryteller, readOnly]);
 
   // 早期返回必须在所有 hooks 之后
   if (!gameState || !user) return null;
@@ -535,7 +637,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   }
 
   // 调试：打印传入的尺寸
-  console.log('[Grimoire] Rendering with dimensions:', { width, height });
+  // console.log('[Grimoire] Rendering with dimensions:', { width, height });
 
   // 安全检查：确保宽高有效
   const safeWidth = Math.max(width, 100);
@@ -555,10 +657,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
   const margin = marginFactor * baseScale;
   const r = Math.max((minDim / 2) - margin, minDim * 0.3); // 确保最小半径
 
-  const requestSeatSwap = useStore(state => state.requestSeatSwap);
-
   const handleSeatClick = (e: any, seat: Seat) => {
-    if (isLocked || isGestureActive) return; // Double check logic
+    if (readOnly || isLocked || isGestureActive) return; // Double check logic
     e.cancelBubble = true;
 
     if (seat.isVirtual && !user.isStoryteller) {
@@ -589,35 +689,58 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
       return;
     }
 
-    // Player Logic
-    if (!user.isStoryteller) {
-      // Case 1: Empty seat -> Join
+    // Storyteller Logic for left click
+    if (user.isStoryteller) {
+      // If in swap mode
+      if (swapSourceId !== null) {
+        if (swapSourceId === seat.id) {
+          // Clicked same seat, cancel swap
+          setSwapSourceId(null);
+          showWarning('已取消座位交换');
+        } else {
+          // Clicked different seat, execute swap
+          if (window.confirm(`确认交换座位 ${swapSourceId + 1} 和 ${seat.id + 1} 吗？`)) {
+            swapSeats(swapSourceId, seat.id);
+            setSwapSourceId(null);
+          }
+        }
+        return;
+      }
+
       if (seat.userId === null) {
         joinSeat(seat.id);
+      }
+    } else {
+      // Player Logic
+      // Case 1: Empty seat -> Join
+      if (seat.userId === null) {
+        if (joiningId !== null) return;
+        setJoiningId(seat.id);
+        joinSeat(seat.id).finally(() => setJoiningId(null));
         return;
       }
 
       // Case 2: Occupied seat -> Request Swap (if not self)
       if (seat.userId !== user.id) {
-        // Confirm dialog using browser native confirm for simplicity, or better, a custom modal.
-        // Since we don't have a generic confirm modal handy, we'll use window.confirm for now
-        // or just trigger the request and let the store handle warnings.
-        // Let's use a simple confirm.
         if (window.confirm(`是否向 ${seat.userName} 发起换座申请？`)) {
           requestSeatSwap(seat.id);
         }
         return;
       }
     }
-
-    // Storyteller Logic for left click (optional, currently does nothing special for occupied seats)
-    if (user.isStoryteller && seat.userId === null) {
-      joinSeat(seat.id);
-    }
   };
 
   // Filter roles based on selected script
   const currentScriptRoles = SCRIPTS[gameState.currentScriptId]?.roles || [];
+
+  // Jinx Detection
+  const activeJinxes = React.useMemo(() => {
+    if (!user.isStoryteller) return [];
+    const activeRoleIds = new Set(gameState.seats.map(s => s.realRoleId || s.roleId).filter(Boolean));
+    return JINX_DEFINITIONS.filter(jinx =>
+      activeRoleIds.has(jinx.role1) && activeRoleIds.has(jinx.role2)
+    );
+  }, [gameState.seats, user.isStoryteller]);
 
   const rolesByTeam: Record<string, any[]> = {
     TOWNSFOLK: [],
@@ -668,37 +791,50 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
       onContextMenu={(e) => e.preventDefault()}
       onClick={() => { setContextMenu(null); }}
     >
-      {/* Mobile Lock Button & Zoom Controls */}
-      <div className="absolute top-4 right-4 md:right-8 z-40 flex flex-col items-end gap-3 pointer-events-auto">
-        <div className="flex gap-3">
-          {/* Auto Fit Button */}
-          <button
-            onClick={resetZoom}
-            className="w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full shadow-lg bg-stone-800/90 text-stone-400 hover:bg-stone-700 transition-colors backdrop-blur-sm border border-stone-700"
-            title="适配屏幕 (Fit Screen)"
-          >
-            ⛶
-          </button>
-          <button
-            onClick={() => setIsLocked(!isLocked)}
-            className={`w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full shadow-lg transition-colors backdrop-blur-sm border ${isLocked ? 'bg-red-900/90 border-red-700 text-white' : 'bg-stone-800/90 border-stone-700 text-stone-400 hover:bg-stone-700'}`}
-            title={isLocked ? "解锁交互 (Unlock)" : "锁定交互 (Lock)"}
-          >
-            {isLocked ? '🔒' : '🔓'}
-          </button>
+      {/* Mobile Lock Button & Zoom Controls - Hidden in ReadOnly/PublicOnly */}
+      {!readOnly && !publicOnly && (
+        <div className="absolute top-4 right-4 md:right-8 z-40 flex flex-col items-end gap-3 pointer-events-auto">
+          <div className="flex gap-3">
+            {/* Auto Fit Button */}
+            <button
+              onClick={resetZoom}
+              className="w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full shadow-lg bg-stone-800/90 text-stone-400 hover:bg-stone-700 transition-colors backdrop-blur-sm border border-stone-700"
+              title="适配屏幕 (Fit Screen)"
+            >
+              ⛶
+            </button>
+            <button
+              onClick={() => setIsLocked(!isLocked)}
+              className={`w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full shadow-lg transition-colors backdrop-blur-sm border ${isLocked ? 'bg-red-900/90 border-red-700 text-white' : 'bg-stone-800/90 border-stone-700 text-stone-400 hover:bg-stone-700'}`}
+              title={isLocked ? "解锁交互 (Unlock)" : "锁定交互 (Lock)"}
+            >
+              {isLocked ? '🔒' : '🔓'}
+            </button>
+          </div>
+          {/* Zoom indicator */}
+          {stageScale !== 1 && (
+            <div className="text-xs font-bold text-amber-400 bg-black/60 px-2 py-1 rounded backdrop-blur-sm border border-stone-800">
+              {Math.round(stageScale * 100)}%
+            </div>
+          )}
+          {user.isStoryteller && !isLocked && stageScale === 1 && (
+            <div className="text-[10px] text-stone-400 bg-black/60 px-3 py-1.5 rounded-full text-right hidden sm:block backdrop-blur-sm border border-stone-800">
+              💡 长按玩家打开菜单 / 双指缩放
+            </div>
+          )}
         </div>
-        {/* Zoom indicator */}
-        {stageScale !== 1 && (
-          <div className="text-xs font-bold text-amber-400 bg-black/60 px-2 py-1 rounded backdrop-blur-sm border border-stone-800">
-            {Math.round(stageScale * 100)}%
-          </div>
-        )}
-        {user.isStoryteller && !isLocked && stageScale === 1 && (
-          <div className="text-[10px] text-stone-400 bg-black/60 px-3 py-1.5 rounded-full text-right hidden sm:block backdrop-blur-sm border border-stone-800">
-            💡 长按玩家打开菜单 / 双指缩放
-          </div>
-        )}
-      </div>
+      )}
+
+      {/* Jinx / Hint Bar (Top Center) */}
+      {activeJinxes.length > 0 && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 flex flex-col gap-2 pointer-events-none w-full max-w-lg px-4">
+          {activeJinxes.map(jinx => (
+            <div key={jinx.id} className="bg-amber-900/80 backdrop-blur-sm border border-amber-600/50 text-amber-100 px-4 py-2 rounded shadow-lg text-xs md:text-sm text-center animate-in slide-in-from-top-4 fade-in duration-500">
+              {jinx.description}
+            </div>
+          ))}
+        </div>
+      )}
 
       <Stage
         ref={stageRef}
@@ -768,7 +904,9 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
                 scale={baseScale}
                 onClick={(e: any) => handleSeatClick(e, seat)}
                 onLongPress={(e: any) => handleLongPress(e, seat)}
-                disableInteractions={isLocked || isGestureActive}
+                disableInteractions={readOnly || isLocked || isGestureActive}
+                isSwapSource={swapSourceId === seat.id}
+                publicOnly={publicOnly}
               />
             );
           })}
@@ -874,6 +1012,18 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
                     </div>
                   </button>
                 )}
+
+                {/* Swap Seat */}
+                <button
+                  onClick={() => { setSwapSourceId(contextMenu.seatId); setContextMenu(null); showWarning('请点击另一个座位进行交换'); }}
+                  className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
+                >
+                  <span className="text-2xl">⇄</span>
+                  <div className="text-left">
+                    <div className="font-bold text-sm">交换座位</div>
+                    <div className="text-[10px] opacity-70">选择此座位进行交换</div>
+                  </div>
+                </button>
               </div>
 
               {/* Status Section */}
@@ -950,35 +1100,37 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height }) => {
       })()}
 
       {/* Role Selector Modal */}
-      {roleSelectSeat !== null && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-stone-950 border border-stone-700 p-6 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
-            <div className="flex justify-between items-center mb-6 border-b border-stone-800 pb-4">
-              <h3 className="text-2xl text-stone-200 font-cinzel tracking-widest">
-                <span className="text-red-800 mr-2">✦</span>
-                分配角色 ({SCRIPTS[gameState.currentScriptId]?.name || '未选择剧本'})
-              </h3>
-              <button onClick={() => setRoleSelectSeat(null)} className="text-stone-500 hover:text-stone-200 text-2xl">×</button>
-            </div>
+      {
+        roleSelectSeat !== null && (
+          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-stone-950 border border-stone-700 p-6 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+              <div className="flex justify-between items-center mb-6 border-b border-stone-800 pb-4">
+                <h3 className="text-2xl text-stone-200 font-cinzel tracking-widest">
+                  <span className="text-red-800 mr-2">✦</span>
+                  分配角色 ({SCRIPTS[gameState.currentScriptId]?.name || '未选择剧本'})
+                </h3>
+                <button onClick={() => setRoleSelectSeat(null)} className="text-stone-500 hover:text-stone-200 text-2xl">×</button>
+              </div>
 
-            <div className="space-y-6">
-              {renderRoleSection('TOWNSFOLK', '村民', rolesByTeam.TOWNSFOLK || [])}
-              {renderRoleSection('OUTSIDER', '外来者', rolesByTeam.OUTSIDER || [])}
-              {renderRoleSection('MINION', '爪牙', rolesByTeam.MINION || [])}
-              {renderRoleSection('DEMON', '恶魔', rolesByTeam.DEMON || [])}
-            </div>
+              <div className="space-y-6">
+                {renderRoleSection('TOWNSFOLK', '村民', rolesByTeam.TOWNSFOLK || [])}
+                {renderRoleSection('OUTSIDER', '外来者', rolesByTeam.OUTSIDER || [])}
+                {renderRoleSection('MINION', '爪牙', rolesByTeam.MINION || [])}
+                {renderRoleSection('DEMON', '恶魔', rolesByTeam.DEMON || [])}
+              </div>
 
-            <div className="mt-8 flex justify-end gap-4">
-              <button onClick={() => { assignRole(roleSelectSeat, null as any); setRoleSelectSeat(null); }} className="px-6 py-2 text-stone-500 hover:text-red-400 text-xs uppercase tracking-widest transition-colors">
-                清除角色
-              </button>
-              <button onClick={() => setRoleSelectSeat(null)} className="px-8 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded font-cinzel text-sm transition-colors">
-                取消
-              </button>
+              <div className="mt-8 flex justify-end gap-4">
+                <button onClick={() => { assignRole(roleSelectSeat, null as any); setRoleSelectSeat(null); }} className="px-6 py-2 text-stone-500 hover:text-red-400 text-xs uppercase tracking-widest transition-colors">
+                  清除角色
+                </button>
+                <button onClick={() => setRoleSelectSeat(null)} className="px-8 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded font-cinzel text-sm transition-colors">
+                  取消
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };

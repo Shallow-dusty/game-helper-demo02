@@ -8,6 +8,9 @@ import { ScriptCompositionGuide } from './ScriptCompositionGuide';
 import { VotingChart } from './VotingChart';
 import { VoteButton } from './VoteButton';
 import { showError } from './Toast';
+import { ConfirmModal } from './ConfirmModal';
+
+import { ScriptManager } from './ScriptManager';
 
 interface ControlsGameTabProps {
   isMobile: boolean;
@@ -31,7 +34,12 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = () => {
 
   const [showNightAction, setShowNightAction] = useState(false);
   const [showCompositionGuide, setShowCompositionGuide] = useState(false);
+  const [showScriptManager, setShowScriptManager] = useState(false);
   const [currentNightRole, setCurrentNightRole] = useState<string | null>(null);
+
+  // Script Switch Confirmation State
+  const [isScriptConfirmOpen, setIsScriptConfirmOpen] = useState(false);
+  const [pendingScriptId, setPendingScriptId] = useState<string | null>(null);
 
   // 移动端可折叠区块状态
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -49,6 +57,25 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = () => {
 
   const currentSeat = gameState.seats.find(s => s.userId === user.id);
   const currentNightRoleId = gameState.nightQueue[gameState.nightCurrentIndex];
+
+  const handleScriptChange = (newScriptId: string) => {
+    const hasRoles = gameState.seats.some(s => s.roleId);
+    if (hasRoles) {
+      setPendingScriptId(newScriptId);
+      setIsScriptConfirmOpen(true);
+    } else {
+      setScript(newScriptId);
+    }
+  };
+
+  const confirmScriptChange = () => {
+    if (pendingScriptId) {
+      useStore.getState().resetRoles();
+      setScript(pendingScriptId);
+      setPendingScriptId(null);
+    }
+    setIsScriptConfirmOpen(false);
+  };
 
   return (
     <div className="h-full overflow-y-auto p-4 space-y-6 scrollbar-thin">
@@ -68,43 +95,16 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = () => {
           <div className="bg-stone-900 p-3 rounded border border-stone-700">
             <div className="flex justify-between items-center mb-2">
               <label className="text-xs font-bold text-stone-500 uppercase block">📖 剧本 (Script)</label>
-              <label className="cursor-pointer text-[10px] text-blue-400 hover:text-blue-300 border border-blue-900/50 px-2 py-0.5 rounded bg-blue-950/20 transition-colors">
-                📥 导入 (Import)
-                <input
-                  type="file"
-                  accept=".json"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (ev) => {
-                        const content = ev.target?.result as string;
-                        if (content) useStore.getState().importScript(content);
-                      };
-                      reader.readAsText(file);
-                    }
-                    e.target.value = ''; // Reset
-                  }}
-                />
-              </label>
+              <button
+                onClick={() => setShowScriptManager(true)}
+                className="text-[10px] text-blue-400 hover:text-blue-300 border border-blue-900/50 px-2 py-0.5 rounded bg-blue-950/20 transition-colors flex items-center gap-1"
+              >
+                <span>🛠️</span> 管理剧本 (Manage)
+              </button>
             </div>
             <select
               value={gameState.currentScriptId}
-              onChange={(e) => {
-                const newScriptId = e.target.value;
-                // Check if any roles are distributed
-                const hasRoles = gameState.seats.some(s => s.roleId);
-
-                if (hasRoles) {
-                  if (window.confirm('切换剧本将清除所有已分发的角色。是否继续？')) {
-                    useStore.getState().resetRoles();
-                    setScript(newScriptId);
-                  }
-                } else {
-                  setScript(newScriptId);
-                }
-              }}
+              onChange={(e) => handleScriptChange(e.target.value)}
               className="w-full bg-stone-950 border border-stone-700 rounded text-sm text-stone-300 p-2"
             >
               <optgroup label="官方剧本">
@@ -498,6 +498,24 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = () => {
       )}
 
       {/* --- Modals --- */}
+      <ConfirmModal
+        isOpen={isScriptConfirmOpen}
+        title="切换剧本确认"
+        message="切换剧本将清除所有玩家的当前角色分配。此操作不可撤销。\n\n确定要继续吗？"
+        confirmText="切换并重置角色"
+        cancelText="取消"
+        isDangerous={true}
+        onConfirm={confirmScriptChange}
+        onCancel={() => {
+          setIsScriptConfirmOpen(false);
+          setPendingScriptId(null);
+        }}
+      />
+
+      {showScriptManager && createPortal(
+        <ScriptManager onClose={() => setShowScriptManager(false)} />,
+        document.body
+      )}
       {showCompositionGuide && gameState?.seats && createPortal(
         <ScriptCompositionGuide
           onClose={() => setShowCompositionGuide(false)}

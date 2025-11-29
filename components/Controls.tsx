@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useStore } from '../store';
 import { ROLES, PHASE_LABELS, SCRIPTS, Z_INDEX } from '../constants';
 import { Chat } from './Chat';
-import { HistoryViewer } from './HistoryViewer';
+import { GameHistoryView } from './GameHistoryView';
 import { NightActionPanel } from './NightActionPanel';
 import { StorytellerNotebook } from './StorytellerNotebook';
 import { PlayerNotebook } from './PlayerNotebook';
@@ -12,6 +12,7 @@ import { RoleReferencePanel } from './RoleReferencePanel';
 import { ScriptCompositionGuide } from './ScriptCompositionGuide';
 import { ControlsSTSection } from './ControlsSTSection';
 import { ControlsPlayerSection } from './ControlsPlayerSection';
+import { ControlsAudioTab } from './ControlsAudioTab';
 
 interface ControlsProps {
     onClose?: () => void; // For mobile drawer closing
@@ -31,9 +32,9 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const clearAiMessages = useStore(state => state.clearAiMessages);
     const deleteAiMessage = useStore(state => state.deleteAiMessage);
 
-    const [activeTab, setActiveTab] = useState<'game' | 'chat' | 'ai' | 'notebook'>(() => {
+    const [activeTab, setActiveTab] = useState<'game' | 'chat' | 'ai' | 'notebook' | 'audio'>(() => {
         const saved = localStorage.getItem('grimoire_active_tab');
-        return (saved === 'game' || saved === 'chat' || saved === 'ai' || saved === 'notebook') ? saved : 'game';
+        return (saved === 'game' || saved === 'chat' || saved === 'ai' || saved === 'notebook' || saved === 'audio') ? saved : 'game';
     });
 
     useEffect(() => {
@@ -222,6 +223,14 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                         <span className="text-lg md:text-base mr-1">🤖</span> 助手
                     </button>
                 )}
+                {user.isStoryteller && (
+                    <button
+                        onClick={() => setActiveTab('audio')}
+                        className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'audio' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
+                    >
+                        <span className="text-lg md:text-base mr-1">🎵</span> 音效
+                    </button>
+                )}
                 <button
                     onClick={() => setActiveTab('notebook')}
                     className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'notebook' ? 'border-amber-600 text-amber-500 bg-stone-900' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/50'}`}
@@ -353,11 +362,16 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                         {user.isStoryteller ? <StorytellerNotebook /> : <PlayerNotebook />}
                     </div>
                 )}
+
+                {/* Tab: Audio */}
+                {activeTab === 'audio' && user.isStoryteller && (
+                    <ControlsAudioTab />
+                )}
             </div>
 
             {/* --- Modals (Portaled to body to avoid z-index/transform issues) --- */}
             {showHistory && createPortal(
-                <HistoryViewer onClose={() => setShowHistory(false)} />,
+                <GameHistoryView onClose={() => setShowHistory(false)} />,
                 document.body
             )}
             {showRoleReference && createPortal(

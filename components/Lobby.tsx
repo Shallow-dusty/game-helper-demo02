@@ -5,8 +5,11 @@ import { AUDIO_TRACKS } from '../constants';
 
 export const Lobby = () => {
     const login = useStore(state => state.login);
+    const spectateGame = useStore(state => state.spectateGame);
     const [name, setName] = useState('');
     const [isST, setIsST] = useState(false);
+    const [isSpectating, setIsSpectating] = useState(false);
+    const [roomCode, setRoomCode] = useState('');
 
     // Local Audio for Lobby
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -21,13 +24,13 @@ export const Lobby = () => {
             setHasInteracted(true); // 直接标记为已交互，跳过音频提示
             return;
         }
-        
+
         // Preload Lobby Music
         const audio = new Audio(lobbyTrack.url);
         audio.loop = true;
         audio.volume = 0.4;
         audioRef.current = audio;
-        
+
         // 添加错误处理
         const handleError = () => {
             console.log('Lobby audio failed to load, skipping');
@@ -59,6 +62,32 @@ export const Lobby = () => {
 
     const handleJoin = (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSpectating) {
+            if (roomCode.length === 4) {
+                if (audioRef.current) {
+                    // Fade out lobby music
+                    let vol = 0.4;
+                    fadeIntervalRef.current = setInterval(() => {
+                        vol -= 0.05;
+                        if (vol <= 0) {
+                            if (fadeIntervalRef.current) {
+                                clearInterval(fadeIntervalRef.current);
+                                fadeIntervalRef.current = null;
+                            }
+                            if (audioRef.current) {
+                                audioRef.current.pause();
+                                audioRef.current.src = '';
+                            }
+                        } else if (audioRef.current) {
+                            audioRef.current.volume = Math.max(0, vol);
+                        }
+                    }, 100);
+                }
+                spectateGame(roomCode);
+            }
+            return;
+        }
+
         if (name.trim()) {
             if (audioRef.current) {
                 // Fade out lobby music
@@ -118,39 +147,83 @@ export const Lobby = () => {
                     )}
 
                     <form onSubmit={handleJoin} className="space-y-6 md:space-y-8">
-                        <div className="space-y-2">
-                            <label className="block text-sm font-bold text-red-700 uppercase tracking-wider font-cinzel">你的名讳</label>
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="w-full bg-stone-900/50 border-b-2 border-stone-700 px-4 py-4 text-xl text-stone-100 focus:border-red-700 focus:bg-stone-900 outline-none transition-all placeholder-stone-700 font-serif rounded-t"
-                                placeholder="请输入您的名字..."
-                                required
-                                autoComplete="off"
-                            />
-                        </div>
+                        {!isSpectating ? (
+                            <>
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-bold text-red-700 uppercase tracking-wider font-cinzel">你的名讳</label>
+                                    <input
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="w-full bg-stone-900/50 border-b-2 border-stone-700 px-4 py-4 text-xl text-stone-100 focus:border-red-700 focus:bg-stone-900 outline-none transition-all placeholder-stone-700 font-serif rounded-t"
+                                        placeholder="请输入您的名字..."
+                                        required
+                                        autoComplete="off"
+                                    />
+                                </div>
 
-                        <div
-                            className="flex items-center gap-4 p-4 bg-black/30 border border-stone-800 rounded hover:border-stone-600 cursor-pointer transition-colors group/checkbox active:bg-black/50"
-                            onClick={() => setIsST(!isST)}
-                        >
-                            <div className={`w-8 h-8 md:w-6 md:h-6 border-2 flex items-center justify-center transition-all flex-shrink-0 ${isST ? 'bg-red-900 border-red-700 rotate-180' : 'border-stone-600'}`}>
-                                {isST && <span className="text-white text-sm">✦</span>}
+                                <div
+                                    className="flex items-center gap-4 p-4 bg-black/30 border border-stone-800 rounded hover:border-stone-600 cursor-pointer transition-colors group/checkbox active:bg-black/50"
+                                    onClick={() => setIsST(!isST)}
+                                >
+                                    <div className={`w-8 h-8 md:w-6 md:h-6 border-2 flex items-center justify-center transition-all flex-shrink-0 ${isST ? 'bg-red-900 border-red-700 rotate-180' : 'border-stone-600'}`}>
+                                        {isST && <span className="text-white text-sm">✦</span>}
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-stone-300 font-cinzel font-bold group-hover/checkbox:text-red-400 transition-colors text-lg md:text-base">我是说书人 (Storyteller)</span>
+                                        <span className="text-xs text-stone-600">上帝视角 / 操控全局 / 只有一名</span>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-blue-500 uppercase tracking-wider font-cinzel">房间号码</label>
+                                <input
+                                    type="text"
+                                    maxLength={4}
+                                    value={roomCode}
+                                    onChange={(e) => setRoomCode(e.target.value)}
+                                    className="w-full bg-stone-900/50 border-b-2 border-stone-700 px-4 py-4 text-3xl text-center text-stone-100 focus:border-blue-500 focus:bg-stone-900 outline-none transition-all placeholder-stone-700 font-cinzel tracking-[0.5em] rounded-t"
+                                    placeholder="8888"
+                                    required
+                                    autoComplete="off"
+                                />
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-stone-300 font-cinzel font-bold group-hover/checkbox:text-red-400 transition-colors text-lg md:text-base">我是说书人 (Storyteller)</span>
-                                <span className="text-xs text-stone-600">上帝视角 / 操控全局 / 只有一名</span>
-                            </div>
-                        </div>
+                        )}
 
                         <button
                             type="submit"
-                            className="w-full bg-gradient-to-r from-red-950 to-red-900 hover:from-red-900 hover:to-red-800 text-stone-200 font-bold py-5 md:py-4 rounded border border-red-950 shadow-lg transition-all hover:shadow-[0_0_20px_rgba(120,0,0,0.3)] active:scale-[0.98] font-cinzel text-xl md:text-lg tracking-widest"
+                            className={`w-full font-bold py-5 md:py-4 rounded border shadow-lg transition-all active:scale-[0.98] font-cinzel text-xl md:text-lg tracking-widest ${isSpectating
+                                    ? 'bg-gradient-to-r from-blue-950 to-blue-900 hover:from-blue-900 hover:to-blue-800 border-blue-950 text-blue-100 hover:shadow-[0_0_20px_rgba(0,0,120,0.3)]'
+                                    : 'bg-gradient-to-r from-red-950 to-red-900 hover:from-red-900 hover:to-red-800 border-red-950 text-stone-200 hover:shadow-[0_0_20px_rgba(120,0,0,0.3)]'
+                                }`}
                         >
-                            进入小镇
+                            {isSpectating ? '进入旁观 (SPECTATE)' : '进入小镇 (ENTER)'}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setIsSpectating(!isSpectating)}
+                            className="w-full bg-transparent hover:bg-stone-900 text-stone-500 hover:text-stone-300 font-bold py-3 rounded border border-stone-800 hover:border-stone-600 transition-all font-cinzel text-sm tracking-widest"
+                        >
+                            {isSpectating ? '返回登录 (Back)' : '旁观模式 (Spectate)'}
                         </button>
                     </form>
+
+                    {/* QR Code Share */}
+                    <div className="mt-6 pt-6 border-t border-stone-800/50 flex flex-col items-center gap-4">
+                        <div className="text-stone-500 text-xs font-cinzel tracking-widest uppercase">
+                            INVITE PLAYERS
+                        </div>
+                        <div className="bg-white p-2 rounded shadow-lg">
+                            <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href)}&bgcolor=ffffff`}
+                                alt="Room QR Code"
+                                className="w-32 h-32 md:w-40 md:h-40"
+                            />
+                        </div>
+                        <p className="text-[10px] text-stone-600">扫描二维码加入房间</p>
+                    </div>
                 </div>
 
                 <p className="text-center text-stone-600 text-xs mt-8 font-serif italic pb-8 md:pb-16">

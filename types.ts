@@ -1,4 +1,13 @@
 
+export interface User {
+  id: string;
+  name: string;
+  isStoryteller: boolean;
+  roomId: string | null;
+  isSeated: boolean;
+  isObserver?: boolean;
+}
+
 export type GamePhase = 'SETUP' | 'NIGHT' | 'DAY' | 'NOMINATION' | 'VOTING';
 
 export type Team = 'TOWNSFOLK' | 'OUTSIDER' | 'MINION' | 'DEMON' | 'TRAVELER';
@@ -207,16 +216,19 @@ export interface GameState {
   voiceRoomUrl?: string;
 }
 
-export interface User {
-  id: string;
-  name: string;
-  isStoryteller: boolean;
-  roomId: string | null;
-  isSeated?: boolean; // New: Track if user has taken a seat
-}
-
-export interface ScriptDef {
-  id: string;
-  name: string;
-  roles: string[]; // Role IDs
+export interface GameHistory {
+  id: number;
+  room_code: string;
+  winner: 'GOOD' | 'EVIL' | null;
+  reason: string;
+  script_name: string;
+  created_at: string;
+  players: {
+    name: string;
+    role: string | null;
+    team: Team | null;
+    isDead: boolean;
+  }[];
+  messages: ChatMessage[];
+  state: GameState;
 }

@@ -92,25 +92,25 @@ export const ControlsAITab: React.FC = () => {
           <select
             value={aiProvider}
             onChange={(e) => setAiProvider(e.target.value as AiProvider)}
-            className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1"
+            className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1 max-w-[200px]"
           >
-            <optgroup label="✅ 官方直连 (推荐)">
-              <option value="deepseek">DeepSeek V3 (Chat) {aiConfig.deepseek.apiKey ? '✓' : '✗'}</option>
-              <option value="deepseek_r1">DeepSeek R1 (Reasoner) {aiConfig.deepseek_r1.apiKey ? '✓' : '✗'}</option>
-            </optgroup>
-            <optgroup label="🌐 官方 (需代理/VPN)">
-              <option value="gemini">Gemini 2.0 Flash {aiConfig.gemini.apiKey ? '✓' : '✗'}</option>
-              <option value="kimi">Kimi (Moonshot) {aiConfig.kimi.apiKey ? '✓' : '✗'}</option>
+            <optgroup label="✅ 官方直连 (Official)">
+              {Object.entries(aiConfig)
+                .filter(([key]) => !key.startsWith('sf_'))
+                .map(([key, config]) => (
+                  <option key={key} value={key}>
+                    {config.name} {config.apiKey ? '✓' : '✗'}
+                  </option>
+                ))}
             </optgroup>
             <optgroup label="⚡ SiliconFlow (高速中转)">
-              <option value="sf_deepseek_v3">DeepSeek V3 Pro {aiConfig.sf_deepseek_v3.apiKey ? '✓' : '✗'}</option>
-              <option value="sf_r1">DeepSeek R1 (Full) {aiConfig.sf_r1.apiKey ? '✓' : '✗'}</option>
-              <option value="sf_r1_llama_70b">R1 Llama 70B {aiConfig.sf_r1_llama_70b.apiKey ? '✓' : '✗'}</option>
-              <option value="sf_r1_qwen_32b">R1 Qwen 32B {aiConfig.sf_r1_qwen_32b.apiKey ? '✓' : '✗'}</option>
-              <option value="sf_minimax_m2">MiniMax M2 {aiConfig.sf_minimax_m2.apiKey ? '✓' : '✗'}</option>
-              <option value="sf_glm_4_6">GLM 4.6 {aiConfig.sf_glm_4_6.apiKey ? '✓' : '✗'}</option>
-              <option value="sf_qwen_32b_vl">Qwen3 VL 32B {aiConfig.sf_qwen_32b_vl.apiKey ? '✓' : '✗'}</option>
-              <option value="sf_qwen_32b_vl_thinking">Qwen3 VL 32B (Thinking) {aiConfig.sf_qwen_32b_vl_thinking.apiKey ? '✓' : '✗'}</option>
+              {Object.entries(aiConfig)
+                .filter(([key]) => key.startsWith('sf_'))
+                .map(([key, config]) => (
+                  <option key={key} value={key}>
+                    {config.name} {config.apiKey ? '✓' : '✗'}
+                  </option>
+                ))}
             </optgroup>
           </select>
         </div>

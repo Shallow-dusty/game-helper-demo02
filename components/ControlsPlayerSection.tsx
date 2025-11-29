@@ -113,8 +113,8 @@ const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, g
                     onClick={handleActivate}
                     disabled={!canUse}
                     className={`w-full py-2 px-3 rounded text-sm font-bold flex items-center justify-center gap-2 transition-all ${canUse
-                            ? 'bg-amber-900/50 hover:bg-amber-800/50 text-amber-200 border border-amber-700 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
-                            : 'bg-stone-800 text-stone-600 border border-stone-700 cursor-not-allowed'
+                        ? 'bg-amber-900/50 hover:bg-amber-800/50 text-amber-200 border border-amber-700 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                        : 'bg-stone-800 text-stone-600 border border-stone-700 cursor-not-allowed'
                         }`}
                 >
                     <span>{abilityConfig.icon}</span>
@@ -177,6 +177,7 @@ interface PlayerRoleCardProps {
 
 const PlayerRoleCard: React.FC<PlayerRoleCardProps> = ({ role, seat, gamePhase }) => {
     const [skillDescriptionMode, setSkillDescriptionMode] = useState<'simple' | 'detailed'>('simple');
+    const [isFlipped, setIsFlipped] = useState(false);
 
     // Load preference from localStorage
     useEffect(() => {
@@ -186,45 +187,66 @@ const PlayerRoleCard: React.FC<PlayerRoleCardProps> = ({ role, seat, gamePhase }
         }
     }, []);
 
-    const toggleSkillMode = () => {
+    const toggleSkillMode = (e: React.MouseEvent) => {
+        e.stopPropagation();
         const newMode = skillDescriptionMode === 'simple' ? 'detailed' : 'simple';
         setSkillDescriptionMode(newMode);
         localStorage.setItem('skillDescriptionMode', newMode);
     };
 
     return (
-        <div className="px-4 pb-4 border-b border-stone-800 bg-stone-950/50">
-            <div className="p-4 bg-stone-900 rounded border border-stone-700 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-1 opacity-20 text-4xl">
-                    {role.team === 'DEMON' ? '👿' : role.team === 'MINION' ? '🧪' : '⚜️'}
-                </div>
-                <div className="flex justify-between items-center mb-2">
-                    <div className="font-bold flex items-center gap-2 text-lg font-cinzel" style={{ color: TEAM_COLORS[role.team] }}>
-                        <span>{role.name}</span>
+        <div className="px-4 pb-4 border-b border-stone-800 bg-stone-950/50 perspective-[1000px]">
+            <div
+                className={`relative transition-all duration-700 transform-style-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
+                onClick={() => setIsFlipped(!isFlipped)}
+            >
+                {/* Front Face (Card Back / Cover) */}
+                <div className="absolute inset-0 backface-hidden z-10 rounded border border-stone-700 bg-stone-900 shadow-xl flex flex-col items-center justify-center overflow-hidden group">
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1605806616949-1e87b487bc2a?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                    <div className="w-20 h-20 rounded-full border-2 border-stone-600 flex items-center justify-center mb-4 bg-stone-950/50 backdrop-blur-sm group-hover:scale-110 transition-transform duration-500">
+                        <span className="text-4xl">👁️</span>
                     </div>
-                    <button
-                        onClick={toggleSkillMode}
-                        className="text-[10px] px-2 py-1 bg-stone-800 hover:bg-stone-700 text-stone-400 rounded border border-stone-600 transition-colors"
-                        title="切换详细/简略描述"
-                    >
-                        {skillDescriptionMode === 'simple' ? '详细' : '简略'}
-                    </button>
+                    <h3 className="text-xl font-cinzel font-bold text-stone-400 tracking-widest group-hover:text-stone-200 transition-colors">点击查看身份</h3>
+                    <p className="text-xs text-stone-600 mt-2 font-serif italic">CONFIDENTIAL</p>
                 </div>
-                <span className="text-[10px] opacity-70 border border-current px-1.5 py-0.5 rounded uppercase tracking-widest" style={{ color: TEAM_COLORS[role.team] }}>
-                    {role.team === 'TOWNSFOLK' ? '村民' :
-                        role.team === 'MINION' ? '爪牙' :
-                            role.team === 'DEMON' ? '恶魔' : '外来者'}
-                </span>
-                {skillDescriptionMode === 'detailed' && (
-                    <p className="text-sm text-stone-400 mt-3 leading-relaxed italic border-t border-stone-800 pt-2">{role.ability}</p>
-                )}
 
-                {/* Active Ability Button for roles like Slayer, Virgin, Artist */}
-                <ActiveAbilityButton
-                    role={role}
-                    seat={seat}
-                    gamePhase={gamePhase}
-                />
+                {/* Back Face (Actual Role Content) */}
+                <div className="relative backface-hidden rotate-y-180 bg-stone-900 rounded border border-stone-700 overflow-hidden">
+                    <div className="p-4">
+                        <div className="absolute top-0 right-0 p-1 opacity-20 text-4xl">
+                            {role.team === 'DEMON' ? '👿' : role.team === 'MINION' ? '🧪' : '⚜️'}
+                        </div>
+                        <div className="flex justify-between items-center mb-2">
+                            <div className="font-bold flex items-center gap-2 text-lg font-cinzel" style={{ color: TEAM_COLORS[role.team] }}>
+                                <span>{role.name}</span>
+                            </div>
+                            <button
+                                onClick={toggleSkillMode}
+                                className="text-[10px] px-2 py-1 bg-stone-800 hover:bg-stone-700 text-stone-400 rounded border border-stone-600 transition-colors z-20 relative"
+                                title="切换详细/简略描述"
+                            >
+                                {skillDescriptionMode === 'simple' ? '详细' : '简略'}
+                            </button>
+                        </div>
+                        <span className="text-[10px] opacity-70 border border-current px-1.5 py-0.5 rounded uppercase tracking-widest" style={{ color: TEAM_COLORS[role.team] }}>
+                            {role.team === 'TOWNSFOLK' ? '村民' :
+                                role.team === 'MINION' ? '爪牙' :
+                                    role.team === 'DEMON' ? '恶魔' : '外来者'}
+                        </span>
+                        {skillDescriptionMode === 'detailed' && (
+                            <p className="text-sm text-stone-400 mt-3 leading-relaxed italic border-t border-stone-800 pt-2">{role.ability}</p>
+                        )}
+
+                        {/* Active Ability Button */}
+                        <div onClick={e => e.stopPropagation()}>
+                            <ActiveAbilityButton
+                                role={role}
+                                seat={seat}
+                                gamePhase={gamePhase}
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

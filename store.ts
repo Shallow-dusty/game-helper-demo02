@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { GameState, User, GamePhase, ChatMessage, SeatStatus, Seat, NightActionRequest } from './types';
+import { GameState, User, GamePhase, ChatMessage, SeatStatus, Seat, NightActionRequest, GameHistory } from './types';
 import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS, PHASE_AUDIO_MAP, AUDIO_TRACKS } from './constants';
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
@@ -268,8 +268,6 @@ const addSystemMessage = (gameState: GameState, content: string) => {
     });
 };
 
-
-
 const fallbackTownsfolk = ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller', 'undertaker', 'monk', 'ravenkeeper'];
 
 const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: string | null) => {
@@ -340,6 +338,7 @@ export interface AppState {
     login: (name: string, isStoryteller: boolean) => void;
     createGame: (seatCount: number) => Promise<void>;
     joinGame: (roomCode: string) => Promise<void>;
+    spectateGame: (roomCode: string) => Promise<void>;
     leaveGame: () => void;
 
     joinSeat: (seatId: number) => Promise<void>;
@@ -357,6 +356,10 @@ export interface AppState {
     addReminder: (seatId: number, text: string, icon?: string, color?: string) => void;
     removeReminder: (id: string) => void;
     setRoleReferenceMode: (mode: 'modal' | 'sidebar') => void;
+    toggleSidebar: () => void;
+    openRolePanel: () => void;
+    closeRolePanel: () => void;
+    importScript: (jsonContent: string) => void;
 
     askAi: (prompt: string) => Promise<void>;
     setAiProvider: (provider: AiProvider) => void;
@@ -402,24 +405,17 @@ export interface AppState {
     resolveNightAction: (requestId: string, result: string) => void;
     getPendingNightActions: () => NightActionRequest[];
 
-    importScript: (jsonContent: string) => void;
-
-    // Sync & History
-    syncToCloud: () => Promise<void>;
-    refreshFromCloud: () => Promise<void>;
-    sync: () => void;
-    saveGameHistory: (gameState: GameState) => Promise<void>;
-
-    // UI State
-    openRolePanel: () => void;
-    closeRolePanel: () => void;
-    toggleSidebar: () => void;
-    toggleSkillDescriptionMode: () => void;
-    handlePlayerSeating: (seatId: number) => void;
-
     // AI
     clearAiMessages: () => void;
     deleteAiMessage: (id: string) => void;
+
+    // History
+    fetchGameHistory: () => Promise<GameHistory[]>;
+    saveGameHistory: (game: GameState) => Promise<void>;
+
+    // Sync
+    sync: () => void;
+    syncToCloud: () => Promise<void>;
 }
 
 export const useStore = create<AppState>()(
@@ -441,7 +437,7 @@ export const useStore = create<AppState>()(
                 id = Math.random().toString(36).substring(7);
                 localStorage.setItem('grimoire_uid', id);
             }
-            const newUser: User = { id, name, isStoryteller, roomId: null };
+            const newUser: User = { id, name, isStoryteller, roomId: null, isSeated: false };
             set({ user: newUser });
 
             // 注意：不再自动重连，改为在 RoomSelection 中显示"继续上次游戏"按钮
@@ -596,11 +592,78 @@ export const useStore = create<AppState>()(
             }
         },
 
+        spectateGame: async (roomCode) => {
+            set({ connectionStatus: 'connecting' });
+
+            try {
+                // 1. Fetch Room
+                const { data, error } = await supabase
+                    .from('game_rooms')
+                    .select('data')
+                    .eq('room_code', roomCode)
+                    .single();
+
+                if (error || !data) {
+                    void getToastFunctions().then(({ showError }) => showError("房间不存在或已关闭！"));
+                    set({ connectionStatus: 'disconnected' });
+                    return;
+                }
+
+                const gameState = data.data as GameState;
+
+                // 2. Subscribe (Read Only)
+                if (realtimeChannel) void supabase.removeChannel(realtimeChannel);
+
+                const channel = supabase.channel(`room:${roomCode}`)
+                    .on(
+                        'postgres_changes',
+                        { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `room_code=eq.${roomCode}` },
+                        (payload) => {
+                            if (payload.new?.data) {
+                                isReceivingUpdate = true;
+                                set({ gameState: payload.new.data });
+                                isReceivingUpdate = false;
+                            }
+                        }
+                    )
+                    .subscribe((status) => {
+                        if (status === 'SUBSCRIBED') {
+                            set({ connectionStatus: 'connected', isOffline: false });
+                        } else if (status === 'CLOSED') {
+                            set({ connectionStatus: 'disconnected' });
+                        } else if (status === 'CHANNEL_ERROR') {
+                            set({ connectionStatus: 'reconnecting' });
+                        }
+                    });
+
+                realtimeChannel = channel;
+
+                // Set GameState and Observer User
+                set({
+                    gameState: gameState,
+                    connectionStatus: 'connected',
+                    user: {
+                        id: 'observer-' + Date.now(),
+                        name: 'Observer',
+                        isStoryteller: false,
+                        roomId: roomCode,
+                        isObserver: true,
+                        isSeated: false
+                    }
+                });
+
+            } catch (error: any) {
+                console.error("Spectate Game Error:", error);
+                set({ connectionStatus: 'disconnected' });
+                void getToastFunctions().then(({ showError }) => showError?.(`连接失败: ${error.message}`));
+            }
+        },
+
         leaveGame: () => {
             const user = get().user;
             const state = get().gameState;
 
-            if (!get().isOffline && state && user) {
+            if (!get().isOffline && state && user && !user.isObserver) {
                 const seat = state.seats.find(s => s.userId === user.id);
                 if (seat) {
                     seat.userId = null;
@@ -1288,6 +1351,22 @@ export const useStore = create<AppState>()(
             void get().syncToCloud();
         },
 
+        setRoleReferenceMode: (mode) => {
+            set({ roleReferenceMode: mode });
+        },
+
+        toggleSidebar: () => {
+            set(state => ({ isSidebarExpanded: !state.isSidebarExpanded }));
+        },
+
+        openRolePanel: () => {
+            set({ isRolePanelOpen: true });
+        },
+
+        closeRolePanel: () => {
+            set({ isRolePanelOpen: false });
+        },
+
         setAudioTrack: (trackId) => {
             const { gameState, user } = get();
             if (!gameState || !user?.isStoryteller) return;
@@ -1524,6 +1603,29 @@ export const useStore = create<AppState>()(
                 gameState.voteHistory.push(voteRecord);
             }
 
+            // Fix: Refund ghost votes if cancelled
+            if (gameState.voting && gameState.voting.votes.length > 0) {
+                // Check if we are cancelling (either explicit cancel or implicit via this function)
+                // The logic above sets result to 'cancelled' if not executed/survived.
+                // However, closeVote is often called to FORCE cancel.
+                // Let's assume if it wasn't a completed vote (which is handled in nextClockHand usually), it's a cancel.
+                // Actually, nextClockHand handles the 'executed'/'survived' logic and closes the vote.
+                // closeVote is typically manual intervention or "Cancel".
+
+                // If we are here, it means we are manually closing/cancelling.
+                // We should refund ghost votes for anyone who voted in this incomplete/cancelled round.
+                gameState.voting.votes.forEach(voterSeatId => {
+                    const voter = gameState.seats.find(s => s.id === voterSeatId);
+                    if (voter && voter.isDead) {
+                        voter.hasGhostVote = true;
+                        // Optional: Add individual message? Might be too spammy.
+                    }
+                });
+                if (gameState.voting.votes.some(sid => gameState.seats.find(s => s.id === sid)?.isDead)) {
+                    addSystemMessage(gameState, `👻 投票取消，已归还死者投出的幽灵票。`);
+                }
+            }
+
             gameState.phase = 'DAY';
             gameState.voting = null;
             gameState.seats.forEach(s => {
@@ -1531,7 +1633,7 @@ export const useStore = create<AppState>()(
                 s.isNominated = false;
                 s.voteLocked = false;
             });
-            addSystemMessage(gameState, `投票被取消。`);
+            addSystemMessage(gameState, `投票被取消/结束。`);
             set({ gameState: { ...gameState } });
             void get().syncToCloud();
         },
@@ -1695,20 +1797,15 @@ export const useStore = create<AppState>()(
 
                 if (error) throw error;
                 console.log("✅ 游戏记录已保存");
+
+                const currentGameState = get().gameState;
+                if (currentGameState) {
+                    set({ gameState: { ...currentGameState } });
+                }
+                void get().syncToCloud();
             } catch (err) {
-                console.error("Failed to save game history:", err);
+                console.error("Error saving history:", err);
             }
-        },
-
-        clearAiMessages: () => {
-            const { gameState, user } = get();
-            if (!gameState || !user?.isStoryteller) return;
-
-            // 清空 aiMessages 数组
-            gameState.aiMessages = [];
-
-            set({ gameState: { ...gameState } });
-            void get().syncToCloud();
         },
 
         deleteAiMessage: (messageId: string) => {
@@ -1716,6 +1813,16 @@ export const useStore = create<AppState>()(
             if (!gameState || !user?.isStoryteller) return;
 
             gameState.aiMessages = gameState.aiMessages.filter(m => m.id !== messageId);
+
+            set({ gameState: { ...gameState } });
+            void get().syncToCloud();
+        },
+
+        clearAiMessages: () => {
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
+
+            gameState.aiMessages = [];
 
             set({ gameState: { ...gameState } });
             void get().syncToCloud();
@@ -1776,21 +1883,7 @@ export const useStore = create<AppState>()(
             void get().syncToCloud();
         },
 
-        setRoleReferenceMode: (mode: 'modal' | 'sidebar') => {
-            set({ roleReferenceMode: mode });
-        },
 
-        toggleSidebar: () => {
-            set({ isSidebarExpanded: !get().isSidebarExpanded });
-        },
-
-        openRolePanel: () => {
-            set({ isRolePanelOpen: true });
-        },
-
-        closeRolePanel: () => {
-            set({ isRolePanelOpen: false });
-        },
 
         distributeRoles: () => {
             const { gameState, user } = get();
@@ -1864,7 +1957,7 @@ export const useStore = create<AppState>()(
             const composition = getComposition(seatCount);
             if (!composition) return;
 
-            const availableRoles = script.roles.map(id => ROLES[id]).filter((r): r is import('./types').RoleDef => !!r);
+            const availableRoles = script.roles.map(id => ROLES[id] as any).filter((r): r is import('./types').RoleDef => !!r);
 
             const townsfolk = availableRoles.filter(r => r.team === 'TOWNSFOLK');
             const outsiders = availableRoles.filter(r => r.team === 'OUTSIDER');
@@ -1937,14 +2030,13 @@ export const useStore = create<AppState>()(
         addVirtualPlayer: (() => {
             let isProcessing = false;
             return () => {
-                if (isProcessing) return; // 防抖：防止快速重复点击
+                if (isProcessing) return; // 防抖
                 isProcessing = true;
-                setTimeout(() => { isProcessing = false; }, 300); // 300ms 防抖间隔
+                setTimeout(() => { isProcessing = false; }, 300);
 
                 const { gameState, user } = get();
                 if (!gameState || !user?.isStoryteller) return;
 
-                // Find first empty seat
                 const emptySeat = gameState.seats.find(s => !s.userId && !s.isVirtual);
                 if (emptySeat) {
                     emptySeat.isVirtual = true;
@@ -1976,13 +2068,10 @@ export const useStore = create<AppState>()(
             }
         },
 
-
-
         submitNightAction: (action) => {
             const { gameState, user } = get();
             if (!gameState || !user) return;
 
-            // Find player's seat
             const seat = gameState.seats.find(s => s.userId === user.id);
             if (!seat) return;
 
@@ -1999,7 +2088,6 @@ export const useStore = create<AppState>()(
                 actionDesc += ` (目标: ${targets.join(', ')})`;
             }
 
-            // 创建夜间行动请求
             const request: NightActionRequest = {
                 id: Math.random().toString(36).substr(2, 9),
                 seatId: seat.id,
@@ -2009,13 +2097,11 @@ export const useStore = create<AppState>()(
                 timestamp: Date.now()
             };
 
-            // 添加到请求队列
             if (!gameState.nightActionRequests) {
                 gameState.nightActionRequests = [];
             }
             gameState.nightActionRequests.push(request);
 
-            // 系统消息通知ST
             addSystemMessage(gameState, `🌑 [夜间] ${seat.userName} ${actionDesc}（等待说书人确认）`);
 
             set({ gameState: { ...gameState } });
@@ -2032,14 +2118,11 @@ export const useStore = create<AppState>()(
             const seat = gameState.seats.find(s => s.id === request.seatId);
             const roleName = ROLES[request.roleId]?.name || request.roleId;
 
-            // 更新请求状态
             request.status = 'resolved';
             request.result = result;
 
-            // 及时清理已处理的请求，避免队列无限增长
             gameState.nightActionRequests = gameState.nightActionRequests.filter(r => r.status !== 'resolved');
 
-            // 发送私信给玩家（通过 InfoCard）
             if (seat?.userId) {
                 const infoCard: import('./types').InfoCard = {
                     type: 'ability',
@@ -2080,7 +2163,6 @@ export const useStore = create<AppState>()(
             const { gameState, user } = get();
             if (!gameState || !user?.isStoryteller) return;
 
-            // Validation
             if (gameState.seats.filter(s => s.userId || s.isVirtual).length < 5) {
                 addSystemMessage(gameState, '❌ 无法开始：玩家人数不足 5 人 (含虚拟玩家)。');
                 return;
@@ -2093,15 +2175,13 @@ export const useStore = create<AppState>()(
             }
 
             gameState.phase = 'NIGHT';
-            gameState.setupPhase = 'STARTED'; // 标记游戏已开始
+            gameState.setupPhase = 'STARTED';
             gameState.nightCurrentIndex = 0;
 
-            // Build night queue
             const inPlayRoles = gameState.seats
                 .filter(s => !s.isDead && s.roleId)
                 .map(s => s.roleId!);
 
-            // First night order
             const firstNightOrder = NIGHT_ORDER_FIRST.filter(id => inPlayRoles.includes(id));
             gameState.nightQueue = firstNightOrder;
 
@@ -2113,9 +2193,7 @@ export const useStore = create<AppState>()(
         handlePlayerSeating: (seatId: number) => {
             const { user, gameState } = get();
             if (!user || !gameState) return;
-
             get().joinSeat(seatId);
-
             const updatedUser = { ...user, isSeated: true };
             set({ user: updatedUser });
         },
@@ -2160,8 +2238,26 @@ export const useStore = create<AppState>()(
             void get().syncToCloud();
         },
 
+        fetchGameHistory: async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('game_history')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(20);
 
-    })));
+                if (error) throw error;
+                return data as GameHistory[];
+            } catch (err) {
+                console.error("Error fetching history:", err);
+                return [];
+            }
+        },
+
+
+
+    }))
+);
 
 // Helper: TB composition rules
 function getComposition(players: number) {
@@ -2192,3 +2288,4 @@ function shuffle<T>(array: T[]): T[] {
     }
     return result;
 }
+

@@ -1,5 +1,5 @@
 
-import { RoleDef, ScriptDef } from './types';
+import { RoleDef, ScriptDefinition } from './types';
 
 // Z-Index 层级管理 - 统一管理所有 z-index 值
 // 层级顺序: base < grimoire < overlay < tooltip < sidebar < sidebarBackdrop < modal < floatingPanel < toast
@@ -607,7 +607,7 @@ export const ROLES: Record<string, RoleDef> = {
   },
 };
 
-export const SCRIPTS: Record<string, ScriptDef> = {
+export const SCRIPTS: Record<string, ScriptDefinition> = {
   'tb': {
     id: 'tb',
     name: '暗流涌动 (Trouble Brewing)',
@@ -735,6 +735,15 @@ export const AUDIO_TRACKS: Record<string, { name: string, url: string, phase?: s
   },
 };
 
+export const SOUND_EFFECTS = [
+  { id: 'drum_roll', name: '🥁 鼓点', url: '/audio/sfx/drum_roll.mp3' },
+  { id: 'shock', name: '😱 震惊', url: '/audio/sfx/shock.mp3' },
+  { id: 'cheer', name: '🎉 欢呼', url: '/audio/sfx/cheer.mp3' },
+  { id: 'bell', name: '🔔 钟声', url: '/audio/sfx/bell.mp3' },
+  { id: 'wolf', name: '🐺 狼嚎', url: '/audio/sfx/wolf.mp3' },
+  { id: 'sword', name: '⚔️ 拔剑', url: '/audio/sfx/sword.mp3' },
+];
+
 // 阶段到音轨的映射
 export const PHASE_AUDIO_MAP: Record<string, string> = {
   SETUP: 'lobby',
@@ -759,4 +768,26 @@ export const STATUS_OPTIONS = [
   { id: 'DRUNK', label: '醉酒 (Drunk)', icon: '🍺' },
   { id: 'PROTECTED', label: '保护 (Protect)', icon: '🛡️' },
   { id: 'MADNESS', label: '疯狂 (Madness)', icon: '🤪' },
+];
+
+export interface JinxDef {
+  id: string;
+  role1: string;
+  role2: string;
+  description: string;
+}
+
+export const JINX_DEFINITIONS: JinxDef[] = [
+  {
+    id: 'spy_virgin',
+    role1: 'spy',
+    role2: 'virgin',
+    description: '💡 规则提示：间谍被视为镇民。若间谍提名处女，间谍将被处决。'
+  },
+  {
+    id: 'drunk_librarian',
+    role1: 'drunk',
+    role2: 'librarian',
+    description: '💡 规则提示：酒鬼被视为镇民。图书管理员不会看到酒鬼作为外来者。'
+  }
 ];

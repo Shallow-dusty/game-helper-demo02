@@ -295,48 +295,42 @@ export const createConnectionSlice: StoreSlice<ConnectionSlice> = (set, get) => 
             gameState: null,
             isOffline: false,
             connectionStatus: 'disconnected',
-            isAiThinking: false,
             isAudioBlocked: false
         });
     },
 
     syncToCloud: async () => {
-        if (get().isOffline) return;
-        if (isReceivingUpdate) return;
+        try {
+            if (get().isOffline) return;
+            if (isReceivingUpdate) return;
 
-        const currentGameState = get().gameState;
-        if (!currentGameState) return;
+            const currentGameState = get().gameState;
+            if (!currentGameState) return;
 
-        const { publicState, secretState } = splitGameState(currentGameState);
+            const { publicState, secretState } = splitGameState(currentGameState);
 
-        // Update Public State
-        const { error: publicError } = await supabase
-            .from('game_rooms')
-            .update({ data: publicState, updated_at: new Date() })
-            .eq('room_code', currentGameState.roomId);
+            // Update Public State
+            const { error: publicError } = await supabase
+                .from('game_rooms')
+                .update({ data: publicState, updated_at: new Date() })
+                .eq('room_code', currentGameState.roomId);
 
-        if (publicError) {
-            console.warn("Sync Public Error:", publicError.message);
-        }
-
-        // Update Secret State (only if we have secret data and are ST)
-        // Note: Even players might trigger sync (e.g. changing seat), but they shouldn't have secret data in their store anyway.
-        // But if they do (bug), we shouldn't let them write to secrets.
-        // Since we don't have RLS enforcement on 'who is ST', we rely on client logic:
-        // Only ST has 'realRoleId' populated in their local state (due to mergeGameState).
-        // Actually, players have 'realRoleId' as null.
-        // So if a player syncs, 'secretState' will contain mostly empty/null data.
-        // We should ONLY write to game_secrets if we are the Storyteller.
-        
-        if (get().user?.isStoryteller) {
-             // Upsert secrets (in case it doesn't exist yet)
-            const { error: secretError } = await supabase
-                .from('game_secrets')
-                .upsert({ room_code: currentGameState.roomId, data: secretState, updated_at: new Date() }, { onConflict: 'room_code' });
-
-            if (secretError) {
-                console.warn("Sync Secret Error:", secretError.message);
+            if (publicError) {
+                console.warn("Sync Public Error:", publicError.message);
             }
+
+            if (get().user?.isStoryteller) {
+                 // Upsert secrets (in case it doesn't exist yet)
+                const { error: secretError } = await supabase
+                    .from('game_secrets')
+                    .upsert({ room_code: currentGameState.roomId, data: secretState, updated_at: new Date() }, { onConflict: 'room_code' });
+
+                if (secretError) {
+                    console.warn("Sync Secret Error:", secretError.message);
+                }
+            }
+        } catch (e) {
+            console.error('DEBUG: syncToCloud ERROR:', e);
         }
     },
 

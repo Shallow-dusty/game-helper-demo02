@@ -186,6 +186,7 @@ export interface GameSlice {
     distributeRoles: () => void;
     hideRoles: () => void;
     startGame: () => void;
+    endGame: (winner: 'GOOD' | 'EVIL', reason: string) => void;
     applyStrategy: (strategyName: string, roleIds: string[]) => void;
 
     // Note Actions
@@ -795,6 +796,20 @@ export const createGameSlice: StoreSlice<GameSlice> = (set, get) => ({
                 });
 
                 addSystemMessage(state.gameState, `已自动分配角色 (${playerCount}人)`);
+            }
+        });
+        get().sync();
+    },
+
+    endGame: (winner, reason) => {
+        set((state) => {
+            if (state.gameState) {
+                state.gameState.gameOver = {
+                    isOver: true,
+                    winner,
+                    reason
+                };
+                addSystemMessage(state.gameState, `游戏结束！${winner === 'GOOD' ? '好人' : '邪恶'} 获胜 - ${reason}`);
             }
         });
         get().sync();

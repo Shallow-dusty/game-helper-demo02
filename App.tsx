@@ -15,6 +15,7 @@ import { WaitingArea } from './components/WaitingArea';
 import { ToastContainer, useToasts } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WelcomeAnnouncement } from './components/WelcomeAnnouncement';
+import { RoleRevealModal } from './components/RoleRevealModal';
 
 import { SandboxView } from './components/SandboxView';
 import { TownSquare } from './components/TownSquare';
@@ -183,6 +184,7 @@ const App = () => {
 
       <WelcomeAnnouncement />
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <RoleRevealModal />
       <PhaseIndicator />
       <WaitingArea />
       <AudioManager />

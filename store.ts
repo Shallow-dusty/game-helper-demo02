@@ -344,6 +344,7 @@ export interface AppState {
     roleReferenceMode: 'modal' | 'sidebar';
     isSidebarExpanded: boolean;
     isRolePanelOpen: boolean;
+    isRoleRevealOpen: boolean; // New: Manual trigger for role reveal modal
 
     login: (name: string, isStoryteller: boolean) => void;
     createGame: (seatCount: number) => Promise<void>;
@@ -369,6 +370,8 @@ export interface AppState {
     toggleSidebar: () => void;
     openRolePanel: () => void;
     closeRolePanel: () => void;
+    openRoleReveal: () => void; // New
+    closeRoleReveal: () => void; // New
     importScript: (jsonContent: string) => void;
 
     // Custom Scripts
@@ -456,6 +459,7 @@ export const useStore = create<AppState>()(
         isSidebarExpanded: false,
 
         isRolePanelOpen: false,
+        isRoleRevealOpen: false,
         isModalOpen: false,
 
         setModalOpen: (isOpen) => {
@@ -1468,6 +1472,14 @@ export const useStore = create<AppState>()(
 
         closeRolePanel: () => {
             set({ isRolePanelOpen: false });
+        },
+
+        openRoleReveal: () => {
+            set({ isRoleRevealOpen: true });
+        },
+
+        closeRoleReveal: () => {
+            set({ isRoleRevealOpen: false });
         },
 
         setAudioTrack: (trackId) => {

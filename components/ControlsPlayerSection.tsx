@@ -248,11 +248,19 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
         <div className="space-y-3">
             {/* Compact Role Display */}
             {role && currentSeat && (
-                <CompactRoleDisplay
-                    role={role}
-                    seat={currentSeat}
-                    gamePhase={gameState.phase}
-                />
+                <div className="space-y-2">
+                    <CompactRoleDisplay
+                        role={role}
+                        seat={currentSeat}
+                        gamePhase={gameState.phase}
+                    />
+                    <button
+                        onClick={() => useStore.getState().openRoleReveal()}
+                        className="w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-400 text-xs rounded border border-stone-700 flex items-center justify-center gap-2 transition-colors"
+                    >
+                        <span>👁️</span> 查看完整身份卡
+                    </button>
+                </div>
             )}
 
             {/* Night Phase UI */}

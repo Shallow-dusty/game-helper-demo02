@@ -6,6 +6,8 @@ import { ROLES, TEAM_COLORS } from '../constants';
 export const RoleRevealModal: React.FC = () => {
     const user = useStore(state => state.user);
     const gameState = useStore(state => state.gameState);
+    const isRoleRevealOpen = useStore(state => state.isRoleRevealOpen);
+    const closeRoleReveal = useStore(state => state.closeRoleReveal);
     
     const [isVisible, setIsVisible] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
@@ -18,6 +20,16 @@ export const RoleRevealModal: React.FC = () => {
     const roleId = currentSeat?.seenRoleId || currentSeat?.roleId;
     const role = roleId ? ROLES[roleId] : null;
 
+    // 监听手动打开请求
+    useEffect(() => {
+        if (isRoleRevealOpen && !isVisible && !isExiting && countdown === null) {
+            console.log('Manual role reveal triggered');
+            setCountdown(3);
+            setIsFlipped(false);
+        }
+    }, [isRoleRevealOpen, isVisible, isExiting, countdown]);
+
+    // 监听自动打开请求
     useEffect(() => {
         if (!gameState || !user || !currentSeat || !role) return;
 
@@ -29,21 +41,15 @@ export const RoleRevealModal: React.FC = () => {
         const storageKey = `grimoire_role_seen_${gameState.roomId}_${user.id}_${role.id}`;
         const hasSeen = localStorage.getItem(storageKey);
 
-        console.warn('RoleRevealModal Check:', { 
-            rolesRevealed: gameState.rolesRevealed, 
-            hasSeen, 
-            isVisible, 
-            isExiting, 
-            countdown,
-            roleId: role.id 
-        });
+        // 如果是手动打开模式，忽略 hasSeen
+        if (isRoleRevealOpen) return;
 
         if (gameState.rolesRevealed && !hasSeen && !isVisible && !isExiting && countdown === null) {
-            console.warn('Starting countdown!');
+            console.warn('Starting countdown (auto)!');
             // 开始倒计时
             setCountdown(3);
         }
-    }, [gameState?.rolesRevealed, gameState?.roomId, user?.id, role?.id]);
+    }, [gameState?.rolesRevealed, gameState?.roomId, user?.id, role?.id, isVisible, isExiting, countdown, isRoleRevealOpen]);
 
     // 倒计时逻辑
     useEffect(() => {
@@ -77,6 +83,7 @@ export const RoleRevealModal: React.FC = () => {
             setIsVisible(false);
             setIsExiting(false);
             setIsFlipped(false);
+            closeRoleReveal(); // 重置 store 状态
         }, 1000);
     };
 

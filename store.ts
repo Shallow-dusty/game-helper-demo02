@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { GameState, User, GamePhase, ChatMessage, SeatStatus, Seat, NightActionRequest, GameHistory } from './types';
 import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS, PHASE_AUDIO_MAP, AUDIO_TRACKS } from './constants';
-import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 
 // --- Toast notification helper (lazy import to avoid circular dependency) ---
@@ -123,69 +122,59 @@ export type AiProvider =
     | 'deepseek'
     | 'gemini'
     | 'kimi'
-    | 'sf_r1'
-    | 'sf_qwen_2_5_72b'
-    | 'sf_glm_4_9b'
-    | 'sf_glm_4_plus'
-    | 'sf_kimi_k2';
+    | 'sf_deepseek_v3_2'
+    | 'sf_minimax_m2'
+    | 'sf_qwen_3_vl'
+    | 'sf_glm_4_6'
+    | 'sf_kimi_k2'
+    | 'sf_kimi_k2_instruct';
 
-const AI_CONFIG: Record<AiProvider, { apiKey: string; baseURL: string; model: string; name: string; note?: string }> = {
+const AI_CONFIG: Record<AiProvider, { model: string; name: string; note?: string }> = {
     deepseek: {
-        apiKey: import.meta.env.VITE_DEEPSEEK_KEY || '',
-        baseURL: 'https://api.deepseek.com',
-        model: 'deepseek-chat', // V3.2
-        name: 'DeepSeek V3.2 (Official)',
+        model: 'deepseek-chat',
+        name: 'DeepSeek V3.2 Exp (Official)',
         note: '✅ 稳定可用，推荐使用'
     },
     gemini: {
-        apiKey: import.meta.env.VITE_GEMINI_KEY || import.meta.env.GEMINI_API_KEY || '',
-        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
         model: 'gemini-2.0-flash-exp',
         name: 'Gemini 2.0 Flash (Exp)',
         note: '⚠️ 国内网络无法访问，需要科学上网'
     },
     kimi: {
-        apiKey: import.meta.env.VITE_KIMI_KEY || '',
-        baseURL: 'https://api.moonshot.cn/v1',
         model: 'moonshot-v1-8k',
         name: 'Kimi (Official)',
         note: '⚠️ 可能有 CORS 问题'
     },
     // SiliconFlow Models - 需要 VITE_SILICONFLOW_KEY
-    sf_r1: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: 'https://api.siliconflow.cn/v1',
-        model: 'deepseek-ai/DeepSeek-R1',
-        name: '🧠 DeepSeek R1 (Full)',
+    sf_deepseek_v3_2: {
+        model: 'deepseek-ai/DeepSeek-V3.2-Exp',
+        name: '🚀 DeepSeek V3.2 Exp (SF)',
         note: '⚠️ SiliconFlow 直连'
     },
-    sf_qwen_2_5_72b: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: 'https://api.siliconflow.cn/v1',
-        model: 'Qwen/Qwen2.5-72B-Instruct',
-        name: '🤖 Qwen 2.5 72B',
-        note: '⚠️ SiliconFlow 直连'
+    sf_minimax_m2: {
+        model: 'MiniMaxAI/MiniMax-M2',
+        name: '🦄 MiniMax M2',
+        note: '⚠️ SiliconFlow 直连 (MoE)'
     },
-    sf_glm_4_9b: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: 'https://api.siliconflow.cn/v1',
-        model: 'THUDM/glm-4-9b-chat',
-        name: '📘 GLM-4 9B',
-        note: '⚠️ SiliconFlow 直连'
+    sf_qwen_3_vl: {
+        model: 'Qwen/Qwen3-VL-32B-Instruct',
+        name: '👁️ Qwen 3 VL 32B',
+        note: '⚠️ SiliconFlow 直连 (视觉模型)'
     },
-    sf_glm_4_plus: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: 'https://api.siliconflow.cn/v1',
-        model: 'THUDM/glm-4-plus',
-        name: '🌟 GLM-4 Plus (Exp)',
-        note: '⚠️ SiliconFlow 直连 (可能不稳定)'
+    sf_glm_4_6: {
+        model: 'zai-org/GLM-4.6',
+        name: '🚀 GLM 4.6',
+        note: '⚠️ SiliconFlow 直连 (最新版)'
     },
     sf_kimi_k2: {
-        apiKey: import.meta.env.VITE_SILICONFLOW_KEY || '',
-        baseURL: 'https://api.siliconflow.cn/v1',
         model: 'moonshotai/Kimi-K2-Thinking',
-        name: '🤔 Kimi K2 Thinking (Exp)',
-        note: '⚠️ SiliconFlow 直连 (可能不稳定)'
+        name: '🤔 Kimi K2 Thinking',
+        note: '⚠️ SiliconFlow 直连 (思考模型)'
+    },
+    sf_kimi_k2_instruct: {
+        model: 'moonshotai/Kimi-K2-Instruct-0905',
+        name: '📚 Kimi K2 Instruct',
+        note: '⚠️ SiliconFlow 直连 (指令模型)'
     }
 };
 
@@ -375,6 +364,7 @@ export interface AppState {
     closeVote: () => void;
 
     // New Actions
+    toggleReady: () => void; // New: Player toggles ready status
     addSeat: () => void;
     removeSeat: () => void;
     addVirtualPlayer: () => void;
@@ -418,6 +408,10 @@ export interface AppState {
     // Sync
     sync: () => void;
     syncToCloud: () => Promise<void>;
+
+    // UI State
+    isModalOpen: boolean;
+    setModalOpen: (isOpen: boolean) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -431,7 +425,13 @@ export const useStore = create<AppState>()(
         aiProvider: 'deepseek',
         roleReferenceMode: 'modal',
         isSidebarExpanded: false,
+
         isRolePanelOpen: false,
+        isModalOpen: false,
+
+        setModalOpen: (isOpen) => {
+            set({ isModalOpen: isOpen });
+        },
 
         login: (name, isStoryteller) => {
             let id = localStorage.getItem('grimoire_uid');
@@ -1256,43 +1256,47 @@ export const useStore = create<AppState>()(
             void get().syncToCloud();
         },
 
-        addSeat: (() => {
-            let isProcessing = false;
-            return () => {
-                if (isProcessing) return; // 防抖：防止快速重复点击
-                isProcessing = true;
-                setTimeout(() => { isProcessing = false; }, 300); // 300ms 防抖间隔
-
-                const { gameState, user } = get();
-                if (!gameState || !user?.isStoryteller) return;
-                // 限制最大座位数为 20
-                if (gameState.seats.length >= 20) {
-                    void getToastFunctions().then(({ showWarning }) => showWarning?.("座位数已达上限 (20)！"));
-                    return;
-                }
-                const newId = gameState.seats.length;
-                gameState.seats = [...gameState.seats, {
-                    id: newId,
-                    userId: null,
-                    userName: `座位 ${newId + 1}`,
-                    isDead: false,
-                    hasGhostVote: true,
-                    roleId: null,
-                    realRoleId: null,
-                    seenRoleId: null,
-                    reminders: [],
-                    isHandRaised: false,
-                    isNominated: false,
-                    hasUsedAbility: false,
-                    statuses: [],
-                    isVirtual: false, // 新增座位默认为空座位，不是虚拟玩家
-                    voteLocked: false
-                }];
-                addSystemMessage(gameState, `添加了新座位 ${newId + 1}`);
+        toggleReady: () => {
+            const { gameState, user } = get();
+            if (!gameState || !user) return;
+            const seat = gameState.seats.find(s => s.userId === user.id);
+            if (seat) {
+                seat.isReady = !seat.isReady;
                 set({ gameState: { ...gameState } });
                 void get().syncToCloud();
-            };
-        })(),
+            }
+        },
+
+        addSeat: () => {
+            const { gameState, user } = get();
+            if (!gameState || !user?.isStoryteller) return;
+            // 限制最大座位数为 20
+            if (gameState.seats.length >= 20) {
+                void getToastFunctions().then(({ showWarning }) => showWarning?.("座位数已达上限 (20)！"));
+                return;
+            }
+            const newId = gameState.seats.length;
+            gameState.seats = [...gameState.seats, {
+                id: newId,
+                userId: null,
+                userName: `座位 ${newId + 1}`,
+                isDead: false,
+                hasGhostVote: true,
+                roleId: null,
+                realRoleId: null,
+                seenRoleId: null,
+                reminders: [],
+                isHandRaised: false,
+                isNominated: false,
+                hasUsedAbility: false,
+                statuses: [],
+                isVirtual: false, // 新增座位默认为空座位，不是虚拟玩家
+                voteLocked: false
+            }];
+            addSystemMessage(gameState, `添加了新座位 ${newId + 1}`);
+            set({ gameState: { ...gameState } });
+            void get().syncToCloud();
+        },
 
         swapSeats: (seatId1, seatId2) => {
             const { gameState, user } = get();
@@ -1744,29 +1748,6 @@ export const useStore = create<AppState>()(
             set({ gameState: { ...gameState } });
 
             try {
-                let config = AI_CONFIG[aiProvider];
-
-                // Fallback if provider is invalid (e.g. removed from config)
-                if (!config) {
-                    console.warn(`Invalid AI provider: ${aiProvider}, falling back to deepseek`);
-                    set({ aiProvider: 'deepseek' });
-                    config = AI_CONFIG.deepseek;
-                }
-
-                if (!config) {
-                    throw new Error('AI Configuration Error: No valid provider found.');
-                }
-
-                if (!config.apiKey) {
-                    throw new Error(`缺少 ${config.name} 的 API Key，请在 .env.local 中配置`);
-                }
-
-                const openai = new OpenAI({
-                    apiKey: config.apiKey,
-                    baseURL: config.baseURL,
-                    dangerouslyAllowBrowser: true // Required for client-side usage
-                });
-
                 const gameContext = {
                     script: SCRIPTS[gameState.currentScriptId]?.name || gameState.customScripts[gameState.currentScriptId]?.name,
                     phase: gameState.phase,
@@ -1779,23 +1760,19 @@ export const useStore = create<AppState>()(
                     nightOrder: gameState.nightQueue.map(r => ROLES[r]?.name || gameState.customRoles[r]?.name),
                 };
 
-                const completion = await openai.chat.completions.create({
-                    messages: [
-                        { role: "system", content: "You are an expert 'Blood on the Clocktower' Storyteller assistant. Keep answers concise and helpful. Respond in Chinese." },
-                        { role: "user", content: `Context: ${JSON.stringify(gameContext)}. User Question: ${prompt}` }
-                    ],
-                    model: config.model,
+                // 调用 Supabase Edge Function
+                const { data, error } = await supabase.functions.invoke('ask-ai', {
+                    body: {
+                        prompt,
+                        gameContext,
+                        aiProvider
+                    }
                 });
 
-                let reply = completion.choices[0]?.message?.content || '';
+                if (error) throw error;
+                if (data.error) throw new Error(data.error);
 
-                // Handle DeepSeek R1 "reasoning_content" if available (some APIs might return it this way)
-                // @ts-ignore
-                const reasoning = completion.choices[0]?.message?.reasoning_content;
-
-                if (reasoning) {
-                    reply = `<think>${reasoning}</think>\n${reply}`;
-                }
+                const reply = data.reply;
 
                 if (reply) {
                     // 添加AI回复到 aiMessages
@@ -1817,14 +1794,8 @@ export const useStore = create<AppState>()(
                 console.error('AI Request Failed:', error);
                 let errorMessage = error.message || 'Unknown error';
 
-                if (errorMessage.includes('401')) {
-                    errorMessage = 'API Key 无效或过期 (401 Unauthorized)';
-                } else if (errorMessage.includes('403')) {
-                    errorMessage = '无权访问该模型 (403 Forbidden) - 请检查余额或权限';
-                } else if (errorMessage.includes('404')) {
-                    errorMessage = '模型不存在或路径错误 (404 Not Found)';
-                } else if (errorMessage.includes('Network Error') || errorMessage.includes('Connection error')) {
-                    errorMessage = 'Connection error. (可能是跨域问题，请尝试使用代理或检查网络)';
+                if (errorMessage.includes('FunctionsFetchError')) {
+                    errorMessage = '无法连接到云函数，请检查网络或部署状态';
                 }
 
                 const errorMsg: ChatMessage = {

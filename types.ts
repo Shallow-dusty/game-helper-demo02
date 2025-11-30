@@ -138,6 +138,7 @@ export interface Seat {
   statuses: SeatStatus[]; // New: Tracks visual/logic statuses like Poisoned
   isVirtual?: boolean; // New: Virtual player for testing/filling
   voteLocked?: boolean; // 新增：时针对该座位结算后锁定投票状态
+  isReady?: boolean; // 新增：准备状态
 }
 
 export interface ChatMessage {

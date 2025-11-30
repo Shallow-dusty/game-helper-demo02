@@ -20,9 +20,12 @@ export const FloatingVoteButton: React.FC = () => {
     // 2. 必须在投票阶段
     // 3. 必须已入座
     // 4. 仅在移动端显示（桌面端使用侧边栏）
+    // 5. 没有打开全屏模态框
+    const isModalOpen = useStore(state => state.isModalOpen);
     const shouldShow = !user?.isStoryteller &&
         gameState?.voting?.isOpen &&
-        currentSeat;
+        currentSeat &&
+        !isModalOpen;
 
     // 死亡且无幽灵票时禁用
     const isDead = currentSeat?.isDead || false;
@@ -66,7 +69,7 @@ export const FloatingVoteButton: React.FC = () => {
         if (isLocked) return { icon: '🔒', text: '锁定' };
         if (isLoading) return { icon: '⏳', text: '...' };
         if (isRaised) return { icon: '✋', text: '举手中' };
-        return isDead 
+        return isDead
             ? { icon: '👻', text: '幽灵票' }
             : { icon: '🗳️', text: '投票' };
     };
@@ -85,7 +88,7 @@ export const FloatingVoteButton: React.FC = () => {
                 ${isDisabled ? 'cursor-not-allowed opacity-70' : 'animate-bounce'}
                 ${getButtonStyle()}
             `}
-            style={{ 
+            style={{
                 zIndex: Z_INDEX.floatingPanel,
                 marginBottom: 'env(safe-area-inset-bottom, 0px)'
             }}

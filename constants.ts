@@ -14,7 +14,7 @@ export const Z_INDEX = {
   sidebarBackdrop: 35,  // 侧边栏背景遮罩（低于侧边栏）
   contextMenu: 45,      // 右键菜单
   modal: 50,            // 模态框
-  floatingPanel: 55,    // 浮层面板（如夜间行动）高于模态框
+  floatingPanel: 49,    // 浮层面板（如夜间行动）低于模态框，避免遮挡
   toast: 60,            // Toast 通知
 } as const;
 

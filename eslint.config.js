@@ -79,6 +79,7 @@ export default tseslint.config(
       'vite.config.ts',
       'eslint.config.js',
       '*.cjs',
+      'supabase/**',
     ],
   }
 );

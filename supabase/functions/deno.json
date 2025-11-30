@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "lib": [
+            "deno.window"
+        ],
+        "strict": true
+    },
+    "imports": {
+        "std/": "https://deno.land/std@0.168.0/",
+        "openai": "https://esm.sh/openai@4.28.0"
+    }
+}

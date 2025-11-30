@@ -66,6 +66,13 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    // Sync modal state to global store for Z-index coordination
+    const setModalOpen = useStore(state => state.setModalOpen);
+    useEffect(() => {
+        const isAnyModalOpen = showHistory || showNightAction || showRoleReference || showCompositionGuide || showScriptEditor;
+        setModalOpen(isAnyModalOpen);
+    }, [showHistory, showNightAction, showRoleReference, showCompositionGuide, showScriptEditor, setModalOpen]);
+
     React.useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (!isResizing) return;

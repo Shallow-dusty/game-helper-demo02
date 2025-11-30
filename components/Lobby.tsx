@@ -45,6 +45,7 @@ export const Lobby: React.FC = () => {
             }
             if (audioRef.current) {
                 audioRef.current.removeEventListener('error', handleError);
+                audioRef.current.volume = 0; // Immediate silence
                 audioRef.current.pause();
                 audioRef.current.src = '';
                 audioRef.current = null;

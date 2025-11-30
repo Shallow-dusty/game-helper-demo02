@@ -47,6 +47,7 @@ interface SeatNodeProps {
   disableInteractions?: boolean;
   isSwapSource?: boolean;
   publicOnly?: boolean;
+  setupPhase?: string; // New prop to check phase
 }
 
 // Long press hook for mobile support ONLY
@@ -113,7 +114,7 @@ const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, 
   };
 };
 
-const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress, onContextMenu, disableInteractions = false, isSwapSource = false, publicOnly = false }) => {
+const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress, onContextMenu, disableInteractions = false, isSwapSource = false, publicOnly = false, setupPhase }) => {
   const x = cx + radius * Math.cos(angle);
   const y = cy + radius * Math.sin(angle);
   const [isHovered, setIsHovered] = React.useState(false);
@@ -132,7 +133,7 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
         node: node,
         duration: 0.5,
         angle: 360,
-        easing: Konva.Easings.Linear,
+        easing: (t, b, c, d) => Konva.Easings.Linear(t, b, c, d),
       });
       tween.play();
       return () => { tween.destroy(); };
@@ -355,6 +356,16 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
         )
       }
 
+      {/* Ready Indicator (Only in Setup Phase) */}
+      {
+        seat.isReady && setupPhase !== 'STARTED' && (
+          <Group x={tokenRadius * 0.7} y={-tokenRadius * 0.7}>
+            <Circle radius={10 * scale} fill="#22c55e" stroke="#fff" strokeWidth={1} shadowBlur={5} shadowColor="#22c55e" />
+            <Text text="✓" x={-5 * scale} y={-5 * scale} fontSize={12 * scale} fill="#fff" fontStyle="bold" />
+          </Group>
+        )
+      }
+
       {/* Tooltip for Name (on hover) */}
       {
         isHovered && (
@@ -446,6 +457,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
   const lastCenter = useRef<{ x: number; y: number } | null>(null);
   const lastDist = useRef<number>(0);
+  const lastGestureTime = useRef<number>(0); // Timestamp of last drag/zoom end
   const isPinching = useRef(false);
   const draggingRef = useRef(false);
   const [isGestureActive, setIsGestureActive] = useState(false);
@@ -503,6 +515,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
     lastCenter.current = null;
     lastDist.current = 0;
     isPinching.current = false;
+    lastGestureTime.current = Date.now(); // Record gesture end time
     updateGestureState();
   }, [updateGestureState]);
 
@@ -570,6 +583,9 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
 
   const handleSeatClick = (e: any, seat: Seat) => {
     if (readOnly || isLocked || isGestureActive) return;
+    // Prevent accidental clicks after dragging/zooming
+    if (Date.now() - lastGestureTime.current < 200) return;
+
     e.cancelBubble = true;
 
     if (seat.isVirtual && !user.isStoryteller) {
@@ -718,7 +734,12 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onDragStart={() => { draggingRef.current = true; updateGestureState(); }}
-        onDragEnd={(e) => { setStagePos({ x: e.target.x(), y: e.target.y() }); draggingRef.current = false; updateGestureState(); }}
+        onDragEnd={(e) => {
+          setStagePos({ x: e.target.x(), y: e.target.y() });
+          draggingRef.current = false;
+          lastGestureTime.current = Date.now(); // Record drag end time
+          updateGestureState();
+        }}
       >
         <Layer listening={false}>
           <Circle
@@ -764,6 +785,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
                 disableInteractions={readOnly || isLocked || isGestureActive}
                 isSwapSource={swapSourceId === seat.id}
                 publicOnly={publicOnly}
+                setupPhase={gameState.setupPhase}
               />
             );
           })}

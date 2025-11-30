@@ -19,12 +19,12 @@ export const WaitingArea: React.FC = () => {
     if (user.isStoryteller) return null;
 
     // Check if user is already seated
-    const isSeated = gameState.seats.some(s => s.userId === user.id);
-    if (isSeated) return null;
+    const currentSeat = gameState.seats.find(s => s.userId === user.id);
+    const isSeated = !!currentSeat;
 
     const handleJoinSeat = async (seatId: number) => {
         if (joiningId !== null) return; // 防止重复点击
-        
+
         setJoiningId(seatId);
         try {
             await joinSeat(seatId);
@@ -32,6 +32,53 @@ export const WaitingArea: React.FC = () => {
             setJoiningId(null);
         }
     };
+
+    const toggleReady = useStore(state => state.toggleReady);
+
+    // If seated, show Ready interface
+    if (isSeated) {
+        return (
+            <div className="absolute inset-0 z-40 bg-stone-950/95 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
+                <div className="text-center mb-10">
+                    <h1 className="text-4xl md:text-5xl font-cinzel text-amber-500 mb-4 tracking-widest drop-shadow-lg">
+                        {gameState.roomId}
+                    </h1>
+                    <div className="text-2xl text-stone-300 font-cinzel mb-8">
+                        {currentSeat?.userName}
+                    </div>
+
+                    <button
+                        onClick={() => toggleReady()}
+                        className={`
+                            px-12 py-4 rounded-full text-xl font-bold transition-all duration-300 transform hover:scale-105 active:scale-95
+                            flex items-center gap-3 shadow-[0_0_30px_rgba(0,0,0,0.5)]
+                            ${currentSeat?.isReady
+                                ? 'bg-green-900 text-green-100 border-2 border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
+                                : 'bg-stone-800 text-stone-400 border-2 border-stone-600 hover:bg-stone-700 hover:text-stone-200'}
+                        `}
+                    >
+                        {currentSeat?.isReady ? (
+                            <>
+                                <span className="text-2xl">✓</span>
+                                <span>已准备 (READY)</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="text-2xl">⏳</span>
+                                <span>点击准备 (NOT READY)</span>
+                            </>
+                        )}
+                    </button>
+
+                    <p className="mt-8 text-stone-500 font-serif italic animate-pulse">
+                        {currentSeat?.isReady
+                            ? "等待说书人开始游戏... (Waiting for Storyteller...)"
+                            : "请确认您已准备好开始游戏 (Please confirm you are ready)"}
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="absolute inset-0 z-40 bg-stone-950/95 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
@@ -46,7 +93,7 @@ export const WaitingArea: React.FC = () => {
                 {gameState.seats.map(seat => {
                     const isTaken = !!seat.userId || seat.isVirtual;
                     const isJoining = joiningId === seat.id;
-                    
+
                     return (
                         <button
                             key={seat.id}
@@ -62,10 +109,10 @@ export const WaitingArea: React.FC = () => {
                             `}
                         >
                             <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow-inner transition-transform group-hover:scale-110
-                                ${isJoining 
-                                    ? 'bg-amber-900 text-amber-200 border border-amber-600' 
-                                    : isTaken 
-                                        ? 'bg-stone-800 text-stone-600' 
+                                ${isJoining
+                                    ? 'bg-amber-900 text-amber-200 border border-amber-600'
+                                    : isTaken
+                                        ? 'bg-stone-800 text-stone-600'
                                         : 'bg-gradient-to-br from-amber-900 to-stone-900 text-amber-200 border border-amber-800'}
                             `}>
                                 {isJoining ? '⏳' : isTaken ? (seat.isVirtual ? '🤖' : '👤') : '🪑'}

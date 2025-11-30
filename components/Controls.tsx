@@ -14,6 +14,7 @@ import { ScriptEditor } from './ScriptEditor';
 import { ControlsSTSection } from './ControlsSTSection';
 import { ControlsPlayerSection } from './ControlsPlayerSection';
 import { ControlsAudioTab } from './ControlsAudioTab';
+import { VoiceRoomLink } from './VoiceRoomLink';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
 import { motion } from 'framer-motion';
@@ -262,6 +263,8 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                             <div className="text-3xl font-bold text-amber-600 tracking-widest font-cinzel drop-shadow-md">{PHASE_LABELS[gameState.phase]}</div>
                         </div>
 
+                        <VoiceRoomLink />
+
                         {user.isStoryteller ? (
                             <ControlsSTSection
                                 onShowCompositionGuide={() => setShowCompositionGuide(true)}
@@ -331,7 +334,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                 value={aiPrompt}
                                 onChange={(e) => setAiPrompt(e.target.value)}
                                 placeholder="询问魔典..."
-                                className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 focus:border-amber-600 focus:outline-none placeholder:text-stone-700"
+                                className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-base text-stone-300 focus:border-amber-600 focus:outline-none placeholder:text-stone-700"
                             />
                             <Button type="submit" disabled={!aiPrompt.trim() || isAiThinking} size="sm">
                                 发送

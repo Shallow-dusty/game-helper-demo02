@@ -55,10 +55,10 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
 
     return (
         <div
-            className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-300"
+            className="fixed inset-0 pointer-events-none flex items-end justify-center pb-8 md:items-center md:pb-0 animate-in fade-in duration-300"
             style={{ zIndex: Z_INDEX.floatingPanel }}
         >
-            <div className="glass-panel max-w-md w-full p-6 relative overflow-hidden">
+            <div className="glass-panel max-w-md w-full p-6 relative overflow-hidden pointer-events-auto bg-stone-950/90 backdrop-blur-md border border-stone-700 shadow-2xl mx-4 rounded-xl">
                 {/* Decorative glow */}
                 <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
                 <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />

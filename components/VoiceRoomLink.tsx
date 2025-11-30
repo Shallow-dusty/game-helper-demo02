@@ -69,7 +69,7 @@ export const VoiceRoomLink: React.FC = () => {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder="输入 Discord/QQ/腾讯会议链接..."
-                        className="w-full bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 focus:border-blue-600 focus:outline-none"
+                        className="w-full bg-stone-950 border border-stone-700 rounded px-3 py-2 text-base text-stone-300 focus:border-blue-600 focus:outline-none"
                         autoFocus
                     />
                     <div className="flex gap-2">

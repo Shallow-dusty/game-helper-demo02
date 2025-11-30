@@ -36,7 +36,8 @@ export const WaitingArea: React.FC = () => {
     const toggleReady = useStore(state => state.toggleReady);
 
     // If seated, show Ready interface
-    if (isSeated) {
+    // FIX: Hide if game has started or roles are revealed
+    if (isSeated && gameState.setupPhase !== 'STARTED' && !gameState.rolesRevealed) {
         return (
             <div className="absolute inset-0 z-40 bg-stone-950/95 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
                 <div className="text-center mb-10">
@@ -68,6 +69,13 @@ export const WaitingArea: React.FC = () => {
                                 <span>点击准备 (NOT READY)</span>
                             </>
                         )}
+                    </button>
+
+                    <button
+                        onClick={() => useStore.getState().leaveSeat()}
+                        className="mt-6 px-6 py-2 rounded-full text-sm font-bold text-stone-500 hover:text-red-400 hover:bg-red-950/30 border border-transparent hover:border-red-900/50 transition-all"
+                    >
+                        离开座位 (Leave Seat)
                     </button>
 
                     <p className="mt-8 text-stone-500 font-serif italic animate-pulse">

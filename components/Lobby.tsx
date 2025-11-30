@@ -29,7 +29,7 @@ export const Lobby: React.FC = () => {
 
         const audio = new Audio(lobbyTrack.url);
         audio.loop = true;
-        audio.volume = 0.4;
+        audio.volume = 0.2; // Lower initial volume
         audioRef.current = audio;
 
         const handleError = () => {
@@ -98,7 +98,7 @@ export const Lobby: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden" onClick={handleInteraction}>
+        <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden">
             <BackgroundEffects />
 
             <motion.div
@@ -110,7 +110,10 @@ export const Lobby: React.FC = () => {
                 <Card className="border-stone-800 bg-stone-950/80 backdrop-blur-xl shadow-2xl relative overflow-hidden">
                     {/* Audio Hint Overlay */}
                     {!hasInteracted && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-50 cursor-pointer backdrop-blur-[2px] transition-opacity duration-500">
+                        <div 
+                            className="absolute inset-0 flex items-center justify-center bg-black/60 z-50 cursor-pointer backdrop-blur-[2px] transition-opacity duration-500"
+                            onClick={handleInteraction}
+                        >
                             <div className="text-center animate-pulse flex flex-col items-center gap-2">
                                 <Volume2 className="w-8 h-8 text-amber-500" />
                                 <p className="text-amber-500 font-cinzel text-lg">点击开启音效</p>

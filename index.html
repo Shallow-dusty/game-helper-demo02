@@ -166,13 +166,181 @@
     .rotate-y-180 {
       transform: rotateY(180deg);
     }
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grimoire Web - Blood on the Clocktower</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for Atmosphere -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --color-bg: #0c0a09;
+      --color-paper: #e7e5e4;
+      --color-blood: #7f1d1d;
+      --color-blood-bright: #dc2626;
+      --color-gold: #b45309;
+      --color-gold-bright: #fbbf24;
+      --color-stone-dark: #1c1917;
+      --color-stone-light: #a8a29e;
+
+      /* Animation Curves */
+      --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+      --ease-in-out-circ: cubic-bezier(0.785, 0.135, 0.15, 0.86);
+    }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-paper);
+      font-family: 'Crimson Text', serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      /* Subtle noise texture for paper feel */
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+    }
+
+    /* 仅在游戏主界面阻止滚动 */
+    html,
+    body,
+    #root {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    button,
+    .font-cinzel {
+      font-family: 'Cinzel', serif;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(168, 162, 158, 0.3);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(168, 162, 158, 0.5);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+
+      100% {
+        transform: translateY(0px);
+      }
+    }
+
+    @keyframes pulse-glow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 10px rgba(220, 38, 38, 0.2);
+      }
+
+      50% {
+        box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% center;
+      }
+
+      100% {
+        background-position: 200% center;
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.8s var(--ease-out-expo) forwards;
+    }
+
+    .animate-float {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    /* Utility classes */
+    .glass-panel {
+      background: rgba(12, 10, 9, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .text-shadow-glow {
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+    }
+
+    /* 3D Card Flip Utilities */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    
+    .transform-style-3d {
+      transform-style: preserve-3d;
+    }
+    
+    .backface-hidden {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
   </style>
 
 </head>
 
 <body>
   <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
+  <script type="module" src="/src/index.tsx"></script>
 </body>
 
 </html>

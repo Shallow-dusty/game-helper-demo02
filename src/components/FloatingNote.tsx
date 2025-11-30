@@ -30,7 +30,7 @@ export const FloatingNote: React.FC<FloatingNoteProps> = ({
     const [showColorPicker, setShowColorPicker] = useState(false);
     const noteRef = useRef<HTMLDivElement>(null);
 
-    const currentColor = COLORS.find(c => c.name === note.color) || COLORS[0];
+    const currentColor = COLORS.find(c => c.name === note.color) || COLORS[0]!;
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {

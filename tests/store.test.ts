@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useStore } from '../store';
+import { useStore } from '../src/store';
 
 // Reset store before each test
 beforeEach(() => {

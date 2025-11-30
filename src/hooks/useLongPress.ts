@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 
 /**
  * Hook for detecting long press on both touch and mouse events
@@ -17,6 +17,7 @@ export const useLongPress = (
   const isLongPressRef = useRef(false);
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
   const touchCountRef = useRef(0);
+  const [isPressing, setIsPressing] = useState(false);
 
   const start = useCallback((e: { evt?: { touches?: TouchList; clientX?: number; clientY?: number } }) => {
     if (disabled) return;
@@ -39,8 +40,10 @@ export const useLongPress = (
     
     timerRef.current = setTimeout(() => {
       isLongPressRef.current = true;
+      setIsPressing(false);
       onLongPress(e);
     }, delay);
+    setIsPressing(true);
   }, [onLongPress, delay, disabled]);
 
   const clear = useCallback((e: unknown, shouldClick = false) => {
@@ -49,6 +52,7 @@ export const useLongPress = (
       timerRef.current = null;
     }
     touchCountRef.current = 0;
+    setIsPressing(false);
     
     if (shouldClick && !isLongPressRef.current) {
       onClick(e);
@@ -89,6 +93,7 @@ export const useLongPress = (
     if (disabled && timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
+      setIsPressing(false);
     }
   }, [disabled]);
 
@@ -99,5 +104,6 @@ export const useLongPress = (
     onMouseDown: start,
     onMouseUp: (e: unknown) => clear(e, true),
     onMouseLeave: (e: unknown) => clear(e, false),
+    isPressing
   };
 };

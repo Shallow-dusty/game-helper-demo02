@@ -9,6 +9,7 @@ import { StorytellerMenu } from './StorytellerMenu';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { X, Lock, Unlock, Crosshair } from 'lucide-react';
+import { useLongPress } from '../hooks/useLongPress';
 
 interface GrimoireProps {
   width: number;
@@ -50,76 +51,14 @@ interface SeatNodeProps {
   setupPhase?: string; // New prop to check phase
 }
 
-// Long press hook for mobile support ONLY
-const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, delay = 500, disabled = false) => {
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const isLongPressRef = useRef(false);
-  const startPosRef = useRef<{ x: number; y: number } | null>(null);
-  const [isPressing, setIsPressing] = useState(false);
 
-  const start = useCallback((e: any) => {
-    if (disabled) return;
-    // Prevent long press if multiple touches (e.g. pinch zoom)
-    if (e.evt?.touches && e.evt.touches.length > 1) return;
-
-    isLongPressRef.current = false;
-    startPosRef.current = { x: e.evt?.clientX || 0, y: e.evt?.clientY || 0 };
-    setIsPressing(true);
-
-    timerRef.current = setTimeout(() => {
-      isLongPressRef.current = true;
-      setIsPressing(false);
-      onLongPress(e);
-    }, delay);
-  }, [onLongPress, delay, disabled]);
-
-  const clear = useCallback((e: any, shouldClick = false) => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    setIsPressing(false);
-    if (shouldClick && !isLongPressRef.current) {
-      onClick(e);
-    }
-  }, [onClick]);
-
-  const move = useCallback((e: any) => {
-    if (startPosRef.current && timerRef.current) {
-      const dx = Math.abs((e.evt?.clientX || 0) - startPosRef.current.x);
-      const dy = Math.abs((e.evt?.clientY || 0) - startPosRef.current.y);
-      // Cancel long press if moved more than 10px
-      if (dx > 10 || dy > 10) {
-        clear(e, false);
-      }
-    }
-  }, [clear]);
-
-  useEffect(() => {
-    if (disabled && timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-      setIsPressing(false);
-    }
-  }, [disabled]);
-
-  return {
-    handlers: {
-      onTouchStart: start,
-      onTouchEnd: (e: any) => clear(e, true),
-      onTouchMove: move,
-      // REMOVED MOUSE HANDLERS TO FIX DESKTOP DELAY
-    },
-    isPressing
-  };
-};
 
 const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress, onContextMenu, disableInteractions = false, isSwapSource = false, publicOnly = false, setupPhase }) => {
   const x = cx + radius * Math.cos(angle);
   const y = cy + radius * Math.sin(angle);
   const [isHovered, setIsHovered] = React.useState(false);
 
-  const { handlers: longPressHandlers, isPressing } = useLongPress(onLongPress, onClick, 500, disableInteractions);
+  const { isPressing, ...longPressHandlers } = useLongPress(onLongPress, onClick, 500, disableInteractions);
 
   // Animation Ref for the progress ring
   const progressRingRef = useRef<Konva.Arc>(null);

@@ -3,8 +3,9 @@ import { GameState, GamePhase, SeatStatus, NightActionRequest, GameHistory, Seat
 import { ROLES, PHASE_LABELS, SCRIPTS } from '../../constants';
 import { supabase } from './createConnectionSlice';
 import { addSystemMessage } from '../utils';
+import { generateRoleAssignment } from '../../lib/gameLogic';
 
-// --- HELPER FUNCTIONS (Extracted from store.ts) ---
+// --- HELPER FUNCTIONS ---
 
 const getInitialState = (roomId: string, seatCount: number, currentScriptId = 'tb'): GameState => ({
     roomId,
@@ -770,7 +771,33 @@ export const createGameSlice: StoreSlice<GameSlice> = (set, get) => ({
     },
 
     assignRoles: () => {
-        // Placeholder
+        set((state) => {
+            if (state.gameState) {
+                const playerCount = state.gameState.seats.filter(s => s.userId).length;
+                if (playerCount < 5) {
+                    addSystemMessage(state.gameState, "人数不足5人，无法自动分配角色。");
+                    return;
+                }
+
+                const scriptId = state.gameState.currentScriptId;
+                const roles = generateRoleAssignment(scriptId, playerCount);
+                
+                // Assign to seats with users
+                let roleIndex = 0;
+                state.gameState.seats.forEach(seat => {
+                    if (seat.userId) {
+                        const roleId = roles[roleIndex];
+                        if (roleId) {
+                            applyRoleAssignment(state.gameState!, seat, roleId);
+                        }
+                        roleIndex++;
+                    }
+                });
+
+                addSystemMessage(state.gameState, `已自动分配角色 (${playerCount}人)`);
+            }
+        });
+        get().sync();
     },
 
     swapSeats: (seatId1, seatId2) => {
@@ -864,7 +891,14 @@ export const createGameSlice: StoreSlice<GameSlice> = (set, get) => ({
     },
 
     distributeRoles: () => {
-        // Placeholder
+        set((state) => {
+            if (state.gameState) {
+                state.gameState.rolesRevealed = true;
+                state.gameState.setupPhase = 'READY';
+                addSystemMessage(state.gameState, "说书人已发放角色，请查看您的角色卡！");
+            }
+        });
+        get().sync();
     },
 
     hideRoles: () => {
@@ -886,8 +920,37 @@ export const createGameSlice: StoreSlice<GameSlice> = (set, get) => ({
         get().sync();
     },
 
-    applyStrategy: (_strategyName, _roleIds) => {
-        // Placeholder
+    applyStrategy: (strategyName, roleIds) => {
+        set((state) => {
+            if (state.gameState) {
+                // Clear existing roles first
+                state.gameState.seats.forEach(s => {
+                    s.roleId = null;
+                    s.realRoleId = null;
+                    s.seenRoleId = null;
+                    s.reminders = [];
+                    s.statuses = [];
+                });
+
+                // Shuffle roles
+                const shuffledRoles = [...roleIds].sort(() => Math.random() - 0.5);
+                
+                // Assign to seats with users
+                let roleIndex = 0;
+                state.gameState.seats.forEach(seat => {
+                    if (seat.userId && roleIndex < shuffledRoles.length) {
+                        const roleId = shuffledRoles[roleIndex];
+                        if (roleId) {
+                            applyRoleAssignment(state.gameState!, seat, roleId);
+                        }
+                        roleIndex++;
+                    }
+                });
+
+                addSystemMessage(state.gameState, `已应用策略: ${strategyName}`);
+            }
+        });
+        get().sync();
     },
 
     addStorytellerNote: (content) => {

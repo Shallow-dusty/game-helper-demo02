@@ -94,3 +94,63 @@ export const addSystemMessage = (gameState: GameState, content: string) => {
         type: 'system'
     });
 };
+
+// --- SECURITY UTILITIES ---
+
+/**
+ * 将完整游戏状态拆分为公开状态和秘密状态
+ */
+export const splitGameState = (fullState: GameState): { publicState: GameState, secretState: Partial<GameState> } => {
+    // 1. 克隆状态以避免修改原始对象
+    const publicState = JSON.parse(JSON.stringify(fullState)) as GameState;
+    const secretState: Partial<GameState> = {};
+
+    // 2. 提取敏感数据到 secretState
+    // 真实角色 ID
+    secretState.seats = fullState.seats.map(s => ({
+        id: s.id,
+        realRoleId: s.realRoleId,
+        // 其他敏感字段如果需要也可以放在这里
+    })) as any;
+
+    // 说书人笔记
+    secretState.storytellerNotes = fullState.storytellerNotes;
+
+    // 3. 从 publicState 中移除敏感数据
+    publicState.seats.forEach(s => {
+        s.realRoleId = null; // 清除真实角色
+        // 注意：seenRoleId (展示角色) 是公开的（或者至少是发给客户端的），
+        // 具体的视野过滤由 filterGameStateForUser 在客户端进一步处理。
+        // 这里我们主要剥离 "绝对不能泄露给普通玩家" 的数据。
+    });
+
+    publicState.storytellerNotes = []; // 清空笔记
+
+    return { publicState, secretState };
+};
+
+/**
+ * 将公开状态和秘密状态合并为完整状态
+ */
+export const mergeGameState = (publicState: GameState, secretState: any): GameState => {
+    if (!secretState) return publicState;
+
+    const mergedState = JSON.parse(JSON.stringify(publicState)) as GameState;
+
+    // 1. 恢复座位真实角色
+    if (secretState.seats && Array.isArray(secretState.seats)) {
+        secretState.seats.forEach((secretSeat: any) => {
+            const targetSeat = mergedState.seats.find(s => s.id === secretSeat.id);
+            if (targetSeat) {
+                targetSeat.realRoleId = secretSeat.realRoleId;
+            }
+        });
+    }
+
+    // 2. 恢复笔记
+    if (secretState.storytellerNotes) {
+        mergedState.storytellerNotes = secretState.storytellerNotes;
+    }
+
+    return mergedState;
+};

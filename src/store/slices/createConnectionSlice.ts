@@ -1,7 +1,7 @@
 import { StoreSlice, ConnectionStatus } from '../types';
 import { User, GameState } from '../../types';
 import { createClient } from '@supabase/supabase-js';
-import { addSystemMessage } from '../utils';
+import { addSystemMessage, splitGameState, mergeGameState } from '../utils';
 
 // --- SUPABASE CONFIG ---
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -15,6 +15,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Global variables for subscription (kept here for now, but encapsulated)
 let realtimeChannel: any = null;
+let secretChannel: any = null;
 let isReceivingUpdate = false;
 
 // Helper to get toast functions (lazy load)
@@ -131,7 +132,45 @@ export const createConnectionSlice: StoreSlice<ConnectionSlice> = (set, get) => 
 
             localStorage.setItem('grimoire_last_room', roomCode);
 
-            // 3. Announce Join
+            // 3. Subscribe to Secrets (if Storyteller)
+            if (user.isStoryteller) {
+                if (secretChannel) void supabase.removeChannel(secretChannel);
+                
+                // Fetch initial secret state
+                const { data: secretData } = await supabase
+                    .from('game_secrets')
+                    .select('data')
+                    .eq('room_code', roomCode)
+                    .single();
+
+                if (secretData?.data) {
+                    const merged = mergeGameState(get().gameState!, secretData.data);
+                    set({ gameState: merged });
+                }
+
+                const sChannel = supabase.channel(`room-secrets:${roomCode}`)
+                    .on(
+                        'postgres_changes',
+                        { event: 'UPDATE', schema: 'public', table: 'game_secrets', filter: `room_code=eq.${roomCode}` },
+                        (payload) => {
+                            if (payload.new?.data) {
+                                isReceivingUpdate = true;
+                                const currentPublic = get().gameState!;
+                                // We need to be careful not to overwrite local optimistic updates if possible,
+                                // but for now, simple merge is safer.
+                                // However, since we receive public and secret updates separately, 
+                                // we should merge the new secret data into the CURRENT state.
+                                const merged = mergeGameState(currentPublic, payload.new.data);
+                                set({ gameState: merged });
+                                isReceivingUpdate = false;
+                            }
+                        }
+                    )
+                    .subscribe();
+                secretChannel = sChannel;
+            }
+
+            // 4. Announce Join
             setTimeout(() => {
                 const currentState = get().gameState;
                 if (currentState) {
@@ -246,6 +285,10 @@ export const createConnectionSlice: StoreSlice<ConnectionSlice> = (set, get) => 
             void supabase.removeChannel(realtimeChannel);
             realtimeChannel = null;
         }
+        if (secretChannel) {
+            void supabase.removeChannel(secretChannel);
+            secretChannel = null;
+        }
 
         set({
             user: user ? { ...user, roomId: null } : null,
@@ -264,13 +307,36 @@ export const createConnectionSlice: StoreSlice<ConnectionSlice> = (set, get) => 
         const currentGameState = get().gameState;
         if (!currentGameState) return;
 
-        const { error } = await supabase
+        const { publicState, secretState } = splitGameState(currentGameState);
+
+        // Update Public State
+        const { error: publicError } = await supabase
             .from('game_rooms')
-            .update({ data: currentGameState, updated_at: new Date() })
+            .update({ data: publicState, updated_at: new Date() })
             .eq('room_code', currentGameState.roomId);
 
-        if (error) {
-            console.warn("Sync Error:", error.message);
+        if (publicError) {
+            console.warn("Sync Public Error:", publicError.message);
+        }
+
+        // Update Secret State (only if we have secret data and are ST)
+        // Note: Even players might trigger sync (e.g. changing seat), but they shouldn't have secret data in their store anyway.
+        // But if they do (bug), we shouldn't let them write to secrets.
+        // Since we don't have RLS enforcement on 'who is ST', we rely on client logic:
+        // Only ST has 'realRoleId' populated in their local state (due to mergeGameState).
+        // Actually, players have 'realRoleId' as null.
+        // So if a player syncs, 'secretState' will contain mostly empty/null data.
+        // We should ONLY write to game_secrets if we are the Storyteller.
+        
+        if (get().user?.isStoryteller) {
+             // Upsert secrets (in case it doesn't exist yet)
+            const { error: secretError } = await supabase
+                .from('game_secrets')
+                .upsert({ room_code: currentGameState.roomId, data: secretState, updated_at: new Date() }, { onConflict: 'room_code' });
+
+            if (secretError) {
+                console.warn("Sync Secret Error:", secretError.message);
+            }
         }
     },
 
@@ -292,7 +358,22 @@ export const createConnectionSlice: StoreSlice<ConnectionSlice> = (set, get) => 
 
             if (data?.data) {
                 isReceivingUpdate = true;
-                set({ gameState: data.data });
+                let newState = data.data as GameState;
+
+                // If ST, also fetch secrets
+                if (get().user?.isStoryteller) {
+                    const { data: secretData } = await supabase
+                        .from('game_secrets')
+                        .select('data')
+                        .eq('room_code', gameState.roomId)
+                        .single();
+                    
+                    if (secretData?.data) {
+                        newState = mergeGameState(newState, secretData.data);
+                    }
+                }
+
+                set({ gameState: newState });
                 isReceivingUpdate = false;
             }
         } catch (err) {

@@ -34,10 +34,24 @@ export const RoleRevealModal: React.FC = () => {
         if (!gameState || !user) return;
 
         const storageKey = `grimoire_last_seen_role_${gameState.roomId}_${user.id}`;
+        const lastSeenRoleId = localStorage.getItem(storageKey);
+
+        console.log('RoleReveal Auto-Check:', {
+            rolesRevealed: gameState.rolesRevealed,
+            hasRole: !!role,
+            roleId: role?.id,
+            lastSeenRoleId,
+            isVisible,
+            isExiting,
+            countdown,
+            isRoleRevealOpen,
+            storageKey
+        });
 
         // 1. 如果 rolesRevealed 为 false，说明游戏重置或未开始，清除"已查看"记录
         if (!gameState.rolesRevealed) {
-            if (localStorage.getItem(storageKey)) {
+            if (lastSeenRoleId) {
+                console.log('Clearing seen role history due to reset');
                 localStorage.removeItem(storageKey);
             }
             return;
@@ -45,12 +59,17 @@ export const RoleRevealModal: React.FC = () => {
 
         // 2. 如果 rolesRevealed 为 true，检查是否需要显示
         if (role && !isRoleRevealOpen) {
-            const lastSeenRoleId = localStorage.getItem(storageKey);
-            
-            // 如果从未看过，或者看过的角色与当前不符（虽然理论上重置会清除，但这作为双重保险）
+            // 如果从未看过，或者看过的角色与当前不符
             if (lastSeenRoleId !== role.id && !isVisible && !isExiting && countdown === null) {
-                console.log('Auto-triggering role reveal for:', role.name);
+                console.log('Auto-triggering role reveal! Reason: New role or not seen yet');
                 setCountdown(3);
+            } else {
+                console.log('Skipping auto-trigger:', {
+                    seenMatch: lastSeenRoleId === role.id,
+                    isVisible,
+                    isExiting,
+                    countdown
+                });
             }
         }
     }, [gameState?.rolesRevealed, gameState?.roomId, user?.id, role?.id, isVisible, isExiting, countdown, isRoleRevealOpen]);

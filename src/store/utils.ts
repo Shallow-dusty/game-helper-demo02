@@ -68,23 +68,15 @@ export const filterGameStateForUser = (gameState: GameState, currentUserId: stri
         ...gameState,
         seats: gameState.seats.map(seat => filterSeatForUser(seat, currentUserId, isStoryteller, userRoleId)),
         messages: gameState.messages.filter(msg => {
-            // 系统消息对所有人可见
-            if (msg.type === 'system') return true;
-            // 公开消息对所有人可见
-            if (!msg.recipientId) return true;
-            
-            console.log('DEBUG: filtering msg', { id: msg.id, type: msg.type, isPrivate: msg.isPrivate });
-
             // 私聊消息仅对发送者、接收者和 ST 可见
             if (msg.isPrivate) {
                 const visible = isStoryteller ||
                     msg.senderId === currentUserId ||
                     msg.recipientId === currentUserId;
-                console.log('DEBUG: filter private', { msgId: msg.id, isPrivate: msg.isPrivate, visible, currentUserId, senderId: msg.senderId, recipientId: msg.recipientId });
                 return visible;
             }
             
-            // 系统消息对所有人可见 (除非标记为 private)
+            // 系统消息（非私密）对所有人可见
             if (msg.type === 'system') return true;
             
             // 公开消息对所有人可见

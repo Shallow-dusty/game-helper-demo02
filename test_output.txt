@@ -225,3 +225,255 @@ AssertionError: expected [ { id: '1', 鈥?7) } ] to have a length of +0 but got 
 
 [1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
        [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/store/slices/createGameSlice.test.ts [22m[34mx3 [34m[39m
+
+ [31m鉂?[39m src/store/utils.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 71[2mms[22m[39m
+       [32m鉁?[39m should remove sensitive data from public state[32m 2[2mms[22m[39m
+       [32m鉁?[39m should preserve sensitive data in secret state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should merge secret state back into public state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow ST to see everything[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow player to see their own seenRole but hide realRole if different[32m 0[2mms[22m[39m
+       [32m鉁?[39m should hide sensitive info from other players[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow Spy to see real roles[32m 9[2mms[22m[39m
+[31m       [31m脳[31m should hide private system messages from other players[39m[32m 52[2mms[22m[39m
+       [32m鉁?[39m should show private system messages to the recipient[32m 4[2mms[22m[39m
+[90mstdout[2m | src/store/slices/createGameSlice.test.ts[2m > [22m[2mcreateGameSlice[2m > [22m[2mVoting Execution[2m > [22m[2mshould execute player if votes > half alive players
+[22m[39mDEBUG: closeVote { aliveCount: [33m5[39m, votes: [33m3[39m, nomineeSeatId: [33m0[39m }
+DEBUG: isExecuted [33mtrue[39m
+
+[90mstdout[2m | src/store/slices/createGameSlice.test.ts[2m > [22m[2mcreateGameSlice[2m > [22m[2mVoting Execution[2m > [22m[2mshould NOT execute if votes <= half alive players
+[22m[39mDEBUG: closeVote { aliveCount: [33m5[39m, votes: [33m2[39m, nomineeSeatId: [33m0[39m }
+DEBUG: isExecuted [33mfalse[39m
+
+ [32m鉁?[39m src/store/slices/createGameSlice.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m17 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m 01:47:51
+[2m   Duration [22m 207ms
+
+[1m[42m PASS [49m[22m [32mWaiting for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/store/slices/createGameSlice.test.ts [22m[34mx4 [34m[39m
+
+ [31m鉂?[39m src/store/utils.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 71[2mms[22m[39m
+       [32m鉁?[39m should remove sensitive data from public state[32m 2[2mms[22m[39m
+       [32m鉁?[39m should preserve sensitive data in secret state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should merge secret state back into public state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow ST to see everything[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow player to see their own seenRole but hide realRole if different[32m 0[2mms[22m[39m
+       [32m鉁?[39m should hide sensitive info from other players[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow Spy to see real roles[32m 9[2mms[22m[39m
+[31m       [31m脳[31m should hide private system messages from other players[39m[32m 52[2mms[22m[39m
+       [32m鉁?[39m should show private system messages to the recipient[32m 4[2mms[22m[39m
+ [31m鉂?[39m src/store/slices/createGameSlice.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 27[2mms[22m[39m
+     [32m鉁?[39m should initialize with default state[32m 5[2mms[22m[39m
+       [32m鉁?[39m should create a new game state[32m 2[2mms[22m[39m
+       [32m鉁?[39m should assign roles to seated players[32m 3[2mms[22m[39m
+       [32m鉁?[39m should not assign roles if player count < 5[32m 0[2mms[22m[39m
+       [32m鉁?[39m should apply specific roles[32m 5[2mms[22m[39m
+       [32m鉁?[39m should trigger game over when Demon dies[32m 0[2mms[22m[39m
+       [32m鉁?[39m should pass Imp to Scarlet Woman when Demon dies[32m 1[2mms[22m[39m
+[31m       [31m脳[31m should execute player if votes > half alive players[39m[32m 5[2mms[22m[39m
+[31m       [31m脳[31m should NOT execute if votes <= half alive players[39m[32m 4[2mms[22m[39m
+
+鈳幆鈳幆鈳幆鈳?[39m Failed Tests 2 鈳幆鈳幆鈳幆鈳?[39m
+
+ FAIL  src/store/slices/createGameSlice.test.ts > createGameSlice > Voting Execution > should execute player if votes > half alive players
+TypeError: Cannot assign to read only property 'votes' of object '#<Object>'
+ 鉂?[22m src/store/slices/createGameSlice.test.ts:175:38
+    173|           const state = store.getState();
+    174|           if (state.gameState && state.gameState.voting) {
+    175|               state.gameState.voting.votes = [1, 2, 3];
+       |                                      ^
+    176|           }
+    177|           
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[1/2]鈳?[22m
+
+ FAIL  src/store/slices/createGameSlice.test.ts > createGameSlice > Voting Execution > should NOT execute if votes <= half alive players
+TypeError: Cannot assign to read only property 'votes' of object '#<Object>'
+ 鉂?[22m src/store/slices/createGameSlice.test.ts:195:36
+    193|         const state = store.getState();
+    194|         if (state.gameState && state.gameState.voting) {
+    195|             state.gameState.voting.votes = [1, 2];
+       |                                    ^
+    196|         }
+    197|         
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[2/2]鈳?[22m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m15 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m 01:48:16
+[2m   Duration [22m 279ms
+
+[1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/store/slices/createGameSlice.test.ts [22m[34mx5 [34m[39m
+
+ [31m鉂?[39m src/store/utils.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 71[2mms[22m[39m
+       [32m鉁?[39m should remove sensitive data from public state[32m 2[2mms[22m[39m
+       [32m鉁?[39m should preserve sensitive data in secret state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should merge secret state back into public state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow ST to see everything[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow player to see their own seenRole but hide realRole if different[32m 0[2mms[22m[39m
+       [32m鉁?[39m should hide sensitive info from other players[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow Spy to see real roles[32m 9[2mms[22m[39m
+[31m       [31m脳[31m should hide private system messages from other players[39m[32m 52[2mms[22m[39m
+       [32m鉁?[39m should show private system messages to the recipient[32m 4[2mms[22m[39m
+ [31m鉂?[39m src/store/slices/createGameSlice.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 22[2mms[22m[39m
+     [32m鉁?[39m should initialize with default state[32m 4[2mms[22m[39m
+       [32m鉁?[39m should create a new game state[32m 2[2mms[22m[39m
+       [32m鉁?[39m should assign roles to seated players[32m 3[2mms[22m[39m
+       [32m鉁?[39m should not assign roles if player count < 5[32m 1[2mms[22m[39m
+       [32m鉁?[39m should apply specific roles[32m 2[2mms[22m[39m
+       [32m鉁?[39m should trigger game over when Demon dies[32m 0[2mms[22m[39m
+       [32m鉁?[39m should pass Imp to Scarlet Woman when Demon dies[32m 3[2mms[22m[39m
+[31m       [31m脳[31m should execute player if votes > half alive players[39m[32m 5[2mms[22m[39m
+[31m       [31m脳[31m should NOT execute if votes <= half alive players[39m[32m 1[2mms[22m[39m
+
+鈳幆鈳幆鈳幆鈳?[39m Failed Tests 2 鈳幆鈳幆鈳幆鈳?[39m
+
+ FAIL  src/store/slices/createGameSlice.test.ts > createGameSlice > Voting Execution > should execute player if votes > half alive players
+TypeError: Cannot assign to read only property 'votes' of object '#<Object>'
+ 鉂?[22m src/store/slices/createGameSlice.test.ts:175:38
+    173|           const state = store.getState();
+    174|           if (state.gameState && state.gameState.voting) {
+    175|               state.gameState.voting.votes = [1, 2, 3];
+       |                                      ^
+    176|           }
+    177|           
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[1/2]鈳?[22m
+
+ FAIL  src/store/slices/createGameSlice.test.ts > createGameSlice > Voting Execution > should NOT execute if votes <= half alive players
+TypeError: Cannot assign to read only property 'votes' of object '#<Object>'
+ 鉂?[22m src/store/slices/createGameSlice.test.ts:195:36
+    193|         const state = store.getState();
+    194|         if (state.gameState && state.gameState.voting) {
+    195|             state.gameState.voting.votes = [1, 2];
+       |                                    ^
+    196|         }
+    197|         
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[2/2]鈳?[22m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m15 passed[39m[22m[90m (18)[39m
+[2m   Start at [22m 01:48:49
+[2m   Duration [22m 255ms
+
+[1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/store/utils.ts [22m[39m
+
+ [32m鉁?[39m src/store/utils.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 78[2mms[22m[39m
+ [32m鉁?[39m src/store/slices/createConnectionSlice.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m鉁?[39m tests/integration/gameFlow.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 25[2mms[22m[39m
+ [31m鉂?[39m src/store/slices/createGameSlice.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 94[2mms[22m[39m
+     [32m鉁?[39m should initialize with default state[32m 3[2mms[22m[39m
+       [32m鉁?[39m should create a new game state[32m 10[2mms[22m[39m
+       [32m鉁?[39m should assign roles to seated players[32m 12[2mms[22m[39m
+       [32m鉁?[39m should not assign roles if player count < 5[32m 12[2mms[22m[39m
+       [32m鉁?[39m should apply specific roles[32m 19[2mms[22m[39m
+       [32m鉁?[39m should trigger game over when Demon dies[32m 6[2mms[22m[39m
+       [32m鉁?[39m should pass Imp to Scarlet Woman when Demon dies[32m 8[2mms[22m[39m
+[31m       [31m脳[31m should execute player if votes > half alive players[39m[32m 11[2mms[22m[39m
+[31m       [31m脳[31m should NOT execute if votes <= half alive players[39m[32m 9[2mms[22m[39m
+
+鈳幆鈳幆鈳幆鈳?[39m Failed Tests 2 鈳幆鈳幆鈳幆鈳?[39m
+
+ FAIL  src/store/slices/createGameSlice.test.ts > createGameSlice > Voting Execution > should execute player if votes > half alive players
+TypeError: Cannot assign to read only property 'votes' of object '#<Object>'
+ 鉂?[22m src/store/slices/createGameSlice.test.ts:175:38
+    173|           const state = store.getState();
+    174|           if (state.gameState && state.gameState.voting) {
+    175|               state.gameState.voting.votes = [1, 2, 3];
+       |                                      ^
+    176|           }
+    177|           
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[1/2]鈳?[22m
+
+ FAIL  src/store/slices/createGameSlice.test.ts > createGameSlice > Voting Execution > should NOT execute if votes <= half alive players
+TypeError: Cannot assign to read only property 'votes' of object '#<Object>'
+ 鉂?[22m src/store/slices/createGameSlice.test.ts:195:36
+    193|         const state = store.getState();
+    194|         if (state.gameState && state.gameState.voting) {
+    195|             state.gameState.voting.votes = [1, 2];
+       |                                    ^
+    196|         }
+    197|         
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[2/2]鈳?[22m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m20 passed[39m[22m[90m (22)[39m
+[2m   Start at [22m 01:49:25
+[2m   Duration [22m 4.12s
+
+[1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/store/slices/createGameSlice.ts [22m[39m
+
+ [31m鉂?[39m src/store/slices/createGameSlice.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 37[2mms[22m[39m
+     [32m鉁?[39m should initialize with default state[32m 1[2mms[22m[39m
+       [32m鉁?[39m should create a new game state[32m 1[2mms[22m[39m
+       [32m鉁?[39m should assign roles to seated players[32m 9[2mms[22m[39m
+       [32m鉁?[39m should not assign roles if player count < 5[32m 1[2mms[22m[39m
+       [32m鉁?[39m should apply specific roles[32m 1[2mms[22m[39m
+       [32m鉁?[39m should trigger game over when Demon dies[32m 0[2mms[22m[39m
+       [32m鉁?[39m should pass Imp to Scarlet Woman when Demon dies[32m 5[2mms[22m[39m
+[31m       [31m脳[31m should execute player if votes > half alive players[39m[32m 12[2mms[22m[39m
+[31m       [31m脳[31m should NOT execute if votes <= half alive players[39m[32m 5[2mms[22m[39m
+ [32m鉁?[39m tests/integration/gameFlow.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 29[2mms[22m[39m
+
+鈳幆鈳幆鈳幆鈳?[39m Failed Tests 2 鈳幆鈳幆鈳幆鈳?[39m
+
+ FAIL  src/store/slices/createGameSlice.test.ts > createGameSlice > Voting Execution > should execute player if votes > half alive players
+TypeError: Cannot assign to read only property 'votes' of object '#<Object>'
+ 鉂?[22m src/store/slices/createGameSlice.test.ts:175:38
+    173|           const state = store.getState();
+    174|           if (state.gameState && state.gameState.voting) {
+    175|               state.gameState.voting.votes = [1, 2, 3];
+       |                                      ^
+    176|           }
+    177|           
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[1/2]鈳?[22m
+
+ FAIL  src/store/slices/createGameSlice.test.ts > createGameSlice > Voting Execution > should NOT execute if votes <= half alive players
+TypeError: Cannot assign to read only property 'votes' of object '#<Object>'
+ 鉂?[22m src/store/slices/createGameSlice.test.ts:195:36
+    193|         const state = store.getState();
+    194|         if (state.gameState && state.gameState.voting) {
+    195|             state.gameState.voting.votes = [1, 2];
+       |                                    ^
+    196|         }
+    197|         
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[2/2]鈳?[22m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m 01:49:33
+[2m   Duration [22m 1.19s
+
+[1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/store/slices/createGameSlice.test.ts [22m[34mx8 [34m[39m
+
+ [32m鉁?[39m src/store/slices/createGameSlice.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 01:50:33
+[2m   Duration [22m 355ms
+
+[1m[42m PASS [49m[22m [32mWaiting for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m

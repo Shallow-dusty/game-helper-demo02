@@ -684,10 +684,7 @@ export const createGameSlice: StoreSlice<GameSlice> = (set, get) => ({
             if (state.gameState?.voting) {
                 const { nomineeSeatId, votes } = state.gameState.voting;
                 const aliveCount = state.gameState.seats.filter(s => !s.isDead).length;
-                console.log('DEBUG: closeVote', { aliveCount, votes: votes.length, nomineeSeatId });
-                
                 const isExecuted = votes.length >= (aliveCount / 2) && votes.length > 0;
-                console.log('DEBUG: isExecuted', isExecuted);
                 
                 let result: 'executed' | 'survived' | 'cancelled' = 'survived';
                 

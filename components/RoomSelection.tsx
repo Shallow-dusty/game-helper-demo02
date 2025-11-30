@@ -88,11 +88,11 @@ export const RoomSelection = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-12"
         >
-          <h2 className="text-stone-500 font-cinzel text-sm tracking-[0.3em] uppercase mb-3">Welcome, {user?.name}</h2>
+          <h2 className="text-stone-500 font-cinzel text-sm tracking-[0.3em] uppercase mb-3">欢迎, {user?.name}</h2>
           <h1 className="text-5xl md:text-6xl font-bold text-stone-200 font-cinzel text-shadow-glow mb-4">
-            Choose Your Destiny
+            选择你的命运
           </h1>
-          <p className="text-stone-600 italic font-serif text-lg">The town awaits your decision...</p>
+          <p className="text-stone-600 italic font-serif text-lg">小镇正在等待你的抉择...</p>
         </motion.div>
 
         {/* Resume Game Alert */}
@@ -109,8 +109,8 @@ export const RoomSelection = () => {
                     <RotateCcw className="w-6 h-6 text-amber-500" />
                   </div>
                   <div>
-                    <p className="text-amber-200 font-bold font-cinzel text-lg">Resume Previous Game</p>
-                    <p className="text-amber-400/60 text-sm font-mono tracking-wider">ROOM: {lastRoomCode}</p>
+                    <p className="text-amber-200 font-bold font-cinzel text-lg">恢复上一局游戏</p>
+                    <p className="text-amber-400/60 text-sm font-mono tracking-wider">房间号: {lastRoomCode}</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -120,7 +120,7 @@ export const RoomSelection = () => {
                     variant="gold"
                     className="font-bold tracking-wider"
                   >
-                    {isRejoining ? 'CONNECTING...' : 'RESUME'}
+                    {isRejoining ? '连接中...' : '恢复'}
                   </Button>
                   <Button
                     onClick={clearLastRoom}
@@ -152,14 +152,14 @@ export const RoomSelection = () => {
                 <div className="w-20 h-20 bg-stone-900/80 rounded-full flex items-center justify-center mb-4 border border-stone-700 group-hover:scale-110 transition-transform duration-500 group-hover:border-red-800 group-hover:bg-red-950/30 shadow-xl">
                   <Flame className="w-10 h-10 text-red-700 drop-shadow-[0_0_5px_rgba(220,38,38,0.5)]" />
                 </div>
-                <CardTitle className="text-3xl text-stone-200">Create Room</CardTitle>
-                <CardDescription>Start a new ritual and summon the townsfolk.</CardDescription>
+                <CardTitle className="text-3xl text-stone-200">创建房间</CardTitle>
+                <CardDescription>开始一场新的仪式，召唤镇民。</CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-8 relative z-10">
                 <div className="bg-stone-950/30 p-6 rounded-lg border border-stone-800/50 space-y-4">
                   <div className="flex justify-between items-center text-stone-300 font-bold font-cinzel">
-                    <span className="text-sm tracking-wider">PLAYERS</span>
+                    <span className="text-sm tracking-wider">玩家人数</span>
                     <span className="text-3xl text-red-600 font-black">{seatCount}</span>
                   </div>
                   <input
@@ -171,9 +171,9 @@ export const RoomSelection = () => {
                     className="w-full h-2 bg-stone-800 rounded-lg appearance-none cursor-pointer accent-red-800 hover:accent-red-700 transition-colors"
                   />
                   <div className="flex justify-between text-[10px] text-stone-600 font-cinzel tracking-widest uppercase">
-                    <span>Teensy (5)</span>
-                    <span>Standard (12)</span>
-                    <span>Legion (20)</span>
+                    <span>小型 (5)</span>
+                    <span>标准 (12)</span>
+                    <span>大型 (20)</span>
                   </div>
                 </div>
 
@@ -181,7 +181,7 @@ export const RoomSelection = () => {
                   onClick={handleCreate}
                   className="w-full h-14 text-lg font-cinzel tracking-[0.2em] bg-gradient-to-r from-red-950 to-red-900 hover:from-red-900 hover:to-red-800 border-red-900/50 shadow-lg group/btn relative overflow-hidden"
                 >
-                  <span className="relative z-10">CREATE RITUAL</span>
+                  <span className="relative z-10">创建仪式</span>
                   <div className="absolute inset-0 bg-red-600/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
                 </Button>
               </CardContent>
@@ -201,8 +201,8 @@ export const RoomSelection = () => {
                 <div className="w-20 h-20 bg-stone-900/80 rounded-full flex items-center justify-center mb-4 border border-stone-700 group-hover:scale-110 transition-transform duration-500 group-hover:border-blue-800 group-hover:bg-blue-950/30 shadow-xl">
                   <Key className="w-10 h-10 text-blue-700 drop-shadow-[0_0_5px_rgba(37,99,235,0.5)]" />
                 </div>
-                <CardTitle className="text-3xl text-stone-200">Join Room</CardTitle>
-                <CardDescription>Enter the code to join an existing town.</CardDescription>
+                <CardTitle className="text-3xl text-stone-200">加入房间</CardTitle>
+                <CardDescription>输入代码加入现有的城镇。</CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-8 relative z-10 flex flex-col justify-end h-[calc(100%-180px)]">
@@ -214,17 +214,18 @@ export const RoomSelection = () => {
                       value={roomCode}
                       onChange={(e) => setRoomCode(e.target.value)}
                       placeholder="8888"
-                      className="w-full bg-stone-950/50 border-b-2 border-stone-700 py-6 text-center text-4xl text-stone-100 tracking-[0.5em] font-cinzel focus:border-blue-700 focus:bg-stone-900/80 outline-none transition-all placeholder-stone-800"
+                      className="w-full bg-stone-900/50 border border-stone-700 rounded-lg px-6 py-4 text-4xl text-center font-cinzel tracking-[0.5em] text-stone-100 placeholder:text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-900/50 focus:border-blue-700 transition-all"
                     />
-                    <div className="absolute bottom-0 left-0 w-full h-[2px] bg-blue-700 scale-x-0 group-focus-within/input:scale-x-100 transition-transform duration-500" />
+                    <div className="absolute inset-0 rounded-lg bg-blue-500/5 opacity-0 group-hover/input:opacity-100 pointer-events-none transition-opacity" />
                   </div>
 
                   <Button
-                    onClick={handleJoin}
+                    type="submit"
                     disabled={roomCode.length !== 4}
-                    className="w-full h-14 text-lg font-cinzel tracking-[0.2em] bg-gradient-to-r from-stone-900 to-stone-800 hover:from-blue-950 hover:to-blue-900 border-stone-700 hover:border-blue-800 shadow-lg"
+                    className="w-full h-14 text-lg font-cinzel tracking-[0.2em] bg-gradient-to-r from-blue-950 to-blue-900 hover:from-blue-900 hover:to-blue-800 border-blue-900/50 shadow-lg group/btn relative overflow-hidden"
                   >
-                    ENTER ROOM
+                    <span className="relative z-10">进入城镇</span>
+                    <div className="absolute inset-0 bg-blue-600/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
                   </Button>
                 </form>
               </CardContent>
@@ -233,78 +234,59 @@ export const RoomSelection = () => {
 
         </div>
 
-        {/* SANDBOX MODE SECTION */}
+        {/* Sandbox & Offline Options */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-12 border-t border-stone-800/50 pt-12"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="mt-16 max-w-2xl mx-auto"
         >
-          <div className="text-center mb-8">
-            <h2 className="text-lg text-stone-500 font-cinzel tracking-widest uppercase opacity-70">Or Try...</h2>
-          </div>
-
-          <Card className="max-w-3xl mx-auto border-stone-800 bg-stone-950/30 hover:border-emerald-900/50 transition-all hover:shadow-[0_0_30px_rgba(6,78,59,0.15)] group">
+          <Card className="border-stone-900 bg-stone-950/30">
             <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row items-center gap-8">
-                <div className="w-16 h-16 bg-stone-900 rounded-full flex items-center justify-center border border-stone-700 group-hover:scale-110 transition-transform group-hover:border-emerald-700 group-hover:bg-emerald-950/30 shrink-0 shadow-lg">
-                  <FlaskConical className="w-8 h-8 text-emerald-700" />
+              <div className="flex items-center justify-between cursor-pointer" onClick={() => setShowSandboxOptions(!showSandboxOptions)}>
+                <div className="flex items-center gap-3">
+                  <FlaskConical className="w-5 h-5 text-stone-500" />
+                  <span className="text-stone-400 font-cinzel tracking-wider">更多选项 (沙盒 & 离线)</span>
                 </div>
+                <Button variant="ghost" size="sm" className="text-stone-600">
+                  {showSandboxOptions ? '收起' : '展开'}
+                </Button>
+              </div>
 
-                <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-xl font-bold text-stone-200 font-cinzel mb-2 group-hover:text-emerald-400 transition-colors">Sandbox Mode</h3>
-                  <p className="text-sm text-stone-500 leading-relaxed">
-                    Local practice mode. No internet required. Perfect for learning roles or testing scripts.
-                  </p>
-                </div>
-
-                <div className="shrink-0 w-full md:w-auto">
-                  {showSandboxOptions ? (
-                    <div className="flex flex-col md:flex-row items-center gap-3 animate-fade-in">
-                      <select
-                        value={seatCount}
-                        onChange={(e) => setSeatCount(parseInt(e.target.value))}
-                        className="bg-stone-950 border border-stone-700 text-stone-200 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-600 w-full md:w-auto font-cinzel h-10"
-                      >
-                        {[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(n => (
-                          <option key={n} value={n}>{n} Players</option>
-                        ))}
-                      </select>
-                      <div className="flex gap-2 w-full md:w-auto">
-                        <Button
-                          onClick={() => startSandbox(seatCount)}
-                          className="flex-1 md:flex-none bg-emerald-900 hover:bg-emerald-800 border-emerald-950"
-                        >
-                          START
-                        </Button>
-                        <Button
-                          onClick={() => setShowSandboxOptions(false)}
-                          variant="ghost"
-                          size="icon"
-                          className="border border-stone-700"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
+              {showSandboxOptions && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-6 grid grid-cols-2 gap-4">
                     <Button
-                      onClick={() => setShowSandboxOptions(true)}
-                      variant="outline"
-                      className="w-full md:w-auto border-stone-700 hover:border-emerald-800 hover:text-emerald-200 hover:bg-emerald-950/50"
+                      variant="secondary"
+                      onClick={() => startSandbox(12)}
+                      className="h-auto py-4 flex flex-col gap-2 bg-stone-900/50 border-stone-800 hover:border-stone-600"
                     >
-                      Enter Sandbox <ArrowRight className="ml-2 w-4 h-4" />
+                      <span className="flex items-center gap-2 text-stone-300 font-bold"><Crown className="w-4 h-4" /> 沙盒模式</span>
+                      <span className="text-[10px] text-stone-500">单人模拟 • 自由测试</span>
                     </Button>
-                  )}
-                </div>
-              </div>
+                    <Button
+                      variant="secondary"
+                      onClick={() => { /* Offline logic placeholder */ }}
+                      disabled
+                      className="h-auto py-4 flex flex-col gap-2 bg-stone-900/30 border-stone-800 opacity-50 cursor-not-allowed"
+                    >
+                      <span className="flex items-center gap-2 text-stone-400 font-bold"><RotateCcw className="w-4 h-4" /> 离线模式</span>
+                      <span className="text-[10px] text-stone-600">即将推出</span>
+                    </Button>
+                  </div>
 
-              <div className="mt-6 flex flex-wrap justify-center md:justify-start gap-4 text-[10px] text-stone-600 font-cinzel tracking-wider uppercase border-t border-stone-800/30 pt-4">
-                <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> Offline</span>
-                <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> Solo Play</span>
-                <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> Full Features</span>
-                <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> No Save</span>
-              </div>
+                  <div className="mt-6 flex flex-wrap justify-center md:justify-start gap-4 text-[10px] text-stone-600 font-cinzel tracking-wider uppercase border-t border-stone-800/30 pt-4">
+                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> 离线可用</span>
+                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> 单人游玩</span>
+                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> 完整功能</span>
+                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> 无需存档</span>
+                  </div>
+                </motion.div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -314,7 +296,7 @@ export const RoomSelection = () => {
           onClick={leaveGame}
           className="mt-12 mx-auto flex text-stone-600 hover:text-stone-400 text-xs font-cinzel tracking-[0.2em] hover:bg-transparent hover:underline underline-offset-4"
         >
-          ← BACK TO LOGIN
+          ← 返回登录
         </Button>
 
         {/* Admin Button */}

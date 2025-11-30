@@ -112,7 +112,7 @@ export const Lobby: React.FC = () => {
                         <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-50 cursor-pointer backdrop-blur-[2px] transition-opacity duration-500">
                             <div className="text-center animate-pulse flex flex-col items-center gap-2">
                                 <Volume2 className="w-8 h-8 text-amber-500" />
-                                <p className="text-amber-500 font-cinzel text-lg">Click to Enable Audio</p>
+                                <p className="text-amber-500 font-cinzel text-lg">点击开启音效</p>
                             </div>
                         </div>
                     )}
@@ -128,10 +128,10 @@ export const Lobby: React.FC = () => {
                         </motion.div>
                         <div className="space-y-2">
                             <CardTitle className="text-4xl text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 drop-shadow-sm">
-                                Grimoire Web
+                                魔典 Grimoire
                             </CardTitle>
                             <CardDescription className="text-stone-400 text-lg">
-                                Blood on the Clocktower
+                                血染钟楼线上助手
                             </CardDescription>
                         </div>
                     </CardHeader>
@@ -142,13 +142,13 @@ export const Lobby: React.FC = () => {
                                 <>
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-stone-400 uppercase tracking-wider font-cinzel ml-1">
-                                            Your Name
+                                            你的昵称
                                         </label>
                                         <input
                                             type="text"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
-                                            placeholder="Enter your name..."
+                                            placeholder="请输入昵称..."
                                             className="w-full bg-stone-900/50 border border-stone-700 rounded-md px-4 py-3 text-lg text-stone-100 placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-amber-900/50 focus:border-amber-700 transition-all font-serif"
                                             autoFocus
                                         />
@@ -162,15 +162,15 @@ export const Lobby: React.FC = () => {
                                             {isST && <div className="w-2 h-2 bg-white rounded-full" />}
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className={`font-cinzel font-bold text-sm ${isST ? 'text-red-400' : 'text-stone-300'}`}>Storyteller Mode</span>
-                                            <span className="text-xs text-stone-500">Host and manage the game</span>
+                                            <span className={`font-cinzel font-bold text-sm ${isST ? 'text-red-400' : 'text-stone-300'}`}>说书人模式</span>
+                                            <span className="text-xs text-stone-500">主持并管理游戏</span>
                                         </div>
                                     </div>
                                 </>
                             ) : (
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-stone-400 uppercase tracking-wider font-cinzel ml-1">
-                                        Room Code
+                                        房间号
                                     </label>
                                     <input
                                         type="text"
@@ -194,7 +194,7 @@ export const Lobby: React.FC = () => {
                                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                                     <span className="relative flex items-center gap-2">
                                         {isSpectating ? <Eye className="w-5 h-5" /> : (isST ? <BookOpen className="w-5 h-5" /> : <User className="w-5 h-5" />)}
-                                        {isSpectating ? 'Enter as Spectator' : (isST ? 'Enter as Storyteller' : 'Enter as Player')}
+                                        {isSpectating ? '以观众身份进入' : (isST ? '以说书人身份进入' : '以玩家身份进入')}
                                     </span>
                                 </Button>
 
@@ -205,7 +205,7 @@ export const Lobby: React.FC = () => {
                                     onClick={() => setIsSpectating(!isSpectating)}
                                     className="w-full text-stone-500 hover:text-stone-300 font-cinzel text-xs tracking-widest"
                                 >
-                                    {isSpectating ? 'Back to Login' : 'Switch to Spectator Mode'}
+                                    {isSpectating ? '返回登录' : '切换到观众模式'}
                                 </Button>
                             </div>
                         </form>
@@ -213,7 +213,7 @@ export const Lobby: React.FC = () => {
 
                     <CardFooter className="justify-center pb-6 pt-0">
                         <p className="text-xs text-stone-600 font-serif italic">
-                            "There is a demon among us..."
+                            "恶魔就在我们中间..."
                         </p>
                     </CardFooter>
                 </Card>

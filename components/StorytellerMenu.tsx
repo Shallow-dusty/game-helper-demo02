@@ -67,8 +67,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                             >
                                 {seat.isDead ? <Skull className="w-5 h-5" /> : <Heart className="w-5 h-5" />}
                                 <div className="text-left">
-                                    <div className="font-bold text-sm">Toggle Life</div>
-                                    <div className="text-[10px] opacity-70">{seat.isDead ? 'Currently: DEAD' : 'Currently: ALIVE'}</div>
+                                    <div className="font-bold text-sm">切换存活状态</div>
+                                    <div className="text-[10px] opacity-70">{seat.isDead ? '当前: 已死亡' : '当前: 存活'}</div>
                                 </div>
                             </Button>
 
@@ -80,8 +80,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                             >
                                 <Ban className="w-5 h-5" />
                                 <div className="text-left">
-                                    <div className="font-bold text-sm">Ability Used</div>
-                                    <div className="text-[10px] opacity-70">{seat.hasUsedAbility ? 'USED' : 'READY'}</div>
+                                    <div className="font-bold text-sm">技能使用</div>
+                                    <div className="text-[10px] opacity-70">{seat.hasUsedAbility ? '已使用' : '未使用'}</div>
                                 </div>
                             </Button>
 
@@ -93,8 +93,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                             >
                                 <Theater className="w-5 h-5" />
                                 <div className="text-left">
-                                    <div className="font-bold text-sm">Assign Role</div>
-                                    <div className="text-[10px] opacity-70">Change character</div>
+                                    <div className="font-bold text-sm">分配角色</div>
+                                    <div className="text-[10px] opacity-70">更改角色身份</div>
                                 </div>
                             </Button>
 
@@ -106,8 +106,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                             >
                                 <Scale className="w-5 h-5" />
                                 <div className="text-left">
-                                    <div className="font-bold text-sm">Nominate</div>
-                                    <div className="text-[10px] opacity-70">Start voting</div>
+                                    <div className="font-bold text-sm">发起提名</div>
+                                    <div className="text-[10px] opacity-70">开始投票流程</div>
                                 </div>
                             </Button>
 
@@ -119,8 +119,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                             >
                                 <ArrowLeftRight className="w-5 h-5" />
                                 <div className="text-left">
-                                    <div className="font-bold text-sm">Swap Seat</div>
-                                    <div className="text-[10px] opacity-70">Move player</div>
+                                    <div className="font-bold text-sm">交换座位</div>
+                                    <div className="text-[10px] opacity-70">移动玩家位置</div>
                                 </div>
                             </Button>
 
@@ -133,8 +133,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                 >
                                     <Trash2 className="w-5 h-5" />
                                     <div className="text-left">
-                                        <div className="font-bold text-sm">Remove Bot</div>
-                                        <div className="text-[10px] opacity-70">Clear seat</div>
+                                        <div className="font-bold text-sm">移除机器人</div>
+                                        <div className="text-[10px] opacity-70">清空座位</div>
                                     </div>
                                 </Button>
                             )}
@@ -142,7 +142,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
 
                         {/* Status Section */}
                         <div className="px-4 pb-4">
-                            <h4 className="text-xs font-bold text-stone-500 uppercase mb-2 font-cinzel tracking-wider">Status Effects</h4>
+                            <h4 className="text-xs font-bold text-stone-500 uppercase mb-2 font-cinzel tracking-wider">状态效果</h4>
                             <div className="flex flex-wrap gap-2">
                                 {STATUS_OPTIONS.filter(status => {
                                     if (currentScriptId === 'tb' && status.id === 'MADNESS') return false;
@@ -168,7 +168,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
 
                         {/* Reminders Section */}
                         <div className="px-4 pb-4 border-t border-stone-800 pt-4 bg-stone-950/50">
-                            <h4 className="text-xs font-bold text-stone-500 uppercase mb-2 font-cinzel tracking-wider">Reminders</h4>
+                            <h4 className="text-xs font-bold text-stone-500 uppercase mb-2 font-cinzel tracking-wider">标记提醒</h4>
 
                             {/* Existing Reminders */}
                             <div className="flex flex-wrap gap-2 mb-3 min-h-[2rem]">
@@ -177,7 +177,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                         key={rem.id}
                                         onClick={() => actions.removeReminder(rem.id)}
                                         className="px-2 py-1 rounded bg-stone-800 border border-stone-600 text-xs text-stone-300 hover:bg-red-900/30 hover:border-red-800 hover:text-red-300 flex items-center gap-1 transition-colors group animate-in fade-in zoom-in duration-200"
-                                        title="Click to remove"
+                                        title="点击移除"
                                     >
                                         <span>{rem.icon || '🔸'}</span>
                                         <span>{rem.text}</span>
@@ -185,7 +185,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                     </button>
                                 ))}
                                 {seat.reminders.length === 0 && (
-                                    <span className="text-xs text-stone-600 italic py-1">No active reminders</span>
+                                    <span className="text-xs text-stone-600 italic py-1">暂无标记</span>
                                 )}
                             </div>
 

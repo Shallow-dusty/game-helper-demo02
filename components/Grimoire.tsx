@@ -454,6 +454,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
   const assignRole = useStore(state => state.assignRole);
   const addReminder = useStore(state => state.addReminder);
   const removeReminder = useStore(state => state.removeReminder);
+  const forceLeaveSeat = useStore(state => state.forceLeaveSeat);
   const removeVirtualPlayer = useStore(state => state.removeVirtualPlayer);
   const swapSeats = useStore(state => state.swapSeats);
   const requestSeatSwap = useStore(state => state.requestSeatSwap);
@@ -823,7 +824,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
             removeVirtualPlayer,
             startVote,
             setRoleSelectSeat,
-            setSwapSourceId
+            setSwapSourceId,
+            forceLeaveSeat
           }}
         />
       )}

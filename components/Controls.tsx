@@ -16,7 +16,7 @@ import { ControlsPlayerSection } from './ControlsPlayerSection';
 import { ControlsAudioTab } from './ControlsAudioTab';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Gamepad2, MessageSquare, Bot, Book, Music, X, GripVertical } from 'lucide-react';
 
 interface ControlsProps {
@@ -112,7 +112,9 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     const wakeSound = new Audio('/audio/sfx/wake.mp3');
                     wakeSound.volume = 0.3;
                     wakeSound.play().catch(e => console.log('Audio blocked:', e));
-                } catch (e) { }
+                } catch (e) {
+                    // Ignore audio errors
+                }
             }
         }
     }, [gameState?.phase, gameState?.nightCurrentIndex, user?.id]);
@@ -130,13 +132,13 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     };
 
     const tabs = [
-        { id: 'game', label: 'Game', icon: <Gamepad2 className="w-4 h-4" /> },
-        { id: 'chat', label: 'Chat', icon: <MessageSquare className="w-4 h-4" /> },
+        { id: 'game', label: '游戏', icon: <Gamepad2 className="w-4 h-4" /> },
+        { id: 'chat', label: '聊天', icon: <MessageSquare className="w-4 h-4" /> },
         ...(user.isStoryteller ? [
-            { id: 'ai', label: 'AI', icon: <Bot className="w-4 h-4" /> },
-            { id: 'audio', label: 'Audio', icon: <Music className="w-4 h-4" /> }
+            { id: 'ai', label: 'AI助手', icon: <Bot className="w-4 h-4" /> },
+            { id: 'audio', label: '音效', icon: <Music className="w-4 h-4" /> }
         ] : []),
-        { id: 'notebook', label: 'Notes', icon: <Book className="w-4 h-4" /> },
+        { id: 'notebook', label: '笔记', icon: <Book className="w-4 h-4" /> },
     ];
 
     return (
@@ -165,9 +167,9 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                             "px-2 py-0.5 rounded border text-xs font-bold uppercase tracking-wider",
                             user.isStoryteller ? 'bg-red-950/30 border-red-800 text-red-400' : 'bg-blue-950/30 border-blue-800 text-blue-400'
                         )}>
-                            {user.isStoryteller ? 'Storyteller' : 'Villager'}
+                            {user.isStoryteller ? '说书人' : '村民'}
                         </span>
-                        {currentSeat && <span className="text-stone-500 text-xs">Seat {currentSeat.id + 1}</span>}
+                        {currentSeat && <span className="text-stone-500 text-xs">座位 {currentSeat.id + 1}</span>}
                     </div>
                 </div>
 
@@ -187,7 +189,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     gameState.gameOver.winner === 'GOOD' ? 'bg-blue-900/90 border-blue-500' : 'bg-red-900/90 border-red-500'
                 )}>
                     <h2 className="text-2xl font-bold text-white font-cinzel tracking-widest drop-shadow-md">
-                        {gameState.gameOver.winner === 'GOOD' ? 'GOOD WINS' : 'EVIL WINS'}
+                        {gameState.gameOver.winner === 'GOOD' ? '好人胜利' : '邪恶胜利'}
                     </h2>
                     <p className="text-xs text-white/80 mt-1 font-serif italic">{gameState.gameOver.reason}</p>
                 </div>
@@ -196,12 +198,12 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             {/* Room Code Banner */}
             <div className="bg-stone-900/50 border-b border-stone-800 p-3 flex justify-between items-center px-4">
                 <div className="flex flex-col">
-                    <span className="text-[10px] text-stone-500 uppercase tracking-wider font-cinzel">Room Code</span>
+                    <span className="text-[10px] text-stone-500 uppercase tracking-wider font-cinzel">房间号</span>
                     <span className="text-xl font-mono font-bold text-stone-200 tracking-[0.2em]">{gameState.roomId}</span>
                 </div>
                 {isOffline ? (
                     <span className="text-xs font-bold text-red-400 bg-red-950/30 border border-red-900 px-2 py-1 rounded animate-pulse">
-                        OFFLINE / DEMO
+                        离线 / 演示
                     </span>
                 ) : (
                     <Button
@@ -210,7 +212,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                         onClick={leaveGame}
                         className="text-stone-500 hover:text-red-400 hover:bg-red-950/20 h-8 text-xs uppercase tracking-wider"
                     >
-                        Leave
+                        离开
                     </Button>
                 )}
             </div>
@@ -249,7 +251,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 {activeTab === 'game' && (
                     <div className="h-full overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-stone-800 scrollbar-track-transparent">
                         <div className="text-center p-4 bg-black/40 rounded border border-stone-800 shadow-inner backdrop-blur-sm">
-                            <div className="text-xs text-stone-500 uppercase tracking-[0.2em] mb-1 font-cinzel">Current Phase</div>
+                            <div className="text-xs text-stone-500 uppercase tracking-[0.2em] mb-1 font-cinzel">当前阶段</div>
                             <div className="text-3xl font-bold text-amber-600 tracking-widest font-cinzel drop-shadow-md">{PHASE_LABELS[gameState.phase]}</div>
                         </div>
 
@@ -286,8 +288,8 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                             {gameState.aiMessages.length === 0 && (
                                 <div className="text-center text-stone-500 py-8 flex flex-col items-center gap-3">
                                     <Bot className="w-12 h-12 opacity-50" />
-                                    <p className="text-sm font-cinzel">AI Assistant Ready</p>
-                                    <p className="text-xs text-stone-600">Ask for rules, advice, or flavor text.</p>
+                                    <p className="text-sm font-cinzel">AI 助手已就绪</p>
+                                    <p className="text-xs text-stone-600">询问规则、建议或背景故事。</p>
                                 </div>
                             )}
                             {gameState.aiMessages.map(msg => (
@@ -303,7 +305,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="text-[10px] text-stone-600">{new Date(msg.timestamp).toLocaleTimeString()}</span>
                                         {user.isStoryteller && msg.role !== 'user' && (
-                                            <button onClick={() => deleteAiMessage(msg.id)} className="text-[10px] text-red-900 hover:text-red-500">Delete</button>
+                                            <button onClick={() => deleteAiMessage(msg.id)} className="text-[10px] text-red-900 hover:text-red-500">删除</button>
                                         )}
                                     </div>
                                 </div>
@@ -311,7 +313,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                             {isAiThinking && (
                                 <div className="flex items-start">
                                     <div className="bg-amber-900/30 text-amber-100 p-3 rounded-lg text-sm border border-amber-800/30 animate-pulse flex items-center gap-2">
-                                        <Bot className="w-4 h-4" /> Thinking...
+                                        <Bot className="w-4 h-4" /> 思考中...
                                     </div>
                                 </div>
                             )}
@@ -321,25 +323,25 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                 type="text"
                                 value={aiPrompt}
                                 onChange={(e) => setAiPrompt(e.target.value)}
-                                placeholder="Ask the Grimoire..."
+                                placeholder="询问魔典..."
                                 className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 focus:border-amber-600 focus:outline-none placeholder:text-stone-700"
                             />
                             <Button type="submit" disabled={!aiPrompt.trim() || isAiThinking} size="sm">
-                                Send
+                                发送
                             </Button>
                         </form>
                         {user.isStoryteller && (
                             <div className="mt-2 flex justify-between items-center">
-                                <button onClick={clearAiMessages} className="text-xs text-stone-500 hover:text-stone-300">Clear History</button>
+                                <button onClick={clearAiMessages} className="text-xs text-stone-500 hover:text-stone-300">清除历史</button>
                                 <select
                                     value={aiProvider}
                                     onChange={(e) => setAiProvider(e.target.value as any)}
                                     className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1 focus:outline-none focus:border-stone-600"
                                 >
-                                    <optgroup label="Official API">
+                                    <optgroup label="官方 API">
                                         <option value="deepseek">DeepSeek V3</option>
                                     </optgroup>
-                                    <optgroup label="Other (May have CORS issues)">
+                                    <optgroup label="其他 (可能存在跨域问题)">
                                         <option value="kimi">Kimi K2</option>
                                         <option value="sf_r1">DeepSeek R1 (SF)</option>
                                         <option value="sf_r1_llama_70b">R1 Llama 70B (SF)</option>
@@ -419,3 +421,4 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
         </div>
     );
 };
+

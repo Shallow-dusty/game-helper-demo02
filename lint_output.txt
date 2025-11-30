@@ -1,0 +1,945 @@
+
+> grimoire-web@0.8.0 lint
+> eslint . --ext .ts,.tsx
+
+
+E:\coding\Antigravity\game-helper-demo02\App.tsx
+   30:33  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+   31:35  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+   72:69  warning  Invalid type "number" of template literal expression                                                                 @typescript-eslint/restrict-template-expressions
+  165:28  warning  Unnecessary optional chain on a non-nullish value                                                                    @typescript-eslint/no-unnecessary-condition
+  172:35  warning  Invalid type "number" of template literal expression                                                                 @typescript-eslint/restrict-template-expressions
+  173:32  warning  Invalid type "number" of template literal expression                                                                 @typescript-eslint/restrict-template-expressions
+  177:28  warning  Unnecessary optional chain on a non-nullish value                                                                    @typescript-eslint/no-unnecessary-condition
+  177:38  warning  Unnecessary optional chain on a non-nullish value                                                                    @typescript-eslint/no-unnecessary-condition
+  178:26  warning  Unnecessary optional chain on a non-nullish value                                                                    @typescript-eslint/no-unnecessary-condition
+  178:36  warning  Unnecessary optional chain on a non-nullish value                                                                    @typescript-eslint/no-unnecessary-condition
+  216:39  warning  Unnecessary optional chain on a non-nullish value                                                                    @typescript-eslint/no-unnecessary-condition
+  262:8   warning  Unnecessary conditional, value is always truthy                                                                      @typescript-eslint/no-unnecessary-condition
+  269:31  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+  273:42  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  273:49  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+  298:8   warning  Unnecessary conditional, value is always truthy                                                                      @typescript-eslint/no-unnecessary-condition
+
+E:\coding\Antigravity\game-helper-demo02\components\AdminPanel.tsx
+    9:60  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   13:12  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   49:22  warning  Unnecessary conditional, value is always truthy                                                            @typescript-eslint/no-unnecessary-condition
+   50:23  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   52:37  warning  Invalid operand for a '+' operation. Operands must each be a number or string. Got `any`                   @typescript-eslint/restrict-plus-operands
+   52:41  warning  Unsafe member access .message on an `any` value                                                            @typescript-eslint/no-unsafe-member-access
+   70:23  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   72:35  warning  Invalid operand for a '+' operation. Operands must each be a number or string. Got `any`                   @typescript-eslint/restrict-plus-operands
+   72:39  warning  Unsafe member access .message on an `any` value                                                            @typescript-eslint/no-unsafe-member-access
+   80:36  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   82:19  warning  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+   83:13  warning  Unsafe return of a value of type `any`                                                                     @typescript-eslint/no-unsafe-return
+   83:20  warning  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   83:28  warning  Unsafe member access .seats on an `any` value                                                              @typescript-eslint/no-unsafe-member-access
+   83:46  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   83:54  warning  Unsafe return of a value of type `any`                                                                     @typescript-eslint/no-unsafe-return
+   83:56  warning  Unsafe member access .userId on an `any` value                                                             @typescript-eslint/no-unsafe-member-access
+   83:63  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   83:68  warning  Unsafe member access .isVirtual on an `any` value                                                          @typescript-eslint/no-unsafe-member-access
+   83:80  warning  Unsafe member access .length on an `any` value                                                             @typescript-eslint/no-unsafe-member-access
+   83:87  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   89:30  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   91:19  warning  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+   92:13  warning  Unsafe return of a value of type `any`                                                                     @typescript-eslint/no-unsafe-return
+   92:28  warning  Unsafe member access .phase on an `any` value                                                              @typescript-eslint/no-unsafe-member-access
+   92:34  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  150:37  warning  Promise-returning function provided to attribute where a void return was expected                          @typescript-eslint/no-misused-promises
+
+E:\coding\Antigravity\game-helper-demo02\components\AudioEnableOverlay.tsx
+  41:17  warning  Expected non-Promise value in a boolean conditional  @typescript-eslint/no-misused-promises
+  41:17  warning  Unnecessary conditional, value is always truthy      @typescript-eslint/no-unnecessary-condition
+
+E:\coding\Antigravity\game-helper-demo02\components\AudioManager.tsx
+    8:66  warning  Unnecessary optional chain on a non-nullish value            @typescript-eslint/no-unnecessary-condition
+    9:68  warning  Unnecessary optional chain on a non-nullish value            @typescript-eslint/no-unnecessary-condition
+   10:65  warning  Unnecessary optional chain on a non-nullish value            @typescript-eslint/no-unnecessary-condition
+   83:55  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+   89:26  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  122:13  warning  Unnecessary conditional, the types have no overlap           @typescript-eslint/no-unnecessary-condition
+  131:24  warning  Prefer the safe `: unknown` for a `catch` callback variable  @typescript-eslint/use-unknown-in-catch-callback-variable
+  135:31  warning  Unsafe member access .name on an `any` value                 @typescript-eslint/no-unsafe-member-access
+  138:38  warning  Unsafe member access .name on an `any` value                 @typescript-eslint/no-unsafe-member-access
+  169:61  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  170:62  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  172:43  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  214:55  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  222:47  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+
+E:\coding\Antigravity\game-helper-demo02\components\Chat.tsx
+   34:42   warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+   43:109  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   70:66   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   71:60   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  236:34   warning  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  236:48   warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  268:69   warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  274:52   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  280:67   warning  Forbidden non-null assertion                                                                               @typescript-eslint/no-non-null-assertion
+
+E:\coding\Antigravity\game-helper-demo02\components\Confetti.tsx
+  115:66  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\Controls.tsx
+   99:27   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?           @typescript-eslint/no-deprecated
+  102:46   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?           @typescript-eslint/no-deprecated
+  103:44   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?           @typescript-eslint/no-deprecated
+  114:44   warning  Prefer the safe `: unknown` for a `catch` callback variable                                                                    @typescript-eslint/use-unknown-in-catch-callback-variable
+  115:26   warning  'e' is defined but never used                                                                                                  @typescript-eslint/no-unused-vars
+  115:29   error    Empty block statement                                                                                                          no-empty
+  145:52   warning  Invalid type "number" of template literal expression                                                                           @typescript-eslint/restrict-template-expressions
+  184:32   warning  Unnecessary optional chain on a non-nullish value                                                                              @typescript-eslint/no-unnecessary-condition
+  223:53   warning  Unsafe argument of type `any` assigned to a parameter of type `SetStateAction<"chat" | "audio" | "game" | "ai" | "notebook">`  @typescript-eslint/no-unsafe-argument
+  223:63   warning  Unexpected any. Specify a different type                                                                                       @typescript-eslint/no-explicit-any
+  319:40   warning  Promise-returning function provided to attribute where a void return was expected                                              @typescript-eslint/no-misused-promises
+  336:68   warning  Unsafe argument of type `any` assigned to a parameter of type `AiProvider`                                                     @typescript-eslint/no-unsafe-argument
+  336:86   warning  Unexpected any. Specify a different type                                                                                       @typescript-eslint/no-explicit-any
+  376:48   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?           @typescript-eslint/no-deprecated
+  376:55   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                      @typescript-eslint/prefer-nullish-coalescing
+  377:149  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                      @typescript-eslint/prefer-nullish-coalescing
+  381:38   warning  Unnecessary conditional, value is always truthy                                                                                @typescript-eslint/no-unnecessary-condition
+  381:47   warning  Unnecessary optional chain on a non-nullish value                                                                              @typescript-eslint/no-unnecessary-condition
+  384:71   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                      @typescript-eslint/prefer-nullish-coalescing
+  408:69   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?           @typescript-eslint/no-deprecated
+  410:41   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?           @typescript-eslint/no-deprecated
+
+E:\coding\Antigravity\game-helper-demo02\components\ControlsAITab.tsx
+   30:36  warning  Unnecessary optional chain on a non-nullish value                                                          @typescript-eslint/no-unnecessary-condition
+   77:22  warning  Promise-returning function provided to attribute where a void return was expected                          @typescript-eslint/no-misused-promises
+  119:23  warning  Unnecessary optional chain on a non-nullish value                                                          @typescript-eslint/no-unnecessary-condition
+  119:30  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\ControlsAudioTab.tsx
+  18:28  warning  Prefer the safe `: unknown` for a `catch` callback variable                                                @typescript-eslint/use-unknown-in-catch-callback-variable
+  44:65  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  44:85  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\ControlsGameTab.tsx
+   62:50   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  115:28   warning  Unnecessary conditional, value is always truthy                                                                                                                     @typescript-eslint/no-unnecessary-condition
+  170:69   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  171:69   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  183:72   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  282:48   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  321:35   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  339:112  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  413:29   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  423:29   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  424:35   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  425:29   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  451:54   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  489:25   warning  Promise-returning function provided to attribute where a void return was expected                                                                                   @typescript-eslint/no-misused-promises
+  519:32   warning  Unnecessary conditional, value is always truthy                                                                                                                     @typescript-eslint/no-unnecessary-condition
+  519:41   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  522:61   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  542:77   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  562:64   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  568:15   warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+
+E:\coding\Antigravity\game-helper-demo02\components\ControlsPlayerSection.tsx
+  185:13  warning  Unnecessary conditional, value is always truthy                                                                      @typescript-eslint/no-unnecessary-condition
+  271:31  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  271:58  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  295:35  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  305:35  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  306:43  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  307:37  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  334:66  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+  336:47  warning  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined                   @typescript-eslint/no-unnecessary-condition
+  370:33  warning  Promise-returning function provided to attribute where a void return was expected                                    @typescript-eslint/no-misused-promises
+
+E:\coding\Antigravity\game-helper-demo02\components\ControlsSTSection.tsx
+   95:34  warning  Unnecessary conditional, value is always truthy                                                                      @typescript-eslint/no-unnecessary-condition
+  147:84  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  231:82  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+  253:56  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+  292:47  warning  Invalid type "number" of template literal expression                                                                 @typescript-eslint/restrict-template-expressions
+  314:52  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\FloatingNote.tsx
+  33:66  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  74:40  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  75:39  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\FloatingVoteButton.tsx
+  28:40   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  31:46   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  32:48   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  43:24   warning  Unnecessary conditional, value is always falsy                                                             @typescript-eslint/no-unnecessary-condition
+  96:23   warning  Unnecessary optional chain on a non-nullish value                                                          @typescript-eslint/no-unnecessary-condition
+  98:102  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\GameHistoryView.tsx
+   16:9   warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+   27:98  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  145:77  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  176:42  warning  Unnecessary conditional, value is always truthy                                                                                                                     @typescript-eslint/no-unnecessary-condition
+
+E:\coding\Antigravity\game-helper-demo02\components\Grimoire.tsx
+   44:16   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   45:20   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   46:22   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   53:40   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   53:67   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   59:33   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   62:11   warning  Unsafe member access .evt on an `any` value                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unsafe-member-access
+   62:29   warning  Unsafe member access .evt on an `any` value                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unsafe-member-access
+   65:29   warning  Unsafe assignment of an `any` value                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unsafe-assignment
+   65:34   warning  Unsafe member access .evt on an `any` value                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unsafe-member-access
+   65:47   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+   65:53   warning  Unsafe assignment of an `any` value                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unsafe-assignment
+   65:58   warning  Unsafe member access .evt on an `any` value                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unsafe-member-access
+   65:71   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+   75:33   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   86:32   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   88:30   warning  Unsafe member access .evt on an `any` value                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unsafe-member-access
+   88:43   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+   89:30   warning  Unsafe member access .evt on an `any` value                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unsafe-member-access
+   89:43   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+  108:23   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+  135:17   error    A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  147:40   warning  Forbidden non-null assertion                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-non-null-assertion
+  200:67   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+  415:36   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+  549:7    warning  Unnecessary conditional, value is always falsy                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unnecessary-condition
+  571:31   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+  573:7    warning  Unsafe member access .cancelBubble on an `any` value                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unsafe-member-access
+  587:43   warning  Invalid type "number" of template literal expression                                                                                                                                                                                                                                                                                        @typescript-eslint/restrict-template-expressions
+  587:68   warning  Invalid type "number" of template literal expression                                                                                                                                                                                                                                                                                        @typescript-eslint/restrict-template-expressions
+  595:9    warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator                                                                                                                                                                          @typescript-eslint/no-floating-promises
+  602:9    warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator                                                                                                                                                                          @typescript-eslint/no-floating-promises
+  614:72   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+  617:73   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+  617:78   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                                                                                                                                                                                        @typescript-eslint/no-deprecated
+  623:37   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+  627:8    warning  Forbidden non-null assertion                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-non-null-assertion
+  631:66   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+  641:18   warning  Unsafe assignment of an `any` value                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unsafe-assignment
+  641:23   warning  Unsafe member access .id on an `any` value                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unsafe-member-access
+  642:41   warning  Forbidden non-null assertion                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-non-null-assertion
+  642:58   warning  Unsafe argument of type `any` assigned to a parameter of type `string`                                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-argument
+  642:63   warning  Unsafe member access .id on an `any` value                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unsafe-member-access
+  644:52   warning  Unsafe member access .team on an `any` value                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unsafe-member-access
+  647:220  warning  Unsafe member access .team on an `any` value                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unsafe-member-access
+  649:23   warning  Unsafe member access .team on an `any` value                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unsafe-member-access
+  649:54   warning  Unsafe member access .team on an `any` value                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unsafe-member-access
+  649:86   warning  Unsafe member access .team on an `any` value                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unsafe-member-access
+  652:114  warning  Unsafe member access .name on an `any` value                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unsafe-member-access
+  738:49   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+  761:30   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+  763:36   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+  763:46   warning  Unsafe call of a(n) `any` typed value                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unsafe-call
+  763:48   warning  Unsafe member access .evt on an `any` value                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unsafe-member-access
+  776:17   warning  Forbidden non-null assertion                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-non-null-assertion
+  800:72   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+  808:84   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+  809:81   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+  810:75   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+  811:72   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                                                                                                                                                                   @typescript-eslint/prefer-nullish-coalescing
+  816:63   warning  Unsafe argument of type `any` assigned to a parameter of type `string`                                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-argument
+  816:71   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+
+E:\coding\Antigravity\game-helper-demo02\components\HistoryViewer.tsx
+   17:14   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   20:13   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   33:11   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   33:56   warning  Unsafe member access .voteHistory on an `any` value                                                                                                                 @typescript-eslint/no-unsafe-member-access
+   34:11   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   34:50   warning  Unsafe member access .seats on an `any` value                                                                                                                       @typescript-eslint/no-unsafe-member-access
+   58:13   warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+   71:24   warning  Unnecessary conditional, value is always truthy                                                                                                                     @typescript-eslint/no-unnecessary-condition
+  164:97   warning  Unsafe member access .isDead on an `any` value                                                                                                                      @typescript-eslint/no-unsafe-member-access
+  164:180  warning  Unsafe member access .name on an `any` value                                                                                                                        @typescript-eslint/no-unsafe-member-access
+  167:95   warning  Unsafe member access .team on an `any` value                                                                                                                        @typescript-eslint/no-unsafe-member-access
+  167:133  warning  Unsafe member access .team on an `any` value                                                                                                                        @typescript-eslint/no-unsafe-member-access
+  168:72   warning  Unsafe member access .role on an `any` value                                                                                                                        @typescript-eslint/no-unsafe-member-access
+  168:77   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  197:57   warning  Unsafe member access .length on an `any` value                                                                                                                      @typescript-eslint/no-unsafe-member-access
+  198:67   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+  198:95   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+
+E:\coding\Antigravity\game-helper-demo02\components\InfoCard.tsx
+  92:34  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  93:20  warning  Unnecessary conditional, value is always truthy                                                            @typescript-eslint/no-unnecessary-condition
+
+E:\coding\Antigravity\game-helper-demo02\components\Lobby.tsx
+  58:43  warning  Prefer the safe `: unknown` for a `catch` callback variable                                                                                                         @typescript-eslint/use-unknown-in-catch-callback-variable
+  88:17  warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+
+E:\coding\Antigravity\game-helper-demo02\components\NightActionManager.tsx
+   27:49   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   31:58   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   37:25   warning  Do not delete dynamically computed property keys                                                           @typescript-eslint/no-dynamic-delete
+   44:13   warning  Unnecessary conditional, value is always falsy                                                             @typescript-eslint/no-unnecessary-condition
+   46:28   warning  Unnecessary optional chain on a non-nullish value                                                          @typescript-eslint/no-unnecessary-condition
+   48:37   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   48:46   warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+   50:28   warning  Unnecessary optional chain on a non-nullish value                                                          @typescript-eslint/no-unnecessary-condition
+   52:87   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   52:96   warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+   55:28   warning  Unnecessary optional chain on a non-nullish value                                                          @typescript-eslint/no-unnecessary-condition
+   57:73   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   57:82   warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+   95:75   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   95:99   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  115:76   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  118:75   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  121:168  warning  Invalid type "string | undefined" of template literal expression                                           @typescript-eslint/restrict-template-expressions
+  168:73   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\NightActionPanel.tsx
+  25:22  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  35:38  warning  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  69:85  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\NotificationSystem.tsx
+  30:64  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  42:86  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\PhaseIndicator.tsx
+  30:65  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  31:47  warning  Unnecessary optional chain on a non-nullish value                                                          @typescript-eslint/no-unnecessary-condition
+  31:83  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  35:75  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  36:63  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  38:27  warning  Unnecessary optional chain on a non-nullish value                                                          @typescript-eslint/no-unnecessary-condition
+  47:41  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  53:16  warning  Unnecessary conditional, comparison is always true, since `"STARTED" === "STARTED"` is true                @typescript-eslint/no-unnecessary-condition
+  55:27  warning  Unnecessary conditional, value is always truthy                                                            @typescript-eslint/no-unnecessary-condition
+  58:31  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  64:37  warning  Invalid type "string | undefined" of template literal expression                                           @typescript-eslint/restrict-template-expressions
+  64:56  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  64:70  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  66:33  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  66:47  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  69:31  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  72:29  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  72:43  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  74:31  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  77:35  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  77:66  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  80:51  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  80:60  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  84:55  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  92:23  warning  Unnecessary conditional, value is always truthy                                                            @typescript-eslint/no-unnecessary-condition
+
+E:\coding\Antigravity\game-helper-demo02\components\PlayerNightAction.tsx
+  25:22  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  37:37  warning  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  77:85  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\PlayerNotebook.tsx
+  18:26  warning  Unsafe argument of type `any` assigned to a parameter of type `SetStateAction<Note[]>`  @typescript-eslint/no-unsafe-argument
+
+E:\coding\Antigravity\game-helper-demo02\components\RoleCard.tsx
+   99:39  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  179:31  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\RoomSelection.tsx
+  10:50  warning  'ArrowRight' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+E:\coding\Antigravity\game-helper-demo02\components\SandboxView.tsx
+   29:37  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+   30:39  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+   93:21  warning  Unnecessary conditional, value is always truthy                                                                      @typescript-eslint/no-unnecessary-condition
+   94:25  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+  100:35  warning  Invalid type "number" of template literal expression                                                                 @typescript-eslint/restrict-template-expressions
+  101:32  warning  Invalid type "number" of template literal expression                                                                 @typescript-eslint/restrict-template-expressions
+  236:53  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+  238:40  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+  297:39  warning  Invalid type "number" of template literal expression                                                                 @typescript-eslint/restrict-template-expressions
+  298:38  warning  Invalid type "number" of template literal expression                                                                 @typescript-eslint/restrict-template-expressions
+  301:48  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  301:74  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  301:88  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+  301:96  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  304:23  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  304:44  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  305:57  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  348:62  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+  443:33  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  443:53  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+
+E:\coding\Antigravity\game-helper-demo02\components\ScriptCompositionGuide.tsx
+  187:132  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  191:138  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  195:132  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  198:112  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  199:115  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  232:41   warning  Unnecessary conditional, value is always truthy                                                            @typescript-eslint/no-unnecessary-condition
+  238:41   warning  Unnecessary conditional, value is always truthy                                                            @typescript-eslint/no-unnecessary-condition
+  244:41   warning  Unnecessary conditional, value is always truthy                                                            @typescript-eslint/no-unnecessary-condition
+  250:41   warning  Unnecessary conditional, value is always truthy                                                            @typescript-eslint/no-unnecessary-condition
+  301:31   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  307:81   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  308:52   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  365:43   warning  Forbidden non-null assertion                                                                               @typescript-eslint/no-non-null-assertion
+  415:125  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  415:156  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  415:186  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  415:214  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  428:111  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  432:117  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  436:111  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\ScriptEditor.tsx
+  32:27  warning  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  46:27  warning  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  90:71  warning  Unnecessary conditional, value is always truthy       @typescript-eslint/no-unnecessary-condition
+
+E:\coding\Antigravity\game-helper-demo02\components\ScriptManager.tsx
+   19:52  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   19:78  warning  Unnecessary optional chain on a non-nullish value                                                          @typescript-eslint/no-unnecessary-condition
+  111:90  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\StorytellerMenu.tsx
+   51:78  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  182:57  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\StorytellerNotebook.tsx
+  7:71  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\Toast.tsx
+   91:46  warning  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  142:25  warning  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+
+E:\coding\Antigravity\game-helper-demo02\components\TownSquare.tsx
+  20:13  warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  32:13  warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  95:36  warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  95:46  warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  96:34  warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  96:44  warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+
+E:\coding\Antigravity\game-helper-demo02\components\VoiceRoomLink.tsx
+  14:74  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  19:13  warning  Unnecessary conditional, value is always falsy                                                                                                                      @typescript-eslint/no-unnecessary-condition
+  24:9   warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  29:13  warning  Unnecessary conditional, value is always falsy                                                                                                                      @typescript-eslint/no-unnecessary-condition
+  33:9   warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  44:47  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  55:66  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\components\VotingChart.tsx
+  33:52  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  51:81  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  54:79  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  61:44  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  66:43  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  67:41  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+  82:46  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  82:54  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+
+E:\coding\Antigravity\game-helper-demo02\components\WaitingArea.tsx
+  13:9   warning  Unnecessary conditional, value is always falsy                                                             @typescript-eslint/no-unnecessary-condition
+  53:37  warning  Promise-returning function provided to attribute where a void return was expected                          @typescript-eslint/no-misused-promises
+  54:47  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  76:70  warning  Invalid type "number" of template literal expression                                                       @typescript-eslint/restrict-template-expressions
+
+E:\coding\Antigravity\game-helper-demo02\components\WelcomeAnnouncement.tsx
+  156:51  warning  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+
+E:\coding\Antigravity\game-helper-demo02\components\ui\BackgroundEffects.tsx
+  22:19  warning  Unsafe spread of an `any` value in an array                                     @typescript-eslint/no-unsafe-assignment
+  27:36  warning  Operands of '+' operations must be a number or string. Got `number` + `string`  @typescript-eslint/restrict-plus-operands
+  28:37  warning  Operands of '+' operations must be a number or string. Got `number` + `string`  @typescript-eslint/restrict-plus-operands
+  29:34  warning  Operands of '+' operations must be a number or string. Got `number` + `string`  @typescript-eslint/restrict-plus-operands
+  30:35  warning  Operands of '+' operations must be a number or string. Got `number` + `string`  @typescript-eslint/restrict-plus-operands
+  31:49  warning  Invalid type "number" of template literal expression                            @typescript-eslint/restrict-template-expressions
+  32:49  warning  Invalid type "number" of template literal expression                            @typescript-eslint/restrict-template-expressions
+
+E:\coding\Antigravity\game-helper-demo02\components\ui\button.tsx
+  59:13  warning  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+E:\coding\Antigravity\game-helper-demo02\components\ui\context-menu.tsx
+   19:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+   40:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+   55:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+   72:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+   90:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+  114:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+  136:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+  154:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+
+E:\coding\Antigravity\game-helper-demo02\components\ui\dialog.tsx
+  15:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+  30:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+  82:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+  97:11  warning  `ElementRef` is deprecated. Use `ComponentRef<T>` instead
+
+Retrieves the type of the 'ref' prop for a given component type or tag name  @typescript-eslint/no-deprecated
+
+E:\coding\Antigravity\game-helper-demo02\lib\gameLogic.ts
+   44:19  warning  Forbidden non-null assertion                                                                                         @typescript-eslint/no-non-null-assertion
+   93:37  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+   94:20  warning  Forbidden non-null assertion                                                                                         @typescript-eslint/no-non-null-assertion
+  139:10  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  186:43  warning  Invalid type "string | undefined" of template literal expression                                                     @typescript-eslint/restrict-template-expressions
+  229:41  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+  229:57  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator            @typescript-eslint/prefer-nullish-coalescing
+
+E:\coding\Antigravity\game-helper-demo02\sandboxStore.ts
+   31:35  warning  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+   32:25  warning  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  267:43  warning  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  268:33  warning  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+  309:53  warning  Invalid type "number" of template literal expression  @typescript-eslint/restrict-template-expressions
+
+E:\coding\Antigravity\game-helper-demo02\store.ts
+   100:45   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   134:51   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   141:9    warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   141:49   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   141:83   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   148:47   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   156:54   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   163:54   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   170:54   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   177:54   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   184:54   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   196:22   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   212:25   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+   253:40   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+   266:9    warning  Unnecessary conditional, value is always falsy                                                                                                                      @typescript-eslint/no-unnecessary-condition
+   270:10   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+   282:19   warning  Forbidden non-null assertion                                                                                                                                        @typescript-eslint/no-non-null-assertion
+   287:54   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+   288:23   warning  Forbidden non-null assertion                                                                                                                                        @typescript-eslint/no-non-null-assertion
+   288:30   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   296:14   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+   302:50   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+   303:23   warning  Forbidden non-null assertion                                                                                                                                        @typescript-eslint/no-non-null-assertion
+   303:30   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   306:14   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+   312:14   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+   405:61   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   406:60   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   482:44   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+   484:39   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   490:29   warning  The two values in this comparison do not have a shared enum type                                                                                                    @typescript-eslint/no-unsafe-enum-comparison
+   492:36   warning  The two values in this comparison do not have a shared enum type                                                                                                    @typescript-eslint/no-unsafe-enum-comparison
+   494:36   warning  The two values in this comparison do not have a shared enum type                                                                                                    @typescript-eslint/no-unsafe-enum-comparison
+   502:29   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   503:58   warning  Unsafe member access .message on an `any` value                                                                                                                     @typescript-eslint/no-unsafe-member-access
+   537:21   warning  Unnecessary conditional, value is always falsy                                                                                                                      @typescript-eslint/no-unnecessary-condition
+   547:66   warning  Unsafe argument of type `any` assigned to a parameter of type `RealtimeChannel`                                                                                     @typescript-eslint/no-unsafe-argument
+   554:44   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+   556:39   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   562:29   warning  The two values in this comparison do not have a shared enum type                                                                                                    @typescript-eslint/no-unsafe-enum-comparison
+   564:36   warning  The two values in this comparison do not have a shared enum type                                                                                                    @typescript-eslint/no-unsafe-enum-comparison
+   566:36   warning  The two values in this comparison do not have a shared enum type                                                                                                    @typescript-eslint/no-unsafe-enum-comparison
+   588:29   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   593:75   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+   593:89   warning  Invalid type "any" of template literal expression                                                                                                                   @typescript-eslint/restrict-template-expressions
+   593:95   warning  Unsafe member access .message on an `any` value                                                                                                                     @typescript-eslint/no-unsafe-member-access
+   608:30   warning  Unnecessary conditional, value is always falsy                                                                                                                      @typescript-eslint/no-unnecessary-condition
+   617:66   warning  Unsafe argument of type `any` assigned to a parameter of type `RealtimeChannel`                                                                                     @typescript-eslint/no-unsafe-argument
+   624:44   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+   626:39   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   632:29   warning  The two values in this comparison do not have a shared enum type                                                                                                    @typescript-eslint/no-unsafe-enum-comparison
+   634:36   warning  The two values in this comparison do not have a shared enum type                                                                                                    @typescript-eslint/no-unsafe-enum-comparison
+   636:36   warning  The two values in this comparison do not have a shared enum type                                                                                                    @typescript-eslint/no-unsafe-enum-comparison
+   648:29   warning  Operands of '+' operations must be a number or string. Got `string` + `number`                                                                                      @typescript-eslint/restrict-plus-operands
+   657:29   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   660:75   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+   660:87   warning  Invalid type "any" of template literal expression                                                                                                                   @typescript-eslint/restrict-template-expressions
+   660:93   warning  Unsafe member access .message on an `any` value                                                                                                                     @typescript-eslint/no-unsafe-member-access
+   672:43   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+   673:26   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+   696:45   warning  Unsafe argument of type `any` assigned to a parameter of type `RealtimeChannel`                                                                                     @typescript-eslint/no-unsafe-argument
+   744:25   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+   746:27   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   772:45   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+   780:41   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+   790:25   warning  Unsafe object destructuring of a property with an `any` value                                                                                                       @typescript-eslint/no-unsafe-assignment
+   807:35   warning  Unsafe member access .success on an `any` value                                                                                                                     @typescript-eslint/no-unsafe-member-access
+   810:39   warning  Unsafe argument of type `any` assigned to a parameter of type `string`                                                                                              @typescript-eslint/no-unsafe-argument
+   810:44   warning  Unsafe member access .error on an `any` value                                                                                                                       @typescript-eslint/no-unsafe-member-access
+   810:50   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   823:67   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+   858:29   warning  Unsafe object destructuring of a property with an `any` value                                                                                                       @typescript-eslint/no-unsafe-assignment
+   869:39   warning  Unsafe member access .success on an `any` value                                                                                                                     @typescript-eslint/no-unsafe-member-access
+   871:65   warning  Unsafe member access .error on an `any` value                                                                                                                       @typescript-eslint/no-unsafe-member-access
+   877:39   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+   878:22   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+   892:66   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+   900:39   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+   901:22   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+   914:66   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+   929:48   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+   948:46   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   962:23   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   968:36   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+   972:27   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   972:51   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   972:64   warning  Unsafe member access .id on an `any` value                                                                                                                          @typescript-eslint/no-unsafe-member-access
+   974:25   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   974:37   warning  Unsafe member access .name on an `any` value                                                                                                                        @typescript-eslint/no-unsafe-member-access
+   974:42   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   975:25   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   975:39   warning  Unsafe member access .author on an `any` value                                                                                                                      @typescript-eslint/no-unsafe-member-access
+   975:46   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   976:25   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   976:44   warning  Unsafe member access .description on an `any` value                                                                                                                 @typescript-eslint/no-unsafe-member-access
+   976:56   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   978:21   warning  Unsafe assignment of type `any[]` to a variable of type `string[]`                                                                                                  @typescript-eslint/no-unsafe-assignment
+   978:48   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   978:61   warning  Unsafe member access .id on an `any` value                                                                                                                          @typescript-eslint/no-unsafe-member-access
+   978:88   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   978:96   warning  Unsafe return of a value of type `any`                                                                                                                              @typescript-eslint/no-unsafe-return
+   978:101  warning  Unsafe member access .id on an `any` value                                                                                                                          @typescript-eslint/no-unsafe-member-access
+   979:33   warning  Unsafe member access .roles on an `any` value                                                                                                                       @typescript-eslint/no-unsafe-member-access
+   979:61   warning  Unsafe member access .roles on an `any` value                                                                                                                       @typescript-eslint/no-unsafe-member-access
+   981:21   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   981:34   warning  Unsafe member access .roles on an `any` value                                                                                                                       @typescript-eslint/no-unsafe-member-access
+   982:21   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   982:33   warning  Unsafe member access .name on an `any` value                                                                                                                        @typescript-eslint/no-unsafe-member-access
+   982:38   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   983:21   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   983:35   warning  Unsafe member access .author on an `any` value                                                                                                                      @typescript-eslint/no-unsafe-member-access
+   983:42   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   984:21   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   984:40   warning  Unsafe member access .description on an `any` value                                                                                                                 @typescript-eslint/no-unsafe-member-access
+   984:52   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+   985:21   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   985:31   warning  Unsafe member access .id on an `any` value                                                                                                                          @typescript-eslint/no-unsafe-member-access
+   985:34   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1005:75   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  1013:17   warning  Unnecessary conditional, value is always falsy                                                                                                                      @typescript-eslint/no-unnecessary-condition
+  1019:23   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+  1019:81   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1020:23   warning  Unsafe member access [script.id] on an `any` value                                                                                                                  @typescript-eslint/no-unsafe-member-access
+  1031:40   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  1032:48   warning  Do not delete dynamically computed property keys                                                                                                                    @typescript-eslint/no-dynamic-delete
+  1042:27   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+  1042:85   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1043:34   warning  Do not delete dynamically computed property keys                                                                                                                    @typescript-eslint/no-dynamic-delete
+  1043:34   warning  Unsafe member access [scriptId] on an `any` value                                                                                                                   @typescript-eslint/no-unsafe-member-access
+  1056:23   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+  1056:81   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1057:27   warning  Unsafe member access [scriptId] on an `any` value                                                                                                                   @typescript-eslint/no-unsafe-member-access
+  1058:25   warning  Unnecessary conditional, value is always falsy                                                                                                                      @typescript-eslint/no-unnecessary-condition
+  1059:21   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+  1059:63   warning  Unsafe member access [scriptId] on an `any` value                                                                                                                   @typescript-eslint/no-unsafe-member-access
+  1073:55   warning  Invalid type "string | undefined" of template literal expression                                                                                                    @typescript-eslint/restrict-template-expressions
+  1085:37   warning  Unnecessary conditional, value is always truthy                                                                                                                     @typescript-eslint/no-unnecessary-condition
+  1098:36   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1099:31   warning  Forbidden non-null assertion                                                                                                                                        @typescript-eslint/no-non-null-assertion
+  1099:33   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1136:64   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1136:103  warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1139:52   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  1162:35   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1162:55   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1165:72   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1172:33   warning  Unnecessary conditional, value is always truthy                                                                                                                     @typescript-eslint/no-unnecessary-condition
+  1183:29   warning  Unnecessary conditional, value is always truthy                                                                                                                     @typescript-eslint/no-unnecessary-condition
+  1277:37   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  1291:55   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  1323:47   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  1323:67   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  1523:55   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  1526:24   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  1526:26   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1579:82   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1583:63   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  1583:83   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  1589:81   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1592:64   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  1593:51   warning  Invalid type "string | undefined" of template literal expression                                                                                                    @typescript-eslint/restrict-template-expressions
+  1593:81   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  1599:80   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1602:64   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  1603:51   warning  Invalid type "string | undefined" of template literal expression                                                                                                    @typescript-eslint/restrict-template-expressions
+  1603:80   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  1613:79   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1671:74   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1681:65   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1682:36   warning  Forbidden non-null assertion                                                                                                                                        @typescript-eslint/no-non-null-assertion
+  1734:48   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  1750:21   warning  Unnecessary conditional, value is always falsy                                                                                                                      @typescript-eslint/no-unnecessary-condition
+  1756:21   warning  Unnecessary conditional, value is always falsy                                                                                                                      @typescript-eslint/no-unnecessary-condition
+  1771:70   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1775:33   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1775:51   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1775:65   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1775:92   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1779:78   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1790:59   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  1790:69   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1793:17   warning  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                 @typescript-eslint/ban-ts-comment
+  1794:23   warning  Unsafe assignment of an error typed value                                                                                                                           @typescript-eslint/no-unsafe-assignment
+  1794:65   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  1797:39   warning  Invalid type "any" of template literal expression                                                                                                                   @typescript-eslint/restrict-template-expressions
+  1803:56   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  1805:58   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  1816:29   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+  1818:21   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+  1818:42   warning  Unsafe member access .message on an `any` value                                                                                                                     @typescript-eslint/no-unsafe-member-access
+  1818:50   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1820:21   warning  Unsafe call of a(n) `any` typed value                                                                                                                               @typescript-eslint/no-unsafe-call
+  1820:34   warning  Unsafe member access .includes on an `any` value                                                                                                                    @typescript-eslint/no-unsafe-member-access
+  1822:28   warning  Unsafe call of a(n) `any` typed value                                                                                                                               @typescript-eslint/no-unsafe-call
+  1822:41   warning  Unsafe member access .includes on an `any` value                                                                                                                    @typescript-eslint/no-unsafe-member-access
+  1824:28   warning  Unsafe call of a(n) `any` typed value                                                                                                                               @typescript-eslint/no-unsafe-call
+  1824:41   warning  Unsafe member access .includes on an `any` value                                                                                                                    @typescript-eslint/no-unsafe-member-access
+  1826:28   warning  Unsafe call of a(n) `any` typed value                                                                                                                               @typescript-eslint/no-unsafe-call
+  1826:41   warning  Unsafe member access .includes on an `any` value                                                                                                                    @typescript-eslint/no-unsafe-member-access
+  1826:70   warning  Unsafe call of a(n) `any` typed value                                                                                                                               @typescript-eslint/no-unsafe-call
+  1826:83   warning  Unsafe member access .includes on an `any` value                                                                                                                    @typescript-eslint/no-unsafe-member-access
+  1831:52   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  1835:46   warning  Invalid type "any" of template literal expression                                                                                                                   @typescript-eslint/restrict-template-expressions
+  1855:48   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  1868:87   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1885:76   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1886:84   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1890:33   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1890:51   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1890:65   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1890:93   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1891:33   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1891:51   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1891:65   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1891:93   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  1935:65   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+  1939:29   warning  Unsafe object destructuring of a property with an `any` value                                                                                                       @typescript-eslint/no-unsafe-assignment
+  1947:25   warning  Unsafe member access .seatId on an `any` value                                                                                                                      @typescript-eslint/no-unsafe-member-access
+  1948:73   warning  Unsafe member access .seatId on an `any` value                                                                                                                      @typescript-eslint/no-unsafe-member-access
+  1949:51   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1950:32   warning  Unsafe member access .seatIds on an `any` value                                                                                                                     @typescript-eslint/no-unsafe-member-access
+  1951:23   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+  1951:31   warning  Unsafe call of a(n) `any` typed value                                                                                                                               @typescript-eslint/no-unsafe-call
+  1951:39   warning  Unsafe member access .seatIds on an `any` value                                                                                                                     @typescript-eslint/no-unsafe-member-access
+  1952:70   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  1954:36   warning  Invalid type "any" of template literal expression                                                                                                                   @typescript-eslint/restrict-template-expressions
+  1954:36   warning  Unsafe call of a(n) `any` typed value                                                                                                                               @typescript-eslint/no-unsafe-call
+  1954:42   warning  Unsafe member access .join on an `any` value                                                                                                                        @typescript-eslint/no-unsafe-member-access
+  1955:32   warning  Unsafe member access .choice on an `any` value                                                                                                                      @typescript-eslint/no-unsafe-member-access
+  1958:40   warning  Invalid type "string | undefined" of template literal expression                                                                                                    @typescript-eslint/restrict-template-expressions
+  1958:60   warning  Computed name [payload.choice] resolves to an `any` value                                                                                                           @typescript-eslint/no-unsafe-member-access
+  1958:68   warning  Unsafe member access .choice on an `any` value                                                                                                                      @typescript-eslint/no-unsafe-member-access
+  1973:48   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  2000:72   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  2001:74   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  2023:22   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  2067:59   warning  Unsafe return of a value of type `any`                                                                                                                              @typescript-eslint/no-unsafe-return
+  2067:72   warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+  2088:53   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2088:68   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2088:95   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2088:122  warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2088:146  warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2098:72   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  2109:79   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  2113:78   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2125:39   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2126:22   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  2131:72   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2144:46   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2146:62   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2160:39   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2161:22   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  2165:57   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2178:57   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  2181:33   warning  Unsafe member access .seatId on an `any` value                                                                                                                      @typescript-eslint/no-unsafe-member-access
+  2182:82   warning  Unsafe member access .seatId on an `any` value                                                                                                                      @typescript-eslint/no-unsafe-member-access
+  2183:40   warning  Invalid type "string | undefined" of template literal expression                                                                                                    @typescript-eslint/restrict-template-expressions
+  2184:40   warning  Unsafe member access .seatIds on an `any` value                                                                                                                     @typescript-eslint/no-unsafe-member-access
+  2185:23   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+  2185:33   warning  Unsafe call of a(n) `any` typed value                                                                                                                               @typescript-eslint/no-unsafe-call
+  2185:33   warning  Unsafe call of a(n) `any` typed value                                                                                                                               @typescript-eslint/no-unsafe-call
+  2185:48   warning  Unsafe member access .seatIds on an `any` value                                                                                                                     @typescript-eslint/no-unsafe-member-access
+  2187:19   warning  Unsafe member access .filter on an `any` value                                                                                                                      @typescript-eslint/no-unsafe-member-access
+  2188:40   warning  Invalid type "any" of template literal expression                                                                                                                   @typescript-eslint/restrict-template-expressions
+  2188:40   warning  Unsafe call of a(n) `any` typed value                                                                                                                               @typescript-eslint/no-unsafe-call
+  2188:48   warning  Unsafe member access .join on an `any` value                                                                                                                        @typescript-eslint/no-unsafe-member-access
+  2192:48   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  2195:17   warning  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+  2200:17   warning  Unnecessary conditional, value is always falsy                                                                                                                      @typescript-eslint/no-unnecessary-condition
+  2215:58   warning  Unnecessary optional chain on a non-nullish value                                                                                                                   @typescript-eslint/no-unnecessary-condition
+  2219:58   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  2230:55   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  2236:52   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  2250:53   warning  Invalid type "string | undefined" of template literal expression                                                                                                    @typescript-eslint/restrict-template-expressions
+  2254:48   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  2255:49   warning  Invalid type "string | undefined" of template literal expression                                                                                                    @typescript-eslint/restrict-template-expressions
+  2275:54   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  2280:70   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  2280:92   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  2282:58   warning  Invalid type "number" of template literal expression                                                                                                                @typescript-eslint/restrict-template-expressions
+  2291:45   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  2292:27   warning  Forbidden non-null assertion                                                                                                                                        @typescript-eslint/no-non-null-assertion
+  2292:29   warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆?                                                @typescript-eslint/no-deprecated
+  2305:13   warning  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  2314:48   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  2327:48   warning  `substr` is deprecated. A legacy feature for browser compatibility                                                                                                  @typescript-eslint/no-deprecated
+  2449:27   warning  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                           @typescript-eslint/prefer-nullish-coalescing
+  2458:21   warning  Forbidden non-null assertion                                                                                                                                        @typescript-eslint/no-non-null-assertion
+  2459:21   warning  Forbidden non-null assertion                                                                                                                                        @typescript-eslint/no-non-null-assertion
+
+E:\coding\Antigravity\game-helper-demo02\tests\setup.ts
+  30:5  warning  Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+E:\coding\Antigravity\game-helper-demo02\tests\store.test.ts
+   79:23  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  124:18  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  146:18  warning  `roleId` is deprecated. 璇蜂娇鐢?seenRoleId 浠ｆ浛銆傛瀛楁浠呯敤浜庡悜鍚庡吋瀹广€?
+鍦?filterSeatForUser 涓細鑷姩灏?seenRoleId 鏄犲皠鍒版瀛楁銆?
+璁″垝鍦?v0.8.0 绉婚櫎銆? @typescript-eslint/no-deprecated
+  188:46  warning  Async arrow function has no 'await' expression                                                                       @typescript-eslint/require-await
+
+E:\coding\Antigravity\game-helper-demo02\types.ts
+  80:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+鉁?690 problems (2 errors, 688 warnings)
+

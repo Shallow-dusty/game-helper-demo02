@@ -7,7 +7,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { BackgroundEffects } from './ui/BackgroundEffects';
 import { motion } from 'framer-motion';
-import { Flame, Key, RotateCcw, X, FlaskConical, ArrowRight, Crown } from 'lucide-react';
+import { Flame, Key, RotateCcw, X, FlaskConical, Crown } from 'lucide-react';
 
 export const RoomSelection = () => {
   const user = useStore(state => state.user);
@@ -148,19 +148,20 @@ export const RoomSelection = () => {
             <Card className="h-full border-stone-800 bg-stone-950/50 hover:border-red-900/50 transition-all duration-500 hover:shadow-[0_0_40px_rgba(127,29,29,0.15)] group relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-b from-red-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-              <CardHeader className="items-center text-center pb-2 relative z-10">
-                <div className="w-20 h-20 bg-stone-900/80 rounded-full flex items-center justify-center mb-4 border border-stone-700 group-hover:scale-110 transition-transform duration-500 group-hover:border-red-800 group-hover:bg-red-950/30 shadow-xl">
-                  <Flame className="w-10 h-10 text-red-700 drop-shadow-[0_0_5px_rgba(220,38,38,0.5)]" />
+              <CardHeader className="items-center text-center pb-6 relative z-10">
+                <div className="w-24 h-24 bg-gradient-to-br from-stone-900 to-black rounded-full flex items-center justify-center mb-6 border border-stone-700 group-hover:scale-110 transition-transform duration-500 group-hover:border-red-800 group-hover:bg-red-950/30 shadow-[0_0_20px_rgba(0,0,0,0.5)] relative">
+                  <div className="absolute inset-0 bg-red-900/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <Flame className="w-12 h-12 text-stone-500 group-hover:text-red-500 transition-colors duration-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.6)] relative z-10" />
                 </div>
-                <CardTitle className="text-3xl text-stone-200">创建房间</CardTitle>
-                <CardDescription>开始一场新的仪式，召唤镇民。</CardDescription>
+                <CardTitle className="text-3xl text-stone-200 font-cinzel tracking-wide group-hover:text-red-400 transition-colors">创建房间</CardTitle>
+                <CardDescription className="font-serif italic text-stone-500">开始一场新的仪式，召唤镇民。</CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-8 relative z-10">
-                <div className="bg-stone-950/30 p-6 rounded-lg border border-stone-800/50 space-y-4">
+                <div className="bg-stone-950/30 p-6 rounded-lg border border-stone-800/50 space-y-4 group-hover:border-red-900/30 transition-colors">
                   <div className="flex justify-between items-center text-stone-300 font-bold font-cinzel">
                     <span className="text-sm tracking-wider">玩家人数</span>
-                    <span className="text-3xl text-red-600 font-black">{seatCount}</span>
+                    <span className="text-3xl text-red-600 font-black drop-shadow-sm">{seatCount}</span>
                   </div>
                   <input
                     type="range"
@@ -179,7 +180,7 @@ export const RoomSelection = () => {
 
                 <Button
                   onClick={handleCreate}
-                  className="w-full h-14 text-lg font-cinzel tracking-[0.2em] bg-gradient-to-r from-red-950 to-red-900 hover:from-red-900 hover:to-red-800 border-red-900/50 shadow-lg group/btn relative overflow-hidden"
+                  className="w-full h-14 text-lg font-cinzel tracking-[0.2em] bg-gradient-to-r from-red-950 to-red-900 hover:from-red-900 hover:to-red-800 border-red-900/50 shadow-lg group/btn relative overflow-hidden transition-all hover:shadow-red-900/20"
                 >
                   <span className="relative z-10">创建仪式</span>
                   <div className="absolute inset-0 bg-red-600/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
@@ -197,15 +198,16 @@ export const RoomSelection = () => {
             <Card className="h-full border-stone-800 bg-stone-950/50 hover:border-blue-900/50 transition-all duration-500 hover:shadow-[0_0_40px_rgba(30,58,138,0.15)] group relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-b from-blue-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-              <CardHeader className="items-center text-center pb-2 relative z-10">
-                <div className="w-20 h-20 bg-stone-900/80 rounded-full flex items-center justify-center mb-4 border border-stone-700 group-hover:scale-110 transition-transform duration-500 group-hover:border-blue-800 group-hover:bg-blue-950/30 shadow-xl">
-                  <Key className="w-10 h-10 text-blue-700 drop-shadow-[0_0_5px_rgba(37,99,235,0.5)]" />
+              <CardHeader className="items-center text-center pb-6 relative z-10">
+                <div className="w-24 h-24 bg-gradient-to-br from-stone-900 to-black rounded-full flex items-center justify-center mb-6 border border-stone-700 group-hover:scale-110 transition-transform duration-500 group-hover:border-blue-800 group-hover:bg-blue-950/30 shadow-[0_0_20px_rgba(0,0,0,0.5)] relative">
+                  <div className="absolute inset-0 bg-blue-900/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <Key className="w-12 h-12 text-stone-500 group-hover:text-blue-500 transition-colors duration-500 drop-shadow-[0_0_8px_rgba(37,99,235,0.6)] relative z-10" />
                 </div>
-                <CardTitle className="text-3xl text-stone-200">加入房间</CardTitle>
-                <CardDescription>输入代码加入现有的城镇。</CardDescription>
+                <CardTitle className="text-3xl text-stone-200 font-cinzel tracking-wide group-hover:text-blue-400 transition-colors">加入房间</CardTitle>
+                <CardDescription className="font-serif italic text-stone-500">输入代码加入现有的城镇。</CardDescription>
               </CardHeader>
 
-              <CardContent className="space-y-8 relative z-10 flex flex-col justify-end h-[calc(100%-180px)]">
+              <CardContent className="space-y-8 relative z-10 flex flex-col justify-end h-[calc(100%-200px)]">
                 <form onSubmit={handleJoin} className="space-y-8">
                   <div className="relative group/input">
                     <input
@@ -214,7 +216,7 @@ export const RoomSelection = () => {
                       value={roomCode}
                       onChange={(e) => setRoomCode(e.target.value)}
                       placeholder="8888"
-                      className="w-full bg-stone-900/50 border border-stone-700 rounded-lg px-6 py-4 text-4xl text-center font-cinzel tracking-[0.5em] text-stone-100 placeholder:text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-900/50 focus:border-blue-700 transition-all"
+                      className="w-full bg-stone-900/50 border border-stone-700 rounded-lg px-6 py-4 text-4xl text-center font-cinzel tracking-[0.5em] text-stone-100 placeholder:text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-900/50 focus:border-blue-700 transition-all group-hover/input:border-stone-600"
                     />
                     <div className="absolute inset-0 rounded-lg bg-blue-500/5 opacity-0 group-hover/input:opacity-100 pointer-events-none transition-opacity" />
                   </div>

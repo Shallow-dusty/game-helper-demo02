@@ -117,21 +117,30 @@ export const Lobby: React.FC = () => {
                         </div>
                     )}
 
-                    <CardHeader className="text-center space-y-4 pb-6">
+                    <CardHeader className="text-center space-y-6 pb-8 relative z-10">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-amber-500/10 blur-[50px] rounded-full pointer-events-none" />
+
                         <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="mx-auto w-20 h-20 bg-gradient-to-br from-red-900 to-stone-900 rounded-full flex items-center justify-center border-2 border-stone-700 shadow-[0_0_30px_rgba(220,38,38,0.3)]"
+                            initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
+                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                            className="mx-auto w-24 h-24 relative group"
                         >
-                            <Skull className="w-10 h-10 text-stone-200" />
+                            <div className="absolute inset-0 bg-red-900/20 rounded-full blur-xl animate-pulse-slow group-hover:bg-red-800/30 transition-colors duration-500" />
+                            <div className="relative w-full h-full bg-gradient-to-br from-stone-900 to-black rounded-full flex items-center justify-center border border-stone-700/50 shadow-[0_0_15px_rgba(0,0,0,0.5)] group-hover:border-red-900/50 transition-colors duration-500">
+                                <div className="absolute inset-1 rounded-full border border-stone-800/50" />
+                                <Skull className="w-12 h-12 text-stone-400 group-hover:text-red-500 transition-colors duration-500 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+                            </div>
                         </motion.div>
+
                         <div className="space-y-2">
-                            <CardTitle className="text-4xl text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 drop-shadow-sm">
+                            <CardTitle className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-amber-400 to-amber-700 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] font-cinzel tracking-wider">
                                 魔典 Grimoire
                             </CardTitle>
-                            <CardDescription className="text-stone-400 text-lg">
+                            <CardDescription className="text-stone-500 text-lg font-serif italic tracking-wide">
+                                <span className="inline-block w-8 h-[1px] bg-stone-700 align-middle mr-2" />
                                 血染钟楼线上助手
+                                <span className="inline-block w-8 h-[1px] bg-stone-700 align-middle ml-2" />
                             </CardDescription>
                         </div>
                     </CardHeader>

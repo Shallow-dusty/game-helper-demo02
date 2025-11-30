@@ -168,15 +168,21 @@ export const Lobby: React.FC = () => {
                                     </div>
 
                                     <div
-                                        className={`flex items-center gap-4 p-4 rounded-lg border cursor-pointer transition-all ${isST ? 'bg-red-950/30 border-red-900/50' : 'bg-stone-900/30 border-stone-800 hover:bg-stone-900/50'}`}
+                                        className={`flex items-center gap-4 p-4 rounded-lg border cursor-pointer transition-all duration-300 relative overflow-hidden group ${isST ? 'bg-red-950/40 border-red-800 shadow-[0_0_20px_rgba(127,29,29,0.3)]' : 'bg-stone-900/30 border-stone-800 hover:bg-stone-900/50 hover:border-stone-700'}`}
                                         onClick={() => setIsST(!isST)}
                                     >
-                                        <div className={`w-5 h-5 rounded-sm border flex items-center justify-center transition-all ${isST ? 'bg-red-900 border-red-700' : 'border-stone-600'}`}>
-                                            {isST && <div className="w-2 h-2 bg-white rounded-full" />}
+                                        {/* Glow effect when active */}
+                                        {isST && (
+                                            <div className="absolute inset-0 bg-gradient-to-r from-red-900/20 via-red-800/10 to-red-900/20 animate-pulse" />
+                                        )}
+                                        
+                                        <div className={`relative w-6 h-6 rounded-sm border flex items-center justify-center transition-all duration-300 ${isST ? 'bg-red-900 border-red-700 shadow-[0_0_10px_rgba(220,38,38,0.5)]' : 'border-stone-600 group-hover:border-stone-500'}`}>
+                                            {isST && <div className="w-3 h-3 bg-white rounded-full" />}
                                         </div>
-                                        <div className="flex flex-col">
-                                            <span className={`font-cinzel font-bold text-sm ${isST ? 'text-red-400' : 'text-stone-300'}`}>说书人模式</span>
-                                            <span className="text-xs text-stone-500">主持并管理游戏</span>
+                                        <BookOpen className={`relative w-5 h-5 transition-all duration-300 ${isST ? 'text-red-400 scale-110' : 'text-stone-600 group-hover:text-stone-400'}`} />
+                                        <div className="flex flex-col relative">
+                                            <span className={`font-cinzel font-bold text-sm transition-colors duration-300 ${isST ? 'text-red-300' : 'text-stone-300 group-hover:text-stone-200'}`}>说书人模式</span>
+                                            <span className={`text-xs transition-colors duration-300 ${isST ? 'text-red-500/70' : 'text-stone-500'}`}>主持并管理游戏</span>
                                         </div>
                                     </div>
                                 </>

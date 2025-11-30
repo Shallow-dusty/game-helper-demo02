@@ -264,6 +264,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
     const user = useStore(state => state.user);
     const gameState = useStore(state => state.gameState);
     const toggleHand = useStore(state => state.toggleHand);
+    const leaveSeat = useStore(state => state.leaveSeat);
 
     if (!user || !gameState) return null;
 
@@ -367,7 +368,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                 {/* FR-01: Leave Seat Button for Players */}
                 {currentSeat && (
                     <button
-                        onClick={() => useStore.getState().leaveSeat()}
+                        onClick={() => leaveSeat()}
                         className="mt-2 w-full bg-red-900/30 hover:bg-red-800/50 text-red-400 py-2 px-3 rounded text-xs border border-red-900/50 transition-colors flex items-center justify-center gap-1"
                         title="离开当前座位"
                     >

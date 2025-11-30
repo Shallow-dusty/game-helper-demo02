@@ -33,6 +33,7 @@ export const WaitingArea: React.FC = () => {
         }
     };
 
+    const leaveSeat = useStore(state => state.leaveSeat);
     const toggleReady = useStore(state => state.toggleReady);
 
     // If seated, show Ready interface
@@ -72,7 +73,7 @@ export const WaitingArea: React.FC = () => {
                     </button>
 
                     <button
-                        onClick={() => useStore.getState().leaveSeat()}
+                        onClick={() => leaveSeat()}
                         className="mt-6 px-6 py-2 rounded-full text-sm font-bold text-stone-500 hover:text-red-400 hover:bg-red-950/30 border border-transparent hover:border-red-900/50 transition-all"
                     >
                         离开座位 (Leave Seat)
@@ -95,6 +96,11 @@ export const WaitingArea: React.FC = () => {
                     {gameState.roomId}
                 </h1>
                 <p className="text-stone-400 font-serif italic">请选择您的座位 (Choose your seat)</p>
+                {gameState.setupPhase === 'STARTED' && (
+                    <div className="mt-2 px-4 py-1 bg-amber-900/30 border border-amber-700/50 rounded-full inline-block">
+                        <p className="text-amber-400 text-xs font-bold animate-pulse">⚠️ 游戏进行中 - 请选择空位加入</p>
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-6xl w-full overflow-y-auto p-4 max-h-[70vh] scrollbar-thin">

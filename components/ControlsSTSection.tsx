@@ -357,7 +357,11 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
 
                         {/* Manual Day Switch (Backup) */}
                         <button
-                            onClick={() => setPhase('DAY')}
+                            onClick={() => {
+                                if (window.confirm('确定要强制天亮吗？这将跳过剩余的夜间流程。')) {
+                                    setPhase('DAY');
+                                }
+                            }}
                             className="mt-3 w-full py-2 bg-amber-900/30 hover:bg-amber-800/50 text-amber-500 rounded text-xs border border-amber-900/50 transition-colors flex items-center justify-center gap-2"
                         >
                             <span>☀</span> 强制天亮

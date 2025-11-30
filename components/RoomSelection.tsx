@@ -214,9 +214,16 @@ export const RoomSelection = () => {
                       type="text"
                       maxLength={4}
                       value={roomCode}
-                      onChange={(e) => setRoomCode(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setRoomCode(val);
+                        // Auto-submit when 4 digits are entered
+                        if (val.length === 4) {
+                          void joinGame(val);
+                        }
+                      }}
                       placeholder="8888"
-                      className="w-full bg-stone-900/50 border border-stone-700 rounded-lg px-6 py-4 text-4xl text-center font-cinzel tracking-[0.5em] text-stone-100 placeholder:text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-900/50 focus:border-blue-700 transition-all group-hover/input:border-stone-600"
+                      className={`w-full bg-stone-900/50 border rounded-lg px-6 py-4 text-4xl text-center font-cinzel tracking-[0.5em] text-stone-100 placeholder:text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-900/50 focus:border-blue-700 transition-all group-hover/input:border-stone-600 ${roomCode.length === 4 ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'border-stone-700'}`}
                     />
                     <div className="absolute inset-0 rounded-lg bg-blue-500/5 opacity-0 group-hover/input:opacity-100 pointer-events-none transition-opacity" />
                   </div>
@@ -224,9 +231,9 @@ export const RoomSelection = () => {
                   <Button
                     type="submit"
                     disabled={roomCode.length !== 4}
-                    className="w-full h-14 text-lg font-cinzel tracking-[0.2em] bg-gradient-to-r from-blue-950 to-blue-900 hover:from-blue-900 hover:to-blue-800 border-blue-900/50 shadow-lg group/btn relative overflow-hidden"
+                    className={`w-full h-14 text-lg font-cinzel tracking-[0.2em] shadow-lg group/btn relative overflow-hidden transition-all duration-300 ${roomCode.length === 4 ? 'bg-blue-600 hover:bg-blue-500 border-blue-400 shadow-blue-900/50 scale-[1.02]' : 'bg-gradient-to-r from-blue-950 to-blue-900 hover:from-blue-900 hover:to-blue-800 border-blue-900/50'}`}
                   >
-                    <span className="relative z-10">进入城镇</span>
+                    <span className="relative z-10">{roomCode.length === 4 ? '立即进入' : '进入城镇'}</span>
                     <div className="absolute inset-0 bg-blue-600/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
                   </Button>
                 </form>
@@ -274,6 +281,7 @@ export const RoomSelection = () => {
                       variant="secondary"
                       onClick={() => { /* Offline logic placeholder */ }}
                       disabled
+                      title="离线模式暂不可用，此功能正在开发中"
                       className="h-auto py-4 flex flex-col gap-2 bg-stone-900/30 border-stone-800 opacity-50 cursor-not-allowed"
                     >
                       <span className="flex items-center gap-2 text-stone-400 font-bold"><RotateCcw className="w-4 h-4" /> 离线模式</span>

@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createGameSlice } from './createGameSlice';
 import { createStore, StoreApi } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { AppState, Seat } from '../types';
+import { AppState } from '../types';
+import { Seat } from '../../types';
 
 // Mock dependencies
 vi.mock('../utils', async (importOriginal) => {

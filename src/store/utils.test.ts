@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { splitGameState, mergeGameState, filterSeatForUser } from './utils';
+import { splitGameState, mergeGameState, filterSeatForUser, filterGameStateForUser } from './utils';
 import { GameState, Seat } from '../types';
 
 describe('utils', () => {
@@ -99,6 +99,52 @@ describe('utils', () => {
       const result = filterSeatForUser(mockSeat, 'spy-user', false, 'spy');
       expect(result.realRoleId).toBe('drunk');
       expect(result.roleId).toBe('washerwoman'); // Spy sees seenRole as roleId
+    });
+  });
+
+  describe('filterGameStateForUser (Privacy)', () => {
+      it('should hide private system messages from other players', () => {
+          const stateWithPrivateMsg: GameState = {
+              ...mockGameState,
+              messages: [
+                  {
+                      id: '1',
+                      senderId: 'system',
+                      senderName: 'System',
+                      recipientId: 'target-user', // Private message
+                      content: 'You are the Demon',
+                      timestamp: 123,
+                      type: 'system',
+                      isPrivate: true
+                  }
+              ]
+          };
+
+          // User who is NOT the recipient
+          const filtered = filterGameStateForUser(stateWithPrivateMsg, 'other-user', false);
+          expect(filtered.messages).toHaveLength(0);
+      });
+
+      it('should show private system messages to the recipient', () => {
+        const stateWithPrivateMsg: GameState = {
+            ...mockGameState,
+            messages: [
+                {
+                    id: '1',
+                    senderId: 'system',
+                    senderName: 'System',
+                    recipientId: 'target-user', // Private message
+                    content: 'You are the Demon',
+                    timestamp: 123,
+                    type: 'system',
+                    isPrivate: true
+                }
+            ]
+        };
+
+        // User who IS the recipient
+        const filtered = filterGameStateForUser(stateWithPrivateMsg, 'target-user', false);
+        expect(filtered.messages).toHaveLength(1);
     });
   });
 });

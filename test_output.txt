@@ -1,0 +1,227 @@
+
+> grimoire-web@0.8.0 test
+> vitest
+
+
+[1m[44m DEV [49m[22m [34mv4.0.14 [39m[90mE:/coding/Antigravity/game-helper-demo02[39m
+
+ [31m鉂?[39m src/store/utils.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 8[2mms[22m[39m
+       [32m鉁?[39m should remove sensitive data from public state[32m 1[2mms[22m[39m
+       [32m鉁?[39m should preserve sensitive data in secret state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should merge secret state back into public state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow ST to see everything[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow player to see their own seenRole but hide realRole if different[32m 0[2mms[22m[39m
+       [32m鉁?[39m should hide sensitive info from other players[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow Spy to see real roles[32m 0[2mms[22m[39m
+[31m       [31m脳[31m should hide private system messages from other players[39m[32m 4[2mms[22m[39m
+       [32m鉁?[39m should show private system messages to the recipient[32m 0[2mms[22m[39m
+ [32m鉁?[39m src/store/slices/createConnectionSlice.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m鉁?[39m src/lib/gameLogic.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m鉁?[39m src/hooks/useLongPress.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+[90mstdout[2m | src/store/slices/createGameSlice.test.ts[2m > [22m[2mcreateGameSlice[2m > [22m[2mVoting Execution[2m > [22m[2mshould execute player if votes > half alive players
+[22m[39mDEBUG: closeVote { aliveCount: [33m5[39m, votes: [33m0[39m, nomineeSeatId: [33m0[39m }
+DEBUG: isExecuted [33mfalse[39m
+
+[90mstdout[2m | src/store/slices/createGameSlice.test.ts[2m > [22m[2mcreateGameSlice[2m > [22m[2mVoting Execution[2m > [22m[2mshould NOT execute if votes <= half alive players
+[22m[39mDEBUG: closeVote { aliveCount: [33m5[39m, votes: [33m0[39m, nomineeSeatId: [33m0[39m }
+DEBUG: isExecuted [33mfalse[39m
+
+ [31m鉂?[39m src/store/slices/createGameSlice.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 18[2mms[22m[39m
+     [32m鉁?[39m should initialize with default state[32m 1[2mms[22m[39m
+       [32m鉁?[39m should create a new game state[32m 2[2mms[22m[39m
+       [32m鉁?[39m should assign roles to seated players[32m 2[2mms[22m[39m
+       [32m鉁?[39m should not assign roles if player count < 5[32m 0[2mms[22m[39m
+       [32m鉁?[39m should apply specific roles[32m 2[2mms[22m[39m
+       [32m鉁?[39m should trigger game over when Demon dies[32m 0[2mms[22m[39m
+[31m       [31m脳[31m should pass Imp to Scarlet Woman when Demon dies[39m[32m 4[2mms[22m[39m
+[31m       [31m脳[31m should execute player if votes > half alive players[39m[32m 5[2mms[22m[39m
+       [32m鉁?[39m should NOT execute if votes <= half alive players[32m 1[2mms[22m[39m
+ [32m鉁?[39m src/store/slices/createAISlice.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m鉁?[39m tests/integration/gameFlow.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 7[2mms[22m[39m
+
+鈳幆鈳幆鈳幆鈳?[39m Failed Tests 3 鈳幆鈳幆鈳幆鈳?[39m
+
+ FAIL  src/store/utils.test.ts > utils > filterGameStateForUser (Privacy) > should hide private system messages from other players
+AssertionError: expected [ { id: '1', 鈥?7) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ 鉂?[22m src/store/utils.test.ts:125:37
+    123|           // User who is NOT the recipient
+    124|           const filtered = filterGameStateForUser(stateWithPrivateMsg,鈥?    125|           expect(filtered.messages).toHaveLength(0);
+       |                                     ^
+    126|       });
+    127| 
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[1/3]鈳?[22m
+
+ FAIL  src/store/slices/createGameSlice.test.ts > createGameSlice > Game Over Logic > should pass Imp to Scarlet Woman when Demon dies
+Error: [vitest] No "checkGameOver" export is defined on the "../../lib/gameLogic" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("../../lib/gameLogic"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ 鉂?[22m src/store/slices/createGameSlice.ts:444:43
+    442|                          }
+    443| 
+    444|                          const gameOver = checkGameOver(state.gameStat鈥?       |                                           ^
+    445|                          if (gameOver) {
+    446|                              state.gameState.gameOver = gameOver;
+ 鉂?[22m node_modules/immer/dist/immer.mjs:663:56
+ 鉂?[22m Immer2.produce node_modules/immer/dist/immer.mjs:676:20
+ 鉂?[22m curriedProduce node_modules/immer/dist/immer.mjs:663:23
+ 鉂?[22m setState node_modules/zustand/esm/vanilla.mjs:5:55
+ 鉂?[22m store.setState node_modules/zustand/esm/middleware/immer.mjs:6:12
+ 鉂?[22m Object.toggleDead src/store/slices/createGameSlice.ts:417:9
+ 鉂?[22m src/store/slices/createGameSlice.test.ts:152:24
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[2/3]鈳?[22m
+
+ FAIL  src/store/slices/createGameSlice.test.ts > createGameSlice > Voting Execution > should execute player if votes > half alive players
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ 鉂?[22m src/store/slices/createGameSlice.test.ts:181:63
+    179|           
+    180|           const newState = store.getState();
+    181|           expect(newState.gameState!.seats[nomineeId].isDead).toBe(tru鈥?       |                                                               ^
+    182|           expect(newState.gameState!.voteHistory[0].result).toBe('exec鈥?    183|       });
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[3/3]鈳?[22m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m28 passed[39m[22m[90m (31)[39m
+[2m   Start at [22m 01:37:59
+[2m   Duration [22m 1.19s[2m (transform 559ms, setup 866ms, import 968ms, tests 62ms, environment 4.45s)[22m
+
+[1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/store/slices/createGameSlice.test.ts [22m[34mx1 [34m[39m
+
+ [31m鉂?[39m src/store/utils.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 8[2mms[22m[39m
+       [32m鉁?[39m should remove sensitive data from public state[32m 1[2mms[22m[39m
+       [32m鉁?[39m should preserve sensitive data in secret state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should merge secret state back into public state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow ST to see everything[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow player to see their own seenRole but hide realRole if different[32m 0[2mms[22m[39m
+       [32m鉁?[39m should hide sensitive info from other players[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow Spy to see real roles[32m 0[2mms[22m[39m
+[31m       [31m脳[31m should hide private system messages from other players[39m[32m 4[2mms[22m[39m
+       [32m鉁?[39m should show private system messages to the recipient[32m 0[2mms[22m[39m
+
+鈳幆鈳幆鈳幆 Failed Suites 1 鈳幆鈳幆鈳幆鈳?[39m
+
+ FAIL  src/store/slices/createGameSlice.test.ts [ src/store/slices/createGameSlice.test.ts ]
+Error: Transform failed with 1 error:
+E:/coding/Antigravity/game-helper-demo02/src/store/slices/createGameSlice.test.ts:15:5: ERROR: Expected ";" but found ")"
+  Plugin: vite:esbuild
+  File: E:/coding/Antigravity/game-helper-demo02/src/store/slices/createGameSlice.test.ts:15:5
+  
+  Expected ";" but found ")"
+  13 |        upsert: () => ({ error: null }),
+  14 |        insert: () => ({ error: null }),
+  15 |      }),
+     |       ^
+  16 |      channel: () => ({
+  17 |        on: () => ({ subscribe: () => { /* empty */ } }),
+  
+ 鉂?[22m failureErrorWithLog node_modules/esbuild/lib/main.js:1467:15
+ 鉂?[22m node_modules/esbuild/lib/main.js:736:50
+ 鉂?[22m responseCallbacks.<computed> node_modules/esbuild/lib/main.js:603:9
+ 鉂?[22m handleIncomingPacket node_modules/esbuild/lib/main.js:658:12
+ 鉂?[22m Socket.readFromStdout node_modules/esbuild/lib/main.js:581:7
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[1/1]鈳?[22m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 01:39:06
+[2m   Duration [22m 107ms
+
+[1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/store/utils.ts [22m[39m
+
+ [32m鉁?[39m src/store/slices/createConnectionSlice.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m鉁?[39m tests/integration/gameFlow.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 27[2mms[22m[39m
+ [31m鉂?[39m src/store/utils.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 71[2mms[22m[39m
+       [32m鉁?[39m should remove sensitive data from public state[32m 2[2mms[22m[39m
+       [32m鉁?[39m should preserve sensitive data in secret state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should merge secret state back into public state[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow ST to see everything[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow player to see their own seenRole but hide realRole if different[32m 0[2mms[22m[39m
+       [32m鉁?[39m should hide sensitive info from other players[32m 0[2mms[22m[39m
+       [32m鉁?[39m should allow Spy to see real roles[32m 9[2mms[22m[39m
+[31m       [31m脳[31m should hide private system messages from other players[39m[32m 52[2mms[22m[39m
+       [32m鉁?[39m should show private system messages to the recipient[32m 4[2mms[22m[39m
+
+鈳幆鈳幆鈳幆 Failed Suites 1 鈳幆鈳幆鈳幆鈳?[39m
+
+ FAIL  src/store/slices/createGameSlice.test.ts [ src/store/slices/createGameSlice.test.ts ]
+Error: Transform failed with 1 error:
+E:/coding/Antigravity/game-helper-demo02/src/store/slices/createGameSlice.test.ts:15:5: ERROR: Expected ";" but found ")"
+  Plugin: vite:esbuild
+  File: E:/coding/Antigravity/game-helper-demo02/src/store/slices/createGameSlice.test.ts:15:5
+  
+  Expected ";" but found ")"
+  13 |        upsert: () => ({ error: null }),
+  14 |        insert: () => ({ error: null }),
+  15 |      }),
+     |       ^
+  16 |      channel: () => ({
+  17 |        on: () => ({ subscribe: () => { /* empty */ } }),
+  
+ 鉂?[22m failureErrorWithLog node_modules/esbuild/lib/main.js:1467:15
+ 鉂?[22m node_modules/esbuild/lib/main.js:736:50
+ 鉂?[22m responseCallbacks.<computed> node_modules/esbuild/lib/main.js:603:9
+ 鉂?[22m handleIncomingPacket node_modules/esbuild/lib/main.js:658:12
+ 鉂?[22m Socket.readFromStdout node_modules/esbuild/lib/main.js:581:7
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[1/2]鈳?[22m
+
+
+鈳幆鈳幆鈳幆鈳?[39m Failed Tests 1 鈳幆鈳幆鈳幆鈳?[39m
+
+ FAIL  src/store/utils.test.ts > utils > filterGameStateForUser (Privacy) > should hide private system messages from other players
+AssertionError: expected [ { id: '1', 鈥?7) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ 鉂?[22m src/store/utils.test.ts:125:37
+    123|           // User who is NOT the recipient
+    124|           const filtered = filterGameStateForUser(stateWithPrivateMsg,鈥?    125|           expect(filtered.messages).toHaveLength(0);
+       |                                     ^
+    126|       });
+    127| 
+
+鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆[2/2]鈳?[22m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m12 passed[39m[22m[90m (13)[39m
+[2m   Start at [22m 01:39:08
+[2m   Duration [22m 3.62s
+
+[1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m

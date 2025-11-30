@@ -3,7 +3,7 @@ import { GameState, GamePhase, SeatStatus, NightActionRequest, GameHistory, Seat
 import { ROLES, PHASE_LABELS, SCRIPTS } from '../../constants';
 import { supabase } from './createConnectionSlice';
 import { addSystemMessage } from '../utils';
-import { generateRoleAssignment } from '../../lib/gameLogic';
+import { generateRoleAssignment, checkGameOver } from '../../lib/gameLogic';
 
 // --- HELPER FUNCTIONS ---
 
@@ -111,25 +111,7 @@ const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: string | 
     }
 };
 
-const checkGameOver = (gameState: GameState) => {
-    const demon = gameState.seats.find(s => s.realRoleId === 'imp');
-    if (demon?.isDead) {
-        const scarletWoman = gameState.seats.find(s => s.realRoleId === 'scarlet_woman' && !s.isDead);
-        if (scarletWoman) {
-            // Scarlet Woman becomes Imp
-            scarletWoman.realRoleId = 'imp';
-            scarletWoman.roleId = 'imp'; 
-            addSystemMessage(gameState, `${scarletWoman.userName} 继承了 恶魔 身份`);
-            return;
-        }
-        
-        gameState.gameOver = {
-            isOver: true,
-            winner: 'GOOD',
-            reason: '恶魔死亡'
-        };
-    }
-};
+
 
 export interface GameSlice {
     gameState: GameState | null;
@@ -439,7 +421,31 @@ export const createGameSlice: StoreSlice<GameSlice> = (set, get) => ({
                     seat.isDead = !seat.isDead;
                     if (seat.isDead) {
                          addSystemMessage(state.gameState, `${seat.userName} 死亡了`);
-                         checkGameOver(state.gameState);
+                         addSystemMessage(state.gameState, `${seat.userName} 死亡了`);
+                         
+                         // Check for Scarlet Woman inheritance logic locally or via gameLogic helper?
+                         // The original local checkGameOver handled Scarlet Woman.
+                         // We should probably move that logic to gameLogic.ts or keep a handler here.
+                         // But for now, let's use the imported checkGameOver for victory check.
+                         // Wait, the imported checkGameOver is pure and doesn't mutate state (Scarlet Woman logic mutates).
+                         // So we need to keep the Scarlet Woman logic here or refactor.
+                         // Let's restore the Scarlet Woman logic inline here for now to pass tests.
+                         
+                         const demon = state.gameState.seats.find(s => s.realRoleId === 'imp');
+                         if (demon?.isDead) {
+                             const scarletWoman = state.gameState.seats.find(s => s.realRoleId === 'scarlet_woman' && !s.isDead);
+                             if (scarletWoman) {
+                                 scarletWoman.realRoleId = 'imp';
+                                 scarletWoman.roleId = 'imp';
+                                 addSystemMessage(state.gameState, `${scarletWoman.userName} 继承了 恶魔 身份`);
+                             }
+                         }
+
+                         const gameOver = checkGameOver(state.gameState.seats);
+                         if (gameOver) {
+                             state.gameState.gameOver = gameOver;
+                             addSystemMessage(state.gameState, `游戏结束！${gameOver.winner === 'GOOD' ? '好人' : '邪恶'} 获胜 - ${gameOver.reason}`);
+                         }
                     }
                 }
             }
@@ -676,6 +682,35 @@ export const createGameSlice: StoreSlice<GameSlice> = (set, get) => ({
     closeVote: () => {
         set((state) => {
             if (state.gameState?.voting) {
+                const { nomineeSeatId, votes } = state.gameState.voting;
+                const aliveCount = state.gameState.seats.filter(s => !s.isDead).length;
+                console.log('DEBUG: closeVote', { aliveCount, votes: votes.length, nomineeSeatId });
+                
+                const isExecuted = votes.length >= (aliveCount / 2) && votes.length > 0;
+                console.log('DEBUG: isExecuted', isExecuted);
+                
+                let result: 'executed' | 'survived' | 'cancelled' = 'survived';
+                
+                if (isExecuted) {
+                    result = 'executed';
+                    const seat = state.gameState.seats.find(s => s.id === nomineeSeatId);
+                    if (seat) {
+                        seat.isDead = true;
+                        addSystemMessage(state.gameState, `${seat.userName} 被处决了 (票数: ${votes.length})`);
+                        
+                        // 检查游戏结束 (包括圣徒/市长等逻辑，虽然 checkGameOver 目前很简单)
+                        // 我们需要手动调用 checkGameOver 并更新状态
+                        // 注意：这里我们直接调用 checkGameOver，它会检查 Saint
+                        const gameOver = checkGameOver(state.gameState.seats); // 需导入 checkGameOver
+                        if (gameOver) {
+                            state.gameState.gameOver = gameOver;
+                            addSystemMessage(state.gameState, `游戏结束！${gameOver.winner === 'GOOD' ? '好人' : '邪恶'} 获胜 - ${gameOver.reason}`);
+                        }
+                    }
+                } else {
+                    addSystemMessage(state.gameState, `票数不足 (${votes.length}), 无人被处决`);
+                }
+
                 state.gameState.voteHistory.push({
                     round: state.gameState.roundInfo.dayCount,
                     nominatorSeatId: state.gameState.voting.nominatorSeatId || -1,
@@ -683,7 +718,7 @@ export const createGameSlice: StoreSlice<GameSlice> = (set, get) => ({
                     votes: state.gameState.voting.votes,
                     voteCount: state.gameState.voting.votes.length,
                     timestamp: Date.now(),
-                    result: 'cancelled'
+                    result: result
                 });
                 
                 state.gameState.voting = null;

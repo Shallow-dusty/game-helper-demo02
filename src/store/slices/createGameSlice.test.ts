@@ -17,6 +17,7 @@ vi.mock('../utils', async (importOriginal) => {
 
 vi.mock('../../lib/gameLogic', () => ({
   generateRoleAssignment: vi.fn(() => ['washerwoman', 'librarian', 'investigator', 'chef', 'empath']),
+  checkGameOver: vi.fn(), // Add mocked checkGameOver
 }));
 
 vi.mock('./createConnectionSlice', () => ({
@@ -157,6 +158,66 @@ describe('createGameSlice', () => {
       const newImp = state.gameState!.seats[1]!;
       expect(newImp.realRoleId).toBe('imp'); // Scarlet Woman becomes Imp
       expect(newImp.roleId).toBe('imp');
+    });
+  });
+
+  describe('Voting Execution', () => {
+      it('should execute player if votes > half alive players', () => {
+          store.getState().createGame(5);
+          store.getState().assignRoles();
+          // 5 players alive, need 3 votes to execute
+          const nomineeId = 0;
+          store.getState().startVote(nomineeId);
+          
+          // Add 3 votes using proper Zustand API
+          store.setState((state) => {
+              if (!state.gameState?.voting) return state;
+              return {
+                  ...state,
+                  gameState: {
+                      ...state.gameState,
+                      voting: {
+                          ...state.gameState.voting,
+                          votes: [1, 2, 3]
+                      }
+                  }
+              };
+          });
+          
+          store.getState().closeVote();
+          
+          const newState = store.getState();
+          expect(newState.gameState!.seats[nomineeId]!.isDead).toBe(true);
+          expect(newState.gameState!.voteHistory[0]!.result).toBe('executed');
+      });
+
+      it('should NOT execute if votes <= half alive players', () => {
+        store.getState().createGame(5);
+        store.getState().assignRoles();
+        // 5 players alive, need 3 votes. We give 2.
+        const nomineeId = 0;
+        store.getState().startVote(nomineeId);
+        
+        // Add 2 votes using proper Zustand API  
+        store.setState((state) => {
+            if (!state.gameState?.voting) return state;
+            return {
+                ...state,
+                gameState: {
+                    ...state.gameState,
+                    voting: {
+                        ...state.gameState.voting,
+                        votes: [1, 2]
+                    }
+                }
+            };
+        });
+        
+        store.getState().closeVote();
+        
+        const newState = store.getState();
+        expect(newState.gameState!.seats[nomineeId]!.isDead).toBe(false);
+        expect(newState.gameState!.voteHistory[0]!.result).toBe('survived');
     });
   });
 });

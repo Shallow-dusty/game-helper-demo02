@@ -68,16 +68,20 @@ export const filterGameStateForUser = (gameState: GameState, currentUserId: stri
         ...gameState,
         seats: gameState.seats.map(seat => filterSeatForUser(seat, currentUserId, isStoryteller, userRoleId)),
         messages: gameState.messages.filter(msg => {
-            // 系统消息对所有人可见
-            if (msg.type === 'system') return true;
-            // 公开消息对所有人可见
-            if (!msg.recipientId) return true;
             // 私聊消息仅对发送者、接收者和 ST 可见
             if (msg.isPrivate) {
-                return isStoryteller ||
+                const visible = isStoryteller ||
                     msg.senderId === currentUserId ||
                     msg.recipientId === currentUserId;
+                return visible;
             }
+            
+            // 系统消息（非私密）对所有人可见
+            if (msg.type === 'system') return true;
+            
+            // 公开消息对所有人可见
+            if (!msg.recipientId) return true;
+            
             return true;
         })
     };

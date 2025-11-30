@@ -266,10 +266,19 @@ export const checkGameOver = (seats: Seat[]): {
             reason: '存活玩家不足，邪恶胜利！'
         };
     }
+    
+    // Saint Check
+    const saint = seats.find(s => s.realRoleId === 'saint');
+    if (saint && saint.isDead) { 
+        return {
+            isOver: true,
+            winner: 'EVIL',
+            reason: '圣徒被处决，邪恶胜利！'
+        };
+    }
+
     return null;
 };
-
-// ==================== 提醒标记 ====================
 
 /**
  * 创建提醒标记

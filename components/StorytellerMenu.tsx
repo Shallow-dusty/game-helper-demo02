@@ -4,7 +4,7 @@ import { Seat, SeatStatus } from '../types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { motion } from 'framer-motion';
-import { Skull, Heart, Ban, Theater, Scale, Trash2, ArrowLeftRight, X } from 'lucide-react';
+import { Skull, Heart, Ban, Theater, Scale, Trash2, ArrowLeftRight, X, LogOut } from 'lucide-react';
 
 interface StorytellerMenuProps {
     seat: Seat;
@@ -19,6 +19,7 @@ interface StorytellerMenuProps {
         startVote: (id: number) => void;
         setRoleSelectSeat: (id: number) => void;
         setSwapSourceId: (id: number) => void;
+        forceLeaveSeat: (id: number) => void;
     };
     currentScriptId: string;
 }
@@ -135,6 +136,26 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                     <div className="text-left">
                                         <div className="font-bold text-sm">移除机器人</div>
                                         <div className="text-[10px] opacity-70">清空座位</div>
+                                    </div>
+                                </Button>
+                            )}
+
+                            {/* Kick Player (Real User) */}
+                            {!seat.isVirtual && seat.userId && (
+                                <Button
+                                    variant="destructive"
+                                    className="h-auto py-3 flex justify-start gap-3 col-span-1 bg-red-950/30 border-red-900/50 hover:bg-red-900/50"
+                                    onClick={() => {
+                                        if (window.confirm(`确定要将 ${seat.userName} 踢出座位吗？`)) {
+                                            actions.forceLeaveSeat(seat.id);
+                                            onClose();
+                                        }
+                                    }}
+                                >
+                                    <LogOut className="w-5 h-5" />
+                                    <div className="text-left">
+                                        <div className="font-bold text-sm">踢出玩家</div>
+                                        <div className="text-[10px] opacity-70">强制离开座位</div>
                                     </div>
                                 </Button>
                             )}

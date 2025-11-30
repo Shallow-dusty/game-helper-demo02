@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createAISlice } from './createAISlice';
-import { createStore } from 'zustand';
+import { createStore, StoreApi } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { AppState } from '../types';
 
 describe('createAISlice', () => {
-  let store: any;
+  let store: StoreApi<AppState>;
 
   beforeEach(() => {
     store = createStore<AppState>()(
@@ -25,27 +26,29 @@ describe('createAISlice', () => {
 
   it('should clear messages', () => {
     // Setup initial messages
-    store.setState((state: any) => {
-        state.gameState.aiMessages = [{ role: 'user', content: 'hi' }];
+    store.setState((state) => {
+        state.gameState!.aiMessages = [{ role: 'user', content: 'hi' } as any];
+        return state;
     });
     
     store.getState().clearAiMessages();
     
-    expect(store.getState().gameState.aiMessages).toEqual([]);
+    expect(store.getState().gameState!.aiMessages).toEqual([]);
   });
 
   it('should delete specific message', () => {
-      store.setState((state: any) => {
-          state.gameState.aiMessages = [
-              { id: '1', content: 'msg1' },
-              { id: '2', content: 'msg2' }
+      store.setState((state) => {
+          state.gameState!.aiMessages = [
+              { id: '1', content: 'msg1' } as any,
+              { id: '2', content: 'msg2' } as any
           ];
+          return state;
       });
 
       store.getState().deleteAiMessage('1');
 
-      const messages = store.getState().gameState.aiMessages;
+      const messages = store.getState().gameState!.aiMessages;
       expect(messages).toHaveLength(1);
-      expect(messages[0].id).toBe('2');
+      expect(messages[0]!.id).toBe('2');
   });
 });

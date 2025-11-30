@@ -93,6 +93,7 @@ export interface AppState {
     distributeRoles: () => void;
     hideRoles: () => void;
     startGame: () => void;
+    endGame: (winner: 'GOOD' | 'EVIL', reason: string) => void;
     applyStrategy: (strategyName: string, roleIds: string[]) => void;
 
     // Note Actions

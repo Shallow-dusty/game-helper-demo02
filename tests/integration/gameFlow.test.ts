@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createStore } from 'zustand';
+import { createStore, StoreApi } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { createGameSlice } from '../../src/store/slices/createGameSlice';
 import { createConnectionSlice } from '../../src/store/slices/createConnectionSlice';
@@ -25,11 +26,11 @@ vi.mock('@supabase/supabase-js', () => ({
             select: () => ({ eq: () => ({ single: () => ({ data: null, error: null }) }) }),
         }),
         channel: () => ({
-            on: () => ({ subscribe: () => {} }),
-            subscribe: () => {},
-            unsubscribe: () => {},
+            on: () => ({ subscribe: () => { /* empty */ } }),
+            subscribe: () => { /* empty */ },
+            unsubscribe: () => { /* empty */ },
         }),
-        removeChannel: () => {},
+        removeChannel: () => { /* empty */ },
     })),
 }));
 
@@ -66,7 +67,7 @@ vi.mock('../../src/store/slices/createGameSlice', async (importOriginal) => {
 });
 
 describe('Game Flow Integration', () => {
-    let store: any;
+    let store: StoreApi<AppState>;
 
     beforeEach(() => {
         store = createStore<AppState>()(
@@ -79,35 +80,35 @@ describe('Game Flow Integration', () => {
         );
     });
 
-    it('should simulate a full game loop', () => {
+    it('should simulate a full game loop', async () => {
         // 1. Setup
-        store.getState().createGame(5);
+        await store.getState().createGame(5);
         let state = store.getState();
-        expect(state.gameState.phase).toBe('SETUP');
+        expect(state.gameState!.phase).toBe('SETUP');
 
         // 2. Seat Players
-        state.gameState.seats.forEach((s: any, i: number) => {
-            s.userId = `p-${i}`;
-            s.userName = `Player ${i}`;
+        state.gameState!.seats.forEach((s, i: number) => {
+            s.userId = `p-${String(i)}`;
+            s.userName = `Player ${String(i)}`;
         });
 
         // 3. Assign Roles
         store.getState().assignRoles();
         state = store.getState();
-        expect(state.gameState.setupPhase).toBe('ASSIGNING');
+        expect(state.gameState!.setupPhase).toBe('ASSIGNING');
         
         // 4. Distribute Roles (Start Game)
         store.getState().distributeRoles();
         store.getState().startGame();
         state = store.getState();
-        expect(state.gameState.phase).toBe('NIGHT');
-        expect(state.gameState.roundInfo.nightCount).toBe(1);
+        expect(state.gameState!.phase).toBe('NIGHT');
+        expect(state.gameState!.roundInfo.nightCount).toBe(1);
 
         // 5. Day Phase
         store.getState().setPhase('DAY'); // Night -> Day
         state = store.getState();
-        expect(state.gameState.phase).toBe('DAY');
-        expect(state.gameState.roundInfo.dayCount).toBe(1);
+        expect(state.gameState!.phase).toBe('DAY');
+        expect(state.gameState!.roundInfo.dayCount).toBe(1);
 
         // 6. Nomination & Voting (Simulated)
         // ... (complex to mock fully without UI interaction, but we can check state transitions)
@@ -115,7 +116,7 @@ describe('Game Flow Integration', () => {
         // 7. Game Over
         store.getState().endGame('EVIL', 'Evil Wins');
         state = store.getState();
-        expect(state.gameState.gameOver.isOver).toBe(true);
-        expect(state.gameState.gameOver.reason).toBe('Evil Wins');
+        expect(state.gameState!.gameOver.isOver).toBe(true);
+        expect(state.gameState!.gameOver.reason).toBe('Evil Wins');
     });
 });

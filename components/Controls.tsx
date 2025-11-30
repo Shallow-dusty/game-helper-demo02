@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useStore } from '../store';
+import { useStore, getAiConfig } from '../store';
 import { ROLES, PHASE_LABELS, SCRIPTS, Z_INDEX } from '../constants';
 import { Chat } from './Chat';
 import { GameHistoryView } from './GameHistoryView';
@@ -348,15 +348,11 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                     onChange={(e) => setAiProvider(e.target.value as any)}
                                     className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1 focus:outline-none focus:border-stone-600"
                                 >
-                                    <optgroup label="官方 API">
-                                        <option value="deepseek">DeepSeek V3</option>
-                                    </optgroup>
-                                    <optgroup label="其他 (可能存在跨域问题)">
-                                        <option value="kimi">Kimi K2</option>
-                                        <option value="sf_r1">DeepSeek R1 (SF)</option>
-                                        <option value="sf_r1_llama_70b">R1 Llama 70B (SF)</option>
-                                        <option value="sf_r1_qwen_32b">R1 Qwen 32B (SF)</option>
-                                    </optgroup>
+                                    {Object.entries(getAiConfig()).map(([key, config]) => (
+                                        <option key={key} value={key}>
+                                            {config.apiKey ? '✓' : '✗'} {config.name}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         )}

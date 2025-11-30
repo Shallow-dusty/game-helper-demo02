@@ -37,26 +37,30 @@ export const WaitingArea: React.FC = () => {
     const toggleReady = useStore(state => state.toggleReady);
 
     // If seated, show Ready interface
-    // FIX: Hide if game has started or roles are revealed
-    if (isSeated && gameState.setupPhase !== 'STARTED' && !gameState.rolesRevealed) {
+    if (isSeated) {
+        // Hide if game has started or roles are revealed
+        if (gameState.setupPhase === 'STARTED' || gameState.rolesRevealed) {
+            return null;
+        }
+
         return (
-            <div className="absolute inset-0 z-40 bg-stone-950/95 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
-                <div className="text-center mb-10">
-                    <h1 className="text-4xl md:text-5xl font-cinzel text-amber-500 mb-4 tracking-widest drop-shadow-lg">
+            <div className="absolute inset-0 z-40 flex flex-col items-center justify-center p-8 pointer-events-none">
+                <div className="bg-stone-950/90 backdrop-blur-md p-8 rounded-2xl border border-stone-700 shadow-2xl pointer-events-auto max-w-lg w-full text-center animate-in zoom-in-95 duration-300">
+                    <h1 className="text-3xl font-cinzel text-amber-500 mb-2 tracking-widest drop-shadow-lg">
                         {gameState.roomId}
                     </h1>
-                    <div className="text-2xl text-stone-300 font-cinzel mb-8">
+                    <div className="text-xl text-stone-300 font-cinzel mb-6">
                         {currentSeat?.userName}
                     </div>
 
                     <button
                         onClick={() => toggleReady()}
                         className={`
-                            px-12 py-4 rounded-full text-xl font-bold transition-all duration-300 transform hover:scale-105 active:scale-95
-                            flex items-center gap-3 shadow-[0_0_30px_rgba(0,0,0,0.5)]
+                            w-full py-4 rounded-xl text-xl font-bold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]
+                            flex items-center justify-center gap-3 shadow-lg mb-4
                             ${currentSeat?.isReady
-                                ? 'bg-green-900 text-green-100 border-2 border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
-                                : 'bg-stone-800 text-stone-400 border-2 border-stone-600 hover:bg-stone-700 hover:text-stone-200'}
+                                ? 'bg-green-900/80 text-green-100 border border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.2)]'
+                                : 'bg-stone-800 text-stone-400 border border-stone-600 hover:bg-stone-700 hover:text-stone-200'}
                         `}
                     >
                         {currentSeat?.isReady ? (
@@ -74,15 +78,15 @@ export const WaitingArea: React.FC = () => {
 
                     <button
                         onClick={() => leaveSeat()}
-                        className="mt-6 px-6 py-2 rounded-full text-sm font-bold text-stone-500 hover:text-red-400 hover:bg-red-950/30 border border-transparent hover:border-red-900/50 transition-all"
+                        className="w-full py-2 rounded-lg text-sm font-bold text-stone-500 hover:text-red-400 hover:bg-red-950/30 border border-transparent hover:border-red-900/50 transition-all"
                     >
                         离开座位 (Leave Seat)
                     </button>
 
-                    <p className="mt-8 text-stone-500 font-serif italic animate-pulse">
+                    <p className="mt-6 text-stone-500 font-serif italic text-sm animate-pulse">
                         {currentSeat?.isReady
-                            ? "等待说书人开始游戏... (Waiting for Storyteller...)"
-                            : "请确认您已准备好开始游戏 (Please confirm you are ready)"}
+                            ? "等待说书人开始游戏..."
+                            : "请确认您已准备好开始游戏"}
                     </p>
                 </div>
             </div>

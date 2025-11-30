@@ -2094,7 +2094,7 @@ export const useStore = create<AppState>()(
             const { gameState, user } = get();
             if (!gameState || !user?.isStoryteller) return;
 
-            const occupiedSeats = gameState.seats.filter(s => s.userId || s.isVirtual);
+            if (!gameState || !user?.isStoryteller) return;
 
             // Clear roles
             gameState.seats.forEach(seat => {
@@ -2103,7 +2103,10 @@ export const useStore = create<AppState>()(
 
             // Assign new roles
             const shuffledRoles = [...roleIds].sort(() => Math.random() - 0.5);
-            occupiedSeats.forEach((seat, index) => {
+            
+            // 应该给所有座位分配角色，不仅仅是有人的座位
+            // 这样ST可以先设置好板子，再让玩家入座
+            gameState.seats.forEach((seat, index) => {
                 if (index < shuffledRoles.length) {
                     applyRoleAssignment(gameState, seat, shuffledRoles[index] || null);
                 }

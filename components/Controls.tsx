@@ -389,7 +389,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             {showCompositionGuide && gameState?.seats && createPortal(
                 <ScriptCompositionGuide
                     onClose={() => setShowCompositionGuide(false)}
-                    playerCount={gameState.seats.filter(s => s.userId || s.isVirtual).length || gameState.seats.length || 7}
+                    playerCount={gameState.seats.length || 7}
                     onApplyStrategy={(strategy, roles) => {
                         if (roles) {
                             const allRoles = [

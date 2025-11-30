@@ -238,6 +238,7 @@ const getInitialState = (roomId: string, seatCount: number, currentScriptId = 't
         hasUsedAbility: false,
         statuses: [],
         voteLocked: false,
+        isVirtual: false,
     })),
     swapRequests: [],
     messages: [],

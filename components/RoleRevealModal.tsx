@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
 import { ROLES, TEAM_COLORS } from '../constants';
-import { RoleDef } from '../types';
 
 export const RoleRevealModal: React.FC = () => {
     const user = useStore(state => state.user);
@@ -30,7 +29,17 @@ export const RoleRevealModal: React.FC = () => {
         const storageKey = `grimoire_role_seen_${gameState.roomId}_${user.id}_${role.id}`;
         const hasSeen = localStorage.getItem(storageKey);
 
+        console.warn('RoleRevealModal Check:', { 
+            rolesRevealed: gameState.rolesRevealed, 
+            hasSeen, 
+            isVisible, 
+            isExiting, 
+            countdown,
+            roleId: role.id 
+        });
+
         if (gameState.rolesRevealed && !hasSeen && !isVisible && !isExiting && countdown === null) {
+            console.warn('Starting countdown!');
             // 开始倒计时
             setCountdown(3);
         }
@@ -74,7 +83,7 @@ export const RoleRevealModal: React.FC = () => {
     // 渲染倒计时
     if (countdown !== null) {
         return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+            <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={countdown}
@@ -98,7 +107,7 @@ export const RoleRevealModal: React.FC = () => {
     return (
         <AnimatePresence>
             {isVisible && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
+                <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none">
                     {/* 背景遮罩 */}
                     <motion.div
                         initial={{ opacity: 0 }}

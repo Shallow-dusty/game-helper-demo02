@@ -10,10 +10,10 @@ export interface User {
 
 export type GamePhase = 'SETUP' | 'NIGHT' | 'DAY' | 'NOMINATION' | 'VOTING';
 
-export type Team = 'TOWNSFOLK' | 'OUTSIDER' | 'MINION' | 'DEMON' | 'TRAVELER';
+export type Team = 'TOWNSFOLK' | 'OUTSIDER' | 'MINION' | 'DEMON' | 'TRAVELER' | 'FABLED';
 
 export interface NightActionDef {
-  type: 'choose_player' | 'choose_two_players' | 'binary' | 'confirm';
+  type: 'choose_player' | 'choose_two_players' | 'binary' | 'confirm' | 'choose_role';
   prompt: string;
   options?: string[]; // For binary choices
 }

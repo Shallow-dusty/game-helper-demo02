@@ -230,7 +230,8 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'TOWNSFOLK',
     ability: '每晚选两名玩家，知晓他们今晚醒没醒。',
     otherNight: true,
-    detailedDescription: '**官方规则**: 每晚，你选择两名存活玩家（非自己）。你会得知他们中有多少人今晚醒来执行了能力。\n\n**补充说明**:\n• 结果可能是0、1或2\n• 恶魔和爪牙的夜间能力也算"醒来"\n• 被动效果（如士兵）不算醒来\n• 中毒/醉酒玩家可能仍会"醒来"但能力无效'
+    detailedDescription: '**官方规则**: 每晚，你选择两名存活玩家（非自己）。你会得知他们中有多少人今晚醒来执行了能力。\n\n**补充说明**:\n• 结果可能是0、1或2\n• 恶魔和爪牙的夜间能力也算"醒来"\n• 被动效果（如士兵）不算醒来\n• 中毒/醉酒玩家可能仍会"醒来"但能力无效',
+    nightAction: { type: 'choose_two_players', prompt: '选择两名玩家（非自己）' }
   },
   exorcist: {
     id: 'exorcist',
@@ -238,7 +239,8 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'TOWNSFOLK',
     ability: '每晚选择一名玩家，若为恶魔，恶魔无法醒来。',
     otherNight: true,
-    detailedDescription: '**官方规则**: 每晚*，你选择一名玩家（非自己）。如果你选择的是恶魔，恶魔今晚不会醒来行动。\n\n**补充说明**:\n• 被驱魔的恶魔无法杀人\n• 你不会知道是否成功驱魔\n• 每晚只能选一人\n• 连续两晚不能选同一人'
+    detailedDescription: '**官方规则**: 每晚*，你选择一名玩家（非自己）。如果你选择的是恶魔，恶魔今晚不会醒来行动。\n\n**补充说明**:\n• 被驱魔的恶魔无法杀人\n• 你不会知道是否成功驱魔\n• 每晚只能选一人\n• 连续两晚不能选同一人',
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家驱魔（非自己）' }
   },
   innkeeper: {
     id: 'innkeeper',
@@ -246,7 +248,8 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'TOWNSFOLK',
     ability: '保护两名玩家，其中一人喝醉。',
     otherNight: true,
-    detailedDescription: '**官方规则**: 每晚*，你选择两名玩家（非自己）。他们今晚不能被恶魔杀死，但其中一人会醉酒到明天黄昏。\n\n**补充说明**:\n• 谁醉酒由ST决定\n• 保护只针对恶魔攻击\n• 不能选择自己\n• 醉酒效果持续到次日黄昏'
+    detailedDescription: '**官方规则**: 每晚*，你选择两名玩家（非自己）。他们今晚不能被恶魔杀死，但其中一人会醉酒到明天黄昏。\n\n**补充说明**:\n• 谁醉酒由ST决定\n• 保护只针对恶魔攻击\n• 不能选择自己\n• 醉酒效果持续到次日黄昏',
+    nightAction: { type: 'choose_two_players', prompt: '选择两名玩家保护（非自己）' }
   },
   gambler: {
     id: 'gambler',
@@ -254,7 +257,8 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'TOWNSFOLK',
     ability: '猜一名玩家角色，猜对没事，猜错死。',
     otherNight: true,
-    detailedDescription: '**官方规则**: 每晚*，你选择一名玩家并猜测他的角色。如果你猜错了，你死亡。\n\n**补充说明**:\n• 必须猜具体角色，不是阵营\n• 猜对没有任何奖励，只是不死\n• 可以选择自己\n• 如果你中毒/醉酒，可能猜对也会死'
+    detailedDescription: '**官方规则**: 每晚*，你选择一名玩家并猜测他的角色。如果你猜错了，你死亡。\n\n**补充说明**:\n• 必须猜具体角色，不是阵营\n• 猜对没有任何奖励，只是不死\n• 可以选择自己\n• 如果你中毒/醉酒，可能猜对也会死',
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家进行猜测' }
   },
   gossip: {
     id: 'gossip',
@@ -270,7 +274,8 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'TOWNSFOLK',
     ability: '使一名角色醉酒三天三夜。',
     otherNight: true,
-    detailedDescription: '**官方规则**: 游戏中一次，在夜晚，你选择一名角色。如果场上有该角色，他会醉酒三天三夜，从今晚开始。\n\n**补充说明**:\n• 选择的是角色类型，不是玩家\n• 如果场上没有该角色，无效果\n• 三天三夜从当晚开始计算\n• 只能使用一次'
+    detailedDescription: '**官方规则**: 游戏中一次，在夜晚，你选择一名角色。如果场上有该角色，他会醉酒三天三夜，从今晚开始。\n\n**补充说明**:\n• 选择的是角色类型，不是玩家\n• 如果场上没有该角色，无效果\n• 三天三夜从当晚开始计算\n• 只能使用一次',
+    nightAction: { type: 'choose_role', prompt: '选择一个角色使其醉酒' }
   },
   professor: {
     id: 'professor',
@@ -347,6 +352,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'MINION',
     ability: '外来者死后，你杀一人。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家击杀（若白天有外来者死亡）' },
     detailedDescription: '**官方规则**: 如果白天有外来者死亡，你今晚选择一名玩家，他死亡。\n\n**补充说明**:\n• 必须是外来者死亡才触发\n• 镇民死亡不触发\n• 你选择的目标会额外死亡\n• 可以和恶魔的攻击叠加'
   },
   devil_advocate: {
@@ -355,6 +361,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'MINION',
     ability: '被处决的玩家不死。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家保护其免受处决（非自己）' },
     detailedDescription: '**官方规则**: 每晚*，你选择一名存活玩家（非自己）。如果他明天被处决，他不会死亡。\n\n**补充说明**:\n• 保护持续到次日处决\n• 每晚只能选一人\n• 可以保护恶魔\n• 不能保护自己'
   },
   assassin: {
@@ -363,6 +370,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'MINION',
     ability: '限一次，无视保护杀一人。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家击杀（限一次）' },
     icon: '🗡️',
     detailedDescription: '**官方规则**: 游戏中一次，在夜晚，你选择一名玩家。他死亡，即使他有保护。\n\n**补充说明**:\n• 无视所有保护效果\n• 包括僧侣、茶女郎等\n• 只能使用一次\n• 不能在第一夜使用'
   },
@@ -379,6 +387,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'DEMON',
     ability: '第一次死看起来像死，其实没死。没死人晚上才能杀人。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家击杀（若今日无人死亡）' },
     icon: '🧟',
     detailedDescription: '**官方规则**: 每晚*，如果今天没有人死亡，你选择一名玩家，他死亡。你第一次死亡时，你不会真的死，你会看起来死了。\n\n**补充说明**:\n• 第一次"死亡"后你继续作为僵尸存在\n• 只有当天无人死亡时才能杀人\n• 真正杀死僵尸需要第二次\n• 处决后看起来死了但实际没死'
   },
@@ -388,6 +397,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'DEMON',
     ability: '每晚选人下毒，该人次晚死亡。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家下毒' },
     icon: '🐍',
     detailedDescription: '**官方规则**: 每晚，你选择一名玩家，他中毒。前一晚被你中毒的玩家死亡。\n\n**补充说明**:\n• 今晚选的人明晚才死\n• 被选的人在死亡前一直中毒\n• 第一夜选的人第二夜死\n• 死亡延迟一夜'
   },
@@ -397,6 +407,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'DEMON',
     ability: '每晚杀两人。可能复活一人。',
     otherNight: true,
+    nightAction: { type: 'choose_two_players', prompt: '选择两名玩家击杀' },
     icon: '👹',
     detailedDescription: '**官方规则**: 每晚*，你选择两名玩家，他们死亡。一名你杀死的玩家可能在之后某晚复活。\n\n**补充说明**:\n• 每晚必须杀两人\n• 复活由ST决定时机\n• 复活的是你杀的人之一\n• 可能整局都不复活'
   },
@@ -406,6 +417,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'DEMON',
     ability: '可以空刀。空刀后每晚杀三人。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择玩家击杀（或选择空刀）' },
     icon: '🎐',
     detailedDescription: '**官方规则**: 每晚*，你可以选择不攻击任何人。如果你这样做，下一晚你可以攻击三名玩家。\n\n**补充说明**:\n• 空刀后次晚必须杀三人\n• 正常情况一晚杀一人\n• 空刀是战略选择\n• 不能连续空刀'
   },
@@ -425,6 +437,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'TOWNSFOLK',
     ability: '每晚选玩家，知晓两个身份（一真一假）。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家查验' },
     detailedDescription: '**官方规则**: 每晚，你选择一名玩家（非自己）。你会得知两个角色：一个是他的真实角色，一个不是。\n\n**补充说明**:\n• 两个角色之一是正确的\n• ST决定哪个是假的\n• 可以推断信息\n• 被毒/醉时可能两个都错'
   },
   snake_charmer: {
@@ -433,6 +446,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'TOWNSFOLK',
     ability: '每晚选玩家，若是恶魔，你们互换。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家' },
     detailedDescription: '**官方规则**: 每晚，你选择一名存活玩家。如果他是恶魔，你们互换角色和阵营，你中毒。\n\n**补充说明**:\n• 你变成恶魔，恶魔变成弄蛇人\n• 互换后你会中毒\n• 新恶魔获得恶魔能力\n• 非常危险但强力的能力'
   },
   mathematician: {
@@ -480,6 +494,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'TOWNSFOLK',
     ability: '限一次，检测两名玩家是否同一阵营。',
     otherNight: true,
+    nightAction: { type: 'choose_two_players', prompt: '选择两名玩家查验阵营（限一次）' },
     detailedDescription: '**官方规则**: 游戏中一次，在夜晚，你选择两名存活玩家（非自己）。你得知他们是否属于同一阵营。\n\n**补充说明**:\n• 只能使用一次\n• 结果是"相同"或"不同"\n• 好人之间是相同的\n• 被毒/醉时可能错误'
   },
   philosopher: {
@@ -487,7 +502,8 @@ export const ROLES: Record<string, RoleDef> = {
     name: '哲学家',
     team: 'TOWNSFOLK',
     ability: '限一次，获得已出场角色能力。',
-    detailedDescription: '**官方规则**: 游戏中一次，在夜晚，你选择一个好人角色。你获得该角色的能力。如果场上有该角色，他会中毒。\n\n**补充说明**:\n• 只能选择好人角色\n• 原角色会中毒\n• 你保留哲学家身份但获得新能力\n• 只能使用一次'
+    detailedDescription: '**官方规则**: 游戏中一次，在夜晚，你选择一个好人角色。你获得该角色的能力。如果场上有该角色，他会中毒。\n\n**补充说明**:\n• 只能选择好人角色\n• 原角色会中毒\n• 你保留哲学家身份但获得新能力\n• 只能使用一次',
+    nightAction: { type: 'choose_role', prompt: '选择一个好人角色获得其能力' }
   },
   artist: {
     id: 'artist',
@@ -546,6 +562,7 @@ export const ROLES: Record<string, RoleDef> = {
     ability: '诅咒一名玩家，若其提名则死亡。',
     otherNight: true,
     icon: '🧙',
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家进行诅咒' },
     detailedDescription: '**官方规则**: 每晚，你选择一名玩家。如果被诅咒的玩家明天提名任何人，该玩家立即死亡。\n\n**补充说明**:\n• 诅咒持续到次日\n• 提名后立即死亡\n• 不提名就不会触发\n• 强力的爪牙能力'
   },
   cerenovus: {
@@ -554,6 +571,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'MINION',
     ability: '指定玩家必须疯狂证明自己是某角色。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家使其疯狂' },
     detailedDescription: '**官方规则**: 每晚，你选择一名玩家和一个好人角色。明天，他们必须假装自己是那个角色，否则可能被处决。\n\n**补充说明**:\n• 被选玩家必须配合\n• 不配合可能被处决\n• 增加混乱和怀疑\n• 每晚可以选不同人'
   },
   pit_hag: {
@@ -562,6 +580,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'MINION',
     ability: '每晚将一人变成新角色。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家进行变身' },
     detailedDescription: '**官方规则**: 每晚*，你选择一名玩家和一个角色。如果选择合法，他变成那个角色。如果这创造了重复角色，你可能意外杀死玩家。\n\n**补充说明**:\n• 可以改变任何人的角色\n• 可能导致重复角色死亡\n• 非常灵活的能力\n• 不能创建本不存在的角色'
   },
   evil_twin: {
@@ -578,6 +597,7 @@ export const ROLES: Record<string, RoleDef> = {
     ability: '若杀外来者，他变恶魔你死。',
     otherNight: true,
     icon: '👹',
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家击杀' },
     detailedDescription: '**官方规则**: 每晚*，你选择一名玩家，他死亡。如果你杀死了外来者，你死亡，他变成方古。如果只剩4人时有外来者死亡，邪恶获胜。\n\n**补充说明**:\n• 杀外来者会"传染"\n• 新方古获得恶魔身份\n• 可能意外改变游戏走向\n• 4人局时杀外来者直接赢'
   },
   vigormortis: {
@@ -586,6 +606,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'DEMON',
     ability: '杀爪牙，爪牙保留能力且看起来活着。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家击杀' },
     detailedDescription: '**官方规则**: 每晚*，你选择一名玩家，他死亡。如果你杀死了爪牙，他保留能力且看起来活着，邻座的镇民中毒。\n\n**补充说明**:\n• 爪牙死后继续行动\n• 看起来没死\n• 邻座镇民被毒\n• 非常复杂的恶魔'
   },
   no_dashii: {
@@ -594,6 +615,7 @@ export const ROLES: Record<string, RoleDef> = {
     team: 'DEMON',
     ability: '邻居中毒。',
     otherNight: true,
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家击杀' },
     detailedDescription: '**官方规则**: 每晚*，你选择一名玩家，他死亡。你的两个活着的镇民邻居中毒。\n\n**补充说明**:\n• 邻座镇民始终中毒\n• 只影响镇民，不影响外来者\n• 隐蔽且强力\n• 邻居变化时毒会转移'
   },
   vortox: {
@@ -603,9 +625,41 @@ export const ROLES: Record<string, RoleDef> = {
     ability: '所有人信息皆假。没人被处决则邪恶赢。',
     otherNight: true,
     icon: '🌀',
+    nightAction: { type: 'choose_player', prompt: '选择一名玩家击杀' },
     detailedDescription: '**官方规则**: 每晚*，你选择一名玩家，他死亡。所有镇民的信息都是错误的。如果连续一天没有人被处决，邪恶获胜。\n\n**补充说明**:\n• 所有镇民信息反转\n• 每天必须处决否则输\n• 非常混乱的恶魔\n• 需要反向思考信息'
   },
 };
+
+export const TRAVELERS: Record<string, RoleDef> = {
+  gunslinger: { id: 'gunslinger', name: '枪手', team: 'TRAVELER', ability: '每天选一名玩家，若其投票则死。', detailedDescription: '每天，你可以选择一名玩家。如果该玩家今天投票，他死亡。' },
+  beggar: { id: 'beggar', name: '乞丐', team: 'TRAVELER', ability: '若同意给票，你获得投票权。', detailedDescription: '如果你没有投票权，你可以把你的"乞讨碗"给一名玩家。如果他同意，你获得投票权，他失去投票权。' },
+  bureaucrat: { id: 'bureaucrat', name: '官僚', team: 'TRAVELER', ability: '每晚选一名玩家，其投票算3票或0票。', detailedDescription: '每晚，选择一名玩家。明天他的投票算作3票（或0票）。' },
+  thief: { id: 'thief', name: '小偷', team: 'TRAVELER', ability: '每晚偷取一名玩家的投票权。', detailedDescription: '每晚，选择一名玩家。明天他没有投票权，你的投票算作负票。' },
+  bone_collector: { id: 'bone_collector', name: '拾骨人', team: 'TRAVELER', ability: '限一次，复活一名死者。', detailedDescription: '游戏中一次，在夜晚，选择一名死亡玩家。他恢复能力（但不复活），直到下个黄昏。' },
+  harlot: { id: 'harlot', name: '妓女', team: 'TRAVELER', ability: '每晚选一名玩家，若其死你也死。', detailedDescription: '每晚，选择一名存活玩家。如果他今晚死亡，你也死亡。' },
+  butcher: { id: 'butcher', name: '屠夫', team: 'TRAVELER', ability: '每晚可以提名两次。', detailedDescription: '你每天可以提名两次。' },
+  apprentice: { id: 'apprentice', name: '学徒', team: 'TRAVELER', ability: '获得一个镇民或爪牙能力。', detailedDescription: '在游戏开始时，你获得一个镇民或爪牙的能力。' },
+  matron: { id: 'matron', name: '保姆', team: 'TRAVELER', ability: '你可以取消处决。', detailedDescription: '每天，你可以决定今天的处决是否生效。' },
+  voudon: { id: 'voudon', name: '巫毒师', team: 'TRAVELER', ability: '死者不能投票。', detailedDescription: '只有活着的玩家可以投票。' },
+  judge: { id: 'judge', name: '法官', team: 'TRAVELER', ability: '限一次，强制处决。', detailedDescription: '游戏中一次，在白天，你可以强制处决一名被提名的玩家。' },
+  bishop: { id: 'bishop', name: '主教', team: 'TRAVELER', ability: '被提名的好人玩家不死。', detailedDescription: '只有邪恶玩家可以被处决。' },
+};
+
+export const FABLED: Record<string, RoleDef> = {
+  doomsayer: { id: 'doomsayer', name: '末日预言者', team: 'FABLED', ability: '若有人说出你的词，他死。', detailedDescription: '如果一名玩家说出了你设定的词，他死亡。' },
+  angel: { id: 'angel', name: '天使', team: 'FABLED', ability: '保护新玩家。', detailedDescription: '如果一名玩家是第一次玩，他不会被恶魔杀死，也不会被处决。' },
+  buddhist: { id: 'buddhist', name: '佛教徒', team: 'FABLED', ability: '前两分钟不能说话。', detailedDescription: '在游戏的前两分钟，老玩家不能说话。' },
+  hells_librarian: { id: 'hells_librarian', name: '地狱图书管理员', team: 'FABLED', ability: '说话大声的人死。', detailedDescription: '如果一名玩家说话太大声，他可能会死。' },
+  revolutionary: { id: 'revolutionary', name: '革命家', team: 'FABLED', ability: '两名邻座玩家互知身份。', detailedDescription: '两名邻座玩家互相认识，且知道对方是好人。' },
+  fiddler: { id: 'fiddler', name: '提琴手', team: 'FABLED', ability: '恶魔无法攻击。', detailedDescription: '恶魔无法攻击，取而代之的是，每晚通过小提琴比赛决定谁死。' },
+  duchess: { id: 'duchess', name: '公爵夫人', team: 'FABLED', ability: '每晚得知一名玩家身份。', detailedDescription: '每晚，你得知一名玩家的身份。' },
+  sentinel: { id: 'sentinel', name: '哨兵', team: 'FABLED', ability: '可以多或少一个外来者。', detailedDescription: '游戏设置时，可以多或少一个外来者。' },
+  spirit_of_ivory: { id: 'spirit_of_ivory', name: '象牙塔之灵', team: 'FABLED', ability: '限制额外邪恶玩家数量。', detailedDescription: '游戏中不能有超过一名额外的邪恶玩家。' },
+  toy_maker: { id: 'toy_maker', name: '玩具制造者', team: 'FABLED', ability: '恶魔可以选择不攻击。', detailedDescription: '恶魔可以选择不攻击。' },
+};
+
+// Merge all roles
+Object.assign(ROLES, TRAVELERS, FABLED);
 
 export const SCRIPTS: Record<string, ScriptDefinition> = {
   'tb': {
@@ -646,6 +700,7 @@ export const TEAM_COLORS = {
   MINION: '#f97316', // Orange
   DEMON: '#ef4444', // Red
   TRAVELER: '#a855f7', // Purple
+  FABLED: '#fbbf24', // Amber
 };
 
 // Night orders are usually dynamic based on script. 
@@ -683,6 +738,7 @@ export const TEAM_LABELS: Record<string, string> = {
   MINION: '爪牙',
   DEMON: '恶魔',
   TRAVELER: '旅行者',
+  FABLED: '传奇角色',
 };
 
 export const STATUS_ICONS: Record<string, string> = {

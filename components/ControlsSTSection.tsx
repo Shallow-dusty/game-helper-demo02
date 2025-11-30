@@ -32,8 +32,9 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
 
     // 可折叠区块状态
     const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
-        setup: false,
-        phase: false,
+        seats: false,
+        roles: false,
+        game: false,
         audio: true, // 默认折叠音频
         voting: false
     });
@@ -102,103 +103,121 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                 </select>
             </div>
 
-            {/* Game Setup - Collapsible on Mobile */}
+            {/* Seat Management */}
             <div className="bg-stone-900 rounded border border-stone-700">
                 <button
-                    className="w-full p-3 flex justify-between items-center text-xs font-bold text-stone-500 uppercase md:cursor-default"
-                    onClick={() => toggleSection('setup')}
+                    className="w-full p-3 flex justify-between items-center text-xs font-bold text-stone-500 uppercase"
+                    onClick={() => toggleSection('seats')}
                 >
-                    <span>⚙️ 游戏设置 (Setup)</span>
-                    <span className="md:hidden text-stone-600">{collapsedSections.setup ? '▼' : '▲'}</span>
+                    <span>🪑 座位管理 (Seats)</span>
+                    <span className="text-stone-600">{collapsedSections.seats ? '▼' : '▲'}</span>
                 </button>
+                <div className={`grid grid-cols-3 gap-2 px-3 pb-3 ${collapsedSections.seats ? 'hidden' : ''}`}>
+                    <button
+                        onClick={() => useStore.getState().addVirtualPlayer()}
+                        className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-2 rounded text-xs border border-stone-600 transition-colors flex flex-col items-center justify-center gap-1"
+                    >
+                        <span className="text-lg">🤖</span>
+                        <span>加虚拟</span>
+                    </button>
+                    <button
+                        onClick={() => useStore.getState().addSeat()}
+                        className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-2 rounded text-xs border border-stone-600 transition-colors flex flex-col items-center justify-center gap-1"
+                    >
+                        <span className="text-lg">➕</span>
+                        <span>加座位</span>
+                    </button>
+                    <button
+                        onClick={() => useStore.getState().removeSeat()}
+                        className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-2 rounded text-xs border border-stone-600 transition-colors flex flex-col items-center justify-center gap-1"
+                    >
+                        <span className="text-lg">➖</span>
+                        <span>减座位</span>
+                    </button>
+                </div>
+            </div>
 
-                <div className={`space-y-2 px-3 pb-3 ${collapsedSections.setup ? 'hidden md:block' : ''}`}>
+            {/* Role Management */}
+            <div className="bg-stone-900 rounded border border-stone-700">
+                <button
+                    className="w-full p-3 flex justify-between items-center text-xs font-bold text-stone-500 uppercase"
+                    onClick={() => toggleSection('roles')}
+                >
+                    <span>🎭 角色管理 (Roles)</span>
+                    <span className="text-stone-600">{collapsedSections.roles ? '▼' : '▲'}</span>
+                </button>
+                <div className={`grid grid-cols-2 gap-2 px-3 pb-3 ${collapsedSections.roles ? 'hidden' : ''}`}>
+                    <button
+                        onClick={() => useStore.getState().assignRoles()}
+                        className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <span>🎲</span> 自动分配
+                    </button>
+                    <button
+                        onClick={() => {
+                            const hasEmptyRoles = gameState.seats.some(s => !s.roleId);
+                            if (hasEmptyRoles) {
+                                showError("有玩家未分配角色！请先分配角色再发放。");
+                                return;
+                            }
+                            useStore.getState().distributeRoles();
+                        }}
+                        className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <span>👀</span> 发放角色
+                    </button>
+                    <button
+                        onClick={onShowCompositionGuide}
+                        className="col-span-2 bg-stone-800 hover:bg-amber-900 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <span>📊</span> 查看板子配置建议
+                    </button>
+                </div>
+            </div>
+
+            {/* Game Flow */}
+            <div className="bg-stone-900 rounded border border-stone-700">
+                <button
+                    className="w-full p-3 flex justify-between items-center text-xs font-bold text-stone-500 uppercase"
+                    onClick={() => toggleSection('game')}
+                >
+                    <span>🎮 游戏流程 (Game)</span>
+                    <span className="text-stone-600">{collapsedSections.game ? '▼' : '▲'}</span>
+                </button>
+                <div className={`space-y-2 px-3 pb-3 ${collapsedSections.game ? 'hidden' : ''}`}>
+                     {/* Phase Switch Button */}
+                     {gameState.phase === 'SETUP' || gameState.phase === 'DAY' ? (
+                        <button
+                            onClick={() => useStore.getState().startGame()}
+                            className="w-full bg-indigo-900 hover:bg-indigo-800 text-indigo-100 py-3 px-3 rounded text-sm border border-indigo-700 transition-colors flex items-center justify-center gap-2 font-bold shadow-lg"
+                        >
+                            <span>🌙</span> {gameState.phase === 'SETUP' ? '开始游戏 (进入夜晚)' : '进入夜晚'}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => setPhase('DAY')}
+                            className="w-full bg-amber-700 hover:bg-amber-600 text-white py-3 px-3 rounded text-sm border border-amber-600 transition-colors flex items-center justify-center gap-2 font-bold shadow-lg"
+                        >
+                            <span>☀</span> 天亮 (进入白天)
+                        </button>
+                    )}
+
                     <div className="grid grid-cols-2 gap-2">
-                        <button
-                            onClick={() => useStore.getState().addVirtualPlayer()}
-                            className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
-                            title="添加一个虚拟玩家占位"
-                        >
-                            <span>🤖</span> 添加虚拟玩家
-                        </button>
-                        <button
-                            onClick={() => useStore.getState().addSeat()}
-                            className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
-                            title="添加一个空座位"
-                        >
-                            <span>➕</span> 添加座位
-                        </button>
-                        <button
-                            onClick={() => useStore.getState().removeSeat()}
-                            className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
-                            title="移除最后一个座位"
-                        >
-                            <span>➖</span> 移除座位
-                        </button>
-                        <button
-                            onClick={() => useStore.getState().assignRoles()}
-                            className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
-                            title="随机分配角色给所有玩家"
-                        >
-                            <span>🎲</span> 自动分配角色
-                        </button>
-                        <button
-                            onClick={() => {
-                                const hasEmptyRoles = gameState.seats.some(s => !s.roleId);
-                                if (hasEmptyRoles) {
-                                    showError("有玩家未分配角色！请先分配角色再发放。");
-                                    return;
-                                }
-                                useStore.getState().distributeRoles();
-                            }}
-                            className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
-                            title="将角色信息发送给玩家"
-                        >
-                            <span>👀</span> 发放角色
-                        </button>
-                        <button
-                            onClick={onShowCompositionGuide}
-                            className="bg-stone-800 hover:bg-amber-900 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
-                            title="查看板子配置建议"
-                        >
-                            <span>📊</span> 板子参考
-                        </button>
                         <button
                             onClick={onShowHistory}
                             className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
-                            title="查看游戏历史记录"
                         >
                             <span>📜</span> 历史记录
                         </button>
-
-                        {/* Phase Switch Button */}
-                        {gameState.phase === 'SETUP' || gameState.phase === 'DAY' ? (
-                            <button
-                                onClick={() => useStore.getState().startGame()}
-                                className="col-span-2 bg-indigo-900 hover:bg-indigo-800 text-indigo-100 py-2 px-3 rounded text-xs border border-indigo-700 transition-colors flex items-center justify-center gap-1 font-bold shadow-lg"
-                            >
-                                <span>🌙</span> {gameState.phase === 'SETUP' ? '开始游戏 (进入夜晚)' : '进入夜晚'}
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => setPhase('DAY')}
-                                className="col-span-2 bg-amber-700 hover:bg-amber-600 text-white py-2 px-3 rounded text-xs border border-amber-600 transition-colors flex items-center justify-center gap-1 font-bold shadow-lg"
-                            >
-                                <span>☀</span> 天亮 (进入白天)
-                            </button>
-                        )}
-
-                        {/* 振动开关 - 线下游戏应关闭，避免自爆 */}
                         <button
                             onClick={() => useStore.getState().toggleVibration()}
-                            className={`col-span-2 py-2 px-3 rounded text-xs border transition-colors flex items-center justify-center gap-1 ${gameState.vibrationEnabled
+                            className={`py-2 px-3 rounded text-xs border transition-colors flex items-center justify-center gap-1 ${gameState.vibrationEnabled
                                 ? 'bg-green-900/50 border-green-700 text-green-300 hover:bg-green-800/50'
                                 : 'bg-stone-800 border-stone-600 text-stone-400 hover:bg-stone-700'
                                 }`}
-                            title="线下游戏应关闭振动，避免暴露玩家身份"
                         >
                             <span>{gameState.vibrationEnabled ? '📳' : '🔇'}</span>
-                            {gameState.vibrationEnabled ? '夜间振动提醒: 开启' : '夜间振动提醒: 关闭'}
+                            {gameState.vibrationEnabled ? '振动: 开' : '振动: 关'}
                         </button>
                     </div>
                 </div>

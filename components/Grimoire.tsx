@@ -150,10 +150,10 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
   const isClockHand = votingState?.clockHandSeatId === seat.id;
 
   const tokenRadius = 35 * scale;
-  const fontSizeName = 14 * scale;
-  const fontSizeRole = 20 * scale;
-  const iconSize = 16 * scale;
-  const statusIconSize = 14 * scale;
+  const fontSizeName = Math.max(10, 14 * scale); // Prevent too small
+  const fontSizeRole = Math.max(14, 20 * scale);
+  const iconSize = Math.max(12, 16 * scale);
+  const statusIconSize = Math.max(12, 14 * scale);
 
   return (
     <Group
@@ -296,20 +296,33 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
         )
       }
 
-      {/* Status Icons */}
+      {/* Status Icons - Outer Ring Layout */}
       {
         isST && seat.statuses.length > 0 && (
-          <Group y={tokenRadius * 0.5} x={0}>
-            {seat.statuses.map((status, idx) => (
-              <Text
-                key={status}
-                x={(idx - (seat.statuses.length - 1) / 2) * 14}
-                y={0}
-                text={STATUS_ICONS[status]}
-                fontSize={12}
-                offsetX={6}
-              />
-            ))}
+          <Group>
+            {seat.statuses.map((status, idx) => {
+              const total = seat.statuses.length;
+              const step = Math.PI / 4; // 45 degrees
+              const startAngle = -Math.PI / 2 - ((total - 1) * step) / 2;
+              const angle = startAngle + idx * step;
+              const iconRadius = tokenRadius + 15 * scale;
+              
+              return (
+                <Group 
+                  key={status}
+                  x={iconRadius * Math.cos(angle)}
+                  y={iconRadius * Math.sin(angle)}
+                >
+                  <Circle radius={8 * scale} fill="rgba(0,0,0,0.7)" />
+                  <Text
+                    text={STATUS_ICONS[status]}
+                    fontSize={statusIconSize}
+                    offsetX={statusIconSize / 2}
+                    offsetY={statusIconSize / 2}
+                  />
+                </Group>
+              );
+            })}
           </Group>
         )
       }
@@ -700,6 +713,9 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
             >
               {isLocked ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
             </Button>
+            <div className="bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-md border border-stone-800 flex items-center">
+               {isLocked ? "浏览模式" : "编辑模式"}
+            </div>
           </div>
           {stageScale !== 1 && (
             <div className="bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-md border border-stone-800">

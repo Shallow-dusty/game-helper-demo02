@@ -36,6 +36,8 @@ export const WaitingArea: React.FC = () => {
     const leaveSeat = useStore(state => state.leaveSeat);
     const toggleReady = useStore(state => state.toggleReady);
 
+    const [isMinimized, setIsMinimized] = useState(false);
+
     // If seated, show Ready interface
     if (isSeated) {
         // Hide if game has started or roles are revealed
@@ -43,9 +45,40 @@ export const WaitingArea: React.FC = () => {
             return null;
         }
 
+        if (isMinimized) {
+            return (
+                <div className="absolute bottom-24 right-6 z-40 pointer-events-auto animate-in slide-in-from-bottom-4 fade-in duration-300">
+                    <button
+                        onClick={() => setIsMinimized(false)}
+                        className={`
+                            flex items-center gap-2 px-4 py-2 rounded-full shadow-lg border backdrop-blur-md transition-all hover:scale-105
+                            ${currentSeat?.isReady
+                                ? 'bg-green-900/80 text-green-100 border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.3)]'
+                                : 'bg-stone-800/90 text-stone-300 border-stone-600'}
+                        `}
+                    >
+                        <span className="text-lg">{currentSeat?.isReady ? '✓' : '⏳'}</span>
+                        <span className="font-cinzel font-bold text-sm">
+                            {currentSeat?.isReady ? '已准备 (Ready)' : '点击准备 (Not Ready)'}
+                        </span>
+                        <span className="ml-1 text-xs opacity-60">↗</span>
+                    </button>
+                </div>
+            );
+        }
+
         return (
             <div className="absolute inset-0 z-40 flex flex-col items-center justify-center p-8 pointer-events-none">
-                <div className="bg-stone-950/90 backdrop-blur-md p-8 rounded-2xl border border-stone-700 shadow-2xl pointer-events-auto max-w-lg w-full text-center animate-in zoom-in-95 duration-300">
+                <div className="bg-stone-950/90 backdrop-blur-md p-8 rounded-2xl border border-stone-700 shadow-2xl pointer-events-auto max-w-lg w-full text-center animate-in zoom-in-95 duration-300 relative">
+                    {/* Minimize Button */}
+                    <button
+                        onClick={() => setIsMinimized(true)}
+                        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-stone-500 hover:text-stone-200 hover:bg-stone-800 transition-colors"
+                        title="最小化 (Minimize)"
+                    >
+                        <span className="text-xl font-bold mb-1">−</span>
+                    </button>
+
                     <h1 className="text-3xl font-cinzel text-amber-500 mb-2 tracking-widest drop-shadow-lg">
                         {gameState.roomId}
                     </h1>
@@ -54,7 +87,13 @@ export const WaitingArea: React.FC = () => {
                     </div>
 
                     <button
-                        onClick={() => toggleReady()}
+                        onClick={() => {
+                            toggleReady();
+                            // 如果当前是未准备状态，点击后变为准备，则自动最小化
+                            if (!currentSeat?.isReady) {
+                                setIsMinimized(true);
+                            }
+                        }}
                         className={`
                             w-full py-4 rounded-xl text-xl font-bold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]
                             flex items-center justify-center gap-3 shadow-lg mb-4

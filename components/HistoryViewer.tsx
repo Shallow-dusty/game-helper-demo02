@@ -47,7 +47,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                     table: 'game_history'
                 },
                 (payload) => {
-                    console.log('📜 New game history:', payload.new);
+
                     // 将新记录添加到列表最前面
                     setRecords(prev => [payload.new as HistoryRecord, ...prev]);
                 }

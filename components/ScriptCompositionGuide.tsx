@@ -313,7 +313,7 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
             const scriptRoles = currentScript?.roles;
             if (!scriptRoles || !composition) return;
 
-            console.log('🎲 生成角色配置 - 玩家数:', safePlayerCount, '配比:', composition);
+
 
             const townsfolkRoles = scriptRoles.filter(id => ROLES[id]?.team === 'TOWNSFOLK');
             const outsiderRoles = scriptRoles.filter(id => ROLES[id]?.team === 'OUTSIDER');
@@ -384,18 +384,9 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
             const selectedMinion = minionPool
                 .slice(0, composition.minion)
                 .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
-
             const selectedDemon = shuffleArray(demonRoles)
                 .slice(0, composition.demon)
                 .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
-
-            console.log('✅ 角色生成完成:', {
-                townsfolk: selectedTownsfolk.length,
-                outsider: selectedOutsider.length,
-                minion: selectedMinion.length,
-                demon: selectedDemon.length,
-                total: selectedTownsfolk.length + selectedOutsider.length + selectedMinion.length + selectedDemon.length
-            });
 
             setGeneratedRoles({
                 townsfolk: selectedTownsfolk,

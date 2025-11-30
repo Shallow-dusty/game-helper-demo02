@@ -33,7 +33,7 @@ export const Lobby: React.FC = () => {
         audioRef.current = audio;
 
         const handleError = () => {
-            console.log('Lobby audio failed to load, skipping');
+            console.warn('Lobby audio failed to load, skipping');
             setHasInteracted(true);
         };
         audio.addEventListener('error', handleError);
@@ -56,7 +56,7 @@ export const Lobby: React.FC = () => {
     const handleInteraction = () => {
         if (!hasInteracted && audioRef.current) {
             setHasInteracted(true);
-            audioRef.current.play().catch(e => console.log("Audio play failed", e));
+            audioRef.current.play().catch(e => console.warn("Audio play failed", e));
         }
     };
 

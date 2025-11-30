@@ -11,6 +11,7 @@ export const RoleRevealModal: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
+    const [countdown, setCountdown] = useState<number | null>(null);
 
     // 获取当前玩家的角色
     const currentSeat = gameState?.seats.find(s => s.userId === user?.id);
@@ -29,10 +30,28 @@ export const RoleRevealModal: React.FC = () => {
         const storageKey = `grimoire_role_seen_${gameState.roomId}_${user.id}_${role.id}`;
         const hasSeen = localStorage.getItem(storageKey);
 
-        if (gameState.rolesRevealed && !hasSeen && !isVisible && !isExiting) {
-            setIsVisible(true);
+        if (gameState.rolesRevealed && !hasSeen && !isVisible && !isExiting && countdown === null) {
+            // 开始倒计时
+            setCountdown(3);
         }
     }, [gameState?.rolesRevealed, gameState?.roomId, user?.id, role?.id]);
+
+    // 倒计时逻辑
+    useEffect(() => {
+        if (countdown === null) return;
+
+        if (countdown > 0) {
+            const timer = setTimeout(() => setCountdown(c => c! - 1), 1000);
+            return () => clearTimeout(timer);
+        } else {
+            // 倒计时结束 (0)，显示"GAME START"，然后显示卡片
+            const timer = setTimeout(() => {
+                setCountdown(null);
+                setIsVisible(true);
+            }, 800); 
+            return () => clearTimeout(timer);
+        }
+    }, [countdown]);
 
     const handleConfirm = () => {
         if (!gameState || !user || !role) return;
@@ -51,6 +70,26 @@ export const RoleRevealModal: React.FC = () => {
             setIsFlipped(false);
         }, 1000);
     };
+
+    // 渲染倒计时
+    if (countdown !== null) {
+        return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={countdown}
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1.5, opacity: 1 }}
+                        exit={{ scale: 2, opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="text-8xl md:text-9xl font-cinzel font-bold text-amber-500 drop-shadow-[0_0_30px_rgba(245,158,11,0.8)]"
+                    >
+                        {countdown > 0 ? countdown : "GAME START"}
+                    </motion.div>
+                </AnimatePresence>
+            </div>
+        );
+    }
 
     if (!isVisible || !role) return null;
 

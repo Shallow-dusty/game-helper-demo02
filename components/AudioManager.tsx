@@ -134,7 +134,7 @@ export const AudioManager = () => {
 
                     if (error.name === 'AbortError') {
                         // 播放被中断（如切换音轨），这是正常的
-                        console.log("Audio play aborted (track changed)");
+
                     } else if (error.name === 'NotSupportedError') {
                         // 音频格式不支持或URL无效，静默处理
                         console.warn("Audio format not supported or URL invalid:", audio.src);

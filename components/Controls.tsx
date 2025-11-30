@@ -119,7 +119,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 try {
                     const wakeSound = new Audio('/audio/sfx/wake.mp3');
                     wakeSound.volume = 0.3;
-                    wakeSound.play().catch(e => console.log('Audio blocked:', e));
+                    wakeSound.play().catch(e => console.warn('Audio blocked:', e));
                 } catch (e) {
                     // Ignore audio errors
                 }

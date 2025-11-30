@@ -46,7 +46,7 @@ export const AudioEnableOverlay = () => {
                     })
                     .catch(() => {
                         // 仍然失败，可能需要更多用户交互
-                        console.log('Audio still blocked, may need more interaction');
+
                     });
             }
         } catch (e) {

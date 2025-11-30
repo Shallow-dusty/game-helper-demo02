@@ -525,7 +525,7 @@ export const useStore = create<AppState>()(
                     });
 
                 realtimeChannel = channel;
-                console.log("✅ 云端房间创建成功:", code);
+                
 
             } catch (error: any) {
                 console.warn('⚠️ 云端连接失败，切换到离线模式:', error.message);
@@ -1899,7 +1899,7 @@ export const useStore = create<AppState>()(
                     .insert(historyRecord);
 
                 if (error) throw error;
-                console.log("✅ 游戏记录已保存");
+                
 
                 const currentGameState = get().gameState;
                 if (currentGameState) {

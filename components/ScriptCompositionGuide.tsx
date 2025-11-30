@@ -368,7 +368,7 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
             const selectedTownsfolk = selectedTownsfolkIds.map(id => ROLES[id]).filter(Boolean) as RoleDef[];
 
             // 外来者：优先推荐角色 + 其余随机，确保数量正确
-            const recommendedOutsiderIds = strategy.guidelines.recommendedOutsiders.filter(id => outsiderRoles.includes(id));
+            const recommendedOutsiderIds = shuffleArray(strategy.guidelines.recommendedOutsiders.filter(id => outsiderRoles.includes(id)));
             const otherOutsiderIds = outsiderRoles.filter(id => !recommendedOutsiderIds.includes(id));
             const outsiderPool = [...recommendedOutsiderIds, ...shuffleArray(otherOutsiderIds)];
             const selectedOutsider = outsiderPool
@@ -376,7 +376,7 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
                 .map(id => ROLES[id]).filter(Boolean) as RoleDef[];
 
             // 爪牙：优先推荐角色 + 其余随机
-            const recommendedMinionIds = strategy.guidelines.recommendedMinions.filter(id => minionRoles.includes(id));
+            const recommendedMinionIds = shuffleArray(strategy.guidelines.recommendedMinions.filter(id => minionRoles.includes(id)));
             const otherMinionIds = minionRoles.filter(id => !recommendedMinionIds.includes(id));
             const minionPool = [...recommendedMinionIds, ...shuffleArray(otherMinionIds)];
             const selectedMinion = minionPool

@@ -519,7 +519,7 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = () => {
       {showCompositionGuide && gameState?.seats && createPortal(
         <ScriptCompositionGuide
           onClose={() => setShowCompositionGuide(false)}
-          playerCount={gameState.seats.filter(s => s.userId || s.isVirtual).length || gameState.seats.length || 7}
+          playerCount={gameState.seats.length || 7}
           onApplyStrategy={(strategy, roles) => {
             if (roles) {
               const allRoles = [
@@ -538,16 +538,8 @@ export const ControlsGameTab: React.FC<ControlsGameTabProps> = () => {
 
               if (!currentState) return;
 
-              // Get only occupied seats (real players + virtual)
-              const occupiedSeats = currentState.seats.filter(s => s.userId || s.isVirtual);
-
-              // First, clear ALL seat roles
-              currentState.seats.forEach(seat => {
-                assignRole(seat.id, null as unknown as string);
-              });
-
-              // Then assign new roles only to occupied seats
-              occupiedSeats.forEach((seat, index) => {
+              // Then assign new roles to ALL seats (even empty ones)
+              currentState.seats.forEach((seat, index) => {
                 if (index < shuffledRoles.length && shuffledRoles[index]) {
                   assignRole(seat.id, shuffledRoles[index].id);
                 }

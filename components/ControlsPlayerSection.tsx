@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../store';
 import { ROLES, TEAM_COLORS } from '../constants';
 import { VotingChart } from './VotingChart';
@@ -168,86 +168,59 @@ const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, g
     );
 };
 
-// Role Card for Player
-interface PlayerRoleCardProps {
+// Compact Role Display Component
+interface CompactRoleDisplayProps {
     role: RoleDef;
     seat: Seat;
     gamePhase: GamePhase;
 }
 
-const PlayerRoleCard: React.FC<PlayerRoleCardProps> = ({ role, seat, gamePhase }) => {
-    const [skillDescriptionMode, setSkillDescriptionMode] = useState<'simple' | 'detailed'>('simple');
-    const [isFlipped, setIsFlipped] = useState(false);
-
-    // Load preference from localStorage
-    useEffect(() => {
-        const savedMode = localStorage.getItem('skillDescriptionMode') as 'simple' | 'detailed';
-        if (savedMode) {
-            setSkillDescriptionMode(savedMode);
-        }
-    }, []);
-
-    const toggleSkillMode = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        const newMode = skillDescriptionMode === 'simple' ? 'detailed' : 'simple';
-        setSkillDescriptionMode(newMode);
-        localStorage.setItem('skillDescriptionMode', newMode);
-    };
+const CompactRoleDisplay: React.FC<CompactRoleDisplayProps> = ({ role, seat, gamePhase }) => {
+    const [isExpanded, setIsExpanded] = useState(true);
 
     return (
-        <div className="px-4 pb-4 border-b border-stone-800 bg-stone-950/50 perspective-[1000px]">
-            <div
-                className={`relative transition-all duration-700 transform-style-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
-                onClick={() => setIsFlipped(!isFlipped)}
+        <div className="bg-stone-900/80 rounded-lg border border-stone-700 overflow-hidden shadow-sm">
+            {/* Header - Always Visible */}
+            <div 
+                className="p-3 flex items-center justify-between cursor-pointer hover:bg-stone-800/50 transition-colors"
+                onClick={() => setIsExpanded(!isExpanded)}
             >
-                {/* Front Face (Card Back / Cover) */}
-                <div className="absolute inset-0 backface-hidden z-10 rounded border border-stone-700 bg-stone-900 shadow-xl flex flex-col items-center justify-center overflow-hidden group">
-                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1605806616949-1e87b487bc2a?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                    <div className="w-20 h-20 rounded-full border-2 border-stone-600 flex items-center justify-center mb-4 bg-stone-950/50 backdrop-blur-sm group-hover:scale-110 transition-transform duration-500">
-                        <span className="text-4xl">👁️</span>
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full border border-stone-600 flex items-center justify-center bg-stone-950 shadow-inner" style={{ borderColor: TEAM_COLORS[role.team] }}>
+                        <span className="text-2xl">{role.icon || (role.team === 'DEMON' ? '👿' : role.team === 'MINION' ? '🧪' : '⚜️')}</span>
                     </div>
-                    <h3 className="text-xl font-cinzel font-bold text-stone-400 tracking-widest group-hover:text-stone-200 transition-colors">点击查看身份</h3>
-                    <p className="text-xs text-stone-600 mt-2 font-serif italic">CONFIDENTIAL</p>
+                    <div>
+                        <div className="font-bold font-cinzel text-stone-200 flex items-center gap-2">
+                            <span style={{ color: TEAM_COLORS[role.team] }}>{role.name}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-stone-800 text-stone-500 border border-stone-700 uppercase tracking-wider">
+                                {role.team === 'TOWNSFOLK' ? '村民' : role.team === 'MINION' ? '爪牙' : role.team === 'DEMON' ? '恶魔' : '外来者'}
+                            </span>
+                        </div>
+                        <div className="text-xs text-stone-500 font-serif italic truncate max-w-[200px]">
+                            {isExpanded ? '点击折叠详情' : role.ability}
+                        </div>
+                    </div>
                 </div>
-
-                {/* Back Face (Actual Role Content) */}
-                <div className="relative backface-hidden rotate-y-180 bg-stone-900 rounded border border-stone-700 overflow-hidden">
-                    <div className="p-4">
-                        <div className="absolute top-0 right-0 p-1 opacity-20 text-4xl">
-                            {role.team === 'DEMON' ? '👿' : role.team === 'MINION' ? '🧪' : '⚜️'}
-                        </div>
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="font-bold flex items-center gap-2 text-lg font-cinzel" style={{ color: TEAM_COLORS[role.team] }}>
-                                <span>{role.name}</span>
-                            </div>
-                            <button
-                                onClick={toggleSkillMode}
-                                className="text-[10px] px-2 py-1 bg-stone-800 hover:bg-stone-700 text-stone-400 rounded border border-stone-600 transition-colors z-20 relative"
-                                title="切换详细/简略描述"
-                            >
-                                {skillDescriptionMode === 'simple' ? '详细' : '简略'}
-                            </button>
-                        </div>
-                        <span className="text-[10px] opacity-70 border border-current px-1.5 py-0.5 rounded uppercase tracking-widest" style={{ color: TEAM_COLORS[role.team] }}>
-                            {role.team === 'TOWNSFOLK' ? '村民' :
-                                role.team === 'MINION' ? '爪牙' :
-                                    role.team === 'DEMON' ? '恶魔' : '外来者'}
-                        </span>
-                        {skillDescriptionMode === 'detailed' && (
-                            <p className="text-sm text-stone-400 mt-3 leading-relaxed italic border-t border-stone-800 pt-2">{role.ability}</p>
-                        )}
-
-                        {/* Active Ability Button */}
-                        <div onClick={e => e.stopPropagation()}>
-                            <ActiveAbilityButton
-                                role={role}
-                                seat={seat}
-                                gamePhase={gamePhase}
-                            />
-                        </div>
-                    </div>
+                <div className="text-stone-600">
+                    {isExpanded ? '▼' : '▲'}
                 </div>
             </div>
+
+            {/* Expanded Content */}
+            {isExpanded && (
+                <div className="px-3 pb-3 pt-0 animate-in slide-in-from-top-2 duration-200">
+                    <div className="text-sm text-stone-400 leading-relaxed border-t border-stone-800/50 pt-2 mt-1">
+                        {role.ability}
+                    </div>
+                    
+                    {/* Active Ability Button */}
+                    <ActiveAbilityButton
+                        role={role}
+                        seat={seat}
+                        gamePhase={gamePhase}
+                    />
+                </div>
+            )}
         </div>
     );
 };
@@ -272,33 +245,31 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
     const role = currentSeat?.roleId ? ROLES[currentSeat.roleId] : null;
 
     return (
-        <div className="space-y-4">
-            {/* Player Role Card */}
+        <div className="space-y-3">
+            {/* Compact Role Display */}
             {role && currentSeat && (
-                <PlayerRoleCard
+                <CompactRoleDisplay
                     role={role}
                     seat={currentSeat}
                     gamePhase={gameState.phase}
                 />
             )}
 
-            {/* Voting Stats */}
-            <VotingChart />
-
             {/* Night Phase UI */}
             {gameState.phase === 'NIGHT' && (
-                <div className="p-6 bg-black/60 rounded border border-indigo-900/50 text-center shadow-[0_0_30px_rgba(30,27,75,0.5)] backdrop-blur-sm">
-                    <div className="text-4xl mb-4 opacity-80">🌙</div>
-                    <h3 className="text-indigo-200 font-bold font-cinzel text-xl tracking-widest">夜幕降临</h3>
-                    <p className="text-xs text-indigo-400 mt-2 font-serif italic">只有被叫到名字时才醒来。</p>
-
+                <div className="p-4 bg-indigo-950/30 rounded border border-indigo-900/50 text-center shadow-lg backdrop-blur-sm">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                        <span className="text-xl">🌙</span>
+                        <h3 className="text-indigo-200 font-bold font-cinzel tracking-widest">夜幕降临</h3>
+                    </div>
+                    
                     {/* 当前是你的回合 - 始终显示按钮 */}
                     {currentSeat?.roleId === gameState.nightQueue[gameState.nightCurrentIndex] && (
                         <button
                             onClick={onShowNightAction}
-                            className="mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold shadow-lg animate-pulse border-2 border-indigo-400"
+                            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold shadow-lg animate-pulse border border-indigo-400 flex items-center justify-center gap-2"
                         >
-                            🌙 执行夜间行动
+                            <span>⚡</span> 执行夜间行动
                         </button>
                     )}
 
@@ -308,7 +279,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                         currentSeat.roleId !== gameState.nightQueue[gameState.nightCurrentIndex] && (
                             <button
                                 onClick={onShowNightAction}
-                                className="mt-4 px-4 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded text-sm border border-stone-600"
+                                className="mt-2 w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded text-sm border border-stone-600"
                             >
                                 查看我的夜间行动
                             </button>
@@ -318,14 +289,13 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
 
             {/* Voting UI */}
             {gameState.voting?.isOpen && (
-                <div className="p-4 bg-amber-900/10 rounded border border-amber-800/50 shadow-[0_0_20px_rgba(180,83,9,0.1)] space-y-4">
-                    <div>
-                        <h3 className="text-center font-bold text-amber-600 mb-2 flex items-center justify-center gap-2 font-cinzel">
-                            <span>⚖</span> 审判
-                        </h3>
-                        <p className="text-xs text-center text-stone-400">
-                            受审者: <span className="text-amber-100 font-bold text-base ml-1">{gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName}</span>
-                        </p>
+                <div className="p-3 bg-amber-950/20 rounded border border-amber-800/30 shadow-sm space-y-3">
+                    <div className="flex items-center justify-between border-b border-amber-900/20 pb-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-amber-600 font-bold">⚖ 审判</span>
+                            <span className="text-stone-500 text-xs">受审者:</span>
+                            <span className="text-amber-100 font-bold">{gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName}</span>
+                        </div>
                     </div>
 
                     {currentSeat ? (
@@ -339,38 +309,36 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                             />
                             <div className="text-center text-xs text-stone-500 font-serif">
                                 {currentSeat.voteLocked
-                                    ? '说书人已锁定你的投票。'
+                                    ? '说书人已锁定你的投票'
                                     : gameState.voting.clockHandSeatId === currentSeat.id
-                                        ? '⏳ 说书人正在结算你的选择...'
-                                        : '可提前举手 / 放下，等待说书人锁定'}
+                                        ? '⏳ 正在结算...'
+                                        : '点击按钮举手/放下'}
                             </div>
                         </>
                     ) : (
-                        <div className="text-center text-stone-600 italic p-3 border border-dashed border-stone-800 rounded-sm font-serif text-sm">
+                        <div className="text-center text-stone-600 italic text-xs">
                             请先入座以参与投票
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Settings for Player */}
-            <div className="bg-stone-900 p-3 rounded border border-stone-700 mt-4">
-                <div className="text-xs font-bold text-stone-500 uppercase mb-2">⚙️ 设置</div>
-                {/* History Button for Players */}
+            {/* Voting Stats Chart */}
+            <VotingChart />
+
+            {/* Settings / Tools */}
+            <div className="grid grid-cols-2 gap-2">
                 <button
                     onClick={onShowHistory}
-                    className="mt-2 w-full bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
-                    title="查看历史记录"
+                    className="bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-stone-200 py-2 px-3 rounded text-xs border border-stone-800 transition-colors flex items-center justify-center gap-2"
                 >
-                    <span>📜</span> 历史
+                    <span>📜</span> 历史记录
                 </button>
 
-                {/* FR-01: Leave Seat Button for Players */}
                 {currentSeat && (
                     <button
                         onClick={() => leaveSeat()}
-                        className="mt-2 w-full bg-red-900/30 hover:bg-red-800/50 text-red-400 py-2 px-3 rounded text-xs border border-red-900/50 transition-colors flex items-center justify-center gap-1"
-                        title="离开当前座位"
+                        className="bg-stone-900 hover:bg-red-950/30 text-stone-400 hover:text-red-400 py-2 px-3 rounded text-xs border border-stone-800 hover:border-red-900/30 transition-colors flex items-center justify-center gap-2"
                     >
                         <span>🚪</span> 离开座位
                     </button>

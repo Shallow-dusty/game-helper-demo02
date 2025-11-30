@@ -228,7 +228,7 @@ export const RoomSelection = () => {
                 <CardDescription className="font-serif italic text-stone-500">输入代码加入现有的城镇。</CardDescription>
               </CardHeader>
 
-              <CardContent className="space-y-8 relative z-10 flex flex-col justify-end h-[calc(100%-200px)]">
+              <CardContent className="space-y-8 relative z-10">
                 <form onSubmit={handleJoin} className="space-y-8">
                   <div className="relative group/input">
                     <input

@@ -1,9 +1,13 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store';
 import { AUDIO_TRACKS } from '../constants';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from './ui/card';
+import { BackgroundEffects } from './ui/BackgroundEffects';
+import { motion } from 'framer-motion';
+import { User, BookOpen, Skull, Volume2, Eye } from 'lucide-react';
 
-export const Lobby = () => {
+export const Lobby: React.FC = () => {
     const login = useStore(state => state.login);
     const spectateGame = useStore(state => state.spectateGame);
     const [name, setName] = useState('');
@@ -17,21 +21,17 @@ export const Lobby = () => {
     const [hasInteracted, setHasInteracted] = useState(false);
 
     useEffect(() => {
-        // 检查是否有有效的音频URL
         const lobbyTrack = AUDIO_TRACKS.lobby;
         if (!lobbyTrack?.url || lobbyTrack.url === '') {
-            // 没有有效音频，跳过音频初始化
-            setHasInteracted(true); // 直接标记为已交互，跳过音频提示
+            setHasInteracted(true);
             return;
         }
 
-        // Preload Lobby Music
         const audio = new Audio(lobbyTrack.url);
         audio.loop = true;
         audio.volume = 0.4;
         audioRef.current = audio;
 
-        // 添加错误处理
         const handleError = () => {
             console.log('Lobby audio failed to load, skipping');
             setHasInteracted(true);
@@ -39,7 +39,6 @@ export const Lobby = () => {
         audio.addEventListener('error', handleError);
 
         return () => {
-            // 彻底清理音频资源
             if (fadeIntervalRef.current) {
                 clearInterval(fadeIntervalRef.current);
                 fadeIntervalRef.current = null;
@@ -60,178 +59,165 @@ export const Lobby = () => {
         }
     };
 
+    const fadeOutAudio = () => {
+        if (audioRef.current) {
+            let vol = 0.4;
+            fadeIntervalRef.current = setInterval(() => {
+                vol -= 0.05;
+                if (vol <= 0) {
+                    if (fadeIntervalRef.current) {
+                        clearInterval(fadeIntervalRef.current);
+                        fadeIntervalRef.current = null;
+                    }
+                    if (audioRef.current) {
+                        audioRef.current.pause();
+                        audioRef.current.src = '';
+                    }
+                } else if (audioRef.current) {
+                    audioRef.current.volume = Math.max(0, vol);
+                }
+            }, 100);
+        }
+    };
+
     const handleJoin = (e: React.FormEvent) => {
         e.preventDefault();
         if (isSpectating) {
             if (roomCode.length === 4) {
-                if (audioRef.current) {
-                    // Fade out lobby music
-                    let vol = 0.4;
-                    fadeIntervalRef.current = setInterval(() => {
-                        vol -= 0.05;
-                        if (vol <= 0) {
-                            if (fadeIntervalRef.current) {
-                                clearInterval(fadeIntervalRef.current);
-                                fadeIntervalRef.current = null;
-                            }
-                            if (audioRef.current) {
-                                audioRef.current.pause();
-                                audioRef.current.src = '';
-                            }
-                        } else if (audioRef.current) {
-                            audioRef.current.volume = Math.max(0, vol);
-                        }
-                    }, 100);
-                }
+                fadeOutAudio();
                 spectateGame(roomCode);
             }
             return;
         }
 
         if (name.trim()) {
-            if (audioRef.current) {
-                // Fade out lobby music
-                let vol = 0.4;
-                fadeIntervalRef.current = setInterval(() => {
-                    vol -= 0.05;
-                    if (vol <= 0) {
-                        if (fadeIntervalRef.current) {
-                            clearInterval(fadeIntervalRef.current);
-                            fadeIntervalRef.current = null;
-                        }
-                        if (audioRef.current) {
-                            audioRef.current.pause();
-                            audioRef.current.src = '';
-                        }
-                    } else if (audioRef.current) {
-                        audioRef.current.volume = Math.max(0, vol);
-                    }
-                }, 100);
-            }
+            fadeOutAudio();
             login(name, isST);
         }
     };
 
     return (
-        <div
-            className="absolute inset-0 font-serif text-stone-200 overflow-y-scroll overflow-x-hidden -webkit-overflow-scrolling-touch"
-            onClick={handleInteraction}
-        >
-            {/* Background Image with Overlay */}
-            <div
-                className="fixed inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center filter brightness-[0.4] sepia-[.2] pointer-events-none transition-all duration-1000"
-            ></div>
-            <div className="fixed inset-0 z-0 bg-gradient-to-t from-stone-950 via-stone-950/80 to-stone-900/60 opacity-90 pointer-events-none"></div>
+        <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden" onClick={handleInteraction}>
+            <BackgroundEffects />
 
-            {/* Content */}
-            <div className="relative z-10 w-full max-w-lg mx-auto px-4 py-8 md:py-12 flex flex-col justify-center min-h-[100dvh] md:min-h-0 animate-fade-in">
-                {/* Title Section */}
-                <div className="text-center mb-10 md:mb-12 relative">
-                    <h1 className="text-6xl md:text-8xl font-black text-red-900 tracking-widest drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] font-cinzel text-shadow-glow" style={{ textShadow: "0 0 30px rgba(127, 29, 29, 0.6)" }}>
-                        血染钟楼
-                    </h1>
-                    <p className="text-xl md:text-2xl text-stone-400 mt-4 font-cinzel tracking-[0.2em] uppercase opacity-80 border-t border-b border-stone-800 py-2 inline-block px-8">Grimoire Online</p>
-                </div>
-
-                {/* Card Container */}
-                <div className="glass-panel p-8 md:p-10 rounded-lg relative overflow-hidden group transition-all duration-500 hover:shadow-[0_0_50px_rgba(180,83,9,0.1)]">
-                    {/* Decorative Corners */}
-                    <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-stone-600/50 rounded-tl-lg"></div>
-                    <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-stone-600/50 rounded-tr-lg"></div>
-                    <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-stone-600/50 rounded-bl-lg"></div>
-                    <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-stone-600/50 rounded-br-lg"></div>
-
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: [0.19, 1, 0.22, 1] }}
+                className="w-full max-w-md z-10"
+            >
+                <Card className="border-stone-800 bg-stone-950/80 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                    {/* Audio Hint Overlay */}
                     {!hasInteracted && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50 cursor-pointer backdrop-blur-sm transition-opacity duration-500">
-                            <div className="text-center animate-pulse">
-                                <p className="text-amber-500 font-cinzel text-xl mb-2">点击开启音效</p>
-                                <p className="text-stone-500 text-sm">Click to Enable Audio</p>
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-50 cursor-pointer backdrop-blur-[2px] transition-opacity duration-500">
+                            <div className="text-center animate-pulse flex flex-col items-center gap-2">
+                                <Volume2 className="w-8 h-8 text-amber-500" />
+                                <p className="text-amber-500 font-cinzel text-lg">Click to Enable Audio</p>
                             </div>
                         </div>
                     )}
 
-                    <form onSubmit={handleJoin} className="space-y-8 relative z-10">
-                        {!isSpectating ? (
-                            <>
-                                <div className="space-y-3 group/input">
-                                    <label className="block text-xs font-bold text-red-800 uppercase tracking-[0.2em] font-cinzel transition-colors group-focus-within/input:text-red-600">你的名讳 (Your Name)</label>
+                    <CardHeader className="text-center space-y-4 pb-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="mx-auto w-20 h-20 bg-gradient-to-br from-red-900 to-stone-900 rounded-full flex items-center justify-center border-2 border-stone-700 shadow-[0_0_30px_rgba(220,38,38,0.3)]"
+                        >
+                            <Skull className="w-10 h-10 text-stone-200" />
+                        </motion.div>
+                        <div className="space-y-2">
+                            <CardTitle className="text-4xl text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 drop-shadow-sm">
+                                Grimoire Web
+                            </CardTitle>
+                            <CardDescription className="text-stone-400 text-lg">
+                                Blood on the Clocktower
+                            </CardDescription>
+                        </div>
+                    </CardHeader>
+
+                    <CardContent>
+                        <form onSubmit={handleJoin} className="space-y-6">
+                            {!isSpectating ? (
+                                <>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-stone-400 uppercase tracking-wider font-cinzel ml-1">
+                                            Your Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            placeholder="Enter your name..."
+                                            className="w-full bg-stone-900/50 border border-stone-700 rounded-md px-4 py-3 text-lg text-stone-100 placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-amber-900/50 focus:border-amber-700 transition-all font-serif"
+                                            autoFocus
+                                        />
+                                    </div>
+
+                                    <div
+                                        className={`flex items-center gap-4 p-4 rounded-lg border cursor-pointer transition-all ${isST ? 'bg-red-950/30 border-red-900/50' : 'bg-stone-900/30 border-stone-800 hover:bg-stone-900/50'}`}
+                                        onClick={() => setIsST(!isST)}
+                                    >
+                                        <div className={`w-5 h-5 rounded-sm border flex items-center justify-center transition-all ${isST ? 'bg-red-900 border-red-700' : 'border-stone-600'}`}>
+                                            {isST && <div className="w-2 h-2 bg-white rounded-full" />}
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className={`font-cinzel font-bold text-sm ${isST ? 'text-red-400' : 'text-stone-300'}`}>Storyteller Mode</span>
+                                            <span className="text-xs text-stone-500">Host and manage the game</span>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-stone-400 uppercase tracking-wider font-cinzel ml-1">
+                                        Room Code
+                                    </label>
                                     <input
                                         type="text"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        className="w-full bg-stone-950/50 border border-stone-800 px-6 py-4 text-xl text-stone-200 focus:border-red-800 focus:bg-stone-900/80 outline-none transition-all placeholder-stone-700 font-serif rounded shadow-inner focus:shadow-[0_0_15px_rgba(127,29,29,0.2)]"
-                                        placeholder="请输入您的名字..."
-                                        required
-                                        autoComplete="off"
+                                        maxLength={4}
+                                        value={roomCode}
+                                        onChange={(e) => setRoomCode(e.target.value)}
+                                        placeholder="8888"
+                                        className="w-full bg-stone-900/50 border border-stone-700 rounded-md px-4 py-3 text-4xl text-center font-cinzel tracking-[0.5em] text-stone-100 placeholder:text-stone-800 focus:outline-none focus:ring-2 focus:ring-blue-900/50 focus:border-blue-700 transition-all"
                                     />
                                 </div>
+                            )}
 
-                                <div
-                                    className="flex items-center gap-5 p-5 bg-stone-950/30 border border-stone-800 rounded hover:border-stone-600 cursor-pointer transition-all hover:bg-stone-900/50 group/checkbox"
-                                    onClick={() => setIsST(!isST)}
+                            <div className="space-y-3 pt-2">
+                                <Button
+                                    size="lg"
+                                    type="submit"
+                                    disabled={isSpectating ? roomCode.length !== 4 : !name.trim()}
+                                    className={`w-full h-14 text-lg font-cinzel relative overflow-hidden group ${isSpectating ? 'bg-blue-950 border-blue-900 hover:bg-blue-900' : ''}`}
+                                    variant={isSpectating ? 'default' : (isST ? 'destructive' : 'default')}
                                 >
-                                    <div className={`w-6 h-6 border-2 flex items-center justify-center transition-all duration-300 rounded-sm flex-shrink-0 ${isST ? 'bg-red-900 border-red-700 rotate-0 scale-110' : 'border-stone-600 rotate-45'}`}>
-                                        {isST && <span className="text-white text-xs">✦</span>}
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-stone-300 font-cinzel font-bold group-hover/checkbox:text-red-400 transition-colors text-lg">我是说书人 (Storyteller)</span>
-                                        <span className="text-xs text-stone-500 mt-1">上帝视角 / 操控全局 / 只有一名</span>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="space-y-3 group/input">
-                                <label className="block text-xs font-bold text-blue-800 uppercase tracking-[0.2em] font-cinzel transition-colors group-focus-within/input:text-blue-600">房间号码 (Room Code)</label>
-                                <input
-                                    type="text"
-                                    maxLength={4}
-                                    value={roomCode}
-                                    onChange={(e) => setRoomCode(e.target.value)}
-                                    className="w-full bg-stone-950/50 border border-stone-800 px-6 py-4 text-4xl text-center text-stone-200 focus:border-blue-800 focus:bg-stone-900/80 outline-none transition-all placeholder-stone-800 font-cinzel tracking-[0.5em] rounded shadow-inner focus:shadow-[0_0_15px_rgba(30,58,138,0.2)]"
-                                    placeholder="8888"
-                                    required
-                                    autoComplete="off"
-                                />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                                    <span className="relative flex items-center gap-2">
+                                        {isSpectating ? <Eye className="w-5 h-5" /> : (isST ? <BookOpen className="w-5 h-5" /> : <User className="w-5 h-5" />)}
+                                        {isSpectating ? 'Enter as Spectator' : (isST ? 'Enter as Storyteller' : 'Enter as Player')}
+                                    </span>
+                                </Button>
+
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setIsSpectating(!isSpectating)}
+                                    className="w-full text-stone-500 hover:text-stone-300 font-cinzel text-xs tracking-widest"
+                                >
+                                    {isSpectating ? 'Back to Login' : 'Switch to Spectator Mode'}
+                                </Button>
                             </div>
-                        )}
+                        </form>
+                    </CardContent>
 
-                        <button
-                            type="submit"
-                            className={`w-full font-bold py-5 rounded border shadow-lg transition-all active:scale-[0.98] font-cinzel text-xl tracking-[0.2em] relative overflow-hidden group/btn ${isSpectating
-                                ? 'bg-gradient-to-r from-blue-950 to-blue-900 border-blue-900 text-blue-100 hover:shadow-[0_0_30px_rgba(30,58,138,0.4)]'
-                                : 'bg-gradient-to-r from-red-950 to-red-900 border-red-900 text-stone-200 hover:shadow-[0_0_30px_rgba(127,29,29,0.4)]'
-                                }`}
-                        >
-                            <span className="relative z-10">{isSpectating ? '进入旁观 (SPECTATE)' : '进入小镇 (ENTER)'}</span>
-                            <div className={`absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500 ${isSpectating ? 'bg-blue-800/20' : 'bg-red-800/20'}`}></div>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setIsSpectating(!isSpectating)}
-                            className="w-full bg-transparent hover:bg-stone-900/50 text-stone-500 hover:text-stone-300 font-bold py-3 rounded border border-transparent hover:border-stone-800 transition-all font-cinzel text-sm tracking-widest uppercase"
-                        >
-                            {isSpectating ? '返回登录 (Back to Login)' : '切换至旁观模式 (Switch to Spectator)'}
-                        </button>
-                    </form>
-
-                    {/* QR Code Share */}
-                    <div className="mt-8 pt-8 border-t border-stone-800/50 flex flex-col items-center gap-4 opacity-60 hover:opacity-100 transition-opacity">
-                        <div className="bg-white p-2 rounded shadow-lg transform hover:scale-105 transition-transform duration-300">
-                            <img
-                                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href)}&bgcolor=ffffff`}
-                                alt="Room QR Code"
-                                className="w-24 h-24"
-                            />
-                        </div>
-                        <p className="text-[10px] text-stone-600 font-cinzel tracking-widest">SCAN TO JOIN</p>
-                    </div>
-                </div>
-
-                <p className="text-center text-stone-700 text-xs mt-8 font-serif italic pb-8">
-                    "There is a demon among us..."
-                </p>
-            </div>
+                    <CardFooter className="justify-center pb-6 pt-0">
+                        <p className="text-xs text-stone-600 font-serif italic">
+                            "There is a demon among us..."
+                        </p>
+                    </CardFooter>
+                </Card>
+            </motion.div>
         </div>
     );
 };

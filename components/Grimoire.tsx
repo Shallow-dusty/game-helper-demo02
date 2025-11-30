@@ -1,11 +1,14 @@
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Stage, Layer, Circle, Text, Group, Rect, Ring, Arc } from 'react-konva';
 import { useStore } from '../store';
-import { ROLES, TEAM_COLORS, PHASE_LABELS, SCRIPTS, STATUS_OPTIONS, STATUS_ICONS, PRESET_REMINDERS, Z_INDEX, JINX_DEFINITIONS } from '../constants';
-import { Seat, SeatStatus } from '../types';
+import { ROLES, TEAM_COLORS, PHASE_LABELS, SCRIPTS, JINX_DEFINITIONS, STATUS_ICONS } from '../constants';
+import { Seat } from '../types';
 import Konva from 'konva';
 import { showWarning } from './Toast';
+import { StorytellerMenu } from './StorytellerMenu';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { X, Lock, Unlock, Crosshair } from 'lucide-react';
 
 interface GrimoireProps {
   width: number;
@@ -29,7 +32,6 @@ const getCenter = (p1: { x: number; y: number }, p2: { x: number; y: number }) =
   };
 };
 
-// ...existing code...
 interface SeatNodeProps {
   seat: Seat;
   cx: number;
@@ -41,12 +43,13 @@ interface SeatNodeProps {
   scale: number;
   onClick: (e: any) => void;
   onLongPress: (e: any) => void;
+  onContextMenu: (e: any) => void;
   disableInteractions?: boolean;
   isSwapSource?: boolean;
   publicOnly?: boolean;
 }
 
-// Long press hook for mobile support
+// Long press hook for mobile support ONLY
 const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, delay = 500, disabled = false) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
@@ -104,15 +107,13 @@ const useLongPress = (onLongPress: (e: any) => void, onClick: (e: any) => void, 
       onTouchStart: start,
       onTouchEnd: (e: any) => clear(e, true),
       onTouchMove: move,
-      onMouseDown: start,
-      onMouseUp: (e: any) => clear(e, true),
-      onMouseLeave: (e: any) => clear(e, false),
+      // REMOVED MOUSE HANDLERS TO FIX DESKTOP DELAY
     },
     isPressing
   };
 };
 
-const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress, disableInteractions = false, isSwapSource = false, publicOnly = false }) => {
+const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress, onContextMenu, disableInteractions = false, isSwapSource = false, publicOnly = false }) => {
   const x = cx + radius * Math.cos(angle);
   const y = cy + radius * Math.sin(angle);
   const [isHovered, setIsHovered] = React.useState(false);
@@ -125,11 +126,8 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
   useEffect(() => {
     const node = progressRingRef.current;
     if (isPressing && node) {
-      // Reset
       node.angle(0);
       node.opacity(1);
-
-      // Animate
       const tween = new Konva.Tween({
         node: node,
         duration: 0.5,
@@ -137,38 +135,19 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
         easing: Konva.Easings.Linear,
       });
       tween.play();
-
-      return () => {
-        tween.destroy();
-      };
+      return () => { tween.destroy(); };
     }
     return undefined;
   }, [isPressing]);
 
-  // --- PRIVACY LOGIC ---
-  // Determine which role ID to display
-  // For ST: Use realRoleId if available (true role), otherwise roleId
-  // For Player: roleId is already filtered to be seenRoleId by the store
-  // For Public: Only show if role is explicitly revealed (e.g. by ST or game logic - though currently we don't have a 'revealed' flag, so we'll assume publicOnly means NO roles unless we add a mechanism later. For now, Town Square usually shows tokens if they are public. Let's assume publicOnly hides all roles for now unless we add a 'isRevealed' prop to seat later.)
-  // Actually, standard Town Square shows tokens. But in online play, usually you hide them.
-  // Let's stick to: publicOnly hides role unless it's a "public" role like Virgin confirmed?
-  // For simplicity: publicOnly = hide all roles.
   const displayRoleId = (isST && seat.realRoleId) ? seat.realRoleId : seat.seenRoleId;
-
-  // Only show Role if: User is Storyteller, OR User is this Seat, AND NOT publicOnly
   const showRole = !publicOnly && (isST || isCurrentUser) && displayRoleId;
   const roleDef = showRole && displayRoleId ? ROLES[displayRoleId] : null;
-
-  // Check for Drunk/Lunatic/Marionette state (ST Only)
-  // If realRoleId exists and differs from roleId (which stores the "seen" role for compatibility), it's a state
   const isMisled = isST && seat.realRoleId && seat.seenRoleId && seat.realRoleId !== seat.seenRoleId;
   const seenRoleDef = isMisled ? ROLES[seat.seenRoleId!] : null;
-
-  // Voting Highlighting
   const votingState = useStore(state => state.gameState?.voting);
   const isClockHand = votingState?.clockHandSeatId === seat.id;
 
-  // Dimensions based on scale
   const tokenRadius = 35 * scale;
   const fontSizeName = 14 * scale;
   const fontSizeRole = 20 * scale;
@@ -179,9 +158,11 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
     <Group
       x={x}
       y={y}
-      {...longPressHandlers}
+      {...longPressHandlers} // Only Touch Events
+      onClick={onClick} // Direct Click for Desktop
+      onContextMenu={onContextMenu} // Right Click for Desktop
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={(e) => { setIsHovered(false); longPressHandlers.onMouseLeave(e); }}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Long Press Progress Ring */}
       {isPressing && (
@@ -262,25 +243,22 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
         wrap="none"
       />
 
-      {/* Role Info (Hidden for others) */}
+      {/* Role Info */}
       {
         roleDef && (
           <Group>
-            {/* Role Name Abbreviation */}
             <Text
               y={-fontSizeRole / 3}
               text={roleDef.name.substring(0, 2)}
               fontSize={fontSizeRole}
               fontStyle="bold"
               fontFamily="Cinzel"
-              fill={seat.hasUsedAbility ? '#777' : '#fff'} // Dim if ability used
+              fill={seat.hasUsedAbility ? '#777' : '#fff'}
               width={tokenRadius * 2}
               offsetX={tokenRadius}
               align="center"
               listening={false}
             />
-
-            {/* Ability Used Status (Top Right) */}
             {seat.hasUsedAbility && (
               <Text
                 x={tokenRadius * 0.3}
@@ -290,8 +268,6 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
                 listening={false}
               />
             )}
-
-            {/* Role Icon/Passive Indicator (Top Left) */}
             {roleDef.icon && (
               <Text
                 x={-tokenRadius * 0.7}
@@ -301,8 +277,6 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
                 listening={false}
               />
             )}
-
-            {/* Misled Indicator (ST Only) - Show what the player thinks they are */}
             {isMisled && seenRoleDef && (
               <Group x={tokenRadius * 0.5} y={-tokenRadius * 0.8}>
                 <Circle radius={9 * scale} fill="#000" stroke="red" strokeWidth={1} />
@@ -321,7 +295,7 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
         )
       }
 
-      {/* Status Icons (ST Only) */}
+      {/* Status Icons */}
       {
         isST && seat.statuses.length > 0 && (
           <Group y={tokenRadius * 0.5} x={0}>
@@ -440,7 +414,6 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
 
   const gameState = propsGameState || storeGameState;
 
-  // If in replay mode (propsGameState provided), mock the user
   const user = propsGameState ? {
     id: 'spectator',
     name: 'Spectator',
@@ -464,10 +437,10 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, seatId: number } | null>(null);
   const [roleSelectSeat, setRoleSelectSeat] = useState<number | null>(null);
   const [swapSourceId, setSwapSourceId] = useState<number | null>(null);
-  const [isLocked, setIsLocked] = useState(false); // Mobile Lock State
+  const [isLocked, setIsLocked] = useState(false);
   const [joiningId, setJoiningId] = useState<number | null>(null);
 
-  // Pinch-zoom 状态
+  // Pinch-zoom state
   const stageRef = useRef<Konva.Stage>(null);
   const [stageScale, setStageScale] = useState(1);
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
@@ -481,70 +454,51 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
     setIsGestureActive(isPinching.current || draggingRef.current);
   }, []);
 
-  // 处理多指触摸开始
   const handleTouchStart = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
     const touch = e.evt.touches;
     if (touch.length === 2 && touch[0] && touch[1]) {
-      // 双指触摸 - 开始缩放
       isPinching.current = true;
       updateGestureState();
       e.evt.preventDefault();
-
       const p1 = { x: touch[0].clientX, y: touch[0].clientY };
       const p2 = { x: touch[1].clientX, y: touch[1].clientY };
-
       lastCenter.current = getCenter(p1, p2);
       lastDist.current = getDistance(p1, p2);
     }
   }, [updateGestureState]);
 
-  // 处理多指触摸移动
   const handleTouchMove = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
     const touch = e.evt.touches;
     const stage = stageRef.current;
-
     if (touch.length === 2 && stage && lastCenter.current && touch[0] && touch[1]) {
       e.evt.preventDefault();
-
       const p1 = { x: touch[0].clientX, y: touch[0].clientY };
       const p2 = { x: touch[1].clientX, y: touch[1].clientY };
-
       const newCenter = getCenter(p1, p2);
       const newDist = getDistance(p1, p2);
-
       if (lastDist.current === 0) {
         lastDist.current = newDist;
         return;
       }
-
-      // 计算缩放比例
       const scaleBy = newDist / lastDist.current;
       const oldScale = stageScale;
       let newScale = oldScale * scaleBy;
-
-      // 限制缩放范围
       newScale = Math.max(0.5, Math.min(3, newScale));
-
-      // 计算新的位置，使缩放以双指中心为基准
       const mousePointTo = {
         x: (newCenter.x - stagePos.x) / oldScale,
         y: (newCenter.y - stagePos.y) / oldScale,
       };
-
       const newPos = {
         x: newCenter.x - mousePointTo.x * newScale + (newCenter.x - lastCenter.current.x),
         y: newCenter.y - mousePointTo.y * newScale + (newCenter.y - lastCenter.current.y),
       };
-
       setStageScale(newScale);
       setStagePos(newPos);
-
       lastDist.current = newDist;
       lastCenter.current = newCenter;
     }
   }, [stageScale, stagePos]);
 
-  // 处理触摸结束
   const handleTouchEnd = useCallback(() => {
     lastCenter.current = null;
     lastDist.current = 0;
@@ -552,39 +506,29 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
     updateGestureState();
   }, [updateGestureState]);
 
-  // 处理鼠标滚轮缩放（桌面端）
   const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
     const stage = stageRef.current;
     if (!stage) return;
-
     const scaleBy = 1.1;
     const oldScale = stageScale;
     const pointer = stage.getPointerPosition();
-
     if (!pointer) return;
-
     const mousePointTo = {
       x: (pointer.x - stagePos.x) / oldScale,
       y: (pointer.y - stagePos.y) / oldScale,
     };
-
     const direction = e.evt.deltaY > 0 ? -1 : 1;
     let newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
-
-    // 限制缩放范围
     newScale = Math.max(0.5, Math.min(3, newScale));
-
     const newPos = {
       x: pointer.x - mousePointTo.x * newScale,
       y: pointer.y - mousePointTo.y * newScale,
     };
-
     setStageScale(newScale);
     setStagePos(newPos);
   }, [stageScale, stagePos]);
 
-  // 重置缩放
   const resetZoom = useCallback(() => {
     setStageScale(1);
     setStagePos({ x: 0, y: 0 });
@@ -593,136 +537,73 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
     setIsGestureActive(false);
   }, []);
 
-  // Handle long press for mobile (opens context menu for ST)
-  const handleLongPress = useCallback((e: any, seat: Seat) => {
+  // Handle long press (Mobile) OR Right Click (Desktop)
+  const handleMenuTrigger = useCallback((seat: Seat) => {
     if (readOnly || isLocked || isGestureActive) return;
     if (!user?.isStoryteller) return;
-
-    e.cancelBubble = true;
-
-    // Get touch position for mobile
-    const clientX = e.evt?.touches?.[0]?.clientX || e.evt?.clientX || window.innerWidth / 2;
-    const clientY = e.evt?.touches?.[0]?.clientY || e.evt?.clientY || window.innerHeight / 2;
-
-    const menuWidth = 240;
-    const menuHeight = 480;
-
-    let x = clientX;
-    let y = clientY;
-
-    // 防止overflow
-    if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 20;
-    if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 20;
-    if (y < 20) y = 20;
-    if (x < 20) x = 20;
-
-    setContextMenu({ x, y, seatId: seat.id });
+    setContextMenu({ x: 0, y: 0, seatId: seat.id }); // Coordinates don't matter for modal
   }, [isLocked, isGestureActive, user?.isStoryteller, readOnly]);
 
-  // 早期返回必须在所有 hooks 之后
   if (!gameState || !user) return null;
 
-  // 检查 seats 数组是否有效
   if (!gameState.seats || !Array.isArray(gameState.seats) || gameState.seats.length === 0) {
-    console.warn('Grimoire: seats 数组无效', gameState.seats);
     return (
       <div className="w-full h-full flex items-center justify-center text-stone-400">
         <div className="text-center">
-          <div className="text-4xl mb-4">⏳</div>
-          <p>正在加载座位数据...</p>
-          <p className="text-xs text-stone-500 mt-2">如果一直显示此消息，请刷新页面</p>
+          <div className="text-4xl mb-4 animate-spin">⏳</div>
+          <p>Loading Grimoire...</p>
         </div>
       </div>
     );
   }
 
-  // 调试：打印传入的尺寸
-  // console.log('[Grimoire] Rendering with dimensions:', { width, height });
-
-  // 安全检查：确保宽高有效
   const safeWidth = Math.max(width, 100);
   const safeHeight = Math.max(height, 100);
-
   const cx = safeWidth / 2;
   const cy = safeHeight / 2;
   const minDim = Math.min(safeWidth, safeHeight);
-
-  // 优化移动端缩放逻辑：基于屏幕大小动态调整
   const baseScale = Math.max(0.35, Math.min(1.2, minDim / 700));
-
-  // 动态计算半径，确保留出足够空间给名字和状态图标
-  // 移动端需要更多边距，因为 Token 和文字会更拥挤
   const seatCount = gameState.seats.length;
-  const marginFactor = seatCount > 10 ? 80 : 60; // 玩家多时增加边距
+  const marginFactor = seatCount > 10 ? 80 : 60;
   const margin = marginFactor * baseScale;
-  const r = Math.max((minDim / 2) - margin, minDim * 0.3); // 确保最小半径
+  const r = Math.max((minDim / 2) - margin, minDim * 0.3);
 
   const handleSeatClick = (e: any, seat: Seat) => {
-    if (readOnly || isLocked || isGestureActive) return; // Double check logic
+    if (readOnly || isLocked || isGestureActive) return;
     e.cancelBubble = true;
 
     if (seat.isVirtual && !user.isStoryteller) {
-      showWarning('该座位为虚拟玩家占位，请等待说书人安排。');
+      showWarning('This seat is reserved for a virtual player.');
       return;
     }
 
-    // Right click for ST context menu (desktop)
-    if (e.evt?.button === 2 && user.isStoryteller) {
-      const menuWidth = 240;
-      const menuHeight = 480; // 增加高度估计以包含子菜单和标记列表
-
-      let x = e.evt.clientX;
-      let y = e.evt.clientY;
-
-      // 防止overflow - 增加安全间距
-      if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 20;
-      if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 20;
-
-      // 确保菜单不会超出顶部
-      if (y < 20) y = 20;
-
-      setContextMenu({
-        x,
-        y,
-        seatId: seat.id
-      });
-      return;
-    }
-
-    // Storyteller Logic for left click
+    // Storyteller Logic
     if (user.isStoryteller) {
-      // If in swap mode
       if (swapSourceId !== null) {
         if (swapSourceId === seat.id) {
-          // Clicked same seat, cancel swap
           setSwapSourceId(null);
-          showWarning('已取消座位交换');
+          showWarning('Swap cancelled');
         } else {
-          // Clicked different seat, execute swap
-          if (window.confirm(`确认交换座位 ${swapSourceId + 1} 和 ${seat.id + 1} 吗？`)) {
+          if (window.confirm(`Swap seat ${swapSourceId + 1} with ${seat.id + 1}?`)) {
             swapSeats(swapSourceId, seat.id);
             setSwapSourceId(null);
           }
         }
         return;
       }
-
       if (seat.userId === null) {
         joinSeat(seat.id);
       }
     } else {
       // Player Logic
-      // Case 1: Empty seat -> Join
       if (seat.userId === null) {
         if (joiningId !== null) return;
         setJoiningId(seat.id);
         joinSeat(seat.id).finally(() => setJoiningId(null));
         return;
       }
-
-      // Case 2: Occupied seat -> Request Swap (if not self)
       if (seat.userId !== user.id) {
-        if (window.confirm(`是否向 ${seat.userName} 发起换座申请？`)) {
+        if (window.confirm(`Request swap with ${seat.userName}?`)) {
           requestSeatSwap(seat.id);
         }
         return;
@@ -730,10 +611,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
     }
   };
 
-  // Filter roles based on selected script
   const currentScriptRoles = SCRIPTS[gameState.currentScriptId]?.roles || [];
-
-  // Jinx Detection
   const activeJinxes = React.useMemo(() => {
     if (!user.isStoryteller) return [];
     const activeRoleIds = new Set(gameState.seats.map(s => s.realRoleId || s.roleId).filter(Boolean));
@@ -742,13 +620,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
     );
   }, [gameState.seats, user.isStoryteller]);
 
-  const rolesByTeam: Record<string, any[]> = {
-    TOWNSFOLK: [],
-    OUTSIDER: [],
-    MINION: [],
-    DEMON: []
-  };
-
+  const rolesByTeam: Record<string, any[]> = { TOWNSFOLK: [], OUTSIDER: [], MINION: [], DEMON: [] };
   currentScriptRoles.forEach(roleId => {
     const role = ROLES[roleId];
     if (role?.team && role.team in rolesByTeam) {
@@ -791,33 +663,28 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
       onContextMenu={(e) => e.preventDefault()}
       onClick={() => { setContextMenu(null); }}
     >
-      {/* Mobile Lock Button & Zoom Controls - Hidden in ReadOnly/PublicOnly */}
       {!readOnly && !publicOnly && (
         <div className="absolute top-4 right-4 md:right-8 z-40 flex flex-col items-end gap-3 pointer-events-auto">
           <div className="flex gap-3">
-            {/* Auto Fit Button */}
-            <button
+            <Button
+              size="icon"
+              variant="secondary"
               onClick={resetZoom}
-              className="w-10 h-10 md:w-12 md:h-12 bg-stone-900/80 hover:bg-stone-800 text-stone-200 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-stone-700 flex items-center justify-center backdrop-blur-sm transition-all active:scale-95"
-              title="重置视图 (Reset View)"
+              title="Reset View"
+              className="rounded-full shadow-lg border-stone-700 bg-stone-900/80 backdrop-blur-sm"
             >
-              <span className="text-lg">🎯</span>
-            </button>
-
-            {/* Mobile Lock Toggle */}
-            <button
+              <Crosshair className="w-5 h-5" />
+            </Button>
+            <Button
+              size="icon"
+              variant={isLocked ? "destructive" : "secondary"}
               onClick={() => setIsLocked(!isLocked)}
-              className={`w-10 h-10 md:w-12 md:h-12 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.5)] border flex items-center justify-center backdrop-blur-sm transition-all active:scale-95 ${isLocked
-                ? 'bg-red-900/80 border-red-700 text-red-100 shadow-[0_0_15px_rgba(220,38,38,0.4)]'
-                : 'bg-stone-900/80 border-stone-700 text-stone-400 hover:text-stone-200'
-                }`}
-              title={isLocked ? "已锁定 (Locked)" : "未锁定 (Unlocked)"}
+              title={isLocked ? "Locked" : "Unlocked"}
+              className={`rounded-full shadow-lg border backdrop-blur-sm ${isLocked ? 'bg-red-900/80 border-red-700' : 'bg-stone-900/80 border-stone-700'}`}
             >
-              <span className="text-lg">{isLocked ? '🔒' : '🔓'}</span>
-            </button>
+              {isLocked ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
+            </Button>
           </div>
-
-          {/* Zoom Indicator (Optional) */}
           {stageScale !== 1 && (
             <div className="bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-md border border-stone-800">
               {Math.round(stageScale * 100)}%
@@ -826,19 +693,15 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
         </div>
       )}
 
-
-      {/* Jinx / Hint Bar (Top Center) */}
-      {
-        activeJinxes.length > 0 && (
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 flex flex-col gap-2 pointer-events-none w-full max-w-lg px-4">
-            {activeJinxes.map(jinx => (
-              <div key={jinx.id} className="bg-amber-900/80 backdrop-blur-sm border border-amber-600/50 text-amber-100 px-4 py-2 rounded shadow-lg text-xs md:text-sm text-center animate-in slide-in-from-top-4 fade-in duration-500">
-                {jinx.description}
-              </div>
-            ))}
-          </div>
-        )
-      }
+      {activeJinxes.length > 0 && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 flex flex-col gap-2 pointer-events-none w-full max-w-lg px-4">
+          {activeJinxes.map(jinx => (
+            <div key={jinx.id} className="bg-amber-900/80 backdrop-blur-sm border border-amber-600/50 text-amber-100 px-4 py-2 rounded shadow-lg text-xs md:text-sm text-center animate-in slide-in-from-top-4 fade-in duration-500">
+              {jinx.description}
+            </div>
+          ))}
+        </div>
+      )}
 
       <Stage
         ref={stageRef}
@@ -854,19 +717,10 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        onDragStart={() => {
-          draggingRef.current = true;
-          updateGestureState();
-        }}
-        onDragEnd={(e) => {
-          setStagePos({ x: e.target.x(), y: e.target.y() });
-          draggingRef.current = false;
-          updateGestureState();
-        }}
+        onDragStart={() => { draggingRef.current = true; updateGestureState(); }}
+        onDragEnd={(e) => { setStagePos({ x: e.target.x(), y: e.target.y() }); draggingRef.current = false; updateGestureState(); }}
       >
-        {/* Decoration Layer - No event listening for better performance */}
         <Layer listening={false}>
-          {/* Center Circle / Decor */}
           <Circle
             x={cx}
             y={cy}
@@ -876,7 +730,6 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
             dash={[10, 20]}
             opacity={0.1}
           />
-
           <Text
             x={cx - 100}
             y={cy - 10}
@@ -891,7 +744,6 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
           />
         </Layer>
 
-        {/* Interactive Layer - Seats and player interactions */}
         <Layer>
           {gameState.seats.map((seat, i) => {
             const angle = (i / gameState.seats.length) * 2 * Math.PI - Math.PI / 2;
@@ -907,7 +759,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
                 isCurrentUser={seat.userId === user.id}
                 scale={baseScale}
                 onClick={(e: any) => handleSeatClick(e, seat)}
-                onLongPress={(e: any) => handleLongPress(e, seat)}
+                onLongPress={() => handleMenuTrigger(seat)} // Mobile Long Press
+                onContextMenu={(e: any) => { e.evt.preventDefault(); handleMenuTrigger(seat); }} // Desktop Right Click
                 disableInteractions={readOnly || isLocked || isGestureActive}
                 isSwapSource={swapSourceId === seat.id}
                 publicOnly={publicOnly}
@@ -917,226 +770,62 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
         </Layer>
       </Stage>
 
-      {/* ST Context Menu (Now a Modal) */}
-      {
-        contextMenu && user.isStoryteller && (() => {
-          const selectedSeat = gameState.seats.find(s => s.id === contextMenu.seatId);
-          if (!selectedSeat) return null;
-
-          const selectedRole = selectedSeat.seenRoleId ? ROLES[selectedSeat.seenRoleId] : null;
-          const roleTeamIcon = selectedRole?.team === 'DEMON' ? '👿' : selectedRole?.team === 'MINION' ? '🧪' : '⚜️';
-
-          return (
-            <div
-              className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-              style={{ zIndex: Z_INDEX.modal }}
-              onClick={() => setContextMenu(null)}
-            >
-              <div
-                className="bg-stone-900 border border-stone-600 rounded-lg shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Header */}
-                <div className="bg-stone-950 p-4 border-b border-stone-800 flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center border border-stone-700 text-xl">
-                      {selectedSeat.seenRoleId ? roleTeamIcon : '👤'}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-stone-200 font-cinzel">
-                        {selectedSeat.userName}
-                      </h3>
-                      <p className="text-xs text-stone-500">
-                        座位 {contextMenu.seatId + 1} • {selectedRole?.name || '未分配角色'}
-                      </p>
-                    </div>
-                  </div>
-                  <button onClick={() => setContextMenu(null)} className="text-stone-500 hover:text-stone-300 p-2">✕</button>
-                </div>
-
-                {/* Actions Grid */}
-                <div className="p-4 grid grid-cols-2 gap-3">
-                  {/* Alive/Dead Toggle */}
-                  <button
-                    onClick={() => { toggleDead(contextMenu.seatId); setContextMenu(null); }}
-                    className={`p-3 rounded border flex items-center gap-3 transition-colors ${selectedSeat.isDead ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
-                  >
-                    <span className="text-2xl">{selectedSeat.isDead ? '💀' : '❤️'}</span>
-                    <div className="text-left">
-                      <div className="font-bold text-sm">切换存活</div>
-                      <div className="text-[10px] opacity-70">{selectedSeat.isDead ? '当前: 死亡' : '当前: 存活'}</div>
-                    </div>
-                  </button>
-
-                  {/* Ability Used Toggle */}
-                  <button
-                    onClick={() => { toggleAbilityUsed(contextMenu.seatId); setContextMenu(null); }}
-                    className={`p-3 rounded border flex items-center gap-3 transition-colors ${selectedSeat.hasUsedAbility ? 'bg-stone-950 border-stone-800 text-stone-500' : 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'}`}
-                  >
-                    <span className="text-2xl">🚫</span>
-                    <div className="text-left">
-                      <div className="font-bold text-sm">技能耗尽</div>
-                      <div className="text-[10px] opacity-70">{selectedSeat.hasUsedAbility ? '已使用' : '未使用'}</div>
-                    </div>
-                  </button>
-
-                  {/* Assign Role */}
-                  <button
-                    onClick={() => { setRoleSelectSeat(contextMenu.seatId); setContextMenu(null); }}
-                    className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
-                  >
-                    <span className="text-2xl">🎭</span>
-                    <div className="text-left">
-                      <div className="font-bold text-sm">分配角色</div>
-                      <div className="text-[10px] opacity-70">更改玩家角色</div>
-                    </div>
-                  </button>
-
-                  {/* Nominate */}
-                  <button
-                    onClick={() => { startVote(contextMenu.seatId); setContextMenu(null); }}
-                    className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
-                  >
-                    <span className="text-2xl">⚖️</span>
-                    <div className="text-left">
-                      <div className="font-bold text-sm">发起提名</div>
-                      <div className="text-[10px] opacity-70">开始投票流程</div>
-                    </div>
-                  </button>
-
-                  {/* Remove Virtual Player - Only shown for virtual seats */}
-                  {selectedSeat.isVirtual && (
-                    <button
-                      onClick={() => { removeVirtualPlayer(contextMenu.seatId); setContextMenu(null); }}
-                      className="p-3 rounded border border-red-800/50 bg-red-950/30 hover:bg-red-900/50 text-red-300 flex items-center gap-3 transition-colors col-span-2"
-                    >
-                      <span className="text-2xl">🗑️</span>
-                      <div className="text-left">
-                        <div className="font-bold text-sm">删除虚拟玩家</div>
-                        <div className="text-[10px] opacity-70">将此座位恢复为空座位</div>
-                      </div>
-                    </button>
-                  )}
-
-                  {/* Swap Seat */}
-                  <button
-                    onClick={() => { setSwapSourceId(contextMenu.seatId); setContextMenu(null); showWarning('请点击另一个座位进行交换'); }}
-                    className="p-3 rounded border border-stone-700 bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center gap-3 transition-colors"
-                  >
-                    <span className="text-2xl">⇄</span>
-                    <div className="text-left">
-                      <div className="font-bold text-sm">交换座位</div>
-                      <div className="text-[10px] opacity-70">选择此座位进行交换</div>
-                    </div>
-                  </button>
-                </div>
-
-                {/* Status Section */}
-                <div className="px-4 pb-4">
-                  <h4 className="text-xs font-bold text-stone-500 uppercase mb-2">状态 (Status)</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {STATUS_OPTIONS.filter(status => {
-                      // Filter logic: TB script doesn't have Madness
-                      if (gameState.currentScriptId === 'tb' && status.id === 'MADNESS') return false;
-                      return true;
-                    }).map(status => {
-                      const hasStatus = selectedSeat.statuses.includes(status.id as SeatStatus);
-                      return (
-                        <button
-                          key={status.id}
-                          onClick={() => toggleStatus(contextMenu.seatId, status.id as SeatStatus)}
-                          className={`px-3 py-1.5 rounded-full text-xs border flex items-center gap-1.5 transition-all ${hasStatus ? 'bg-amber-900/50 border-amber-600 text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'bg-stone-950 border-stone-800 text-stone-500 hover:border-stone-600'}`}
-                        >
-                          <span>{status.icon}</span>
-                          <span>{status.label.split(' ')[0]}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Reminders Section */}
-                <div className="px-4 pb-4 border-t border-stone-800 pt-4">
-                  <h4 className="text-xs font-bold text-stone-500 uppercase mb-2">标记 (Reminders)</h4>
-
-                  {/* Existing Reminders */}
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {selectedSeat.reminders.map(rem => (
-                      <button
-                        key={rem.id}
-                        onClick={() => removeReminder(rem.id)}
-                        className="px-2 py-1 rounded bg-stone-800 border border-stone-600 text-xs text-stone-300 hover:bg-red-900/30 hover:border-red-800 hover:text-red-300 flex items-center gap-1 transition-colors group"
-                        title="点击删除"
-                      >
-                        <span>{rem.icon || '🔸'}</span>
-                        <span>{rem.text}</span>
-                        <span className="hidden group-hover:inline ml-1">×</span>
-                      </button>
-                    ))}
-                    {selectedSeat.reminders.length === 0 && (
-                      <span className="text-xs text-stone-600 italic">无标记</span>
-                    )}
-                  </div>
-
-                  {/* Add Reminder Buttons */}
-                  <div className="grid grid-cols-4 gap-2">
-                    {PRESET_REMINDERS.map(preset => (
-                      <button
-                        key={preset.text}
-                        onClick={() => {
-                          if (preset.text === '自定义') {
-                            const text = prompt("输入标记内容:");
-                            if (text) addReminder(contextMenu.seatId, text, preset.icon, preset.color);
-                          } else {
-                            addReminder(contextMenu.seatId, preset.text, preset.icon, preset.color);
-                          }
-                        }}
-                        className="p-2 rounded bg-stone-950 border border-stone-800 hover:bg-stone-800 text-center transition-colors flex flex-col items-center justify-center gap-1"
-                      >
-                        <span className="text-lg">{preset.icon}</span>
-                        <span className="text-[10px] text-stone-400">{preset.text}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })()
-      }
+      {/* Storyteller Menu Modal */}
+      {contextMenu && user.isStoryteller && (
+        <StorytellerMenu
+          seat={gameState.seats.find(s => s.id === contextMenu.seatId)!}
+          onClose={() => setContextMenu(null)}
+          currentScriptId={gameState.currentScriptId}
+          actions={{
+            toggleDead,
+            toggleAbilityUsed,
+            toggleStatus,
+            addReminder,
+            removeReminder,
+            removeVirtualPlayer,
+            startVote,
+            setRoleSelectSeat,
+            setSwapSourceId
+          }}
+        />
+      )}
 
       {/* Role Selector Modal */}
-      {
-        roleSelectSeat !== null && (
-          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-stone-950 border border-stone-700 p-6 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
-              <div className="flex justify-between items-center mb-6 border-b border-stone-800 pb-4">
-                <h3 className="text-2xl text-stone-200 font-cinzel tracking-widest">
-                  <span className="text-red-800 mr-2">✦</span>
-                  分配角色 ({SCRIPTS[gameState.currentScriptId]?.name || '未选择剧本'})
-                </h3>
-                <button onClick={() => setRoleSelectSeat(null)} className="text-stone-500 hover:text-stone-200 text-2xl">×</button>
-              </div>
-
+      {roleSelectSeat !== null && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto border-stone-700 bg-stone-950">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-stone-800 pb-4">
+              <CardTitle className="text-2xl text-stone-200 font-cinzel tracking-widest flex items-center gap-2">
+                <span className="text-red-800">✦</span>
+                Assign Role ({SCRIPTS[gameState.currentScriptId]?.name || 'Unknown Script'})
+              </CardTitle>
+              <Button variant="ghost" size="icon" onClick={() => setRoleSelectSeat(null)}>
+                <X className="w-6 h-6" />
+              </Button>
+            </CardHeader>
+            <CardContent className="pt-6">
               <div className="space-y-6">
-                {renderRoleSection('TOWNSFOLK', '村民', rolesByTeam.TOWNSFOLK || [])}
-                {renderRoleSection('OUTSIDER', '外来者', rolesByTeam.OUTSIDER || [])}
-                {renderRoleSection('MINION', '爪牙', rolesByTeam.MINION || [])}
-                {renderRoleSection('DEMON', '恶魔', rolesByTeam.DEMON || [])}
+                {renderRoleSection('TOWNSFOLK', 'Townsfolk', rolesByTeam.TOWNSFOLK || [])}
+                {renderRoleSection('OUTSIDER', 'Outsider', rolesByTeam.OUTSIDER || [])}
+                {renderRoleSection('MINION', 'Minion', rolesByTeam.MINION || [])}
+                {renderRoleSection('DEMON', 'Demon', rolesByTeam.DEMON || [])}
               </div>
-
               <div className="mt-8 flex justify-end gap-4">
-                <button onClick={() => { assignRole(roleSelectSeat, null as any); setRoleSelectSeat(null); }} className="px-6 py-2 text-stone-500 hover:text-red-400 text-xs uppercase tracking-widest transition-colors">
-                  清除角色
-                </button>
-                <button onClick={() => setRoleSelectSeat(null)} className="px-8 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded font-cinzel text-sm transition-colors">
-                  取消
-                </button>
+                <Button
+                  variant="ghost"
+                  onClick={() => { assignRole(roleSelectSeat, null as any); setRoleSelectSeat(null); }}
+                  className="text-stone-500 hover:text-red-400"
+                >
+                  CLEAR ROLE
+                </Button>
+                <Button variant="secondary" onClick={() => setRoleSelectSeat(null)}>
+                  CANCEL
+                </Button>
               </div>
-            </div>
-          </div>
-        )
-      }
-    </div >
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
   );
 };

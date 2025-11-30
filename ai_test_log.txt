@@ -1,0 +1,92 @@
+=== AI Configuration & Availability Check ===
+Loading environment variables from: E:\coding\Antigravity\game-helper-demo02\.env.local
+Environment variables loaded.
+
+Starting Connectivity Tests...
+
+----------------------------------------
+Provider : DeepSeek
+Model    : deepseek-chat
+Env Key  : VITE_DEEPSEEK_KEY
+Status   : Testing...
+Status   : [SUCCESS] (1357.7686ms)
+Response : Hello! e???
+
+----------------------------------------
+Provider : Gemini
+Model    : gemini-2.0-flash-exp
+Env Key  : VITE_GEMINI_KEY
+Status   : Testing...
+Status   : [FAILED] (341.475ms)
+Error    : 远程服务器返回错误: (429) Too Many Requests。
+Details  : [{
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash-exp\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash-exp\nPlease retry in 26.632670901s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerMinutePerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.0-flash-exp"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
+            "quotaId": "GenerateContentInputTokensPerModelPerMinute-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.0-flash-exp"
+            }
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "26s"
+      }
+    ]
+  }
+}
+]
+
+----------------------------------------
+Provider : Kimi
+Model    : moonshot-v1-8k
+Env Key  : VITE_KIMI_KEY
+Status   : Testing...
+Status   : [SUCCESS] (465.2639ms)
+Response : Hi there! How can
+
+----------------------------------------
+Provider : SiliconFlow
+Model    : deepseek-ai/DeepSeek-R1
+Env Key  : VITE_SILICONFLOW_KEY
+Status   : Testing...
+Status   : [SUCCESS] (9658.1509ms)
+Response : Hello! ?? How can
+
+----------------------------------------
+Provider : SiliconFlow
+Model    : Qwen/Qwen2.5-72B-Instruct
+Env Key  : VITE_SILICONFLOW_KEY
+Status   : Testing...
+Status   : [SUCCESS] (459.7453ms)
+Response : Hello! How can I
+
+----------------------------------------
+Done.

@@ -23,6 +23,10 @@
       --color-gold-bright: #fbbf24;
       --color-stone-dark: #1c1917;
       --color-stone-light: #a8a29e;
+
+      /* Animation Curves */
+      --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+      --ease-in-out-circ: cubic-bezier(0.785, 0.135, 0.15, 0.86);
     }
 
     body {
@@ -32,6 +36,8 @@
       min-height: 100vh;
       min-height: 100dvh;
       overflow-x: hidden;
+      /* Subtle noise texture for paper feel */
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
     }
 
     /* 仅在游戏主界面阻止滚动 */
@@ -56,24 +62,21 @@
 
     /* Custom scrollbar */
     ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
     }
 
     ::-webkit-scrollbar-track {
-      background: #0c0a09;
-      border-left: 1px solid #292524;
+      background: transparent;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: #44403c;
-      border-radius: 4px;
-      border: 1px solid #292524;
+      background: rgba(168, 162, 158, 0.3);
+      border-radius: 3px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: #57534e;
-      border-color: #78350f;
+      background: rgba(168, 162, 158, 0.5);
     }
 
     /* Animations */
@@ -126,7 +129,7 @@
     }
 
     .animate-fade-in {
-      animation: fadeIn 0.8s ease-out forwards;
+      animation: fadeIn 0.8s var(--ease-out-expo) forwards;
     }
 
     .animate-float {
@@ -136,10 +139,10 @@
     /* Utility classes */
     .glass-panel {
       background: rgba(12, 10, 9, 0.7);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(168, 162, 158, 0.1);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
 
     .text-shadow-glow {

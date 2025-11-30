@@ -14,6 +14,10 @@ import { ScriptEditor } from './ScriptEditor';
 import { ControlsSTSection } from './ControlsSTSection';
 import { ControlsPlayerSection } from './ControlsPlayerSection';
 import { ControlsAudioTab } from './ControlsAudioTab';
+import { Button } from './ui/button';
+import { cn } from '../lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Gamepad2, MessageSquare, Bot, Book, Music, X, GripVertical } from 'lucide-react';
 
 interface ControlsProps {
     onClose?: () => void; // For mobile drawer closing
@@ -65,8 +69,6 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     React.useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (!isResizing) return;
-            // Calculate new width: Window width - Mouse X
-            // (Since sidebar is on the right)
             const newWidth = window.innerWidth - e.clientX;
             if (newWidth > 250 && newWidth < 800) {
                 setWidth(newWidth);
@@ -98,28 +100,19 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
         const currentNightRole = gameState.nightQueue[gameState.nightCurrentIndex];
         if (currentNightRole === currentSeat.roleId) {
-            // It's my turn!
-            // Check if I have a night action
             const role = ROLES[currentSeat.roleId];
             if (role?.nightAction) {
                 setShowNightAction(true);
-
-                // FR-03: 震动 + 音效提醒玩家唤醒（仅在说书人开启时）
                 if (gameState.vibrationEnabled) {
-                    // 震动 API
                     if ('vibrate' in navigator) {
-                        navigator.vibrate([200, 100, 200]); // 短-停-短 模式
+                        navigator.vibrate([200, 100, 200]);
                     }
                 }
-
-                // 播放唤醒音效（音效不受振动开关影响，音量小不易察觉）
                 try {
                     const wakeSound = new Audio('/audio/sfx/wake.mp3');
                     wakeSound.volume = 0.3;
-                    wakeSound.play().catch(e => console.log('音效播放被浏览器阻止:', e));
-                } catch (e) {
-                    // 忽略音效加载失败
-                }
+                    wakeSound.play().catch(e => console.log('Audio blocked:', e));
+                } catch (e) { }
             }
         }
     }, [gameState?.phase, gameState?.nightCurrentIndex, user?.id]);
@@ -133,9 +126,18 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
         if (!aiPrompt.trim()) return;
         const prompt = aiPrompt;
         setAiPrompt('');
-        // setActiveTab('chat'); // No longer switch to chat
         await askAi(prompt);
     };
+
+    const tabs = [
+        { id: 'game', label: 'Game', icon: <Gamepad2 className="w-4 h-4" /> },
+        { id: 'chat', label: 'Chat', icon: <MessageSquare className="w-4 h-4" /> },
+        ...(user.isStoryteller ? [
+            { id: 'ai', label: 'AI', icon: <Bot className="w-4 h-4" /> },
+            { id: 'audio', label: 'Audio', icon: <Music className="w-4 h-4" /> }
+        ] : []),
+        { id: 'notebook', label: 'Notes', icon: <Book className="w-4 h-4" /> },
+    ];
 
     return (
         <div
@@ -145,122 +147,113 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             {/* Drag Handle (Desktop Only) */}
             {!isMobile && (
                 <div
-                    className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-purple-500/50 transition-colors"
+                    className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-amber-500/50 transition-colors flex items-center justify-center group"
                     style={{ zIndex: Z_INDEX.dropdown }}
                     onMouseDown={() => setIsResizing(true)}
-                />
+                >
+                    <GripVertical className="w-3 h-3 text-stone-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
             )}
 
             {/* --- Header: User Info --- */}
-            <div className="p-4 border-b border-stone-800 bg-stone-950 flex items-start justify-between shadow-md z-10">
-                <div>
+            <div className="p-4 border-b border-stone-800 bg-stone-950 flex items-start justify-between shadow-md z-10 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-stone-900/50 to-transparent pointer-events-none" />
+                <div className="relative z-10">
                     <h2 className="text-lg font-bold text-stone-200 font-cinzel truncate max-w-[200px]">{user.name}</h2>
                     <div className="flex items-center gap-2 text-sm">
-                        <span className={`px-2 py-0.5 rounded border ${user.isStoryteller ? 'bg-purple-950/30 border-purple-800 text-purple-300' : 'bg-blue-950/30 border-blue-800 text-blue-300'}`}>
-                            {user.isStoryteller ? '说书人' : '村民'}
+                        <span className={cn(
+                            "px-2 py-0.5 rounded border text-xs font-bold uppercase tracking-wider",
+                            user.isStoryteller ? 'bg-red-950/30 border-red-800 text-red-400' : 'bg-blue-950/30 border-blue-800 text-blue-400'
+                        )}>
+                            {user.isStoryteller ? 'Storyteller' : 'Villager'}
                         </span>
-                        {currentSeat && <span className="text-stone-500">座位 {currentSeat.id + 1}</span>}
+                        {currentSeat && <span className="text-stone-500 text-xs">Seat {currentSeat.id + 1}</span>}
                     </div>
                 </div>
 
-                {/* Mobile Close Button */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 relative z-10">
                     {onClose && (
-                        <button onClick={onClose} className="md:hidden text-stone-400 hover:text-white p-2 bg-stone-900 rounded-full w-10 h-10 flex items-center justify-center active:bg-stone-800">
-                            ✕
-                        </button>
+                        <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden text-stone-400 hover:text-white">
+                            <X className="w-5 h-5" />
+                        </Button>
                     )}
                 </div>
             </div>
 
             {/* GAME OVER BANNER */}
             {gameState.gameOver?.isOver && (
-                <div className={`p-4 text-center border-b-4 animate-bounce ${gameState.gameOver.winner === 'GOOD' ? 'bg-blue-900 border-blue-500' : 'bg-red-900 border-red-500'}`}>
-                    <h2 className="text-2xl font-bold text-white font-cinzel tracking-widest">
-                        {gameState.gameOver.winner === 'GOOD' ? '好人胜利' : '邪恶胜利'}
+                <div className={cn(
+                    "p-4 text-center border-b-4 animate-in slide-in-from-top duration-500",
+                    gameState.gameOver.winner === 'GOOD' ? 'bg-blue-900/90 border-blue-500' : 'bg-red-900/90 border-red-500'
+                )}>
+                    <h2 className="text-2xl font-bold text-white font-cinzel tracking-widest drop-shadow-md">
+                        {gameState.gameOver.winner === 'GOOD' ? 'GOOD WINS' : 'EVIL WINS'}
                     </h2>
-                    <p className="text-xs text-white/80 mt-1">{gameState.gameOver.reason}</p>
+                    <p className="text-xs text-white/80 mt-1 font-serif italic">{gameState.gameOver.reason}</p>
                 </div>
             )}
 
             {/* Room Code Banner */}
-            <div className="bg-stone-900 border-b border-stone-800 p-2 flex justify-between items-center px-4">
+            <div className="bg-stone-900/50 border-b border-stone-800 p-3 flex justify-between items-center px-4">
                 <div className="flex flex-col">
-                    <span className="text-[10px] text-stone-500 uppercase tracking-wider">房间号</span>
+                    <span className="text-[10px] text-stone-500 uppercase tracking-wider font-cinzel">Room Code</span>
                     <span className="text-xl font-mono font-bold text-stone-200 tracking-[0.2em]">{gameState.roomId}</span>
                 </div>
                 {isOffline ? (
                     <span className="text-xs font-bold text-red-400 bg-red-950/30 border border-red-900 px-2 py-1 rounded animate-pulse">
-                        离线 / 演示
+                        OFFLINE / DEMO
                     </span>
                 ) : (
-                    <button onClick={leaveGame} className="text-xs text-stone-500 hover:text-red-400 transition-colors border border-stone-800 hover:border-red-900 px-2 py-1 rounded">
-                        离开
-                    </button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={leaveGame}
+                        className="text-stone-500 hover:text-red-400 hover:bg-red-950/20 h-8 text-xs uppercase tracking-wider"
+                    >
+                        Leave
+                    </Button>
                 )}
             </div>
 
-
-
             {/* --- Tabs --- */}
-            <div className="flex border-b border-stone-800 text-sm bg-stone-950/95 backdrop-blur font-cinzel sticky top-0 z-20 shadow-lg">
-                <button
-                    onClick={() => setActiveTab('game')}
-                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group ${activeTab === 'game' ? 'border-amber-600 text-amber-500 bg-stone-900/50' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'}`}
-                >
-                    <span className="text-lg md:text-base mr-1 group-hover:scale-110 inline-block transition-transform">🎮</span> 游戏
-                    {activeTab === 'game' && <div className="absolute inset-0 bg-amber-600/5 pointer-events-none animate-pulse-glow" />}
-                </button>
-                <button
-                    onClick={() => setActiveTab('chat')}
-                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group ${activeTab === 'chat' ? 'border-amber-600 text-amber-500 bg-stone-900/50' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'}`}
-                >
-                    <span className="text-lg md:text-base mr-1 group-hover:scale-110 inline-block transition-transform">💬</span> 聊天
-                    {activeTab === 'chat' && <div className="absolute inset-0 bg-amber-600/5 pointer-events-none animate-pulse-glow" />}
-                </button>
-                {/* AI 助手仅对说书人显示 */}
-                {user.isStoryteller && (
+            <div className="flex border-b border-stone-800 text-sm bg-stone-950/95 backdrop-blur font-cinzel sticky top-0 z-20 shadow-lg overflow-x-auto scrollbar-none">
+                {tabs.map(tab => (
                     <button
-                        onClick={() => setActiveTab('ai')}
-                        className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group ${activeTab === 'ai' ? 'border-purple-600 text-purple-400 bg-stone-900/50' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'}`}
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id as any)}
+                        className={cn(
+                            "flex-1 py-3 px-2 text-xs font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group flex items-center justify-center gap-2 min-w-[80px]",
+                            activeTab === tab.id
+                                ? 'border-amber-600 text-amber-500 bg-stone-900/50'
+                                : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'
+                        )}
                     >
-                        <span className="text-lg md:text-base mr-1 group-hover:scale-110 inline-block transition-transform">🤖</span> 助手
-                        {activeTab === 'ai' && <div className="absolute inset-0 bg-purple-600/5 pointer-events-none animate-pulse-glow" />}
+                        <span className="group-hover:scale-110 transition-transform">{tab.icon}</span>
+                        <span>{tab.label}</span>
+                        {activeTab === tab.id && (
+                            <motion.div
+                                layoutId="activeTab"
+                                className="absolute inset-0 bg-amber-600/5 pointer-events-none"
+                                initial={false}
+                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                            />
+                        )}
                     </button>
-                )}
-                {user.isStoryteller && (
-                    <button
-                        onClick={() => setActiveTab('audio')}
-                        className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group ${activeTab === 'audio' ? 'border-amber-600 text-amber-500 bg-stone-900/50' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'}`}
-                    >
-                        <span className="text-lg md:text-base mr-1 group-hover:scale-110 inline-block transition-transform">🎵</span> 音效
-                        {activeTab === 'audio' && <div className="absolute inset-0 bg-amber-600/5 pointer-events-none animate-pulse-glow" />}
-                    </button>
-                )}
-                <button
-                    onClick={() => setActiveTab('notebook')}
-                    className={`flex-1 py-4 md:py-3 text-sm font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group ${activeTab === 'notebook' ? 'border-amber-600 text-amber-500 bg-stone-900/50' : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'}`}
-                >
-                    <span className="text-lg md:text-base mr-1 group-hover:scale-110 inline-block transition-transform">📓</span> 笔记
-                    {activeTab === 'notebook' && <div className="absolute inset-0 bg-amber-600/5 pointer-events-none animate-pulse-glow" />}
-                </button>
+                ))}
             </div>
 
             {/* --- Content Area --- */}
-            <div className="flex-1 overflow-hidden relative bg-stone-900/50">
+            <div className="flex-1 overflow-hidden relative bg-stone-900/30">
 
                 {/* Tab: Game Controls */}
                 {activeTab === 'game' && (
-                    <div className="h-full overflow-y-auto p-4 space-y-6 scrollbar-thin">
-
-                        {/* GAME PHASE DISPLAY */}
+                    <div className="h-full overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-stone-800 scrollbar-track-transparent">
                         <div className="text-center p-4 bg-black/40 rounded border border-stone-800 shadow-inner backdrop-blur-sm">
                             <div className="text-xs text-stone-500 uppercase tracking-[0.2em] mb-1 font-cinzel">Current Phase</div>
                             <div className="text-3xl font-bold text-amber-600 tracking-widest font-cinzel drop-shadow-md">{PHASE_LABELS[gameState.phase]}</div>
                         </div>
 
-                        {/* ST CONTROLS */}
-                        {user.isStoryteller && (
+                        {user.isStoryteller ? (
                             <ControlsSTSection
                                 onShowCompositionGuide={() => setShowCompositionGuide(true)}
                                 onShowNightAction={(roleId) => {
@@ -270,10 +263,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                 onShowHistory={() => setShowHistory(true)}
                                 onShowScriptEditor={() => setShowScriptEditor(true)}
                             />
-                        )}
-
-                        {/* PLAYER CONTROLS */}
-                        {!user.isStoryteller && (
+                        ) : (
                             <ControlsPlayerSection
                                 onShowHistory={() => setShowHistory(true)}
                                 onShowNightAction={() => setShowNightAction(true)}
@@ -292,37 +282,36 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 {/* Tab: AI */}
                 {activeTab === 'ai' && (
                     <div className="h-full flex flex-col p-4">
-                        <div className="flex-1 overflow-y-auto space-y-4 mb-4 scrollbar-thin">
-                            {/* AI Messages */}
+                        <div className="flex-1 overflow-y-auto space-y-4 mb-4 scrollbar-thin scrollbar-thumb-stone-800">
                             {gameState.aiMessages.length === 0 && (
-                                <div className="text-center text-stone-500 py-8">
-                                    <div className="text-3xl mb-2">🤖</div>
-                                    <p className="text-sm">AI 助手就绪</p>
-                                    <p className="text-xs text-stone-600 mt-1">输入问题，获取游戏建议</p>
+                                <div className="text-center text-stone-500 py-8 flex flex-col items-center gap-3">
+                                    <Bot className="w-12 h-12 opacity-50" />
+                                    <p className="text-sm font-cinzel">AI Assistant Ready</p>
+                                    <p className="text-xs text-stone-600">Ask for rules, advice, or flavor text.</p>
                                 </div>
                             )}
                             {gameState.aiMessages.map(msg => (
                                 <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                                    <div className={`max-w-[85%] p-3 rounded-lg text-sm whitespace-pre-wrap ${msg.role === 'user'
-                                        ? 'bg-stone-800 text-stone-200'
-                                        : msg.role === 'system'
-                                            ? 'bg-red-900/30 text-red-300 border border-red-800/30'
-                                            : 'bg-amber-900/30 text-amber-100 border border-amber-800/30'
-                                        }`}>
+                                    <div className={cn(
+                                        "max-w-[85%] p-3 rounded-lg text-sm whitespace-pre-wrap shadow-sm",
+                                        msg.role === 'user' ? 'bg-stone-800 text-stone-200' :
+                                            msg.role === 'system' ? 'bg-red-900/30 text-red-300 border border-red-800/30' :
+                                                'bg-amber-900/30 text-amber-100 border border-amber-800/30'
+                                    )}>
                                         {msg.content}
                                     </div>
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="text-[10px] text-stone-600">{new Date(msg.timestamp).toLocaleTimeString()}</span>
                                         {user.isStoryteller && msg.role !== 'user' && (
-                                            <button onClick={() => deleteAiMessage(msg.id)} className="text-[10px] text-red-900 hover:text-red-500">删除</button>
+                                            <button onClick={() => deleteAiMessage(msg.id)} className="text-[10px] text-red-900 hover:text-red-500">Delete</button>
                                         )}
                                     </div>
                                 </div>
                             ))}
                             {isAiThinking && (
                                 <div className="flex items-start">
-                                    <div className="bg-amber-900/30 text-amber-100 p-3 rounded-lg text-sm border border-amber-800/30 animate-pulse">
-                                        思考中...
+                                    <div className="bg-amber-900/30 text-amber-100 p-3 rounded-lg text-sm border border-amber-800/30 animate-pulse flex items-center gap-2">
+                                        <Bot className="w-4 h-4" /> Thinking...
                                     </div>
                                 </div>
                             )}
@@ -332,25 +321,25 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                 type="text"
                                 value={aiPrompt}
                                 onChange={(e) => setAiPrompt(e.target.value)}
-                                placeholder="询问 AI 助手..."
-                                className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 focus:border-amber-600 focus:outline-none"
+                                placeholder="Ask the Grimoire..."
+                                className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 focus:border-amber-600 focus:outline-none placeholder:text-stone-700"
                             />
-                            <button type="submit" disabled={!aiPrompt.trim() || isAiThinking} className="bg-amber-700 hover:bg-amber-600 disabled:opacity-50 text-white px-3 py-2 rounded">
-                                发送
-                            </button>
+                            <Button type="submit" disabled={!aiPrompt.trim() || isAiThinking} size="sm">
+                                Send
+                            </Button>
                         </form>
                         {user.isStoryteller && (
                             <div className="mt-2 flex justify-between items-center">
-                                <button onClick={clearAiMessages} className="text-xs text-stone-500 hover:text-stone-300">清空记录</button>
+                                <button onClick={clearAiMessages} className="text-xs text-stone-500 hover:text-stone-300">Clear History</button>
                                 <select
                                     value={aiProvider}
                                     onChange={(e) => setAiProvider(e.target.value as any)}
-                                    className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1"
+                                    className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1 focus:outline-none focus:border-stone-600"
                                 >
-                                    <optgroup label="官方 API（推荐）">
-                                        <option value="deepseek">DeepSeek V3 (稳定)</option>
+                                    <optgroup label="Official API">
+                                        <option value="deepseek">DeepSeek V3</option>
                                     </optgroup>
-                                    <optgroup label="其他（可能有 CORS 问题）">
+                                    <optgroup label="Other (May have CORS issues)">
                                         <option value="kimi">Kimi K2</option>
                                         <option value="sf_r1">DeepSeek R1 (SF)</option>
                                         <option value="sf_r1_llama_70b">R1 Llama 70B (SF)</option>
@@ -359,9 +348,6 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                 </select>
                             </div>
                         )}
-                        <p className="text-[10px] text-stone-600 mt-2 text-center">
-                            💡 提示：仅 DeepSeek 官方 API 稳定可用，其他 API 可能因 CORS 策略无法访问
-                        </p>
                     </div>
                 )}
 
@@ -378,7 +364,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 )}
             </div>
 
-            {/* --- Modals (Portaled to body to avoid z-index/transform issues) --- */}
+            {/* --- Modals --- */}
             {showHistory && createPortal(
                 <GameHistoryView onClose={() => setShowHistory(false)} />,
                 document.body
@@ -419,7 +405,6 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 />,
                 document.body
             )}
-            {/* Player Night Action Modal */}
             {showNightAction && !user.isStoryteller && currentSeat?.roleId && createPortal(
                 <PlayerNightAction
                     roleId={currentSeat.roleId}

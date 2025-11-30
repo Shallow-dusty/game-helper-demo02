@@ -29,25 +29,29 @@ export const RoleRevealModal: React.FC = () => {
         }
     }, [isRoleRevealOpen, isVisible, isExiting, countdown]);
 
-    // 监听自动打开请求
+    // 监听自动打开请求 & 状态重置
     useEffect(() => {
-        if (!gameState || !user || !currentSeat || !role) return;
+        if (!gameState || !user) return;
 
-        // 检查是否应该显示
-        // 1. 游戏状态必须是 rolesRevealed = true
-        // 2. 玩家必须有角色
-        // 3. 本地存储中没有标记为"已查看"
-        
-        const storageKey = `grimoire_role_seen_${gameState.roomId}_${user.id}_${role.id}`;
-        const hasSeen = localStorage.getItem(storageKey);
+        const storageKey = `grimoire_last_seen_role_${gameState.roomId}_${user.id}`;
 
-        // 如果是手动打开模式，忽略 hasSeen
-        if (isRoleRevealOpen) return;
+        // 1. 如果 rolesRevealed 为 false，说明游戏重置或未开始，清除"已查看"记录
+        if (!gameState.rolesRevealed) {
+            if (localStorage.getItem(storageKey)) {
+                localStorage.removeItem(storageKey);
+            }
+            return;
+        }
 
-        if (gameState.rolesRevealed && !hasSeen && !isVisible && !isExiting && countdown === null) {
-            console.warn('Starting countdown (auto)!');
-            // 开始倒计时
-            setCountdown(3);
+        // 2. 如果 rolesRevealed 为 true，检查是否需要显示
+        if (role && !isRoleRevealOpen) {
+            const lastSeenRoleId = localStorage.getItem(storageKey);
+            
+            // 如果从未看过，或者看过的角色与当前不符（虽然理论上重置会清除，但这作为双重保险）
+            if (lastSeenRoleId !== role.id && !isVisible && !isExiting && countdown === null) {
+                console.log('Auto-triggering role reveal for:', role.name);
+                setCountdown(3);
+            }
         }
     }, [gameState?.rolesRevealed, gameState?.roomId, user?.id, role?.id, isVisible, isExiting, countdown, isRoleRevealOpen]);
 
@@ -71,9 +75,9 @@ export const RoleRevealModal: React.FC = () => {
     const handleConfirm = () => {
         if (!gameState || !user || !role) return;
         
-        // 标记为已查看
-        const storageKey = `grimoire_role_seen_${gameState.roomId}_${user.id}_${role.id}`;
-        localStorage.setItem(storageKey, 'true');
+        // 标记为已查看当前角色
+        const storageKey = `grimoire_last_seen_role_${gameState.roomId}_${user.id}`;
+        localStorage.setItem(storageKey, role.id);
 
         // 开始退出动画
         setIsExiting(true);

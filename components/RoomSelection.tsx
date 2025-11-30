@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { useSandboxStore } from '../sandboxStore';
-import { showWarning } from './Toast';
 import { AdminPanel } from './AdminPanel';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
@@ -24,6 +23,8 @@ export const RoomSelection = () => {
   const [isRejoining, setIsRejoining] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showSandboxOptions, setShowSandboxOptions] = useState(false);
+  const [joinError, setJoinError] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
 
   // 检查是否有上次的房间记录
   useEffect(() => {
@@ -52,13 +53,33 @@ export const RoomSelection = () => {
     void createGame(seatCount);
   };
 
-  const handleJoin = (e?: React.FormEvent) => {
+  const handleJoin = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (roomCode.length === 4) {
-      void joinGame(roomCode);
-    } else {
-      showWarning("请输入4位房间号");
+    
+    // 清除之前的错误
+    setJoinError('');
+    
+    if (roomCode.length !== 4) {
+      setJoinError('请输入4位房间号');
+      return;
     }
+    
+    // 防止连续点击
+    if (isJoining) return;
+    
+    setIsJoining(true);
+    try {
+      await joinGame(roomCode);
+      // 如果成功，会自动跳转到游戏页面
+    } catch (error) {
+      // joinGame内部已经处理了错误，但我们仍然重置状态
+      setIsJoining(false);
+    }
+    // 注意：如果加入失败，用户还在这个页面，需要重置状态
+    // 使用setTimeout确保错误Toast有时间显示
+    setTimeout(() => {
+      setIsJoining(false);
+    }, 1000);
   };
 
   const handleRejoin = async () => {
@@ -217,9 +238,11 @@ export const RoomSelection = () => {
                       onChange={(e) => {
                         const val = e.target.value;
                         setRoomCode(val);
+                        // 清除错误消息
+                        if (joinError) setJoinError('');
                         // Auto-submit when 4 digits are entered
-                        if (val.length === 4) {
-                          void joinGame(val);
+                        if (val.length === 4 && !isJoining) {
+                          void handleJoin();
                         }
                       }}
                       placeholder="8888"
@@ -230,12 +253,21 @@ export const RoomSelection = () => {
 
                   <Button
                     type="submit"
-                    disabled={roomCode.length !== 4}
-                    className={`w-full h-14 text-lg font-cinzel tracking-[0.2em] shadow-lg group/btn relative overflow-hidden transition-all duration-300 ${roomCode.length === 4 ? 'bg-blue-600 hover:bg-blue-500 border-blue-400 shadow-blue-900/50 scale-[1.02]' : 'bg-gradient-to-r from-blue-950 to-blue-900 hover:from-blue-900 hover:to-blue-800 border-blue-900/50'}`}
+                    disabled={roomCode.length !== 4 || isJoining}
+                    className={`w-full h-14 text-lg font-cinzel tracking-[0.2em] shadow-lg group/btn relative overflow-hidden transition-all duration-300 ${roomCode.length === 4 && !isJoining ? 'bg-blue-600 hover:bg-blue-500 border-blue-400 shadow-blue-900/50 scale-[1.02]' : 'bg-gradient-to-r from-blue-950 to-blue-900 hover:from-blue-900 hover:to-blue-800 border-blue-900/50'}`}
                   >
-                    <span className="relative z-10">{roomCode.length === 4 ? '立即进入' : '进入城镇'}</span>
+                    <span className="relative z-10">
+                      {isJoining ? '连接中...' : roomCode.length === 4 ? '立即进入' : '进入城镇'}
+                    </span>
                     <div className="absolute inset-0 bg-blue-600/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
                   </Button>
+                  
+                  {/* 错误消息显示 */}
+                  {joinError && (
+                    <div className="mt-3 p-3 bg-red-950/30 border border-red-800/50 rounded-lg text-center">
+                      <p className="text-red-400 text-sm font-cinzel">{joinError}</p>
+                    </div>
+                  )}
                 </form>
               </CardContent>
             </Card>

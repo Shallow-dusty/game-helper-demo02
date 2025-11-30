@@ -176,10 +176,38 @@ const AI_CONFIG: Record<AiProvider, { model: string; name: string; note?: string
         name: '📚 Kimi K2 Instruct',
         note: '⚠️ SiliconFlow 直连 (指令模型)'
     }
-};
+}; 
 
-// 导出配置供组件使用
-export const getAiConfig = () => AI_CONFIG;
+// 导出配置供组件使用，动态添加 apiKey 字段
+export const getAiConfig = (): Record<AiProvider, { model: string; name: string; note?: string; apiKey?: string }> => {
+    const config: Record<AiProvider, { model: string; name: string; note?: string; apiKey?: string }> = {} as any;
+    
+    // 从环境变量读取 API Keys
+    const deepseekKey = import.meta.env.VITE_DEEPSEEK_KEY;
+    const geminiKey = import.meta.env.VITE_GEMINI_KEY;
+    const kimiKey = import.meta.env.VITE_KIMI_KEY;
+    const siliconflowKey = import.meta.env.VITE_SILICONFLOW_KEY;
+    
+    // 为每个 provider 添加 apiKey 字段
+    for (const [key, value] of Object.entries(AI_CONFIG)) {
+        const provider = key as AiProvider;
+        let apiKey: string | undefined;
+        
+        if (provider === 'deepseek') {
+            apiKey = deepseekKey;
+        } else if (provider === 'gemini') {
+            apiKey = geminiKey;
+        } else if (provider === 'kimi') {
+            apiKey = kimiKey;
+        } else if (provider.startsWith('sf_')) {
+            apiKey = siliconflowKey;
+        }
+        
+        config[provider] = { ...value, apiKey };
+    }
+    
+    return config;
+};
 
 // Global variables for subscription
 let realtimeChannel: any = null;

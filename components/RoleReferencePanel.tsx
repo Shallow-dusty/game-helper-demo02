@@ -217,7 +217,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="🔍 搜索角色名或技能关键字..."
+                                placeholder="搜索角色名或技能关键字..."
                                 className="w-full px-4 py-2.5 pl-10 bg-black/40 border border-stone-700 rounded-lg text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-600/50 focus:ring-1 focus:ring-amber-600/50 text-sm transition-all group-hover:border-stone-600"
                             />
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 group-focus-within:text-amber-500 transition-colors">🔍</span>

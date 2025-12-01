@@ -1,0 +1,294 @@
+{
+  "report_date": "2025-12-01",
+  "total_fixes": 35,
+  "ai_chat": [
+    {
+      "commit": "f78c354",
+      "date": "2025-11-28",
+      "description": "修复AI交互问题",
+      "details": "1. AI消息改用独立aiMessages数组，不占用大厅聊天; 2. 添加API Key检查和CORS风险提示; 3. 推荐使用DeepSeek官方API"
+    },
+    {
+      "commit": "de2a029",
+      "date": "2025-11-27",
+      "description": "恢复AI模型切换器",
+      "details": "恢复AI模型切换器，支持8个模型选项(DeepSeek V3, Kimi K2, SiliconFlow代理等); 隐藏村民控制台AI助手标签页(仅说书人可见)"
+    }
+  ],
+  "audio": [
+    {
+      "commit": "c87f440",
+      "date": "2025-11-28",
+      "description": "修复音乐播放问题",
+      "details": "1. AudioManager URL校验支持本地路径(/); 2. 将本地音频文件(day.mp3, night.mp3等)添加到public/audio/; 3. FloatingVoteButton早期返回移到hooks之后"
+    },
+    {
+      "commit": "06d4df8",
+      "date": "2025-11-30",
+      "description": "修复AudioManager.tsx类型错误",
+      "details": "将cleanupTimeoutRef类型从number改为ReturnType<typeof setTimeout>; 将window.setTimeout改为setTimeout以修复跨平台兼容性"
+    },
+    {
+      "commit": "97082f8",
+      "date": "2025-11-28",
+      "description": "修复音频管理器bug",
+      "details": "优化音量调节逻辑防止应用卡顿; 分离音量处理和播放逻辑; 添加防抖机制减少云端同步频率; 添加isPlayingRef跟踪实际播放状态"
+    },
+    {
+      "commit": "67a55e1",
+      "date": "2025-11-27",
+      "description": "修复音频重复播放",
+      "details": "移除Controls.tsx中重复的audio元素和useEffect同步逻辑; 统一使用AudioManager组件管理音频"
+    },
+    {
+      "commit": "a3f78ed",
+      "date": "2025-11-27",
+      "description": "改进音频错误处理",
+      "details": "AudioManager添加URL有效性校验(http/https/data:); 添加NotSupportedError静默处理; 添加loadError状态显示错误信息"
+    },
+    {
+      "commit": "2768c67",
+      "date": "2025-11-27",
+      "description": "修复音效问题",
+      "details": "1. 替换失效的mixkit.co音频URL为SoundJay.com资源; 2. AudioManager/Lobby/Controls添加空URL检查和错误处理; 3. store.ts在设置音轨时验证URL有效性; 4. 静默处理NotSupportedError"
+    },
+    {
+      "commit": "f78c354",
+      "date": "2025-11-28",
+      "description": "替换音频资源",
+      "details": "替换SoundJay外链为静音占位符(data:audio/wav;base64...)，避免超时/CORS错误"
+    }
+  ],
+  "game_logic": [
+    {
+      "commit": "538eb96",
+      "date": "2025-12-01",
+      "description": "修复日志隐私bug",
+      "details": "1. 私聊消息过滤逻辑修复：isPrivate的system消息只对发送者/接收者/ST可见; 2. 添加圣徒(Saint)被处决时邪恶获胜的胜负判定; 3. closeVote添加完整的处决逻辑和游戏结束检查"
+    },
+    {
+      "commit": "0dc66dd",
+      "date": "2025-12-01",
+      "description": "修复自动分配/策略bugs",
+      "details": "1. 长按检测hook重构(useLongPress); 2. 增强安全性(Supabase Edge Function); 3. 添加supabase_security_patch.sql"
+    },
+    {
+      "commit": "2bcee68",
+      "date": "2025-11-30",
+      "description": "修复角色揭示自动触发逻辑",
+      "details": "1. 当rolesRevealed为false时清除localStorage已查看记录; 2. 使用角色ID而非布尔值存储已查看状态; 3. 支持游戏重置后重新触发角色揭示"
+    },
+    {
+      "commit": "885346d",
+      "date": "2025-11-29",
+      "description": "修复store.ts逻辑和类型错误",
+      "details": "1. 移除重复代码; 2. 添加GameHistoryView组件; 3. 添加Confetti胜利动画; 4. 添加TownSquare公共观战视图; 5. 添加ScriptManager剧本管理器"
+    },
+    {
+      "commit": "b2dd08a",
+      "date": "2025-11-27",
+      "description": "稳定夜间行动功能",
+      "details": "1. NightActionPanel支持虚拟玩家(isVirtual)作为目标; 2. binary类型夜间行动不显示确认按钮; 3. 添加下载器重试机制和Content-Type验证"
+    },
+    {
+      "commit": "67a55e1",
+      "date": "2025-11-27",
+      "description": "修复历史存档投票",
+      "details": "VoteButton添加isLocked属性支持投票锁定状态; 投票锁定时显示'🔒 状态已锁定'"
+    },
+    {
+      "commit": "f78c354",
+      "date": "2025-11-28",
+      "description": "修复智能分配逻辑",
+      "details": "修复外来者/爪牙选取逻辑，确保数量符合配比; 添加座位限制(addSeat上限20, removeSeat下限5)"
+    },
+    {
+      "commit": "d9dfd85",
+      "date": "2025-11-26",
+      "description": "修复座位和游戏状态bugs",
+      "details": "1. 修复一个玩家可以占多个座位的bug(joinSeat添加重复入座检测); 2. 修复游戏开始后PhaseIndicator仍显示'角色已发放'的问题; 3. startGame正确设置setupPhase为STARTED"
+    },
+    {
+      "commit": "70b5dbe",
+      "date": "2025-11-27",
+      "description": "修复夜间执行逻辑",
+      "details": "修复夜间行动面板完成后未自动推进到下一个角色的问题; 在NightActionPanel完成回调中添加nightNext()调用"
+    },
+    {
+      "commit": "97082f8",
+      "date": "2025-11-28",
+      "description": "修复虚拟玩家功能漏洞",
+      "details": "1. 添加防抖策略防止快速重复点击; 2. 添加右键删除虚拟玩家功能; 3. 修复扩展座位自动填充虚拟玩家问题"
+    }
+  ],
+  "ui": [
+    {
+      "commit": "7d0cad5",
+      "date": "2025-11-30",
+      "description": "修复角色揭示动画并添加手动触发按钮",
+      "details": "1. 添加isRoleRevealOpen状态到store; 2. 添加'查看完整身份卡'按钮到ControlsPlayerSection; 3. RoleRevealModal支持手动和自动触发两种模式"
+    },
+    {
+      "commit": "e611c36",
+      "date": "2025-11-30",
+      "description": "移除重复定义",
+      "details": "在StorytellerMenu中添加'踢出玩家'按钮; 导入LogOut图标; 添加forceLeaveSeat action"
+    },
+    {
+      "commit": "69aa7df",
+      "date": "2025-11-30",
+      "description": "补充forceLeaveSeat属性传递",
+      "details": "在Grimoire.tsx中添加forceLeaveSeat到StorytellerMenu的actions属性传递"
+    },
+    {
+      "commit": "55b6222",
+      "date": "2025-11-30",
+      "description": "修复多个UI问题",
+      "details": "1. WaitingArea在游戏开始后自动隐藏(setupPhase !== 'STARTED'); 2. VoiceRoomLink输入框改用text-base; 3. NightActionPanel改为底部弹出(移动端友好); 4. Lobby音量降低(0.4→0.2); 5. 添加离开座位按钮"
+    },
+    {
+      "commit": "d63302a",
+      "date": "2025-11-30",
+      "description": "优化UI和修复lint错误",
+      "details": "1. FloatingVoteButton添加isModalOpen检查避免遮挡; 2. Grimoire添加Ready指示器(✓); 3. 添加.vscode/settings.json支持Deno; 4. 创建Supabase Edge Function ask-ai"
+    },
+    {
+      "commit": "4b904c8",
+      "date": "2025-11-28",
+      "description": "修复多项崩溃和类型错误",
+      "details": "1. AudioManager添加cleanupTimeoutRef防止内存泄漏; 2. FloatingVoteButton修复odId→id和isActive→isOpen拼写错误; 3. ControlsSTSection使用IIFE处理nightQueue索引undefined; 4. RoleReferenceSidebar z-index改为Z_INDEX.sidebar(40); 5. SandboxView座位响应式大小"
+    },
+    {
+      "commit": "61ea311",
+      "date": "2025-11-28",
+      "description": "修复ESC关闭和Chat组件",
+      "details": "1. Chat.tsx移除useDynamicRowHeight改用固定行高; 2. RowComponent返回空div而非null(react-window v2要求); 3. 使用listRef.scrollToRow替代scrollToItem; 4. Grimoire导入Z_INDEX常量"
+    },
+    {
+      "commit": "d234f6e",
+      "date": "2025-11-27",
+      "description": "修复VotingChart类型错误",
+      "details": "votes字段从Object.keys/entries改为数组操作(.length和.map())，因为votes类型是number[](投票者座位ID数组)"
+    },
+    {
+      "commit": "de2a029",
+      "date": "2025-11-27",
+      "description": "P0/P1优化修复",
+      "details": "1. 移除joinSeat入座失败后的本地降级逻辑; 2. InfoCard使用完整Tailwind类名映射修复动态类名编译; 3. NightActionManager添加酒鬼/疯子夜间请求标记(🍷)"
+    },
+    {
+      "commit": "c1a1465",
+      "date": "2025-11-27",
+      "description": "修复语法错误",
+      "details": "修复Controls.tsx中的JSX语法错误(括号和缩进问题)"
+    }
+  ],
+  "mobile": [
+    {
+      "commit": "f9be8c9",
+      "date": "2025-11-27",
+      "description": "改进移动端视口尺寸",
+      "details": "1. 添加getViewportMetrics使用visualViewport API; 2. 监听visualViewport resize/scroll事件; 3. 设置--app-height CSS变量; 4. App容器使用动态高度"
+    },
+    {
+      "commit": "f818bd7",
+      "date": "2025-11-27",
+      "description": "修复移动端canvas尺寸",
+      "details": "1. 使用requestAnimationFrame确保DOM渲染完成; 2. 延迟50ms初始测量; 3. 添加尺寸有效性检查(>10); 4. 使用Math.floor避免亚像素问题"
+    },
+    {
+      "commit": "074f0f7",
+      "date": "2025-11-27",
+      "description": "重构移动端布局",
+      "details": "1. 使用flexbox布局; 2. 添加min-h-0确保flex子元素可收缩; 3. Sidebar改为fixed定位支持滑入动画"
+    },
+    {
+      "commit": "a3f78ed",
+      "date": "2025-11-27",
+      "description": "修复移动端UI缩放",
+      "details": "1. Grimoire baseScale最小值降至0.4; 2. 添加动态margin计算; 3. 添加适配屏幕按钮(⛶)"
+    },
+    {
+      "commit": "2768c67",
+      "date": "2025-11-27",
+      "description": "修复移动端UI问题",
+      "details": "1. 分离ResizeObserver的useEffect确保正确测量; 2. 添加getBoundingClientRect立即获取初始尺寸; 3. 添加加载状态动画; 4. 移动端菜单按钮改为fixed定位"
+    },
+    {
+      "commit": "8f792be",
+      "date": "2025-11-27",
+      "description": "彻底修复移动端滚动问题",
+      "details": "1. 移除index.html中body的overflow:hidden; 2. Lobby/RoomSelection使用absolute inset-0 + overflow-y-scroll; 3. 添加-webkit-overflow-scrolling-touch支持iOS"
+    },
+    {
+      "commit": "af9b8b1",
+      "date": "2025-11-27",
+      "description": "修复移动端无法滚动",
+      "details": "1. 移除flex items-center justify-center布局(导致内容超出时无法滚动); 2. 改用padding + margin auto居中; 3. 添加overflow-y-auto"
+    },
+    {
+      "commit": "688a79f",
+      "date": "2025-11-26",
+      "description": "修复手机屏幕显示",
+      "details": "将overflow-hidden改为overflow-y-auto md:overflow-hidden，允许移动端纵向滚动"
+    },
+    {
+      "commit": "55b6222",
+      "date": "2025-11-30",
+      "description": "修复移动端输入问题",
+      "details": "VoiceRoomLink和Controls中的AI输入框改用text-base防止iOS自动缩放"
+    }
+  ],
+  "network": [
+    {
+      "commit": "9b84589",
+      "date": "2025-11-27",
+      "description": "改善重连失败体验",
+      "details": "1. 重连按钮添加加载状态(isRejoining); 2. 监听localStorage变化自动清除无效房间记录; 3. 房间不存在时显示错误提示并清除记录"
+    },
+    {
+      "commit": "d63302a",
+      "date": "2025-11-30",
+      "description": "修复Supabase Edge Function lint错误",
+      "details": "1. 创建supabase/functions/ask-ai/index.ts; 2. 添加deno.json配置; 3. 配置.vscode/settings.json启用Deno"
+    },
+    {
+      "commit": "de2a029",
+      "date": "2025-11-27",
+      "description": "添加断线自动重连",
+      "details": "使用localStorage存储房间号(grimoire_last_room); RoomSelection显示'继续上次游戏'选项"
+    }
+  ],
+  "code_quality": [
+    {
+      "commit": "ee2c040",
+      "date": "2025-12-01",
+      "description": "解决测试lint错误并扩展覆盖率",
+      "details": "1. 新增useLongPress.test.ts测试长按hook; 2. 新增gameLogic.test.ts测试角色分配逻辑; 3. 新增createAISlice.test.ts测试AI状态管理; 4. 新增createConnectionSlice.test.ts测试连接状态; 5. 删除旧版tests/store.test.ts; 6. 更新vitest.config.ts"
+    },
+    {
+      "commit": "e72ef26",
+      "date": "2025-11-28",
+      "description": "ESLint配置优化与类型修复",
+      "details": "1. 将严格规则降级为警告(no-floating-promises, no-unsafe-*); 2. 修复tests目录未包含在tsconfig; 3. 移除store.ts未使用变量; 4. 使用可选链简化条件判断(track?.url)"
+    },
+    {
+      "commit": "f77a2f2",
+      "date": "2025-11-28",
+      "description": "修复React hooks调用顺序错误导致的崩溃",
+      "details": "RoleReferencePanel: 将早期返回(if !isOpen return null)移到所有hooks之后，修复React error #310"
+    },
+    {
+      "commit": "44f70e5",
+      "date": "2025-11-27",
+      "description": "修复React hooks顺序错误导致的黑屏",
+      "details": "App.tsx: 将body overflow控制的useEffect移到条件返回语句之前，确保hooks调用顺序一致"
+    },
+    {
+      "commit": "0e8afeb",
+      "date": "2025-11-27",
+      "description": "同步package-lock.json，移除无用依赖",
+      "details": "移除rechart依赖(保留recharts); React版本从19.2.0降级到18.3.1以提升稳定性"
+    }
+  ]
+}

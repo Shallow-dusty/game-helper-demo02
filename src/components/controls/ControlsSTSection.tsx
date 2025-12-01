@@ -1,3 +1,7 @@
+import React, { useState } from 'react';
+import { useStore } from '../../store';
+import { SCRIPTS, AUDIO_TRACKS } from '../../constants';
+import { NightActionManager } from '../game/NightActionManager';
 import { DistributionConfirmationModal } from '../modals/DistributionConfirmationModal';
 import { analyzeDistribution, DistributionAnalysisResult } from '../../lib/distributionAnalysis';
 

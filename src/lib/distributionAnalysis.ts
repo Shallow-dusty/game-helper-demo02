@@ -100,9 +100,9 @@ export const analyzeDistribution = (seats: Seat[], playerCount: number): Distrib
     const warnings: string[] = [];
     
     // 1. 角色数量检查
-    // 统计已分配的角色（使用 realRoleId）
+    // 统计已分配的角色（优先使用 realRoleId，回退到 roleId 以兼容旧数据）
     const assignedRoles = seats
-        .map(s => s.realRoleId)
+        .map(s => s.realRoleId || s.roleId)
         .filter((id): id is string => !!id);
         
     const roleCount = assignedRoles.length;

@@ -14,7 +14,7 @@ export const AI_CONFIG: Record<AiProvider, { model: string; name: string; note?:
     kimi: {
         model: 'moonshot-v1-8k',
         name: 'Kimi (Official)',
-        note: '⚠️ 可能有 CORS 问题'
+        note: '❌ 官方API不支持浏览器直连(CORS)，请使用SiliconFlow版Kimi'
     },
     // SiliconFlow Models - 需要 VITE_SILICONFLOW_KEY
     sf_deepseek_v3_2: {

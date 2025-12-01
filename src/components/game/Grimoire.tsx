@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Stage, Layer, Circle, Text, Group, Rect, Ring, Arc } from 'react-konva';
+import { Stage, Layer, Circle, Text, Group, Rect, Ring, Arc, RegularPolygon } from 'react-konva';
 import { useStore } from '../../store';
 import { ROLES, TEAM_COLORS, PHASE_LABELS, SCRIPTS, JINX_DEFINITIONS, STATUS_ICONS } from '../../constants';
 import { Seat } from '../../types';
@@ -718,6 +718,37 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
         }}
       >
         <Layer listening={false}>
+          {/* Clock Face Background */}
+          <Circle
+            x={cx}
+            y={cy}
+            radius={r * 0.8}
+            fillRadialGradientStartPoint={{ x: 0, y: 0 }}
+            fillRadialGradientStartRadius={0}
+            fillRadialGradientEndPoint={{ x: 0, y: 0 }}
+            fillRadialGradientEndRadius={r * 0.8}
+            fillRadialGradientColorStops={[0, 'rgba(66, 0, 0, 0.2)', 0.8, 'rgba(30, 0, 0, 0.6)', 1, 'rgba(0, 0, 0, 0)']}
+            opacity={0.8}
+          />
+          
+          {/* Decorative Clock Ticks */}
+          {Array.from({ length: 12 }).map((_, i) => {
+            const angle = (i / 12) * 360;
+            const isMain = i % 3 === 0;
+            return (
+              <Group key={i} x={cx} y={cy} rotation={angle}>
+                <Rect
+                  x={r * 0.65}
+                  y={isMain ? -3 * baseScale : -1 * baseScale}
+                  width={isMain ? 20 * baseScale : 10 * baseScale}
+                  height={isMain ? 6 * baseScale : 2 * baseScale}
+                  fill={isMain ? '#7f1d1d' : '#57534e'}
+                  cornerRadius={2}
+                />
+              </Group>
+            );
+          })}
+
           <Circle
             x={cx}
             y={cy}
@@ -727,21 +758,85 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
             dash={[10, 20]}
             opacity={0.1}
           />
+          
+          {/* Phase Text */}
           <Text
             x={cx - 100}
-            y={cy - 10}
+            y={cy - 50 * baseScale} // Moved up slightly
             width={200}
             align="center"
             text={PHASE_LABELS[gameState.phase] || gameState.phase}
             fontSize={24 * baseScale}
-            fill="#666"
+            fill="#a8a29e"
             fontFamily="Cinzel"
             fontStyle="italic"
             letterSpacing={2}
+            shadowColor="black"
+            shadowBlur={5}
           />
         </Layer>
 
         <Layer>
+          {/* Clock Hand (Voting Indicator) */}
+          {(() => {
+             const votingState = gameState.voting;
+             const targetSeatId = votingState?.clockHandSeatId;
+             
+             if (targetSeatId !== undefined && targetSeatId !== null) {
+               const seatIndex = gameState.seats.findIndex(s => s.id === targetSeatId);
+               if (seatIndex !== -1) {
+                 // Calculate angle: (index / total) * 360 - 90 (to match -PI/2 start)
+                 const angle = (seatIndex / gameState.seats.length) * 360; 
+                 // Note: SeatNode uses -PI/2 offset (top start). 
+                 // Konva rotation 0 is right (3 o'clock). 
+                 // SeatNode angle 0 (index 0) is -90 degrees (12 o'clock).
+                 // So we need to rotate by angle - 90.
+                 const rotation = angle - 90;
+
+                 return (
+                   <Group x={cx} y={cy} rotation={rotation}>
+                     {/* Hand Shaft */}
+                     <Rect
+                       x={0}
+                       y={-4 * baseScale}
+                       width={r - 40 * baseScale} // Reach towards seat
+                       height={8 * baseScale}
+                       fillLinearGradientStartPoint={{ x: 0, y: 0 }}
+                       fillLinearGradientEndPoint={{ x: r, y: 0 }}
+                       fillLinearGradientColorStops={[0, '#450a0a', 0.5, '#b91c1c', 1, '#ef4444']}
+                       shadowColor="#000"
+                       shadowBlur={10}
+                       cornerRadius={4}
+                     />
+                     {/* Hand Tip */}
+                     <RegularPolygon
+                       x={r - 40 * baseScale}
+                       y={0}
+                       sides={3}
+                       radius={15 * baseScale}
+                       rotation={90}
+                       fill="#f59e0b"
+                       shadowColor="#f59e0b"
+                       shadowBlur={10}
+                     />
+                     {/* Center Cap */}
+                     <Circle
+                       radius={12 * baseScale}
+                       fill="#7f1d1d"
+                       stroke="#f59e0b"
+                       strokeWidth={2}
+                       shadowBlur={5}
+                     />
+                     <Circle
+                       radius={4 * baseScale}
+                       fill="#f59e0b"
+                     />
+                   </Group>
+                 );
+               }
+             }
+             return null;
+          })()}
           {gameState.seats.map((seat, i) => {
             const angle = (i / gameState.seats.length) * 2 * Math.PI - Math.PI / 2;
             return (

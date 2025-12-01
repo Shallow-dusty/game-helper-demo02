@@ -43,7 +43,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                              if (scarletWoman) {
                                  scarletWoman.realRoleId = 'imp';
                                  scarletWoman.roleId = 'imp';
-                                 addSystemMessage(state.gameState, `${scarletWoman.userName} 继承了 恶魔 身份`);
+                                 addSystemMessage(state.gameState, `${scarletWoman.userName} 继承了 恶魔 身份`, scarletWoman.userId);
                              }
                          }
 
@@ -120,27 +120,27 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
     assignRoles: () => {
         set((state) => {
             if (state.gameState) {
-                const playerCount = state.gameState.seats.filter(s => s.userId).length;
-                if (playerCount < 5) {
-                    addSystemMessage(state.gameState, "人数不足5人，无法自动分配角色。");
+                // Use seat count instead of player count
+                const seatCount = state.gameState.seats.length;
+                if (seatCount < 5) {
+                    addSystemMessage(state.gameState, "座位数不足5个，无法自动分配角色。");
                     return;
                 }
 
                 const scriptId = state.gameState.currentScriptId;
-                const roles = generateRoleAssignment(scriptId, playerCount);
+                const roles = generateRoleAssignment(scriptId, seatCount);
                 
                 let roleIndex = 0;
                 state.gameState.seats.forEach(seat => {
-                    if (seat.userId) {
-                        const roleId = roles[roleIndex];
-                        if (roleId) {
-                            applyRoleAssignment(state.gameState!, seat, roleId);
-                        }
-                        roleIndex++;
+                    // Assign to all seats, regardless of userId
+                    const roleId = roles[roleIndex];
+                    if (roleId) {
+                        applyRoleAssignment(state.gameState!, seat, roleId);
                     }
+                    roleIndex++;
                 });
 
-                addSystemMessage(state.gameState, `已自动分配角色 (${playerCount}人)`);
+                addSystemMessage(state.gameState, `已自动分配角色 (${seatCount}个座位)`);
             }
         });
         get().sync();
@@ -198,7 +198,8 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                 
                 let roleIndex = 0;
                 state.gameState.seats.forEach(seat => {
-                    if (seat.userId && roleIndex < shuffledRoles.length) {
+                    // Assign to all seats, regardless of userId
+                    if (roleIndex < shuffledRoles.length) {
                         const roleId = shuffledRoles[roleIndex];
                         if (roleId) {
                             applyRoleAssignment(state.gameState!, seat, roleId);

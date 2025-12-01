@@ -13,21 +13,25 @@ import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } fr
 /**
  * 创建系统消息
  */
-export const createSystemMessage = (content: string): ChatMessage => ({
+/**
+ * 创建系统消息
+ */
+export const createSystemMessage = (content: string, recipientId: string | null = null): ChatMessage => ({
     id: Math.random().toString(36).slice(2, 11),
     senderId: 'system',
     senderName: '系统',
-    recipientId: null,
+    recipientId,
     content,
     timestamp: Date.now(),
-    type: 'system'
+    type: 'system',
+    isPrivate: !!recipientId
 });
 
 /**
  * 向游戏状态添加系统消息（可变操作，用于 immer）
  */
-export const addSystemMessage = (gameState: GameState, content: string): void => {
-    gameState.messages.push(createSystemMessage(content));
+export const addSystemMessage = (gameState: GameState, content: string, recipientId: string | null = null): void => {
+    gameState.messages.push(createSystemMessage(content, recipientId));
 };
 
 // ==================== 夜间行动队列 ====================

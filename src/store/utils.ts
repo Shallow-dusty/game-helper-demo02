@@ -83,19 +83,25 @@ export const filterGameStateForUser = (gameState: GameState, currentUserId: stri
             if (!msg.recipientId) return true;
             
             return true;
+        }),
+        // 过滤夜间行动请求：普通玩家只能看到自己的请求
+        nightActionRequests: gameState.nightActionRequests.filter(req => {
+            if (isStoryteller) return true;
+            return req.seatId === userSeat?.id;
         })
     };
 };
 
-export const addSystemMessage = (gameState: GameState, content: string) => {
+export const addSystemMessage = (gameState: GameState, content: string, recipientId: string | null = null) => {
     gameState.messages.push({
         id: Math.random().toString(36).substr(2, 9),
         senderId: 'system',
         senderName: '系统',
-        recipientId: null,
+        recipientId,
         content,
         timestamp: Date.now(),
-        type: 'system'
+        type: 'system',
+        isPrivate: !!recipientId
     });
 };
 

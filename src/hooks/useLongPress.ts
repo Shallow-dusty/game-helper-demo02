@@ -7,12 +7,20 @@ import { useRef, useCallback, useEffect, useState } from 'react';
  * @param delay Long press delay in ms (default: 500)
  * @param disabled Whether the hook is disabled
  */
+export interface LongPressOptions {
+  delay?: number;
+  disabled?: boolean;
+  detectMouse?: boolean;
+}
+
 export const useLongPress = (
   onLongPress: (e: unknown) => void,
   onClick: (e: unknown) => void,
-  delay = 500,
-  disabled = false
+  options: LongPressOptions | number = {}
 ) => {
+  const { delay = 500, disabled = false, detectMouse = true } = 
+    typeof options === 'number' ? { delay: options } : options;
+
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isLongPressRef = useRef(false);
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -97,13 +105,17 @@ export const useLongPress = (
     }
   }, [disabled]);
 
+  const mouseHandlers = detectMouse ? {
+    onMouseDown: start,
+    onMouseUp: (e: unknown) => clear(e, true),
+    onMouseLeave: (e: unknown) => clear(e, false),
+  } : {};
+
   return {
     onTouchStart: handleTouchStart,
     onTouchEnd: (e: unknown) => clear(e, true),
     onTouchMove: move,
-    onMouseDown: start,
-    onMouseUp: (e: unknown) => clear(e, true),
-    onMouseLeave: (e: unknown) => clear(e, false),
+    ...mouseHandlers,
     isPressing
   };
 };

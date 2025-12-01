@@ -1,16 +1,5 @@
-import React, { useState } from 'react';
-import { useStore } from '../../store';
-import { NightActionManager } from '../game/NightActionManager';
-import { SCRIPTS, AUDIO_TRACKS, ROLES } from '../../constants';
-import { showError } from '../ui/Toast';
-
-
-export interface ControlsSTSectionProps {
-    onShowCompositionGuide: () => void;
-    onShowNightAction: (roleId: string) => void;
-    onShowHistory: () => void;
-    onShowScriptEditor: () => void;
-}
+import { DistributionConfirmationModal } from '../modals/DistributionConfirmationModal';
+import { analyzeDistribution, DistributionAnalysisResult } from '../../lib/distributionAnalysis';
 
 export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
     onShowCompositionGuide,
@@ -31,6 +20,10 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
     const toggleAudioPlay = useStore(state => state.toggleAudioPlay);
     const setAudioVolume = useStore(state => state.setAudioVolume);
 
+    // Confirmation Modal State
+    const [showDistributeConfirm, setShowDistributeConfirm] = useState(false);
+    const [distributionAnalysis, setDistributionAnalysis] = useState<DistributionAnalysisResult | null>(null);
+
     // 可折叠区块状态
     const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
         seats: false,
@@ -42,6 +35,21 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
 
     const toggleSection = (section: string) => {
         setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+    };
+
+    const handleDistributeClick = () => {
+        if (!gameState) return;
+        
+        const hasEmptyRoles = gameState.seats.some(s => !s.roleId);
+        if (hasEmptyRoles) {
+            showError("有座位未分配角色！请先分配角色再发放。");
+            return;
+        }
+
+        // Run analysis
+        const result = analyzeDistribution(gameState.seats, gameState.seats.length);
+        setDistributionAnalysis(result);
+        setShowDistributeConfirm(true);
     };
 
     if (!gameState) return null;
@@ -155,14 +163,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                         <span>🎲</span> 自动分配
                     </button>
                     <button
-                        onClick={() => {
-                            const hasEmptyRoles = gameState.seats.some(s => !s.roleId);
-                            if (hasEmptyRoles) {
-                                showError("有玩家未分配角色！请先分配角色再发放。");
-                                return;
-                            }
-                            useStore.getState().distributeRoles();
-                        }}
+                        onClick={handleDistributeClick}
                         className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-2"
                     >
                         <span>👀</span> 发放角色
@@ -389,6 +390,19 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                         取消 / 结束投票
                     </button>
                 </div>
+            )}
+
+            {/* Distribution Confirmation Modal */}
+            {distributionAnalysis && (
+                <DistributionConfirmationModal
+                    isOpen={showDistributeConfirm}
+                    onClose={() => setShowDistributeConfirm(false)}
+                    onConfirm={() => {
+                        useStore.getState().distributeRoles();
+                        setShowDistributeConfirm(false);
+                    }}
+                    analysis={distributionAnalysis}
+                />
             )}
         </div>
     );

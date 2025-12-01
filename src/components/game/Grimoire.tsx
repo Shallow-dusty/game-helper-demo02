@@ -58,7 +58,7 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
   const y = cy + radius * Math.sin(angle);
   const [isHovered, setIsHovered] = React.useState(false);
 
-  const { isPressing, ...longPressHandlers } = useLongPress(onLongPress, onClick, 500, disableInteractions);
+  const { isPressing, ...longPressHandlers } = useLongPress(onLongPress, onClick, { delay: 500, disabled: disableInteractions, detectMouse: false });
 
   // Animation Ref for the progress ring
   const progressRingRef = useRef<Konva.Arc>(null);
@@ -80,9 +80,19 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
     return undefined;
   }, [isPressing]);
 
-  const displayRoleId = (isST && seat.realRoleId) ? seat.realRoleId : seat.seenRoleId;
-  const showRole = !publicOnly && (isST || isCurrentUser) && displayRoleId;
+  const rolesRevealed = useStore(state => state.gameState?.rolesRevealed);
+  
+  // Visibility Logic:
+  // 1. Storyteller: Always see real role (if exists), otherwise seen role
+  // 2. Current User: Only see if roles are revealed AND it's their seat
+  const displayRoleId = isST 
+    ? (seat.realRoleId || seat.seenRoleId) 
+    : (isCurrentUser && rolesRevealed ? seat.seenRoleId : null);
+
+  const showRole = !publicOnly && displayRoleId;
   const roleDef = showRole && displayRoleId ? ROLES[displayRoleId] : null;
+  
+  // Misled logic (ST only)
   const isMisled = isST && seat.realRoleId && seat.seenRoleId && seat.realRoleId !== seat.seenRoleId;
   const seenRoleDef = isMisled ? ROLES[seat.seenRoleId!] : null;
   const votingState = useStore(state => state.gameState?.voting);

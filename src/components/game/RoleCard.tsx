@@ -48,7 +48,7 @@ export const RoleCard: React.FC<RoleCardProps> = ({
 
     if (isPlayerRole) {
         return (
-            <div className={`relative ${sizeClasses.large} rounded-xl border-4 border-yellow-500 bg-gradient-to-br from-stone-950 to-stone-900 shadow-2xl animate-pulse-glow`}>
+            <div className={`relative ${sizeClasses.large} rounded-xl border-4 border-yellow-500 bg-gradient-to-br from-stone-950 to-stone-900 shadow-2xl animate-pulse-glow animate-float`}>
                 {/* Hero Badge */}
                 <div className="absolute -top-3 -right-3 bg-yellow-500 text-stone-950 px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                     你的角色
@@ -145,8 +145,17 @@ export const RoleCard: React.FC<RoleCardProps> = ({
         stone: 'text-stone-500/60 bg-stone-950/30'
     };
 
+    const hoverShadowClasses = {
+        blue: 'hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:border-blue-400',
+        green: 'hover:shadow-[0_0_20px_rgba(34,197,94,0.4)] hover:border-green-400',
+        orange: 'hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:border-orange-400',
+        red: 'hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] hover:border-red-400',
+        purple: 'hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:border-purple-400',
+        stone: 'hover:shadow-[0_0_20px_rgba(120,113,108,0.4)] hover:border-stone-400'
+    };
+
     return (
-        <div className={`${sizeClasses[size]} rounded-lg border-2 ${cardClasses[color as keyof typeof cardClasses] || cardClasses.stone} bg-stone-900 hover:bg-stone-800 transition-all hover:scale-105 hover:shadow-lg cursor-pointer h-full flex flex-col`}>
+        <div className={`${sizeClasses[size]} rounded-lg border-2 ${cardClasses[color as keyof typeof cardClasses] || cardClasses.stone} ${hoverShadowClasses[color as keyof typeof hoverShadowClasses] || hoverShadowClasses.stone} bg-stone-900 hover:bg-stone-800 transition-all duration-300 hover:scale-105 cursor-pointer h-full flex flex-col`}>
             {/* Role Name */}
             <div className="flex items-center justify-between mb-2">
                 <h4 className={`${titleSizeClasses[size]} font-bold ${titleClasses[color as keyof typeof titleClasses] || titleClasses.stone} font-cinzel ${role.name.length > 4 ? 'text-[10px]' : ''}`}>

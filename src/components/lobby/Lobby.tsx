@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../store';
-import { AUDIO_TRACKS } from '../../constants';
+import { AUDIO_TRACKS, SOUND_EFFECTS } from '../../constants';
 import { motion } from 'framer-motion';
 import { Skull, Volume2 } from 'lucide-react';
 
@@ -11,11 +11,27 @@ export const Lobby: React.FC = () => {
     const [isST, setIsST] = useState(false);
     const [isSpectating, setIsSpectating] = useState(false);
     const [roomCode, setRoomCode] = useState('');
+    const [isRoomCodeValid, setIsRoomCodeValid] = useState(false);
 
     // Local Audio for Lobby
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const fadeIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const [hasInteracted, setHasInteracted] = useState(false);
+
+    useEffect(() => {
+        if (roomCode.length === 4 && !isRoomCodeValid) {
+            setIsRoomCodeValid(true);
+            // Play unlock sound
+            const swordSfx = SOUND_EFFECTS.find(s => s.id === 'sword');
+            if (swordSfx) {
+                const audio = new Audio(swordSfx.url);
+                audio.volume = 0.4;
+                audio.play().catch(e => console.warn("SFX play failed", e));
+            }
+        } else if (roomCode.length !== 4 && isRoomCodeValid) {
+            setIsRoomCodeValid(false);
+        }
+    }, [roomCode, isRoomCodeValid]);
 
     useEffect(() => {
         const lobbyTrack = AUDIO_TRACKS.lobby;
@@ -183,7 +199,7 @@ export const Lobby: React.FC = () => {
                                     value={roomCode}
                                     onChange={(e) => setRoomCode(e.target.value)}
                                     placeholder="8888"
-                                    className="w-full input-gothic rounded px-4 py-3 text-center text-3xl font-cinzel tracking-[0.5em]"
+                                    className={`w-full input-gothic rounded px-4 py-3 text-center text-3xl font-cinzel tracking-[0.5em] transition-all duration-500 ${isRoomCodeValid ? 'border-green-500/50 shadow-[0_0_20px_rgba(34,197,94,0.2)] text-green-400' : ''}`}
                                 />
                             </div>
                         )}
@@ -191,7 +207,7 @@ export const Lobby: React.FC = () => {
                         <button
                             type="submit"
                             disabled={isSpectating ? roomCode.length !== 4 : !name.trim()}
-                            className="w-full btn-gothic py-4 rounded text-lg font-bold shadow-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={`w-full btn-gothic py-4 rounded text-lg font-bold shadow-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed ${isRoomCodeValid ? 'animate-shimmer border-green-500/50 text-green-100' : ''}`}
                         >
                             {isSpectating ? '以观众身份进入' : (isST ? '进入魔典' : '以玩家身份进入')}
                         </button>

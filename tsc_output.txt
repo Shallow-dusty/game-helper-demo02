@@ -1,0 +1,101 @@
+src/components/controls/Chat.tsx(5,10): error TS2305: Module '"react-window"' has no exported member 'FixedSizeList'.
+src/components/controls/Controls.tsx(386,121): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/game/ActiveAbilityButton.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/ActiveAbilityButton.tsx(3,42): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/game/FloatingNote.tsx(2,33): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/game/FloatingVoteButton.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/FloatingVoteButton.tsx(3,25): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/game/Grimoire.tsx(3,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/Grimoire.tsx(4,91): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/game/Grimoire.tsx(5,22): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/game/Grimoire.tsx(7,29): error TS2307: Cannot find module './Toast' or its corresponding type declarations.
+src/components/game/Grimoire.tsx(9,24): error TS2307: Cannot find module './ui/button' or its corresponding type declarations.
+src/components/game/Grimoire.tsx(10,58): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/game/Grimoire.tsx(12,30): error TS2307: Cannot find module '../hooks/useLongPress' or its corresponding type declarations.
+src/components/game/Grimoire.tsx(19,22): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/game/NightActionManager.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/NightActionManager.tsx(3,23): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/game/NightActionManager.tsx(4,36): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/game/NightActionPanel.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/NightActionPanel.tsx(3,32): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/game/PhaseIndicator.tsx(2,44): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/PhaseIndicator.tsx(3,25): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/game/PhaseIndicator.tsx(107,19): error TS18048: 'style' is possibly 'undefined'.
+src/components/game/PhaseIndicator.tsx(108,22): error TS18048: 'style' is possibly 'undefined'.
+src/components/game/PlayerNightAction.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/PlayerNightAction.tsx(3,32): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/game/RoleCard.tsx(2,25): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/game/RoleRevealModal.tsx(3,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/RoleRevealModal.tsx(4,36): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/game/StorytellerMenu.tsx(2,57): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/game/StorytellerMenu.tsx(3,34): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/game/StorytellerMenu.tsx(4,24): error TS2307: Cannot find module './ui/button' or its corresponding type declarations.
+src/components/game/StorytellerMenu.tsx(5,58): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/game/StorytellerNotebook.tsx(3,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/SwapRequestModal.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/SwapRequestModal.tsx(3,25): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/game/TownSquare.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/VotingChart.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/game/VotingChart.tsx(3,34): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/game/WaitingArea.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/history/GameHistoryView.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/history/GameHistoryView.tsx(3,40): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/history/GameHistoryView.tsx(4,26): error TS2307: Cannot find module './Grimoire' or its corresponding type declarations.
+src/components/history/GameHistoryView.tsx(5,29): error TS2307: Cannot find module './VotingChart' or its corresponding type declarations.
+src/components/history/HistoryViewer.tsx(3,29): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/history/HistoryViewer.tsx(4,29): error TS2307: Cannot find module './VotingChart' or its corresponding type declarations.
+src/components/lobby/Lobby.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/lobby/Lobby.tsx(3,30): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/lobby/Lobby.tsx(4,24): error TS2307: Cannot find module './ui/button' or its corresponding type declarations.
+src/components/lobby/Lobby.tsx(5,87): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/lobby/Lobby.tsx(6,35): error TS2307: Cannot find module './ui/BackgroundEffects' or its corresponding type declarations.
+src/components/lobby/RoomSelection.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/lobby/RoomSelection.tsx(3,33): error TS2307: Cannot find module '../sandboxStore' or its corresponding type declarations.
+src/components/lobby/RoomSelection.tsx(4,28): error TS2307: Cannot find module './AdminPanel' or its corresponding type declarations.
+src/components/lobby/RoomSelection.tsx(5,24): error TS2307: Cannot find module './ui/button' or its corresponding type declarations.
+src/components/lobby/RoomSelection.tsx(6,75): error TS2307: Cannot find module './ui/card' or its corresponding type declarations.
+src/components/lobby/RoomSelection.tsx(7,35): error TS2307: Cannot find module './ui/BackgroundEffects' or its corresponding type declarations.
+src/components/sandbox/SandboxView.tsx(2,33): error TS2307: Cannot find module '../sandboxStore' or its corresponding type declarations.
+src/components/sandbox/SandboxView.tsx(3,43): error TS2307: Cannot find module './Toast' or its corresponding type declarations.
+src/components/sandbox/SandboxView.tsx(4,36): error TS2307: Cannot find module './RoleReferencePanel' or its corresponding type declarations.
+src/components/sandbox/SandboxView.tsx(5,32): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/sandbox/SandboxView.tsx(6,25): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/sandbox/SandboxView.tsx(375,44): error TS18046: 'script' is of type 'unknown'.
+src/components/script/ScriptCompositionGuide.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/script/ScriptCompositionGuide.tsx(3,32): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/script/ScriptCompositionGuide.tsx(4,30): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/script/ScriptCompositionGuide.tsx(367,43): error TS2345: Argument of type '{}' is not assignable to parameter of type 'string'.
+src/components/script/ScriptEditor.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/script/ScriptEditor.tsx(3,23): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/script/ScriptEditor.tsx(4,43): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/script/ScriptEditor.tsx(90,80): error TS2339: Property 'id' does not exist on type '{}'.
+src/components/script/ScriptManager.tsx(2,32): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/script/ScriptManager.tsx(3,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/script/ScriptManager.tsx(4,40): error TS2307: Cannot find module './Toast' or its corresponding type declarations.
+src/components/script/ScriptReference.tsx(3,36): error TS2307: Cannot find module '../constants' or its corresponding type declarations.
+src/components/script/ScriptReference.tsx(15,31): error TS18046: 'role' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(15,65): error TS18046: 'role' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(16,44): error TS18046: 'role' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(21,46): error TS18046: 'r' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(22,45): error TS18046: 'r' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(23,43): error TS18046: 'r' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(24,42): error TS18046: 'r' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(25,45): error TS18046: 'r' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(80,47): error TS18046: 'role' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(82,97): error TS18046: 'role' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(83,46): error TS18046: 'role' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(83,97): error TS18046: 'role' is of type 'unknown'.
+src/components/script/ScriptReference.tsx(85,96): error TS18046: 'role' is of type 'unknown'.
+src/components/ui/AudioEnableOverlay.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/ui/InfoCard.tsx(2,42): error TS2307: Cannot find module '../types' or its corresponding type declarations.
+src/components/ui/NotificationSystem.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/components/ui/VoiceRoomLink.tsx(2,26): error TS2307: Cannot find module '../store' or its corresponding type declarations.
+src/store/slices/createConnectionSlice.ts(25,44): error TS2307: Cannot find module '../../components/Toast' or its corresponding type declarations.
+src/store/slices/createConnectionSlice.ts(85,70): error TS2721: Cannot invoke an object which is possibly 'null'.
+src/store/slices/createConnectionSlice.ts(87,70): error TS2721: Cannot invoke an object which is possibly 'null'.
+src/store/slices/createConnectionSlice.ts(95,66): error TS2721: Cannot invoke an object which is possibly 'null'.
+src/store/slices/createConnectionSlice.ts(201,66): error TS2721: Cannot invoke an object which is possibly 'null'.
+src/store/utils.test.ts(53,14): error TS2532: Object is possibly 'undefined'.
+src/store/utils.test.ts(59,14): error TS18048: 'secretState.seats' is possibly 'undefined'.
+src/store/utils.test.ts(59,14): error TS2532: Object is possibly 'undefined'.
+src/store/utils.test.ts(68,14): error TS2532: Object is possibly 'undefined'.

@@ -16,25 +16,13 @@ export type AiProvider =
     | 'sf_kimi_k2'
     | 'sf_kimi_k2_instruct';
 
-export interface AppState {
-    user: User | null;
+// --- GAME SLICE INTERFACE ---
+export interface GameSlice {
     gameState: GameState | null;
-    isAiThinking: boolean;
     isAudioBlocked: boolean;
-    isOffline: boolean;
-    connectionStatus: ConnectionStatus;
-    aiProvider: AiProvider;
-    roleReferenceMode: 'modal' | 'sidebar';
-    isSidebarExpanded: boolean;
-    isRolePanelOpen: boolean;
-    isRoleRevealOpen: boolean;
 
-    login: (name: string, isStoryteller: boolean) => void;
     createGame: (seatCount: number) => Promise<void>;
-    joinGame: (roomCode: string) => Promise<void>;
-    spectateGame: (roomCode: string) => Promise<void>;
-    leaveGame: () => void;
-
+    
     joinSeat: (seatId: number) => Promise<void>;
     leaveSeat: () => Promise<void>;
     sendMessage: (content: string, recipientId: string | null) => void;
@@ -49,21 +37,12 @@ export interface AppState {
     toggleVibration: () => void;
     addReminder: (seatId: number, text: string, icon?: string, color?: string) => void;
     removeReminder: (id: string) => void;
-    setRoleReferenceMode: (mode: 'modal' | 'sidebar') => void;
-    toggleSidebar: () => void;
-    openRolePanel: () => void;
-    closeRolePanel: () => void;
-    openRoleReveal: () => void;
-    closeRoleReveal: () => void;
     importScript: (jsonContent: string) => void;
 
     // Custom Scripts
     saveCustomScript: (script: import('../types').ScriptDefinition) => void;
     deleteCustomScript: (scriptId: string) => void;
     loadCustomScript: (scriptId: string) => void;
-
-    askAi: (prompt: string) => Promise<void>;
-    setAiProvider: (provider: AiProvider) => void;
 
     setAudioTrack: (trackId: string) => void;
     toggleAudioPlay: () => void;
@@ -113,13 +92,40 @@ export interface AppState {
     resolveNightAction: (requestId: string, result: string) => void;
     getPendingNightActions: () => NightActionRequest[];
 
-    // AI
-    clearAiMessages: () => void;
-    deleteAiMessage: (id: string) => void;
-
     // History
     fetchGameHistory: () => Promise<GameHistory[]>;
     saveGameHistory: (game: GameState) => Promise<void>;
+}
+
+export interface AppState extends GameSlice {
+    user: User | null;
+    isAiThinking: boolean;
+    isOffline: boolean;
+    connectionStatus: ConnectionStatus;
+    aiProvider: AiProvider;
+    roleReferenceMode: 'modal' | 'sidebar';
+    isSidebarExpanded: boolean;
+    isRolePanelOpen: boolean;
+    isRoleRevealOpen: boolean;
+
+    login: (name: string, isStoryteller: boolean) => void;
+    joinGame: (roomCode: string) => Promise<void>;
+    spectateGame: (roomCode: string) => Promise<void>;
+    leaveGame: () => void;
+
+    setRoleReferenceMode: (mode: 'modal' | 'sidebar') => void;
+    toggleSidebar: () => void;
+    openRolePanel: () => void;
+    closeRolePanel: () => void;
+    openRoleReveal: () => void;
+    closeRoleReveal: () => void;
+
+    askAi: (prompt: string) => Promise<void>;
+    setAiProvider: (provider: AiProvider) => void;
+
+    // AI
+    clearAiMessages: () => void;
+    deleteAiMessage: (id: string) => void;
 
     // Sync
     sync: () => void;

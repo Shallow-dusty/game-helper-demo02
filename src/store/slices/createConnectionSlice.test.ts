@@ -21,7 +21,7 @@ vi.mock('@supabase/supabase-js', () => {
         from: vi.fn(() => mockQueryBuilder),
         channel: vi.fn(() => ({
           on: vi.fn().mockReturnThis(),
-          subscribe: vi.fn((cb) => { cb && cb('SUBSCRIBED'); return {}; }),
+          subscribe: vi.fn((cb) => { cb?.('SUBSCRIBED'); return {}; }),
           unsubscribe: vi.fn(),
         })),
         removeChannel: vi.fn(),

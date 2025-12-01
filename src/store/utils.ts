@@ -1,4 +1,4 @@
-import { Seat, GameState } from '../types';
+import { Seat, GameState, StorytellerNote } from '../types';
 
 // --- DATA FILTERING UTILITIES ---
 // 数据视野隔离：根据用户身份过滤敏感信息
@@ -62,7 +62,7 @@ export const filterSeatForUser = (seat: Seat, currentUserId: string, isStorytell
 export const filterGameStateForUser = (gameState: GameState, currentUserId: string, isStoryteller: boolean): GameState => {
     // 获取当前用户的角色（真实角色，用于判断是否是间谍等）
     const userSeat = gameState.seats.find(s => s.userId === currentUserId);
-    const userRoleId = userSeat?.realRoleId || userSeat?.seenRoleId;
+    const userRoleId = userSeat?.realRoleId ?? userSeat?.seenRoleId;
 
     return {
         ...gameState,
@@ -101,13 +101,18 @@ export const addSystemMessage = (gameState: GameState, content: string) => {
 
 // --- SECURITY UTILITIES ---
 
+interface SecretState {
+    seats?: Partial<Seat>[];
+    storytellerNotes?: StorytellerNote[];
+}
+
 /**
  * 将完整游戏状态拆分为公开状态和秘密状态
  */
-export const splitGameState = (fullState: GameState): { publicState: GameState, secretState: Partial<GameState> } => {
+export const splitGameState = (fullState: GameState): { publicState: GameState, secretState: SecretState } => {
     // 1. 克隆状态以避免修改原始对象
     const publicState = JSON.parse(JSON.stringify(fullState)) as GameState;
-    const secretState: Partial<GameState> = {};
+    const secretState: SecretState = {};
 
     // 2. 提取敏感数据到 secretState
     // 真实角色 ID
@@ -115,7 +120,7 @@ export const splitGameState = (fullState: GameState): { publicState: GameState, 
         id: s.id,
         realRoleId: s.realRoleId,
         // 其他敏感字段如果需要也可以放在这里
-    })) as any;
+    }));
 
     // 说书人笔记
     secretState.storytellerNotes = fullState.storytellerNotes;
@@ -136,17 +141,17 @@ export const splitGameState = (fullState: GameState): { publicState: GameState, 
 /**
  * 将公开状态和秘密状态合并为完整状态
  */
-export const mergeGameState = (publicState: GameState, secretState: any): GameState => {
+export const mergeGameState = (publicState: GameState, secretState: SecretState): GameState => {
     if (!secretState) return publicState;
 
     const mergedState = JSON.parse(JSON.stringify(publicState)) as GameState;
 
     // 1. 恢复座位真实角色
     if (secretState.seats && Array.isArray(secretState.seats)) {
-        secretState.seats.forEach((secretSeat: any) => {
+        secretState.seats.forEach((secretSeat) => {
             const targetSeat = mergedState.seats.find(s => s.id === secretSeat.id);
             if (targetSeat) {
-                targetSeat.realRoleId = secretSeat.realRoleId;
+                targetSeat.realRoleId = secretSeat.realRoleId ?? null;
             }
         });
     }

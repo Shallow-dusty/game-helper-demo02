@@ -102,8 +102,14 @@ src/
 
 ```
 supabase/
-├── supabase_schema.sql     # 完整的数据库 Schema 定义 (表结构, RLS 策略, RPC 函数)
-└── supabase_migration.sql  # 数据库迁移脚本
+├── config.toml              # Supabase 配置文件
+├── functions/               # Edge Functions
+│   └── ask-ai/             # AI 助手函数
+├── migrations/              # 数据库迁移脚本
+│   └── supabase_migration.sql
+└── schema/                  # 数据库 Schema 定义
+    ├── supabase_schema.sql         # 完整的表结构、RLS 策略、RPC 函数
+    └── supabase_security_patch.sql # 安全补丁
 ```
 
 关键表结构：

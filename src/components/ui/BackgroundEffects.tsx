@@ -46,3 +46,6 @@ export const BackgroundEffects: React.FC = () => {
         </div>
     );
 };
+
+
+

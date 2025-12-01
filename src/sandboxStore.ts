@@ -29,7 +29,7 @@ const getInitialSandboxState = (seatCount: number, scriptId = 'tb'): GameState =
     seats: Array.from({ length: seatCount }, (_, i) => ({
         id: i,
         userId: `sandbox_player_${i}`,
-        userName: `玩家 ${i + 1}`,
+        userName: `玩家 ${String(i + 1)}`,
         isDead: false,
         hasGhostVote: true,
         roleId: null,
@@ -114,7 +114,7 @@ interface SandboxState {
 }
 
 export const useSandboxStore = create<SandboxState>()(
-    immer((set, get) => ({
+    immer((set) => ({
         isActive: false,
         gameState: null,
 
@@ -133,192 +133,165 @@ export const useSandboxStore = create<SandboxState>()(
         },
 
         setPhase: (phase) => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            const prevPhase = gameState.phase;
-            gameState.phase = phase;
-
-            // 使用共享的阶段变更处理逻辑
-            handlePhaseChange(gameState, phase, prevPhase);
-
-            set({ gameState: { ...gameState } });
+            set((state) => {
+                if (!state.gameState) return;
+                const prevPhase = state.gameState.phase;
+                state.gameState.phase = phase;
+                handlePhaseChange(state.gameState, phase, prevPhase);
+            });
         },
 
         setScript: (scriptId) => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            const script = SCRIPTS[scriptId];
-            if (!script) return;
-
-            gameState.currentScriptId = scriptId;
-            addSystemMessage(gameState, `剧本已切换为: ${script.name}`);
-            set({ gameState: { ...gameState } });
+            set((state) => {
+                if (!state.gameState) return;
+                const script = SCRIPTS[scriptId];
+                if (!script) return;
+                state.gameState.currentScriptId = scriptId;
+                addSystemMessage(state.gameState, `剧本已切换为: ${script.name}`);
+            });
         },
 
         assignRole: (seatId, roleId) => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            const seat = gameState.seats.find(s => s.id === seatId);
-            if (seat) {
-                applyRoleToSeat(seat, roleId);
-            }
-            set({ gameState: { ...gameState } });
+            set((state) => {
+                if (!state.gameState) return;
+                const seat = state.gameState.seats.find(s => s.id === seatId);
+                if (seat) {
+                    applyRoleToSeat(seat, roleId);
+                }
+            });
         },
 
         toggleDead: (seatId) => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            const seat = gameState.seats.find(s => s.id === seatId);
-            if (seat) {
-                const message = toggleSeatDead(seat);
-                addSystemMessage(gameState, message);
-            }
-            set({ gameState: { ...gameState } });
+            set((state) => {
+                if (!state.gameState) return;
+                const seat = state.gameState.seats.find(s => s.id === seatId);
+                if (seat) {
+                    const message = toggleSeatDead(seat);
+                    addSystemMessage(state.gameState, message);
+                }
+            });
         },
 
         toggleAbilityUsed: (seatId) => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            const seat = gameState.seats.find(s => s.id === seatId);
-            if (seat) {
-                seat.hasUsedAbility = !seat.hasUsedAbility;
-            }
-            set({ gameState: { ...gameState } });
+            set((state) => {
+                if (!state.gameState) return;
+                const seat = state.gameState.seats.find(s => s.id === seatId);
+                if (seat) {
+                    seat.hasUsedAbility = !seat.hasUsedAbility;
+                }
+            });
         },
 
         addReminder: (seatId, text, icon, color) => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            const seat = gameState.seats.find(s => s.id === seatId);
-            if (seat) {
-                seat.reminders.push(createReminder(seatId, text, 'ST', icon, color));
-            }
-            set({ gameState: { ...gameState } });
+            set((state) => {
+                if (!state.gameState) return;
+                const seat = state.gameState.seats.find(s => s.id === seatId);
+                if (seat) {
+                    seat.reminders.push(createReminder(seatId, text, 'ST', icon, color));
+                }
+            });
         },
 
         removeReminder: (id) => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            gameState.seats.forEach(seat => {
-                seat.reminders = seat.reminders.filter(r => r.id !== id);
+            set((state) => {
+                if (!state.gameState) return;
+                state.gameState.seats.forEach(seat => {
+                    seat.reminders = seat.reminders.filter(r => r.id !== id);
+                });
             });
-            set({ gameState: { ...gameState } });
         },
 
         nightNext: () => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            if (gameState.nightCurrentIndex < gameState.nightQueue.length - 1) {
-                gameState.nightCurrentIndex++;
-            } else {
-                // 夜晚结束
-                get().setPhase('DAY');
-            }
-            set({ gameState: { ...gameState } });
+            set((state) => {
+                if (!state.gameState) return;
+                if (state.gameState.nightCurrentIndex < state.gameState.nightQueue.length - 1) {
+                    state.gameState.nightCurrentIndex++;
+                } else {
+                    // 夜晚结束
+                    const prevPhase = state.gameState.phase;
+                    state.gameState.phase = 'DAY';
+                    handlePhaseChange(state.gameState, 'DAY', prevPhase);
+                }
+            });
         },
 
         nightPrev: () => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            if (gameState.nightCurrentIndex > 0) {
-                gameState.nightCurrentIndex--;
-            }
-            set({ gameState: { ...gameState } });
+            set((state) => {
+                if (!state.gameState) return;
+                if (state.gameState.nightCurrentIndex > 0) {
+                    state.gameState.nightCurrentIndex--;
+                }
+            });
         },
 
         startVote: (nomineeId) => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            const nominee = gameState.seats.find(s => s.id === nomineeId);
-            if (!nominee) return;
-
-            gameState.voting = createVotingState(nomineeId);
-
-            addSystemMessage(gameState, `开始对 ${nominee.userName} 进行投票。`);
-            set({ gameState: { ...gameState } });
+            set((state) => {
+                if (!state.gameState) return;
+                const nominee = state.gameState.seats.find(s => s.id === nomineeId);
+                if (!nominee) return;
+                state.gameState.voting = createVotingState(nomineeId);
+                addSystemMessage(state.gameState, `开始对 ${nominee.userName} 进行投票。`);
+            });
         },
 
         closeVote: () => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            gameState.voting = null;
-            addSystemMessage(gameState, '投票已结束。');
-            set({ gameState: { ...gameState } });
+            set((state) => {
+                if (!state.gameState) return;
+                state.gameState.voting = null;
+                addSystemMessage(state.gameState, '投票已结束。');
+            });
         },
 
         addSeat: () => {
-            const { gameState } = get();
-            if (!gameState || gameState.seats.length >= 20) return;
-
-            const newId = gameState.seats.length;
-            gameState.seats.push({
-                id: newId,
-                userId: `sandbox_player_${newId}`,
-                userName: `玩家 ${newId + 1}`,
-                isDead: false,
-                hasGhostVote: true,
-                roleId: null,
-                realRoleId: null,
-                seenRoleId: null,
-                reminders: [],
-                isHandRaised: false,
-                isNominated: false,
-                hasUsedAbility: false,
-                statuses: [],
-                voteLocked: false,
-                isVirtual: true
+            set((state) => {
+                if (!state.gameState || state.gameState.seats.length >= 20) return;
+                const newId = state.gameState.seats.length;
+                state.gameState.seats.push({
+                    id: newId,
+                    userId: `sandbox_player_${newId}`,
+                    userName: `玩家 ${String(newId + 1)}`,
+                    isDead: false,
+                    hasGhostVote: true,
+                    roleId: null,
+                    realRoleId: null,
+                    seenRoleId: null,
+                    reminders: [],
+                    isHandRaised: false,
+                    isNominated: false,
+                    hasUsedAbility: false,
+                    statuses: [],
+                    voteLocked: false,
+                    isVirtual: true
+                });
             });
-
-            set({ gameState: { ...gameState } });
         },
 
         removeSeat: () => {
-            const { gameState } = get();
-            if (!gameState || gameState.seats.length <= 5) return;
-
-            gameState.seats.pop();
-            set({ gameState: { ...gameState } });
+            set((state) => {
+                if (!state.gameState || state.gameState.seats.length <= 5) return;
+                state.gameState.seats.pop();
+            });
         },
 
         assignRoles: () => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            const seatCount = gameState.seats.length;
-            const roles = generateRoleAssignment(gameState.currentScriptId, seatCount);
-
-            if (roles.length === 0) return;
-
-            gameState.seats.forEach((seat, idx) => {
-                if (idx < roles.length) {
-                    applyRoleToSeat(seat, roles[idx] ?? null);
-                }
+            set((state) => {
+                if (!state.gameState) return;
+                const seatCount = state.gameState.seats.length;
+                const roles = generateRoleAssignment(state.gameState.currentScriptId, seatCount);
+                if (roles.length === 0) return;
+                state.gameState.seats.forEach((seat, idx) => {
+                    if (idx < roles.length) {
+                        applyRoleToSeat(seat, roles[idx] ?? null);
+                    }
+                });
+                addSystemMessage(state.gameState, `已自动分配角色 (${String(seatCount)}人)`);
             });
-
-            addSystemMessage(gameState, `已自动分配角色 (${seatCount}人)`);
-            set({ gameState: { ...gameState } });
         },
 
         resetGame: () => {
-            const { gameState } = get();
-            if (!gameState) return;
-
-            const seatCount = gameState.seats.length;
-            const scriptId = gameState.currentScriptId;
-
-            set({
-                gameState: getInitialSandboxState(seatCount, scriptId)
+            set((state) => {
+                if (!state.gameState) return;
+                state.gameState = getInitialSandboxState(state.gameState.seats.length, state.gameState.currentScriptId);
             });
         }
     }))

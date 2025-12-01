@@ -77,7 +77,7 @@ export interface ScriptDefinition {
   author?: string;
   description?: string;
   roles: string[]; // Role IDs
-  meta?: any; // Extra metadata
+  meta?: Record<string, unknown>; // Extra metadata
   isCustom?: boolean;
 }
 

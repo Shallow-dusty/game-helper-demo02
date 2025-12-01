@@ -269,13 +269,14 @@ export const checkGameOver = (seats: Seat[]): {
     
     // Saint Check
     const saint = seats.find(s => s.realRoleId === 'saint');
-    if (saint && saint.isDead) { 
+    if (saint?.isDead) { 
         return {
             isOver: true,
             winner: 'EVIL',
-            reason: '圣徒被处决，邪恶胜利！'
+            reason: '圣徒被处决,邪恶胜利！'
         };
     }
+
 
     return null;
 };

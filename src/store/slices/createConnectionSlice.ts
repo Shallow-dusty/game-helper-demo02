@@ -22,12 +22,11 @@ let isReceivingUpdate = false;
 let showErrorFn: ((msg: string) => void) | null = null;
 const getToastFunctions = async () => {
     if (!showErrorFn) {
-        const { showError } = await import('../../components/Toast');
+        const { showError } = await import('../../components/ui/Toast');
         showErrorFn = showError;
     }
     return { showError: showErrorFn };
 };
-
 export interface ConnectionSlice {
     user: User | null;
     isOffline: boolean;

@@ -50,13 +50,13 @@ describe('utils', () => {
   describe('splitGameState', () => {
     it('should remove sensitive data from public state', () => {
       const { publicState } = splitGameState(mockGameState);
-      expect(publicState.seats![0]!.realRoleId).toBeNull();
+      expect(publicState.seats?.[0]?.realRoleId).toBeNull();
       expect(publicState.storytellerNotes).toHaveLength(0);
     });
 
     it('should preserve sensitive data in secret state', () => {
       const { secretState } = splitGameState(mockGameState);
-      expect(secretState.seats![0]!.realRoleId).toBe('drunk');
+      expect(secretState.seats?.[0]?.realRoleId).toBe('drunk');
       expect(secretState.storytellerNotes).toHaveLength(1);
     });
   });
@@ -65,7 +65,7 @@ describe('utils', () => {
     it('should merge secret state back into public state', () => {
       const { publicState, secretState } = splitGameState(mockGameState);
       const merged = mergeGameState(publicState, secretState);
-      expect(merged.seats![0]!.realRoleId).toBe('drunk');
+      expect(merged.seats?.[0]?.realRoleId).toBe('drunk');
       expect(merged.storytellerNotes).toHaveLength(1);
     });
   });

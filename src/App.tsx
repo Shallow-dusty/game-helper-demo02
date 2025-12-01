@@ -1,26 +1,38 @@
+
 import { useEffect, useState, useRef } from 'react';
 import { useStore } from './store';
 import { useSandboxStore } from './sandboxStore';
-import { Lobby } from './components/Lobby';
-import { RoomSelection } from './components/RoomSelection';
-import { Grimoire } from './components/Grimoire';
-import { Controls } from './components/Controls';
-import { AudioManager } from './components/AudioManager';
-import { RoleReferencePanel } from './components/RoleReferencePanel';
-import { RoleReferenceSidebar } from './components/RoleReferenceSidebar';
-import { FloatingVoteButton } from './components/FloatingVoteButton';
-import { SCRIPTS, ROLES, Z_INDEX } from './constants';
-import { PhaseIndicator } from './components/PhaseIndicator';
-import { WaitingArea } from './components/WaitingArea';
-import { ToastContainer, useToasts } from './components/Toast';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { WelcomeAnnouncement } from './components/WelcomeAnnouncement';
-import { RoleRevealModal } from './components/RoleRevealModal';
 
-import { SandboxView } from './components/SandboxView';
-import { TownSquare } from './components/TownSquare';
-import { SwapRequestModal } from './components/SwapRequestModal';
-import { Confetti } from './components/Confetti';
+// Lobby
+import { Lobby } from './components/lobby/Lobby';
+import { RoomSelection } from './components/lobby/RoomSelection';
+
+// Game
+import { Grimoire } from './components/game/Grimoire';
+import { TownSquare } from './components/game/TownSquare';
+import { PhaseIndicator } from './components/game/PhaseIndicator';
+import { WaitingArea } from './components/game/WaitingArea';
+import { FloatingVoteButton } from './components/game/FloatingVoteButton';
+import { RoleRevealModal } from './components/game/RoleRevealModal';
+import { SwapRequestModal } from './components/game/SwapRequestModal';
+import { Confetti } from './components/game/Confetti';
+import { WelcomeAnnouncement } from './components/game/WelcomeAnnouncement';
+
+// Controls
+import { Controls } from './components/controls/Controls';
+import { AudioManager } from './components/controls/AudioManager';
+import { RoleReferencePanel } from './components/controls/RoleReferencePanel';
+import { RoleReferenceSidebar } from './components/controls/RoleReferenceSidebar';
+
+// Sandbox
+import { SandboxView } from './components/sandbox/SandboxView';
+
+// UI
+import { ToastContainer, useToasts } from './components/ui/Toast';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
+
+// Constants
+import { SCRIPTS, ROLES, Z_INDEX } from './constants';
 
 const getViewportMetrics = () => {
   if (typeof window === 'undefined') {
@@ -28,15 +40,15 @@ const getViewportMetrics = () => {
   }
   const vv = window.visualViewport;
   return {
-    width: Math.round(vv?.width || window.innerWidth),
-    height: Math.round(vv?.height || window.innerHeight)
+    width: Math.round(vv?.width ?? window.innerWidth),
+    height: Math.round(vv?.height ?? window.innerHeight)
   };
 };
 
 const App = () => {
   const user = useStore(state => state.user);
   const gameState = useStore(state => state.gameState);
-  const sync = useStore(state => state.sync);
+
   const isAudioBlocked = useStore(state => state.isAudioBlocked);
   const toggleAudioPlay = useStore(state => state.toggleAudioPlay);
   const roleReferenceMode = useStore(state => state.roleReferenceMode);
@@ -56,43 +68,9 @@ const App = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [viewportSize, setViewportSize] = useState(() => getViewportMetrics());
+  const [viewportSize] = useState(() => getViewportMetrics());
 
-  useEffect(() => {
-    // Initial sync
-    sync();
-  }, [sync]);
 
-  // Track actual viewport size (accounts for mobile browser UI chrome)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const updateViewport = () => {
-      const next = getViewportMetrics();
-      setViewportSize(next);
-      document.documentElement.style.setProperty('--app-height', `${next.height}px`);
-    };
-
-    updateViewport();
-
-    const handleResize = () => updateViewport();
-    const handleOrientation = () => updateViewport();
-    const vv = window.visualViewport;
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleOrientation);
-    vv?.addEventListener('resize', handleResize);
-    vv?.addEventListener('scroll', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleOrientation);
-      vv?.removeEventListener('resize', handleResize);
-      vv?.removeEventListener('scroll', handleResize);
-    };
-  }, []);
-
-  // Separate effect for ResizeObserver
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -132,6 +110,7 @@ const App = () => {
     setTimeout(() => toggleAudioPlay(), 100);
   };
 
+
   useEffect(() => {
     if (gameState) {
       document.body.style.overflow = 'hidden';
@@ -163,20 +142,20 @@ const App = () => {
   }
 
   // 3. In Game -> Grimoire
-  const isNight = gameState?.phase === 'NIGHT';
+  const isNight = gameState.phase === 'NIGHT';
   const appHeight = viewportSize.height > 0 ? viewportSize.height : undefined;
 
   return (
     <div
       className="flex flex-col w-screen bg-stone-950 overflow-hidden relative font-serif"
       style={{
-        minHeight: appHeight ? `${appHeight}px` : '100vh',
-        height: appHeight ? `${appHeight}px` : '100vh'
+        minHeight: appHeight ? `${String(appHeight)}px` : '100vh',
+        height: appHeight ? `${String(appHeight)}px` : '100vh'
       }}
     >
       <Confetti
-        active={!!gameState?.gameOver?.winner}
-        colors={gameState?.gameOver?.winner === 'GOOD'
+        active={!!gameState.gameOver.winner}
+        colors={gameState.gameOver.winner === 'GOOD'
           ? ['#3b82f6', '#fbbf24', '#60a5fa', '#f59e0b', '#ffffff']
           : ['#ef4444', '#a855f7', '#dc2626', '#7c3aed', '#000000']
         }
@@ -215,7 +194,7 @@ const App = () => {
             {user.isStoryteller ? 'Right Click: Manage • Scroll: Zoom (Beta)' : (user.isObserver ? 'Spectating Mode' : 'Wait for the Storyteller...')}
           </div>
 
-          {isAudioBlocked && gameState?.audio.isPlaying && (
+          {isAudioBlocked && gameState.audio.isPlaying && (
             <button
               onClick={handleManualAudioStart}
               className="absolute top-6 left-6 z-50 bg-amber-600/90 hover:bg-amber-500 text-white px-4 py-2 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-2 animate-pulse font-bold text-sm"
@@ -261,18 +240,18 @@ const App = () => {
         />
       )}
 
-      {gameState && (() => {
+      {(() => {
         const scriptDef = gameState.currentScriptId === 'custom'
           ? null
           : SCRIPTS[gameState.currentScriptId];
 
         const currentScript = (gameState.currentScriptId === 'custom'
           ? Object.values(gameState.customRoles)
-          : (scriptDef?.roles || []).map(roleId => ROLES[roleId])
+          : (scriptDef?.roles ?? []).map(roleId => ROLES[roleId])
         ).filter((r): r is NonNullable<typeof r> => r !== undefined);
 
         const playerSeat = gameState.seats.find(s => s.userId === user.id);
-        const playerRoleId = playerSeat?.roleId || null;
+        const playerRoleId = playerSeat?.seenRoleId ?? null;
 
         return (
           <>
@@ -297,16 +276,14 @@ const App = () => {
         );
       })()}
 
-      {gameState && (
-        <button
-          onClick={() => roleReferenceMode === 'modal' ? openRolePanel() : toggleSidebar()}
-          className="fixed bottom-20 md:bottom-6 left-4 md:left-6 z-30 bg-amber-900 hover:bg-amber-800 text-amber-200 p-3 md:p-4 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"
-          style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
-          title="查看规则手册"
-        >
-          <span className="text-xl md:text-2xl">📖</span>
-        </button>
-      )}
+      <button
+        onClick={() => roleReferenceMode === 'modal' ? openRolePanel() : toggleSidebar()}
+        className="fixed bottom-20 md:bottom-6 left-4 md:left-6 z-30 bg-amber-900 hover:bg-amber-800 text-amber-200 p-3 md:p-4 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"
+        style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        title="查看规则手册"
+      >
+        <span className="text-xl md:text-2xl">📖</span>
+      </button>
     </div>
   );
 };

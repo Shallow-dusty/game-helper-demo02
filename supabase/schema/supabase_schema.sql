@@ -259,3 +259,105 @@ create index if not exists idx_game_rooms_room_code on game_rooms(room_code);
 create index if not exists idx_seat_secrets_room_id on seat_secrets(room_id);
 create index if not exists idx_game_messages_room_id on game_messages(room_id);
 create index if not exists idx_game_messages_created_at on game_messages(created_at);
+
+-- ============================================================
+-- Toggle Hand Function (Atomic Voting)
+-- ============================================================
+
+create or replace function toggle_hand(
+  p_room_code text,
+  p_seat_id int,
+  p_user_id text
+) returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+  v_room_data jsonb;
+  v_seats jsonb;
+  v_target_seat jsonb;
+  v_is_hand_raised boolean;
+begin
+  -- Lock the room row for update
+  select data into v_room_data
+  from game_rooms
+  where room_code = p_room_code
+  for update;
+  
+  if v_room_data is null then
+    return jsonb_build_object('success', false, 'error', 'Room not found');
+  end if;
+  
+  v_seats := v_room_data->'seats';
+  v_target_seat := v_seats->p_seat_id;
+  
+  -- Verify user owns the seat
+  if v_target_seat->>'userId' != p_user_id then
+    return jsonb_build_object('success', false, 'error', 'Not your seat');
+  end if;
+  
+  -- Toggle hand
+  v_is_hand_raised := coalesce((v_target_seat->>'isHandRaised')::boolean, false);
+  
+  v_seats := jsonb_set(
+    v_seats,
+    array[p_seat_id::text, 'isHandRaised'],
+    to_jsonb(not v_is_hand_raised)
+  );
+  
+  -- Save updated data
+  update game_rooms
+  set 
+    data = jsonb_set(v_room_data, '{seats}', v_seats),
+    updated_at = now()
+  where room_code = p_room_code;
+  
+  return jsonb_build_object('success', true, 'isHandRaised', not v_is_hand_raised);
+end;
+$$;
+
+-- ============================================================
+-- Submit Night Action Function
+-- ============================================================
+
+create or replace function submit_night_action(
+  p_room_code text,
+  p_seat_id int,
+  p_role_id text,
+  p_payload jsonb
+) returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+  v_room_data jsonb;
+  v_requests jsonb;
+  v_new_request jsonb;
+begin
+  select data into v_room_data from game_rooms where room_code = p_room_code for update;
+  
+  if v_room_data is null then return jsonb_build_object('success', false, 'error', 'Room not found'); end if;
+  
+  v_requests := coalesce(v_room_data->'nightActionRequests', '[]'::jsonb);
+  
+  v_new_request := jsonb_build_object(
+    'id', gen_random_uuid(),
+    'seatId', p_seat_id,
+    'roleId', p_role_id,
+    'payload', p_payload,
+    'status', 'pending',
+    'timestamp', extract(epoch from now()) * 1000
+  );
+  
+  v_requests := v_requests || v_new_request;
+  
+  update game_rooms
+  set data = jsonb_set(v_room_data, '{nightActionRequests}', v_requests),
+      updated_at = now()
+  where room_code = p_room_code;
+  
+  return jsonb_build_object('success', true);
+end;
+$$;
+
+

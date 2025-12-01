@@ -1,5 +1,6 @@
 import { StoreSlice, GameSlice } from '../../types';
 import { addSystemMessage } from '../../utils';
+import { supabase } from '../createConnectionSlice';
 import { PHASE_LABELS, NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '../../../constants';
 import { checkGameOver } from '../../../lib/gameLogic';
 
@@ -94,20 +95,50 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
         get().sync();
     },
 
-    toggleHand: () => {
-        set((state) => {
-            if (state.gameState?.voting) {
-                const current = state.gameState.voting.clockHandSeatId;
-                if (current !== null) {
-                    if (state.gameState.voting.votes.includes(current)) {
-                        state.gameState.voting.votes = state.gameState.voting.votes.filter(v => v !== current);
+    toggleHand: async () => {
+        const { user, gameState } = get();
+        if (!user || !gameState?.voting) return;
+
+        const current = gameState.voting.clockHandSeatId;
+        if (current === null) return;
+
+        // Check if user owns the current seat
+        const seat = gameState.seats.find(s => s.id === current);
+        if (!seat || seat.userId !== user.id) {
+            // If not the user's seat, do nothing (or show error)
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase.rpc('toggle_hand', {
+                p_room_code: user.roomId,
+                p_seat_id: current,
+                p_user_id: user.id
+            });
+
+            if (error) throw error;
+            if (data && !data.success) {
+                console.error('Toggle hand failed:', data.error);
+                return;
+            }
+
+            // Optimistic update
+            set((state) => {
+                if (state.gameState?.voting) {
+                    const isRaised = data.isHandRaised;
+                    if (isRaised) {
+                        if (!state.gameState.voting.votes.includes(current)) {
+                            state.gameState.voting.votes.push(current);
+                        }
                     } else {
-                        state.gameState.voting.votes.push(current);
+                        state.gameState.voting.votes = state.gameState.voting.votes.filter(v => v !== current);
                     }
                 }
-            }
-        });
-        get().sync();
+            });
+
+        } catch (error: any) {
+            console.error('Toggle hand error:', error);
+        }
     },
 
     closeVote: () => {

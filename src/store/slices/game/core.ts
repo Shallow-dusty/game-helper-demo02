@@ -62,66 +62,63 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
         const { user, gameState } = get();
         if (!user || !gameState) return;
 
+        // Optimistic check
         const seat = gameState.seats.find(s => s.id === seatId);
-        if (!seat) return;
+        if (!seat || seat.userId) return;
 
-        const existingSeat = gameState.seats.find(s => s.userId === user.id);
-        if (existingSeat) {
-            return;
-        }
+        try {
+            const { data, error } = await supabase.rpc('claim_seat', {
+                p_room_code: user.roomId,
+                p_seat_id: seatId,
+                p_user_id: user.id,
+                p_player_name: user.name,
+                p_client_token: user.id // Using user.id as token for now
+            });
 
-        if (seat.userId) {
-            return;
-        }
-
-        set((state) => {
-            if (state.gameState) {
-                const s = state.gameState.seats.find(x => x.id === seatId);
-                if (s) {
-                    s.userId = user.id;
-                    s.userName = user.name;
-                }
-                addSystemMessage(state.gameState, `${user.name} 入座了 ${seatId + 1} 号位`);
+            if (error) throw error;
+            if (data && !data.success) {
+                addSystemMessage(gameState, `入座失败: ${data.error}`);
+                return;
             }
-            if (state.user) {
-                state.user.isSeated = true;
-            }
-        });
 
-        get().sync();
+            // Success - update local state optimistically or wait for subscription
+            set((state) => {
+                if (state.user) state.user.isSeated = true;
+            });
+            
+        } catch (error: any) {
+            console.error('Join seat error:', error);
+            addSystemMessage(gameState, `入座出错: ${error.message}`);
+        }
     },
 
     leaveSeat: async () => {
-        const { user } = get();
-        if (!user) return;
+        const { user, gameState } = get();
+        if (!user || !gameState) return;
 
-        set((state) => {
-            if (state.gameState) {
-                const seat = state.gameState.seats.find(s => s.userId === user.id);
-                if (seat) {
-                    seat.userId = null;
-                    seat.userName = `座位 ${seat.id + 1}`;
-                    seat.roleId = null;
-                    seat.realRoleId = null;
-                    seat.seenRoleId = null;
-                    seat.isHandRaised = false;
-                    seat.reminders = [];
-                    seat.statuses = [];
-                    seat.isDead = false;
-                    seat.hasGhostVote = true;
-                    seat.isNominated = false;
-                    seat.hasUsedAbility = false;
-                    seat.voteLocked = false;
-                    
-                    addSystemMessage(state.gameState, `${user.name} 离开了座位`);
-                }
-            }
-            if (state.user) {
-                state.user.isSeated = false;
-            }
-        });
+        const seat = gameState.seats.find(s => s.userId === user.id);
+        if (!seat) return;
 
-        get().sync();
+        try {
+            const { data, error } = await supabase.rpc('leave_seat', {
+                p_room_code: user.roomId,
+                p_seat_id: seat.id,
+                p_client_token: user.id
+            });
+
+            if (error) throw error;
+            if (data && !data.success) {
+                console.error('Leave seat failed:', data.error);
+                return;
+            }
+
+            set((state) => {
+                if (state.user) state.user.isSeated = false;
+            });
+
+        } catch (error: any) {
+            console.error('Leave seat error:', error);
+        }
     },
 
     toggleReady: () => {

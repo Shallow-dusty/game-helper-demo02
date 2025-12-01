@@ -74,38 +74,43 @@ export const Lobby: React.FC = () => {
     };
 
     const fadeOutAudio = () => {
-        if (audioRef.current) {
-            let vol = 0.4;
-            fadeIntervalRef.current = setInterval(() => {
-                vol -= 0.05;
-                if (vol <= 0) {
-                    if (fadeIntervalRef.current) {
-                        clearInterval(fadeIntervalRef.current);
-                        fadeIntervalRef.current = null;
+        return new Promise<void>((resolve) => {
+            if (audioRef.current) {
+                let vol = 0.4;
+                fadeIntervalRef.current = setInterval(() => {
+                    vol -= 0.05;
+                    if (vol <= 0) {
+                        if (fadeIntervalRef.current) {
+                            clearInterval(fadeIntervalRef.current);
+                            fadeIntervalRef.current = null;
+                        }
+                        if (audioRef.current) {
+                            audioRef.current.pause();
+                            audioRef.current.src = '';
+                        }
+                        resolve();
+                    } else if (audioRef.current) {
+                        audioRef.current.volume = Math.max(0, vol);
                     }
-                    if (audioRef.current) {
-                        audioRef.current.pause();
-                        audioRef.current.src = '';
-                    }
-                } else if (audioRef.current) {
-                    audioRef.current.volume = Math.max(0, vol);
-                }
-            }, 100);
-        }
+                }, 100);
+            } else {
+                resolve();
+            }
+        });
     };
 
-    const handleJoin = (e: React.FormEvent) => {
+    const handleJoin = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isSpectating) {
             if (roomCode.length === 4) {
-                fadeOutAudio();
+                await fadeOutAudio();
                 spectateGame(roomCode);
             }
             return;
         }
 
         if (name.trim()) {
-            fadeOutAudio();
+            await fadeOutAudio();
             login(name, isST);
         }
     };

@@ -152,7 +152,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
     return (
         <div
-            className="bg-stone-950 border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif relative transition-none"
+            className="glass-panel border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif relative transition-none"
             style={{ width: isMobile ? '100%' : `${width}px` }}
         >
             {/* Drag Handle (Desktop Only) */}
@@ -235,8 +235,8 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                         className={cn(
                             "flex-1 py-3 px-2 text-xs font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group flex items-center justify-center gap-2 min-w-[80px]",
                             activeTab === tab.id
-                                ? 'border-amber-600 text-amber-500 bg-stone-900/50'
-                                : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/30'
+                                ? 'border-amber-600 text-amber-500 bg-black/40'
+                                : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-black/20'
                         )}
                     >
                         <span className="group-hover:scale-110 transition-transform">{tab.icon}</span>

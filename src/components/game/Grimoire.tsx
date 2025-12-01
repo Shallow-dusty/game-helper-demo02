@@ -144,24 +144,33 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
         />
       )}
 
-      {/* Seat Circle (Token Base) */}
+      {/* Seat Circle (Token Base) with 3D Effect */}
       <Circle
         radius={tokenRadius}
-        fill={seat.isDead ? '#44403c' : TEAM_COLORS[roleDef?.team || 'TOWNSFOLK']}
-        stroke={isCurrentUser ? '#f59e0b' : '#292524'}
-        strokeWidth={isCurrentUser ? 4 : 2}
-        shadowBlur={isCurrentUser ? 15 : 5}
-        shadowColor={isCurrentUser ? '#f59e0b' : 'black'}
-        opacity={seat.isDead ? 0.8 : 1}
+        fillRadialGradientStartPoint={{ x: -tokenRadius / 3, y: -tokenRadius / 3 }}
+        fillRadialGradientStartRadius={0}
+        fillRadialGradientEndPoint={{ x: 0, y: 0 }}
+        fillRadialGradientEndRadius={tokenRadius}
+        fillRadialGradientColorStops={[
+          0, seat.isDead ? '#57534e' : (isCurrentUser ? '#fbbf24' : '#57534e'), // Highlight
+          0.4, seat.isDead ? '#292524' : (TEAM_COLORS[roleDef?.team || 'TOWNSFOLK'] || '#44403c'), // Midtone
+          1, '#0c0a09' // Shadow
+        ]}
+        stroke={isCurrentUser ? '#f59e0b' : '#78350f'}
+        strokeWidth={isCurrentUser ? 3 : 2}
+        shadowBlur={isCurrentUser ? 15 : 10}
+        shadowColor={isCurrentUser ? '#f59e0b' : '#000'}
+        shadowOpacity={0.8}
+        opacity={seat.isDead ? 0.9 : 1}
         dash={seat.isVirtual ? [5, 5] : undefined}
       />
 
-      {/* Inner Ring for Style */}
+      {/* Inner Gold Ring for Style */}
       <Circle
         radius={tokenRadius - 4}
-        stroke="#ffffff"
+        stroke="#d4af37"
         strokeWidth={1}
-        opacity={0.1}
+        opacity={0.3}
         listening={false}
       />
 
@@ -176,19 +185,20 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
       }
 
       {/* Name */}
+      {/* Name */}
       <Text
-        y={tokenRadius + 8}
+        y={tokenRadius + 12}
         text={seat.userName}
         fontSize={fontSizeName}
-        fill="#e5e5e5"
+        fill="#e7e5e4"
         width={tokenRadius * 3}
         offsetX={tokenRadius * 1.5}
         align="center"
         fontStyle="bold"
-        fontFamily="Crimson Text"
+        fontFamily="Cinzel"
         shadowColor="black"
-        shadowBlur={2}
-        shadowOpacity={0.8}
+        shadowBlur={4}
+        shadowOpacity={1}
         ellipsis={true}
         wrap="none"
       />
@@ -782,7 +792,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
       {/* Role Selector Modal */}
       {roleSelectSeat !== null && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto border-stone-700 bg-stone-950">
+          <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto border-stone-800 glass-panel text-stone-100">
             <CardHeader className="flex flex-row items-center justify-between border-b border-stone-800 pb-4">
               <CardTitle className="text-2xl text-stone-200 font-cinzel tracking-widest flex items-center gap-2">
                 <span className="text-red-800">✦</span>

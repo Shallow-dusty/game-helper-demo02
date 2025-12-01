@@ -142,7 +142,7 @@ const App = () => {
   }
 
   // 3. In Game -> Grimoire
-  const isNight = gameState.phase === 'NIGHT';
+
   const appHeight = viewportSize.height > 0 ? viewportSize.height : undefined;
 
   return (
@@ -169,11 +169,14 @@ const App = () => {
       <AudioManager />
       <SwapRequestModal />
 
-      <div className="absolute inset-0 pointer-events-none opacity-[0.05] z-0 bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')]"></div>
-      <div
-        className={`absolute inset-0 z-0 pointer-events-none transition-all duration-[2000ms] ease-in-out ${isNight ? 'bg-blue-950/60 mix-blend-multiply backdrop-brightness-[0.4] backdrop-blur-[1px]' : 'bg-transparent backdrop-brightness-100'}`}
-      ></div>
-      <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.7)_100%)]"></div>
+      <div className="absolute inset-0 pointer-events-none z-0 bg-cover bg-center transition-all duration-1000"
+           style={{ 
+             backgroundImage: `url(${!user ? '/img/lobby-bg.png' : '/img/grimoire-bg.png'})`,
+             opacity: 1 
+           }}
+      >
+        <div className="absolute inset-0 bg-black/30"></div>
+      </div>
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative min-h-0">
         <div

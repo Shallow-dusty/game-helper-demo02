@@ -40,7 +40,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                 className="w-full max-w-md p-4"
                 onClick={(e) => e.stopPropagation()}
             >
-                <Card className="border-stone-700 bg-stone-950/95 shadow-2xl overflow-hidden">
+                <Card className="border-stone-800 glass-panel shadow-2xl overflow-hidden text-stone-100">
                     <CardHeader className="flex flex-row items-center justify-between border-b border-stone-800 pb-4 bg-stone-900/50">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-stone-800 flex items-center justify-center border border-stone-700 text-2xl shadow-inner">

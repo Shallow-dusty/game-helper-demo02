@@ -27,37 +27,49 @@ export const StorytellerNotebook: React.FC = () => {
 
     return (
         <>
-            <div className="bg-stone-900 p-4 rounded-lg border border-stone-700 h-full flex flex-col shadow-inner">
-                <h3 className="text-amber-600 font-cinzel mb-4 flex items-center gap-2 border-b border-stone-800 pb-2">
-                    <span>📓</span> 说书人笔记 (Notebook)
+            <div 
+                className="p-4 rounded-lg border border-[#8b4513] h-full flex flex-col shadow-[inset_0_0_30px_rgba(60,40,20,0.2)] relative overflow-hidden"
+                style={{
+                    background: `
+                        linear-gradient(to bottom right, rgba(244, 228, 188, 0.9), rgba(230, 210, 160, 0.9)),
+                        url("https://www.transparenttextures.com/patterns/aged-paper.png")
+                    `,
+                    backgroundColor: '#f4e4bc'
+                }}
+            >
+                {/* Decorative Corner */}
+                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#8b4513]/20 to-transparent pointer-events-none" />
+
+                <h3 className="text-[#4a3728] font-cinzel font-bold mb-4 flex items-center gap-2 border-b-2 border-[#8b4513]/30 pb-2 drop-shadow-sm">
+                    <span className="text-2xl">📓</span> 说书人笔记 (Notebook)
                 </h3>
 
-                <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 scrollbar-thin scrollbar-thumb-stone-700 scrollbar-track-transparent">
+                <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 scrollbar-thin scrollbar-thumb-[#8b4513]/50 scrollbar-track-transparent">
                     {notes.map(note => (
                         <div
                             key={note.id}
                             className={`
-                                relative p-3 rounded border transition-all group
-                                ${note.type === 'auto' ? 'bg-stone-900/50 border-stone-800' : 'bg-stone-800 border-stone-600'}
-                                ${note.isFloating ? 'opacity-50' : 'opacity-100'}
-                                ${note.color === 'red' ? 'border-l-4 border-l-red-500' : ''}
-                                ${note.color === 'blue' ? 'border-l-4 border-l-blue-500' : ''}
-                                ${note.color === 'green' ? 'border-l-4 border-l-green-500' : ''}
-                                ${note.color === 'yellow' ? 'border-l-4 border-l-yellow-500' : ''}
-                                ${note.color === 'purple' ? 'border-l-4 border-l-purple-500' : ''}
-                                hover:border-amber-900/50
+                                relative p-3 rounded-sm border transition-all group shadow-sm
+                                ${note.type === 'auto' ? 'bg-[#e6d2a0]/40 border-[#8b4513]/20' : 'bg-[#fff9e6]/80 border-[#8b4513]/40'}
+                                ${note.isFloating ? 'opacity-60 grayscale-[0.5]' : 'opacity-100'}
+                                ${note.color === 'red' ? 'border-l-4 border-l-[#b91c1c]' : ''}
+                                ${note.color === 'blue' ? 'border-l-4 border-l-[#1d4ed8]' : ''}
+                                ${note.color === 'green' ? 'border-l-4 border-l-[#15803d]' : ''}
+                                ${note.color === 'yellow' ? 'border-l-4 border-l-[#b45309]' : ''}
+                                ${note.color === 'purple' ? 'border-l-4 border-l-[#7e22ce]' : ''}
+                                hover:border-[#8b4513] hover:shadow-md hover:-translate-y-0.5
                             `}
                         >
                             {/* Header / Controls */}
                             <div className="flex justify-between items-start mb-1">
-                                <span className={`text-[10px] uppercase font-bold tracking-wider ${note.type === 'auto' ? 'text-blue-400' : 'text-amber-600'}`}>
+                                <span className={`text-[10px] uppercase font-bold tracking-wider ${note.type === 'auto' ? 'text-[#1d4ed8]' : 'text-[#8b4513]'}`}>
                                     {note.type === 'auto' ? 'SYSTEM LOG' : 'NOTE'}
                                     {note.isFloating && ' (FLOATING)'}
                                 </span>
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={() => toggleNoteFloating(note.id)}
-                                        className={`p-1 rounded hover:bg-stone-700 ${note.isFloating ? 'text-amber-400' : 'text-stone-500'}`}
+                                        className={`p-1 rounded hover:bg-[#8b4513]/10 ${note.isFloating ? 'text-[#b45309]' : 'text-[#654321]'}`}
                                         title={note.isFloating ? "收回笔记" : "悬浮笔记"}
                                     >
                                         {/* Pin */}
@@ -68,7 +80,7 @@ export const StorytellerNotebook: React.FC = () => {
                                     </button>
                                     <button
                                         onClick={() => deleteNote(note.id)}
-                                        className="p-1 rounded hover:bg-stone-700 text-stone-500 hover:text-red-500"
+                                        className="p-1 rounded hover:bg-[#b91c1c]/10 text-[#654321] hover:text-[#b91c1c]"
                                         title="删除"
                                     >
                                         {/* Trash2 */}
@@ -86,20 +98,20 @@ export const StorytellerNotebook: React.FC = () => {
                             <textarea
                                 value={note.content}
                                 onChange={(e) => updateNote(note.id, e.target.value)}
-                                className={`w-full bg-transparent text-sm resize-none focus:outline-none font-mono leading-relaxed ${note.type === 'auto' ? 'text-stone-400' : 'text-stone-300'}`}
+                                className={`w-full bg-transparent text-sm resize-none focus:outline-none font-serif leading-relaxed ${note.type === 'auto' ? 'text-[#4a3728]/70 italic' : 'text-[#2c241b]'}`}
                                 rows={Math.max(1, Math.min(10, note.content.split('\n').length))}
                                 placeholder="写点什么..."
-                            // readOnly={note.type === 'auto'} // Allow editing even for auto logs
+                                style={{ fontFamily: '"Crimson Text", serif' }}
                             />
 
-                            <div className="text-[10px] text-stone-600 mt-1 text-right flex justify-between items-center">
+                            <div className="text-[10px] text-[#8b4513]/70 mt-1 text-right flex justify-between items-center border-t border-[#8b4513]/10 pt-1">
                                 {/* Color Dots (Mini Picker) */}
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     {['gray', 'red', 'yellow', 'green', 'blue', 'purple'].map(c => (
                                         <button
                                             key={c}
                                             onClick={() => setNoteColor(note.id, c)}
-                                            className={`w-2 h-2 rounded-full ${c === 'gray' ? 'bg-stone-500' : `bg-${c}-500`} hover:scale-125 transition-transform`}
+                                            className={`w-2 h-2 rounded-full ${c === 'gray' ? 'bg-stone-500' : `bg-${c}-500`} hover:scale-125 transition-transform border border-white/50 shadow-sm`}
                                         />
                                     ))}
                                 </div>
@@ -108,26 +120,26 @@ export const StorytellerNotebook: React.FC = () => {
                         </div>
                     ))}
                     {notes.length === 0 && (
-                        <div className="text-stone-600 text-center italic text-sm py-8 flex flex-col items-center gap-2">
-                            <span className="text-2xl opacity-20">📝</span>
+                        <div className="text-[#8b4513]/40 text-center italic text-sm py-8 flex flex-col items-center gap-2">
+                            <span className="text-3xl opacity-30">✒️</span>
                             <span>暂无笔记...</span>
                         </div>
                     )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 relative z-10">
                     <input
                         type="text"
                         value={newNote}
                         onChange={(e) => setNewNote(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                         placeholder="添加新笔记... (Enter)"
-                        className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-900 transition-all"
+                        className="flex-1 bg-[#fff9e6]/80 border border-[#8b4513]/30 rounded px-3 py-2 text-sm text-[#4a3728] focus:border-[#8b4513] focus:outline-none focus:ring-1 focus:ring-[#8b4513]/50 transition-all placeholder-[#8b4513]/40 font-serif"
                     />
                     <button
                         onClick={handleAdd}
                         disabled={!newNote.trim()}
-                        className="bg-amber-900 hover:bg-amber-800 disabled:opacity-50 disabled:cursor-not-allowed text-amber-100 px-4 py-2 rounded text-sm transition-colors font-bold shadow-lg"
+                        className="bg-[#8b4513] hover:bg-[#654321] disabled:opacity-50 disabled:cursor-not-allowed text-[#f4e4bc] px-4 py-2 rounded text-sm transition-colors font-bold shadow-md border border-[#4a3728]"
                     >
                         添加
                     </button>

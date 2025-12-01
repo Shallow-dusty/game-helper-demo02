@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
-import { SCRIPTS, AUDIO_TRACKS } from '../../constants';
+import { SCRIPTS, ROLES } from '../../constants';
 import { NightActionManager } from '../game/NightActionManager';
 import { DistributionConfirmationModal } from '../modals/DistributionConfirmationModal';
 import { analyzeDistribution, DistributionAnalysisResult } from '../../lib/distributionAnalysis';
+
+interface ControlsSTSectionProps {
+    onShowCompositionGuide: () => void;
+    onShowNightAction: (roleId: string) => void;
+    onShowHistory: () => void;
+    onShowScriptEditor: () => void;
+}
 
 export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
     onShowCompositionGuide,
@@ -14,15 +21,9 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
     const gameState = useStore(state => state.gameState);
     const setPhase = useStore(state => state.setPhase);
     const setScript = useStore(state => state.setScript);
-    const nightNext = useStore(state => state.nightNext);
-    const nightPrev = useStore(state => state.nightPrev);
+
     const nextClockHand = useStore(state => state.nextClockHand);
     const closeVote = useStore(state => state.closeVote);
-
-    // Audio Actions
-    const setAudioTrack = useStore(state => state.setAudioTrack);
-    const toggleAudioPlay = useStore(state => state.toggleAudioPlay);
-    const setAudioVolume = useStore(state => state.setAudioVolume);
 
     // Confirmation Modal State
     const [showDistributeConfirm, setShowDistributeConfirm] = useState(false);
@@ -46,7 +47,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
         
         const hasEmptyRoles = gameState.seats.some(s => !s.roleId);
         if (hasEmptyRoles) {
-            showError("有座位未分配角色！请先分配角色再发放。");
+            alert("有座位未分配角色！请先分配角色再发放。");
             return;
         }
 
@@ -229,103 +230,12 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                 </div>
             </div>
 
-            {/* Audio Controls - Collapsible */}
-            <div className="bg-stone-900 rounded border border-stone-700">
-                <button
-                    className="w-full p-3 flex justify-between items-center text-xs font-bold text-stone-500 uppercase"
-                    onClick={() => toggleSection('audio')}
-                >
-                    <span className="flex items-center gap-2">
-                        🎵 氛围音效
-                        {gameState.audio.isPlaying && (
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="正在播放" />
-                        )}
-                    </span>
-                    <span className="text-stone-600">{collapsedSections.audio ? '▼' : '▲'}</span>
-                </button>
-
-                <div className={`px-3 pb-3 ${collapsedSections.audio ? 'hidden' : ''}`}>
-                    {/* 当前播放信息 */}
-                    {gameState.audio.trackId && AUDIO_TRACKS[gameState.audio.trackId]?.url && (
-                        <div className="mb-2 p-2 bg-stone-950/50 rounded border border-stone-800 text-xs">
-                            <div className="flex items-center gap-2 text-stone-400">
-                                <span className={gameState.audio.isPlaying ? 'text-green-400' : 'text-stone-500'}>
-                                    {gameState.audio.isPlaying ? '🔊' : '🔇'}
-                                </span>
-                                <span className="text-stone-300 font-medium">
-                                    {AUDIO_TRACKS[gameState.audio.trackId]?.name || '未知音轨'}
-                                </span>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 音频不可用提示 */}
-                    {(!Object.values(AUDIO_TRACKS).some(t => t.url && t.url !== '')) && (
-                        <div className="mb-2 p-2 bg-amber-950/30 rounded border border-amber-800/50 text-xs text-amber-400">
-                            <span>⚠️ 音频资源未配置，请在 constants.ts 中设置有效的音频URL</span>
-                        </div>
-                    )}
-
-                    {/* 阶段自动切换提示 */}
-                    <div className="mb-2 text-[10px] text-stone-500 flex items-center gap-1">
-                        <span>💡</span>
-                        <span>切换阶段时音乐会自动更换</span>
-                    </div>
-
-                    <select
-                        className="w-full bg-stone-950 border border-stone-700 rounded text-xs text-stone-300 p-1.5 mb-2"
-                        onChange={(e) => setAudioTrack(e.target.value)}
-                        value={gameState.audio.trackId || ''}
-                    >
-                        <option value="">-- 手动选择音效 --</option>
-                        <optgroup label="阶段音乐">
-                            {Object.entries(AUDIO_TRACKS)
-                                .filter(([_, track]) => track.phase && track.url && track.url !== '')
-                                .map(([id, track]) => (
-                                    <option key={id} value={id}>{track.name}</option>
-                                ))}
-                        </optgroup>
-                        <optgroup label="特殊音乐">
-                            {Object.entries(AUDIO_TRACKS)
-                                .filter(([_, track]) => !track.phase && track.url && track.url !== '')
-                                .map(([id, track]) => (
-                                    <option key={id} value={id}>{track.name}</option>
-                                ))}
-                        </optgroup>
-                    </select>
-
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={toggleAudioPlay}
-                            className={`flex-1 py-1.5 rounded text-xs font-bold transition-colors ${gameState.audio.isPlaying
-                                ? 'bg-amber-700 hover:bg-amber-600 text-white'
-                                : 'bg-stone-800 hover:bg-stone-700 text-stone-400'
-                                }`}
-                        >
-                            {gameState.audio.isPlaying ? '⏸ 暂停' : '▶ 播放'}
-                        </button>
-                        <div className="flex items-center gap-1">
-                            <span className="text-stone-600 text-xs">🔈</span>
-                            <input
-                                type="range"
-                                min="0"
-                                max="1"
-                                step="0.05"
-                                value={gameState.audio.volume}
-                                onChange={(e) => setAudioVolume(parseFloat(e.target.value))}
-                                className="w-16 accent-amber-600"
-                                title={`音量: ${Math.round(gameState.audio.volume * 100)}%`}
-                            />
-                            <span className="text-stone-600 text-xs">🔊</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/* Night Queue Manager */}
             {gameState.phase === 'NIGHT' && (() => {
                 const currentRoleId = gameState.nightCurrentIndex >= 0 ? gameState.nightQueue[gameState.nightCurrentIndex] : undefined;
                 const currentRole = currentRoleId ? ROLES[currentRoleId] : undefined;
+                const nightNext = useStore.getState().nightNext;
+                const nightPrev = useStore.getState().nightPrev;
 
                 return (
                     <div className="bg-black/30 p-3 rounded border border-indigo-900/50 shadow-lg">

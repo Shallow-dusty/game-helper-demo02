@@ -407,61 +407,90 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-stone-900 rounded-lg border border-stone-700 w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm" onClick={onClose}>
+            <div 
+                className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] rounded-sm"
+                style={{
+                    background: `
+                        linear-gradient(to bottom right, rgba(0,0,0,0.1), rgba(0,0,0,0.3)),
+                        url("https://www.transparenttextures.com/patterns/aged-paper.png"),
+                        #f4e4bc
+                    `,
+                    boxShadow: 'inset 0 0 100px rgba(60, 40, 20, 0.3), 0 0 20px rgba(0,0,0,0.8)'
+                }}
+                onClick={e => e.stopPropagation()}
+            >
+                {/* Decorative Border */}
+                <div className="absolute inset-2 border-2 border-[#8b4513] opacity-50 pointer-events-none rounded-sm" />
+                <div className="absolute inset-3 border border-[#8b4513] opacity-30 pointer-events-none rounded-sm" />
+
                 {/* Header */}
-                <div className="p-4 border-b border-stone-800 bg-stone-950 flex justify-between items-center">
+                <div className="p-5 border-b-2 border-[#8b4513]/30 flex justify-between items-center relative z-10 bg-[#e6d2a0]/50">
                     <div>
-                        <h3 className="text-xl font-bold text-stone-200 font-cinzel">📊 板子参考 Script Composition Guide</h3>
-                        <p className="text-xs text-stone-500 mt-1">当前人数: {safePlayerCount}人 | 标准配比: {composition?.townsfolk || 0}镇民+{composition?.outsider || 0}外来者+{composition?.minion || 0}爪牙+{composition?.demon || 0}恶魔</p>
+                        <h3 className="text-2xl font-bold text-[#4a3728] font-cinzel tracking-wider drop-shadow-sm">
+                            📜 板子配置建议 (Script Guide)
+                        </h3>
+                        <p className="text-xs text-[#654321] mt-1 font-serif italic">
+                            当前人数: {safePlayerCount}人 | 标准配比: {composition?.townsfolk || 0}镇民+{composition?.outsider || 0}外来者+{composition?.minion || 0}爪牙+{composition?.demon || 0}恶魔
+                        </p>
                     </div>
-                    <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl">✕</button>
+                    <button 
+                        onClick={onClose} 
+                        className="text-[#8b4513] hover:text-[#4a3728] text-2xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#8b4513]/10 transition-colors"
+                    >
+                        ✕
+                    </button>
                 </div>
 
                 {/* Content */}
-                <div className="p-6 overflow-y-auto max-h-[calc(90vh-8rem)]">
+                <div className="p-6 overflow-y-auto max-h-[calc(90vh-8rem)] relative z-10 scrollbar-thin scrollbar-thumb-[#8b4513]/50 scrollbar-track-transparent">
                     {/* 角色强度说明 */}
-                    <div className="mb-6 p-4 bg-stone-950/50 rounded border border-stone-800">
-                        <h4 className="text-sm font-bold text-amber-400 mb-2 font-cinzel">💡 角色强度参考（暗流涌动）</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div className="mb-6 p-4 bg-[#fff9e6]/60 rounded border border-[#8b4513]/30 shadow-inner">
+                        <h4 className="text-sm font-bold text-[#8b4513] mb-3 font-cinzel border-b border-[#8b4513]/20 pb-1 inline-block">
+                            💡 角色强度参考（暗流涌动）
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-serif">
                             <div>
-                                <p className="text-amber-400 font-bold mb-1">强力角色</p>
-                                <p className="text-stone-500">{ROLE_STRENGTH.strong.map(id => ROLES[id]?.name || id).join('、')}</p>
+                                <p className="text-[#b91c1c] font-bold mb-1 uppercase tracking-wider">强力角色</p>
+                                <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.strong.map(id => ROLES[id]?.name || id).join('、')}</p>
                             </div>
                             <div>
-                                <p className="text-blue-400 font-bold mb-1">中强角色</p>
-                                <p className="text-stone-500">{ROLE_STRENGTH.mediumStrong.map(id => ROLES[id]?.name || id).join('、')}</p>
+                                <p className="text-[#1d4ed8] font-bold mb-1 uppercase tracking-wider">中强角色</p>
+                                <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.mediumStrong.map(id => ROLES[id]?.name || id).join('、')}</p>
                             </div>
                             <div>
-                                <p className="text-stone-400 font-bold mb-1">中等角色</p>
-                                <p className="text-stone-500">{ROLE_STRENGTH.medium.map(id => ROLES[id]?.name || id).join('、')}</p>
+                                <p className="text-[#4a3728] font-bold mb-1 uppercase tracking-wider">中等角色</p>
+                                <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.medium.map(id => ROLES[id]?.name || id).join('、')}</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* 策略列表 - 点击打开详情弹窗 */}
-                    <h4 className="text-sm font-bold text-stone-300 mb-3">选择一个策略查看详情：</h4>
+                    {/* 策略列表 */}
+                    <h4 className="text-sm font-bold text-[#4a3728] mb-3 font-cinzel">选择一个策略查看详情：</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {STRATEGIES.map(strategy => (
                             <div
                                 key={strategy.id}
-                                className="p-4 rounded border border-stone-800 bg-stone-950/30 hover:border-amber-700 hover:bg-amber-950/10 cursor-pointer transition-all group"
+                                className="p-4 rounded border border-[#8b4513]/30 bg-[#fff9e6]/40 hover:bg-[#fff9e6]/80 hover:border-[#8b4513] hover:shadow-md cursor-pointer transition-all group relative overflow-hidden"
                                 onClick={() => {
                                     setSelectedStrategy(strategy);
                                     setGeneratedRoles(null);
                                 }}
                             >
-                                <div className="flex justify-between items-start mb-2">
-                                    <h4 className="text-sm font-bold text-stone-200 font-cinzel group-hover:text-amber-400 transition-colors">{strategy.name}</h4>
+                                <div className="flex justify-between items-start mb-2 relative z-10">
+                                    <h4 className="text-sm font-bold text-[#4a3728] font-cinzel group-hover:text-[#b91c1c] transition-colors">{strategy.name}</h4>
                                 </div>
-                                <span className={`text-xs px-2 py-0.5 rounded inline-block mb-2 ${strategy.difficulty === '新手' ? 'bg-green-950/50 text-green-400 border border-green-800' :
-                                    strategy.difficulty === '中等' ? 'bg-blue-950/50 text-blue-400 border border-blue-800' :
-                                        'bg-red-950/50 text-red-400 border border-red-800'
-                                    }`}>
+                                <span className={`text-[10px] px-2 py-0.5 rounded inline-block mb-2 font-bold border ${
+                                    strategy.difficulty === '新手' ? 'bg-green-100 text-green-800 border-green-300' :
+                                    strategy.difficulty === '中等' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                    'bg-red-100 text-red-800 border-red-300'
+                                }`}>
                                     {strategy.difficulty}
                                 </span>
-                                <p className="text-xs text-stone-500">{strategy.description}</p>
-                                <p className="text-xs text-amber-600 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">点击查看详情 →</p>
+                                <p className="text-xs text-[#654321] font-serif leading-snug relative z-10">{strategy.description}</p>
+                                <div className="absolute bottom-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span className="text-xs text-[#8b4513]">➜</span>
+                                </div>
                             </div>
                         ))}
                     </div>

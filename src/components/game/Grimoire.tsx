@@ -8,7 +8,7 @@ import { showWarning } from '../ui/Toast';
 import { StorytellerMenu } from './StorytellerMenu';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { X, Lock, Unlock, Crosshair } from 'lucide-react';
+import { X, Lock, Unlock } from 'lucide-react';
 import { useLongPress } from '../../hooks/useLongPress';
 
 interface GrimoireProps {
@@ -515,13 +515,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
     setStagePos(newPos);
   }, [stageScale, stagePos]);
 
-  const resetZoom = useCallback(() => {
-    setStageScale(1);
-    setStagePos({ x: 0, y: 0 });
-    draggingRef.current = false;
-    isPinching.current = false;
-    setIsGestureActive(false);
-  }, []);
+
 
   // Handle long press (Mobile) OR Right Click (Desktop)
   const handleMenuTrigger = useCallback((seat: Seat) => {
@@ -654,29 +648,47 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
     >
       {!readOnly && !publicOnly && (
         <div className="absolute top-4 right-4 md:right-8 z-40 flex flex-col items-end gap-3 pointer-events-auto">
-          <div className="flex gap-3">
-            <Button
-              size="icon"
-              variant="secondary"
-              onClick={resetZoom}
-              title="Reset View"
-              className="rounded-full shadow-lg border-stone-700 bg-stone-900/80 backdrop-blur-sm"
-            >
-              <Crosshair className="w-5 h-5" />
-            </Button>
-            <Button
-              size="icon"
-              variant={isLocked ? "destructive" : "secondary"}
+            {/* Scroll Toggle for Edit Mode */}
+            <div 
+              className="relative group cursor-pointer transition-transform hover:scale-105 active:scale-95"
               onClick={() => setIsLocked(!isLocked)}
-              title={isLocked ? "Locked" : "Unlocked"}
-              className={`rounded-full shadow-lg border backdrop-blur-sm ${isLocked ? 'bg-red-900/80 border-red-700' : 'bg-stone-900/80 border-stone-700'}`}
+              title={isLocked ? "点击切换到编辑模式" : "点击切换到浏览模式"}
             >
-              {isLocked ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
-            </Button>
-            <div className="bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-md border border-stone-800 flex items-center">
-               {isLocked ? "浏览模式" : "编辑模式"}
+              {/* Scroll Body */}
+              <div className={`
+                h-12 px-10 flex items-center justify-center
+                bg-[#f4e4bc] border-y-4 border-[#8b4513]
+                shadow-[0_5px_15px_rgba(0,0,0,0.5)]
+                transition-all duration-300
+                ${!isLocked ? 'brightness-110 sepia-[.3]' : 'brightness-75 grayscale-[0.5]'}
+              `}>
+                <span className="text-[#4a3728] font-cinzel font-bold text-sm tracking-widest whitespace-nowrap select-none">
+                  {isLocked ? "浏览模式 (VIEW)" : "编辑模式 (EDIT)"}
+                </span>
+              </div>
+
+              {/* Scroll Ends (Left) */}
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-16 bg-[#e6d2a0] rounded-full border-r-4 border-[#654321] shadow-[-2px_0_5px_rgba(0,0,0,0.3)] flex items-center justify-center overflow-hidden">
+                <div className="w-full h-full bg-[radial-gradient(circle,transparent_60%,#654321_100%)]" />
+                <div className="absolute w-4 h-4 bg-[#8b4513] rounded-full shadow-inner" />
+              </div>
+
+              {/* Scroll Ends (Right) */}
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-8 h-16 bg-[#e6d2a0] rounded-full border-l-4 border-[#654321] shadow-[2px_0_5px_rgba(0,0,0,0.3)] flex items-center justify-center overflow-hidden">
+                <div className="w-full h-full bg-[radial-gradient(circle,transparent_60%,#654321_100%)]" />
+                <div className="absolute w-4 h-4 bg-[#8b4513] rounded-full shadow-inner" />
+              </div>
+
+              {/* Status Indicator Icon */}
+              <div className={`
+                absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center border-2 shadow-md z-10
+                transition-colors duration-300
+                ${isLocked ? 'bg-stone-800 border-stone-600 text-stone-400' : 'bg-amber-600 border-amber-400 text-white'}
+              `}>
+                {isLocked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+              </div>
             </div>
-          </div>
+
           {stageScale !== 1 && (
             <div className="bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-md border border-stone-800">
               {Math.round(stageScale * 100)}%

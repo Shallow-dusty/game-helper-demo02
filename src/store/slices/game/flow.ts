@@ -1,6 +1,6 @@
 import { StoreSlice, GameSlice } from '../../types';
 import { addSystemMessage } from '../../utils';
-import { PHASE_LABELS } from '../../../constants';
+import { PHASE_LABELS, NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '../../../constants';
 import { checkGameOver } from '../../../lib/gameLogic';
 
 export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'nightNext' | 'nightPrev' | 'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote' | 'startGame' | 'endGame'>> = (set, get) => ({
@@ -17,6 +17,21 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
                 }
                 if (phase === 'DAY' && oldPhase !== 'DAY') {
                     state.gameState.roundInfo.dayCount++;
+                }
+
+                // If entering NIGHT, recalculate queue
+                if (phase === 'NIGHT') {
+                    const isFirstNight = state.gameState.roundInfo.nightCount === 1;
+                    const orderList = isFirstNight ? NIGHT_ORDER_FIRST : NIGHT_ORDER_OTHER;
+                    
+                    const activeRoleIds = state.gameState.seats
+                        .filter(s => s.roleId && !s.isDead)
+                        .map(s => s.roleId!);
+                    
+                    const queue = orderList.filter(roleId => activeRoleIds.includes(roleId));
+                    
+                    state.gameState.nightQueue = queue;
+                    state.gameState.nightCurrentIndex = -1;
                 }
             }
         });
@@ -143,6 +158,18 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
             if (state.gameState) {
                 state.gameState.phase = 'NIGHT';
                 state.gameState.roundInfo.nightCount = 1;
+                
+                // Initialize night queue for first night
+                const orderList = NIGHT_ORDER_FIRST;
+                
+                const activeRoleIds = state.gameState.seats
+                    .filter(s => s.roleId && !s.isDead)
+                    .map(s => s.roleId!);
+                
+                const queue = orderList.filter(roleId => activeRoleIds.includes(roleId));
+                
+                state.gameState.nightQueue = queue;
+                state.gameState.nightCurrentIndex = -1;
             }
         });
         get().sync();

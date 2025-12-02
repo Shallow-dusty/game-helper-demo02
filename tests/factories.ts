@@ -11,7 +11,7 @@ import {
     User, 
     ChatMessage, 
     RoleDef, 
-    ScriptDef,
+    ScriptDefinition,
     VoteRecord,
     StorytellerNote,
     SwapRequest,
@@ -196,10 +196,9 @@ export const createMockRole = (overrides?: Partial<RoleDef>): RoleDef => ({
     name: '洗衣妇',
     team: 'TOWNSFOLK',
     ability: '每个夜晚*，你会得知两名玩家其中之一是某一特定的村民角色。',
-    firstNight: 1,
-    otherNight: 0,
+    firstNight: true,
+    otherNight: false,
     reminders: ['村民', '错误'],
-    setup: false,
     ...overrides,
 });
 
@@ -295,15 +294,12 @@ export const createPrivateMessage = (
 // ============================================================================
 
 export const createMockVoteRecord = (overrides?: Partial<VoteRecord>): VoteRecord => ({
-    dayNumber: 1,
+    round: 1,
     nominatorSeatId: 0,
     nomineeSeatId: 1,
-    votes: [
-        { seatId: 0, vote: true },
-        { seatId: 2, vote: true },
-        { seatId: 3, vote: false },
-    ],
-    result: 'NO_EXECUTION',
+    votes: [0, 2],  // 投票者的座位 ID 列表
+    voteCount: 2,
+    result: 'survived',
     timestamp: Date.now(),
     ...overrides,
 });
@@ -312,7 +308,7 @@ export const createMockVoteRecord = (overrides?: Partial<VoteRecord>): VoteRecor
 // Script Factory
 // ============================================================================
 
-export const createMockScript = (overrides?: Partial<ScriptDef>): ScriptDef => ({
+export const createMockScript = (overrides?: Partial<ScriptDefinition>): ScriptDefinition => ({
     id: 'test-script',
     name: '测试剧本',
     roles: ['washerwoman', 'librarian', 'investigator', 'chef', 'empath'],
@@ -336,10 +332,13 @@ export const createMockNote = (overrides?: Partial<StorytellerNote>): Storytelle
 // ============================================================================
 
 export const createMockSwapRequest = (overrides?: Partial<SwapRequest>): SwapRequest => ({
+    id: `swap-${String(Date.now())}`,
     fromSeatId: 0,
+    fromUserId: 'user-123',
+    fromName: 'Player1',
     toSeatId: 1,
-    requesterId: 'user-123',
-    status: 'pending',
+    toUserId: 'user-456',
+    timestamp: Date.now(),
     ...overrides,
 });
 
@@ -352,13 +351,12 @@ export const createMockInteractionLog = (
 ): InteractionLogEntry => ({
     id: `log-${String(Date.now())}`,
     timestamp: Date.now(),
-    phase: 'NIGHT',
-    actorSeat: 0,
-    actorRole: 'washerwoman',
-    targetSeat: 1,
-    targetRole: 'drunk',
-    actionType: 'NIGHT_ACTION',
-    result: 'SUCCESS',
+    type: 'ability_used',
+    actorSeatId: 0,
+    targetSeatIds: [1],
+    roleId: 'washerwoman',
+    description: 'Test interaction',
+    isConfirmed: false,
     ...overrides,
 });
 

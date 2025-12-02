@@ -6,16 +6,17 @@ import { GameState, Seat } from '../types';
 const createMockSeat = (id: number, overrides: Partial<Seat> = {}): Seat => ({
     id,
     userName: `玩家${id}`,
+    userId: null,
     roleId: null,
     realRoleId: null,
     seenRoleId: null,
     isDead: false,
-    isVotingDisabled: false,
     reminders: [],
     statuses: [],
-    ghostVote: true,
-    notes: '',
-    connectedPlayerId: null,
+    hasGhostVote: true,
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
     ...overrides
 });
 
@@ -26,27 +27,45 @@ const createMockGameState = (seatOverrides: Partial<Seat>[] = []): GameState => 
     );
     
     return {
-        gameId: 'test-game-123',
-        roomId: 1,
+        roomId: 'room-1',
+        currentScriptId: 'tb',
+        phase: 'DAY',
+        setupPhase: 'STARTED',
+        rolesRevealed: true,
+        allowWhispers: true,
+        vibrationEnabled: false,
         seats,
-        gamePhase: 'GAME_OVER',
-        roundInfo: {
-            roundNumber: 3,
-            phase: 'day',
-            totalRounds: 3
+        messages: [
+            {
+                id: 'msg-1',
+                senderId: 'system',
+                senderName: 'System',
+                recipientId: null,
+                type: 'system',
+                content: '游戏阶段变更：白天阶段',
+                timestamp: Date.now() - 20000
+            },
+            {
+                id: 'msg-2',
+                senderId: 'system',
+                senderName: 'System',
+                recipientId: null,
+                type: 'system',
+                content: '好人阵营胜利！',
+                timestamp: Date.now()
+            }
+        ],
+        gameOver: {
+            isOver: true,
+            winner: 'GOOD',
+            reason: '恶魔被处决'
         },
-        nominationInfo: {
-            isActive: false,
-            nomineeSeatId: null,
-            nominatorSeatId: null,
-            hasNominatedToday: [],
-            hasBeenNominatedToday: [],
-            votingOpen: false,
-            votes: [],
-            currentTally: 0,
-            nominationCount: 0,
-            executionThreshold: 4
-        },
+        audio: { trackId: null, isPlaying: false, volume: 0.5 },
+        nightQueue: [],
+        nightCurrentIndex: -1,
+        voting: null,
+        customScripts: {},
+        customRoles: {},
         voteHistory: [
             {
                 round: 1,
@@ -58,35 +77,21 @@ const createMockGameState = (seatOverrides: Partial<Seat>[] = []): GameState => 
                 result: 'executed'
             }
         ],
-        messages: [
-            {
-                id: 'msg-1',
-                type: 'system',
-                content: '游戏阶段变更：白天阶段',
-                timestamp: Date.now() - 20000
-            },
-            {
-                id: 'msg-2',
-                type: 'system',
-                content: '好人阵营胜利！',
-                timestamp: Date.now()
-            }
-        ],
-        currentScript: null,
-        currentScriptId: '暗流涌动',
-        scriptName: '暗流涌动',
-        storytellerId: 'st-1',
-        isStoryteller: false,
-        fabled: [],
-        nightActions: {},
-        playerNotes: {},
-        gameOver: {
-            isOver: true,
-            winner: 'GOOD',
-            reason: '恶魔被处决'
+        roundInfo: {
+            dayCount: 3,
+            nightCount: 2,
+            nominationCount: 5,
+            totalRounds: 3
         },
-        bluffs: []
-    };
+        storytellerNotes: [],
+        skillDescriptionMode: 'simple',
+        aiMessages: [],
+        nightActionRequests: [],
+        swapRequests: [],
+        candlelightEnabled: false,
+        dailyNominations: [],
+        interactionLog: []
+    } as GameState;
 };
 
 describe('reportGenerator', () => {
@@ -106,8 +111,8 @@ describe('reportGenerator', () => {
             const report = generateAfterActionReport(gameState);
             
             expect(report).toBeDefined();
-            // gameId 来自 roomId，是数字
-            expect(report.gameId).toBe(1);
+            // gameId 来自 roomId，是字符串
+            expect(report.gameId).toBe('room-1');
             expect(report.winner).toBe('GOOD');
         });
 
@@ -169,7 +174,7 @@ describe('reportGenerator', () => {
             const report = generateAfterActionReport(gameState);
             
             // scriptName 来自 currentScriptId
-            expect(report.scriptName).toBe('暗流涌动');
+            expect(report.scriptName).toBe('tb');
         });
 
         it('应该正确计算总轮数', () => {

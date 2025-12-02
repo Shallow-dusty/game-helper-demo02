@@ -11,8 +11,6 @@ import { FOLEY_SOUNDS, FoleySoundId, useSoundEffect } from './useSoundEffect';
 // Mock Audio
 const mockAudioPlay = vi.fn().mockResolvedValue(undefined);
 const mockAudioPause = vi.fn();
-const mockOnEnded = vi.fn();
-const mockOnError = vi.fn();
 
 class MockAudio {
     src = '';

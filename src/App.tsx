@@ -7,19 +7,23 @@ import { useSandboxStore } from './sandboxStore';
 import { Lobby } from './components/lobby/Lobby';
 import { RoomSelection } from './components/lobby/RoomSelection';
 
-// Game
-import { Grimoire } from './components/game/Grimoire';
-import { TownSquare } from './components/game/TownSquare';
-import { PhaseIndicator } from './components/game/PhaseIndicator';
-import { WaitingArea } from './components/game/WaitingArea';
-import { FloatingVoteButton } from './components/game/FloatingVoteButton';
-import { RoleRevealModal } from './components/game/RoleRevealModal';
-import { SwapRequestModal } from './components/game/SwapRequestModal';
-import { Confetti } from './components/game/Confetti';
-import { WelcomeAnnouncement } from './components/game/WelcomeAnnouncement';
-import { TruthReveal } from './components/game/TruthReveal';
-import { DeathEchoEffect, useDeathEcho } from './components/game/DeathEchoEffect';
-import { GhostlyVisionOverlay, useGhostlyVision } from './components/game/GhostlyVisionOverlay';
+// Game - using barrel exports from subdirectories
+import {
+  Grimoire,
+  TownSquare,
+  PhaseIndicator,
+  WaitingArea,
+  FloatingVoteButton,
+  RoleRevealModal,
+  SwapRequestModal,
+  Confetti,
+  WelcomeAnnouncement,
+  TruthReveal,
+  DeathEchoEffect,
+  useDeathEcho,
+  GhostlyVisionOverlay,
+  useGhostlyVision,
+} from './components/game';
 
 // History
 import { AfterActionReportView } from './components/history/AfterActionReportView';

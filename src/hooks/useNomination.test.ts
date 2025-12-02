@@ -229,7 +229,7 @@ describe('useNomination', () => {
             });
             
             vi.mocked(supabaseService.getNominationHistory).mockResolvedValue([
-                { id: 'nom-1', nominatorSeatId: 0, nomineeSeatId: 2, timestamp: Date.now() }
+                { id: 'nom-1', gameDay: 1, nominatorSeat: 0, nomineeSeat: 2, wasSeconded: false, voteCount: 0, wasExecuted: false, createdAt: new Date().toISOString() }
             ]);
             
             await act(async () => {

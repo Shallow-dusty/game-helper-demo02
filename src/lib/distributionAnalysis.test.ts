@@ -11,16 +11,17 @@ import { Seat } from '../types';
 const createMockSeat = (id: number, roleId: string | null, realRoleId?: string): Seat => ({
     id,
     userName: `玩家${id}`,
+    userId: null,
     roleId,
     realRoleId: realRoleId || roleId,
     seenRoleId: roleId,
     isDead: false,
-    isVotingDisabled: false,
     reminders: [],
     statuses: [],
-    ghostVote: true,
-    notes: '',
-    connectedPlayerId: null
+    hasGhostVote: true,
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false
 });
 
 describe('distributionAnalysis', () => {

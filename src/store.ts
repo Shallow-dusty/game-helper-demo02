@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { AppState } from './store/types';
-import { createUISlice } from './store/slices/createUISlice';
-import { createConnectionSlice } from './store/slices/createConnectionSlice';
-import { createAISlice } from './store/slices/createAISlice';
-import { createGameSlice } from './store/slices/createGameSlice';
+import { uiSlice } from './store/slices/ui';
+import { connectionSlice } from './store/slices/connection';
+import { aiSlice } from './store/slices/ai';
+import { gameSlice } from './store/slices/game';
 import { filterSeatForUser, filterGameStateForUser } from './store/utils'; // We need to extract these
 import { getAiConfig } from './store/aiConfig';
 
@@ -16,9 +16,9 @@ export { filterSeatForUser, filterGameStateForUser };
 
 export const useStore = create<AppState>()(
     immer((...a) => ({
-        ...createUISlice(...a),
-        ...createConnectionSlice(...a),
-        ...createAISlice(...a),
-        ...createGameSlice(...a),
+        ...uiSlice(...a),
+        ...connectionSlice(...a),
+        ...aiSlice(...a),
+        ...gameSlice(...a),
     }))
 );

@@ -2,12 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { useGameInteractions } from './useGameInteractions';
 import * as supabaseService from '../lib/supabaseService';
+import type { InteractionLog, GamePhase as ServiceGamePhase } from '../lib/supabaseService';
 
 // Mock store
 vi.mock('../store', () => ({
     useStore: vi.fn((selector: (state: unknown) => unknown) => {
         const state = {
-            user: { id: 'test-user', roomId: 123 },
+            user: { id: 'test-user', roomId: '123' },
             gameState: {
                 seats: [{ id: 0, userId: 'test-user' }],
                 roundInfo: { dayCount: 1 },
@@ -23,39 +24,39 @@ vi.mock('../lib/supabaseService', () => ({
     getGameInteractions: vi.fn()
 }));
 
-const mockInteractions = [
+const mockInteractions: InteractionLog[] = [
     {
         id: 'int-1',
-        roomId: 123,
+        roomId: '123',
         gameDay: 1,
-        phase: 'day',
-        actionType: 'vote',
-        actorSeatId: 0,
-        targetSeatId: 1,
-        result: 'executed',
-        timestamp: Date.now()
+        phase: 'DAY' as ServiceGamePhase,
+        actionType: 'VOTE',
+        actorSeat: 0,
+        targetSeat: 1,
+        result: 'SUCCESS',
+        createdAt: new Date().toISOString()
     },
     {
         id: 'int-2',
-        roomId: 123,
+        roomId: '123',
         gameDay: 1,
-        phase: 'night',
-        actionType: 'kill',
-        actorSeatId: 2,
-        targetSeatId: 3,
-        result: 'killed',
-        timestamp: Date.now() + 1000
+        phase: 'NIGHT' as ServiceGamePhase,
+        actionType: 'DEATH',
+        actorSeat: 2,
+        targetSeat: 3,
+        result: 'SUCCESS',
+        createdAt: new Date().toISOString()
     },
     {
         id: 'int-3',
-        roomId: 123,
+        roomId: '123',
         gameDay: 2,
-        phase: 'day',
-        actionType: 'vote',
-        actorSeatId: 1,
-        targetSeatId: 4,
-        result: 'survived',
-        timestamp: Date.now() + 2000
+        phase: 'DAY' as ServiceGamePhase,
+        actionType: 'VOTE',
+        actorSeat: 1,
+        targetSeat: 4,
+        result: 'FAILED',
+        createdAt: new Date().toISOString()
     }
 ];
 
@@ -73,7 +74,7 @@ describe('useGameInteractions', () => {
                 expect(result.current.isLoading).toBe(false);
             });
             
-            expect(supabaseService.getGameInteractions).toHaveBeenCalledWith(123);
+            expect(supabaseService.getGameInteractions).toHaveBeenCalledWith('123');
             expect(result.current.interactions).toEqual(mockInteractions);
         });
 
@@ -93,7 +94,7 @@ describe('useGameInteractions', () => {
 
     describe('fetchByDay', () => {
         it('应该获取指定日期的交互', async () => {
-            const dayInteractions = [mockInteractions[0]];
+            const dayInteractions: InteractionLog[] = [mockInteractions[0]!];
             vi.mocked(supabaseService.getGameInteractions).mockResolvedValue(dayInteractions);
             
             const { result } = renderHook(() => useGameInteractions());
@@ -104,7 +105,7 @@ describe('useGameInteractions', () => {
             
             const data = await result.current.fetchByDay(1);
             
-            expect(supabaseService.getGameInteractions).toHaveBeenCalledWith(123, 1);
+            expect(supabaseService.getGameInteractions).toHaveBeenCalledWith('123', 1);
             expect(data).toEqual(dayInteractions);
         });
 
@@ -132,16 +133,16 @@ describe('useGameInteractions', () => {
             });
             
             vi.clearAllMocks();
-            const newInteractions = [...mockInteractions, {
+            const newInteractions: InteractionLog[] = [...mockInteractions, {
                 id: 'int-4',
-                roomId: 123,
+                roomId: '123',
                 gameDay: 2,
-                phase: 'night',
-                actionType: 'protect',
-                actorSeatId: 5,
-                targetSeatId: 0,
-                result: 'protected',
-                timestamp: Date.now() + 3000
+                phase: 'NIGHT' as ServiceGamePhase,
+                actionType: 'NIGHT_ACTION',
+                actorSeat: 5,
+                targetSeat: 0,
+                result: 'SUCCESS',
+                createdAt: new Date().toISOString()
             }];
             vi.mocked(supabaseService.getGameInteractions).mockResolvedValue(newInteractions);
             
@@ -210,8 +211,8 @@ describe('useGameInteractions', () => {
             const grouped = result.current.getByPhase();
             
             expect(grouped instanceof Map).toBe(true);
-            expect(grouped.get('day')?.length).toBe(2);   // day phase 有 2 条
-            expect(grouped.get('night')?.length).toBe(1); // night phase 有 1 条
+            expect(grouped.get('DAY')?.length).toBe(2);   // DAY phase 有 2 条
+            expect(grouped.get('NIGHT')?.length).toBe(1); // NIGHT phase 有 1 条
         });
     });
 });

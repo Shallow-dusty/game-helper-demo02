@@ -17,12 +17,12 @@ describe('useLongPress', () => {
     const { result } = renderHook(() => useLongPress(onLongPress, onClick, 500));
 
     act(() => {
-      result.current.onMouseDown({ evt: { clientX: 0, clientY: 0 } } as any);
+      result.current?.onMouseDown?.({ evt: { clientX: 0, clientY: 0 } } as any);
     });
 
     act(() => {
       vi.advanceTimersByTime(100);
-      result.current.onMouseUp({} as any);
+      result.current?.onMouseUp?.({} as any);
     });
 
     expect(onClick).toHaveBeenCalled();
@@ -35,23 +35,23 @@ describe('useLongPress', () => {
     const { result } = renderHook(() => useLongPress(onLongPress, onClick, 500));
 
     act(() => {
-      result.current.onMouseDown({ evt: { clientX: 0, clientY: 0 } } as any);
+      result.current?.onMouseDown?.({ evt: { clientX: 0, clientY: 0 } } as any);
     });
 
     act(() => {
       vi.advanceTimersByTime(400);
     });
-    expect(result.current.isPressing).toBe(true);
+    expect(result.current?.isPressing).toBe(true);
 
     act(() => {
       vi.advanceTimersByTime(150); // Total 550
     });
 
     expect(onLongPress).toHaveBeenCalled();
-    expect(result.current.isPressing).toBe(false);
+    expect(result.current?.isPressing).toBe(false);
 
     act(() => {
-        result.current.onMouseUp({} as any);
+        result.current?.onMouseUp?.({} as any);
     });
     
     expect(onClick).not.toHaveBeenCalled();

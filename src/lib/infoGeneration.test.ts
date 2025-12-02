@@ -14,16 +14,17 @@ import { GameState, Seat } from '../types';
 const createMockSeat = (id: number, overrides: Partial<Seat> = {}): Seat => ({
     id,
     userName: `玩家${id}`,
+    userId: null,
     roleId: null,
     realRoleId: null,
     seenRoleId: null,
     isDead: false,
-    isVotingDisabled: false,
     reminders: [],
     statuses: [],
-    ghostVote: true,
-    notes: '',
-    connectedPlayerId: null,
+    hasGhostVote: true,
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
     ...overrides
 });
 
@@ -34,42 +35,42 @@ const createMockGameState = (seatOverrides: Partial<Seat>[] = []): GameState => 
     );
     
     return {
-        gameId: 'test-game',
-        roomId: 1,
+        roomId: 'room-1',
+        currentScriptId: 'tb',
+        phase: 'DAY',
+        setupPhase: 'STARTED',
+        rolesRevealed: true,
+        allowWhispers: true,
+        vibrationEnabled: false,
         seats,
-        gamePhase: 'DAY_PHASE',
-        roundInfo: {
-            roundNumber: 1,
-            phase: 'day',
-            totalRounds: 1
-        },
-        nominationInfo: {
-            isActive: false,
-            nomineeSeatId: null,
-            nominatorSeatId: null,
-            hasNominatedToday: [],
-            hasBeenNominatedToday: [],
-            votingOpen: false,
-            votes: [],
-            currentTally: 0,
-            nominationCount: 0,
-            executionThreshold: 4
-        },
-        voteHistory: [],
         messages: [],
-        currentScript: null,
-        scriptName: '暗流涌动',
-        storytellerId: 'st-1',
-        isStoryteller: false,
-        fabled: [],
-        nightActions: {},
-        playerNotes: {},
         gameOver: {
             isOver: false,
-            winner: null
+            winner: null,
+            reason: ''
         },
-        bluffs: []
-    };
+        audio: { trackId: null, isPlaying: false, volume: 0.5 },
+        nightQueue: [],
+        nightCurrentIndex: -1,
+        voting: null,
+        customScripts: {},
+        customRoles: {},
+        voteHistory: [],
+        roundInfo: {
+            dayCount: 1,
+            nightCount: 0,
+            nominationCount: 0,
+            totalRounds: 1
+        },
+        storytellerNotes: [],
+        skillDescriptionMode: 'simple',
+        aiMessages: [],
+        nightActionRequests: [],
+        swapRequests: [],
+        candlelightEnabled: false,
+        dailyNominations: [],
+        interactionLog: []
+    } as GameState;
 };
 
 describe('infoGeneration', () => {

@@ -105,8 +105,120 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
   const iconSize = Math.max(12, 16 * scale);
   const statusIconSize = Math.max(12, 14 * scale);
 
+  // Animation Ref for the group (breathing/trembling)
+  const groupRef = useRef<Konva.Group>(null);
+
+  // Breathing Animation
+  useEffect(() => {
+    if (seat.isDead || isSwapSource) return;
+    const node = groupRef.current;
+    if (!node) return;
+
+    // Random start time to avoid sync
+    const delay = Math.random() * 2;
+    
+    const tween = new Konva.Tween({
+      node: node,
+      duration: 2 + Math.random(),
+      scaleX: 1.02,
+      scaleY: 1.02,
+      yoyo: true,
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      easing: Konva.Easings.EaseInOut,
+    });
+    
+    const timer = setTimeout(() => tween.play(), delay * 1000);
+    return () => { tween.destroy(); clearTimeout(timer); };
+  }, [seat.isDead, isSwapSource]);
+
+  // Trembling Animation (Nomination)
+  useEffect(() => {
+    if (!seat.isNominated) return;
+    const node = groupRef.current;
+    if (!node) return;
+
+    const anim = new Konva.Animation((frame) => {
+      if (!frame) return;
+      const amp = 2 * scale;
+      node.offsetX(Math.sin(frame.time * 0.1) * amp);
+      node.offsetY(Math.cos(frame.time * 0.1) * amp);
+    }, node.getLayer());
+
+    anim.start();
+    return () => { 
+        anim.stop(); 
+        node.offsetX(0); 
+        node.offsetY(0); 
+    };
+  }, [seat.isNominated, scale]);
+
+  // Death FX
+  useEffect(() => {
+    if (seat.isDead) {
+      const layer = groupRef.current?.getLayer();
+      if (!layer) return;
+
+      // Create particles
+      for (let i = 0; i < 20; i++) {
+        const particle = new Konva.Circle({
+          x: x,
+          y: y,
+          radius: Math.random() * 3 + 1,
+          fill: '#ef4444',
+          opacity: 1,
+        });
+        layer.add(particle);
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 50 + 20;
+
+        new Konva.Tween({
+          node: particle,
+          duration: 1,
+          x: x + Math.cos(angle) * speed,
+          y: y + Math.sin(angle) * speed,
+          opacity: 0,
+          onFinish: () => particle.destroy(),
+        }).play();
+      }
+    }
+  }, [seat.isDead, x, y]);
+
+  // Death FX
+  useEffect(() => {
+    if (seat.isDead) {
+      const layer = groupRef.current?.getLayer();
+      if (!layer) return;
+
+      // Create particles
+      for (let i = 0; i < 20; i++) {
+        const particle = new Konva.Circle({
+          x: x,
+          y: y,
+          radius: Math.random() * 3 + 1,
+          fill: '#ef4444',
+          opacity: 1,
+        });
+        layer.add(particle);
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 50 + 20;
+
+        new Konva.Tween({
+          node: particle,
+          duration: 1,
+          x: x + Math.cos(angle) * speed,
+          y: y + Math.sin(angle) * speed,
+          opacity: 0,
+          onFinish: () => particle.destroy(),
+        }).play();
+      }
+    }
+  }, [seat.isDead, x, y]);
+
   return (
     <Group
+      ref={groupRef}
       x={x}
       y={y}
       {...longPressHandlers} // Only Touch Events
@@ -435,6 +547,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
   const isPinching = useRef(false);
   const draggingRef = useRef(false);
   const [isGestureActive, setIsGestureActive] = useState(false);
+  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+  const [isPrivacyMode, setIsPrivacyMode] = useState(false);
 
   const updateGestureState = useCallback(() => {
     setIsGestureActive(isPinching.current || draggingRef.current);
@@ -695,6 +809,19 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
               {Math.round(stageScale * 100)}%
             </div>
           )}
+
+          {user.isStoryteller && (
+            <button
+              onClick={() => setIsPrivacyMode(!isPrivacyMode)}
+              className={`
+                w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-md transition-all
+                ${isPrivacyMode ? 'bg-stone-800 border-stone-600 text-stone-400' : 'bg-stone-900 border-amber-900/50 text-amber-500'}
+              `}
+              title={isPrivacyMode ? "关闭防窥模式" : "开启防窥模式"}
+            >
+              <span className="text-xl">🕯️</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -722,6 +849,18 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onMouseMove={(e) => {
+          const stage = e.target.getStage();
+          if (stage) {
+            const pointer = stage.getPointerPosition();
+            if (pointer) {
+              setCursorPos({ 
+                x: (pointer.x - stagePos.x) / stageScale, 
+                y: (pointer.y - stagePos.y) / stageScale 
+              });
+            }
+          }
+        }}
         onDragStart={() => { draggingRef.current = true; updateGestureState(); }}
         onDragEnd={(e) => {
           setStagePos({ x: e.target.x(), y: e.target.y() });
@@ -874,6 +1013,49 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
             );
           })}
         </Layer>
+        {/* Candlelight Layer (Night Mode) */}
+        {(gameState.phase === 'NIGHT' || (user.isStoryteller && isPrivacyMode)) && (
+           <Layer>
+             <Group>
+               {/* Dark Overlay */}
+               <Rect
+                 x={-1000}
+                 y={-1000}
+                 width={safeWidth + 2000}
+                 height={safeHeight + 2000}
+                 fill="#000000"
+                 opacity={0.95}
+                 listening={false}
+               />
+               
+               {/* Spotlight (Eraser) */}
+               <Circle
+                 x={cursorPos.x}
+                 y={cursorPos.y}
+                 radius={150 / stageScale}
+                 fill="white"
+                 globalCompositeOperation="destination-out"
+                 shadowBlur={50}
+                 shadowColor="white"
+                 listening={false}
+               />
+               
+               {/* Candle Flame Effect (Optional Visual) */}
+               <Circle
+                 x={cursorPos.x}
+                 y={cursorPos.y}
+                 radius={150 / stageScale}
+                 fillRadialGradientStartPoint={{ x: 0, y: 0 }}
+                 fillRadialGradientStartRadius={0}
+                 fillRadialGradientEndPoint={{ x: 0, y: 0 }}
+                 fillRadialGradientEndRadius={150 / stageScale}
+                 fillRadialGradientColorStops={[0, 'rgba(255, 160, 0, 0.1)', 1, 'rgba(0,0,0,0)']}
+                 globalCompositeOperation="source-over"
+                 listening={false}
+               />
+             </Group>
+           </Layer>
+        )}
       </Stage>
 
       {/* v2.0 烛光守夜模式遮罩 - 仅在夜晚且启用时显示 */}

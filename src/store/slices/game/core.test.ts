@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { GameState, Seat, User } from '../../../types';
-import { StoreState } from '../../types';
 
 // Mock supabase
 vi.mock('../createConnectionSlice', () => ({
@@ -186,21 +185,24 @@ describe('createGameCoreSlice', () => {
         it('should toggle ready state for seated user', () => {
             const gameState = createMockGameState(5);
             // Seat the user at position 0
-            gameState.seats[0].userId = 'user-123';
-            gameState.seats[0].userName = 'TestUser';
-            (gameState.seats[0] as any).isReady = false;
+            const seat0 = gameState.seats[0];
+            if (seat0) {
+                seat0.userId = 'user-123';
+                seat0.userName = 'TestUser';
+                (seat0 as any).isReady = false;
+            }
             
             const user = createMockUser({ isSeated: true });
             const store = createTestStore(gameState, user);
             
             // Initially not ready
-            expect((store.getState().gameState!.seats[0] as any).isReady).toBe(false);
+            expect((store.getState().gameState!.seats[0] as any)?.isReady).toBe(false);
             
             // Toggle ready
             store.getState().toggleReady();
             
             // Now should be ready
-            expect((store.getState().gameState!.seats[0] as any).isReady).toBe(true);
+            expect((store.getState().gameState!.seats[0] as any)?.isReady).toBe(true);
             
             // Should call sync
             expect(store.getState().sync).toHaveBeenCalled();
@@ -235,8 +237,9 @@ describe('createGameCoreSlice', () => {
             store.getState().addSeat();
             
             expect(store.getState().gameState!.seats.length).toBe(6);
-            expect(store.getState().gameState!.seats[5].id).toBe(5);
-            expect(store.getState().gameState!.seats[5].userName).toBe('座位 6');
+            const newSeat = store.getState().gameState!.seats[5];
+            expect(newSeat?.id).toBe(5);
+            expect(newSeat?.userName).toBe('座位 6');
             expect(store.getState().sync).toHaveBeenCalled();
         });
         
@@ -317,40 +320,49 @@ describe('createGameCoreSlice', () => {
         
         it('should skip seats that are already virtual', () => {
             const gameState = createMockGameState(5);
-            gameState.seats[0].isVirtual = true;
-            gameState.seats[0].userId = 'virtual-1';
+            const seat0 = gameState.seats[0];
+            if (seat0) {
+                seat0.isVirtual = true;
+                seat0.userId = 'virtual-1';
+            }
             
             const store = createTestStore(gameState);
             
             store.getState().addVirtualPlayer();
             
             // Should add to seat 1, not seat 0
-            expect(store.getState().gameState!.seats[1].isVirtual).toBe(true);
+            expect(store.getState().gameState!.seats[1]?.isVirtual).toBe(true);
         });
     });
     
     describe('removeVirtualPlayer', () => {
         it('should remove a virtual player from specified seat', () => {
             const gameState = createMockGameState(5);
-            gameState.seats[2].isVirtual = true;
-            gameState.seats[2].userId = 'virtual-123';
-            gameState.seats[2].userName = '虚拟玩家 3';
+            const seat2 = gameState.seats[2];
+            if (seat2) {
+                seat2.isVirtual = true;
+                seat2.userId = 'virtual-123';
+                seat2.userName = '虚拟玩家 3';
+            }
             
             const store = createTestStore(gameState);
             
             store.getState().removeVirtualPlayer(2);
             
             const seat = store.getState().gameState!.seats[2];
-            expect(seat.isVirtual).toBe(false);
-            expect(seat.userId).toBeNull();
-            expect(seat.userName).toBe('座位 3');
+            expect(seat?.isVirtual).toBe(false);
+            expect(seat?.userId).toBeNull();
+            expect(seat?.userName).toBe('座位 3');
             expect(store.getState().sync).toHaveBeenCalled();
         });
         
         it('should do nothing for non-virtual seat', () => {
             const gameState = createMockGameState(5);
-            gameState.seats[2].userId = 'real-user';
-            gameState.seats[2].userName = 'RealPlayer';
+            const seat2 = gameState.seats[2];
+            if (seat2) {
+                seat2.userId = 'real-user';
+                seat2.userName = 'RealPlayer';
+            }
             
             const store = createTestStore(gameState);
             
@@ -358,8 +370,8 @@ describe('createGameCoreSlice', () => {
             
             // Should not change the real player
             const seat = store.getState().gameState!.seats[2];
-            expect(seat.userId).toBe('real-user');
-            expect(seat.userName).toBe('RealPlayer');
+            expect(seat?.userId).toBe('real-user');
+            expect(seat?.userName).toBe('RealPlayer');
         });
         
         it('should do nothing for non-existent seat', () => {

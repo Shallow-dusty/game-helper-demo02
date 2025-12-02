@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { GameState, Seat, User, ChatMessage } from '../../../types';
@@ -112,7 +112,7 @@ const createTestChatStore = (
                             id: Math.random().toString(36).substr(2, 9),
                             senderId: state.user.id,
                             senderName: state.user.name,
-                            recipientId,
+                            recipientId: recipientId ?? null,
                             content,
                             timestamp: Date.now(),
                             type: 'chat' as const,
@@ -133,7 +133,7 @@ const createTestChatStore = (
                                 id: Math.random().toString(36).substr(2, 9),
                                 senderId: state.user.id,
                                 senderName: state.user.name,
-                                recipientId: targetRecipientId,
+                                recipientId: targetRecipientId ?? null,
                                 content: `[转发] ${originalMsg.senderName}: ${originalMsg.content}`,
                                 timestamp: Date.now(),
                                 type: 'chat' as const,
@@ -169,11 +169,12 @@ describe('createGameChatSlice', () => {
             
             const messages = store.getState().gameState!.messages;
             expect(messages.length).toBe(1);
-            expect(messages[0].content).toBe('Hello everyone!');
-            expect(messages[0].senderId).toBe('user-123');
-            expect(messages[0].senderName).toBe('TestUser');
-            expect(messages[0].isPrivate).toBe(false);
-            expect(messages[0].type).toBe('chat');
+            const msg = messages[0];
+            expect(msg?.content).toBe('Hello everyone!');
+            expect(msg?.senderId).toBe('user-123');
+            expect(msg?.senderName).toBe('TestUser');
+            expect(msg?.isPrivate).toBe(false);
+            expect(msg?.type).toBe('chat');
             expect(store.getState().sync).toHaveBeenCalled();
         });
         
@@ -187,9 +188,10 @@ describe('createGameChatSlice', () => {
             
             const messages = store.getState().gameState!.messages;
             expect(messages.length).toBe(1);
-            expect(messages[0].content).toBe('Secret message');
-            expect(messages[0].recipientId).toBe('recipient-456');
-            expect(messages[0].isPrivate).toBe(true);
+            const msg = messages[0];
+            expect(msg?.content).toBe('Secret message');
+            expect(msg?.recipientId).toBe('recipient-456');
+            expect(msg?.isPrivate).toBe(true);
         });
         
         it('should block private messages when whispers disabled for non-storyteller', () => {
@@ -218,8 +220,9 @@ describe('createGameChatSlice', () => {
             
             const messages = store.getState().gameState!.messages;
             expect(messages.length).toBe(1);
-            expect(messages[0].content).toBe('ST secret');
-            expect(messages[0].isPrivate).toBe(true);
+            const msg = messages[0];
+            expect(msg?.content).toBe('ST secret');
+            expect(msg?.isPrivate).toBe(true);
         });
         
         it('should do nothing when user is null', () => {
@@ -244,6 +247,7 @@ describe('createGameChatSlice', () => {
                 id: 'msg-original',
                 senderId: 'other-user',
                 senderName: 'OtherUser',
+                recipientId: null,
                 content: 'Original message',
                 timestamp: Date.now(),
                 type: 'chat',
@@ -256,11 +260,12 @@ describe('createGameChatSlice', () => {
             
             const messages = store.getState().gameState!.messages;
             expect(messages.length).toBe(2);
-            expect(messages[1].content).toBe('[转发] OtherUser: Original message');
-            expect(messages[1].senderId).toBe('user-123');
-            expect(messages[1].senderName).toBe('TestUser');
-            expect(messages[1].recipientId).toBe('recipient-789');
-            expect(messages[1].isPrivate).toBe(true);
+            const forwardedMsg = messages[1];
+            expect(forwardedMsg?.content).toBe('[转发] OtherUser: Original message');
+            expect(forwardedMsg?.senderId).toBe('user-123');
+            expect(forwardedMsg?.senderName).toBe('TestUser');
+            expect(forwardedMsg?.recipientId).toBe('recipient-789');
+            expect(forwardedMsg?.isPrivate).toBe(true);
             expect(store.getState().sync).toHaveBeenCalled();
         });
         
@@ -270,6 +275,7 @@ describe('createGameChatSlice', () => {
                 id: 'msg-original',
                 senderId: 'other-user',
                 senderName: 'OtherUser',
+                recipientId: 'someone',
                 content: 'Original message',
                 timestamp: Date.now(),
                 type: 'chat',
@@ -282,8 +288,9 @@ describe('createGameChatSlice', () => {
             
             const messages = store.getState().gameState!.messages;
             expect(messages.length).toBe(2);
-            expect(messages[1].isPrivate).toBe(false);
-            expect(messages[1].recipientId).toBeUndefined();
+            const forwardedMsg = messages[1];
+            expect(forwardedMsg?.isPrivate).toBe(false);
+            expect(forwardedMsg?.recipientId).toBeNull();
         });
         
         it('should do nothing if original message not found', () => {

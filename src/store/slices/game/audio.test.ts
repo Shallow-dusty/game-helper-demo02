@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { GameState, Seat, User } from '../../../types';
+import { GameState, Seat } from '../../../types';
 
 // Create mock seat helper
 const createMockSeat = (id: number, overrides?: Partial<Seat>): Seat => ({

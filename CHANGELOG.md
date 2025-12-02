@@ -7,6 +7,104 @@
 
 ---
 
+## [0.8.1] - 2025-12-02
+
+### 🏗️ 代码结构优化 (Code Structure)
+
+本版本重点优化了项目代码结构，提高可维护性和开发体验。
+
+#### 📁 组件目录重构
+
+将 `src/components/game/` 目录按功能分类到子目录：
+
+- **`core/`**: 核心游戏视图 (Grimoire, TownSquare, PhaseIndicator 等)
+- **`night/`**: 夜晚阶段组件 (NightActionPanel, DoomsdayClock 等)
+- **`player/`**: 玩家相关组件 (RoleCard, ActiveAbilityButton)
+- **`overlay/`**: 视觉效果组件 (CandlelightOverlay, Confetti 等)
+- **`voting/`**: 投票组件 (VoteButton, VotingChart, FloatingVoteButton)
+- **`modals/`**: 模态框组件 (RoleRevealModal, SwapRequestModal 等)
+
+添加 barrel exports (`index.ts`)，简化导入：
+```typescript
+// 之前
+import { Grimoire } from './components/game/Grimoire';
+import { RoleCard } from './components/game/RoleCard';
+
+// 之后
+import { Grimoire, RoleCard } from './components/game';
+```
+
+#### 🏪 Store Slices 重命名
+
+采用更简洁的命名规范，同时保持向后兼容：
+
+| 旧命名 | 新命名 | 导出 |
+|--------|--------|------|
+| `createAISlice.ts` | `ai.ts` | `aiSlice` |
+| `createUISlice.ts` | `ui.ts` | `uiSlice` |
+| `createConnectionSlice.ts` | `connection.ts` | `connectionSlice` |
+| `createGameSlice.ts` | `game.ts` | `gameSlice` |
+
+添加 `slices/index.ts` barrel export，旧命名仍可使用。
+
+#### 🎵 音频路径集中管理
+
+创建 `src/assets/audioMap.ts`：
+
+- **常量**: `BGM_PATHS`, `SFX_PATHS` 集中管理音频路径
+- **辅助函数**: 
+  - `getBgmForPhase()` - 根据游戏阶段获取 BGM
+  - `getVictoryBgm()` - 获取胜利音乐
+  - `getSfxPath()` - 获取音效路径
+  - `getAvailableBgmList()` - 获取可用 BGM 列表
+
+### 🐛 Bug 修复 (Bug Fixes)
+
+#### 酒鬼假角色重复问题
+
+- **问题**: 酒鬼/疑子/魔偶分配的假角色可能与其他已分配角色重复
+- **修复**: `pickTownsfolk()` 现在使用 Set 收集所有已使用角色（包括 `realRoleId` 和 `seenRoleId`）
+- **文件**: `src/store/slices/game/utils.ts`
+
+#### 规则面板显示问题
+
+- **问题**: 说书人在规则界面看不到酒鬼等"表里不一"角色
+- **修复**: 添加规则 10 "MISLED_ROLES" 检测酒鬼/疑子/魔偶
+- **文件**: `src/lib/distributionAnalysis.ts`
+
+### 🧪 测试改进 (Testing)
+
+#### 测试覆盖率提升
+
+新增测试文件和测试用例：
+- `src/store/slices/game/core.test.ts` (15 tests)
+- `src/store/slices/game/audio.test.ts` (14 tests)
+- `src/store/slices/game/chat.test.ts` (13 tests)
+- 扩展 `supabaseService.test.ts` (+25 tests)
+- 扩展 `useSoundEffect.test.ts` (+13 tests)
+
+#### 测试基础设施
+
+- 创建 `tests/factories.ts` - 测试数据工厂函数
+- 创建 `tests/utils.tsx` - 自定义渲染工具
+
+#### 测试类型修复
+
+修复多个测试文件中的 TypeScript 类型错误：
+- `useGameInteractions.test.ts` - InteractionLog 类型匹配
+- `useLongPress.test.ts` - 可选链操作符
+- `chainReaction.test.ts` - GameState 完整字段
+- `infoGeneration.test.ts` - GameState 完整字段
+- `reportGenerator.test.ts` - GameState 完整字段
+
+### ✅ 测试状态
+
+- 312/312 单元测试全部通过
+- TypeScript 编译无错误
+- 构建验证通过
+
+---
+
 ## [0.8.0] - 2025-11-28
 
 ### 🐛 Bug 修复 (Bug Fixes)

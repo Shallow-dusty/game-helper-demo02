@@ -33,31 +33,65 @@ game-helper-demo02/
 
 ```
 src/
+├── assets/                 # 静态资源映射
+│   └── audioMap.ts         # 音频路径常量和辅助函数
 ├── components/             # React 组件
-│   ├── Controls.tsx        # 主控制面板 (说书人/玩家操作)
-│   ├── Grimoire.tsx        # 游戏魔典 (Konva 画布, 座位显示)
-│   ├── Lobby.tsx           # 游戏大厅 (登录, 创建/加入房间)
-│   ├── Chat.tsx            # 聊天组件
-│   ├── ...                 # 其他 UI 组件
+│   ├── controls/           # 控制面板相关组件
+│   ├── game/               # 游戏核心组件 (按功能分类)
+│   │   ├── core/           # 核心视图 (Grimoire, TownSquare, PhaseIndicator)
+│   │   ├── night/          # 夜晚阶段 (NightActionPanel, DoomsdayClock)
+│   │   ├── player/         # 玩家相关 (RoleCard, ActiveAbilityButton)
+│   │   ├── overlay/        # 视觉效果 (CandlelightOverlay, Confetti)
+│   │   ├── voting/         # 投票组件 (VoteButton, VotingChart)
+│   │   ├── modals/         # 模态框 (RoleRevealModal, SwapRequestModal)
+│   │   └── index.ts        # Barrel export
+│   ├── history/            # 历史记录组件
+│   ├── lobby/              # 大厅组件
+│   ├── sandbox/            # 沙盒模式组件
+│   ├── script/             # 剧本相关组件
+│   └── ui/                 # 通用 UI 组件
+├── constants/              # 常量定义 (按功能模块化)
+│   ├── audio.ts            # 音频配置
+│   ├── gameConfig.ts       # 游戏配置
+│   ├── nightOrder.ts       # 夜间行动顺序
+│   ├── roles.ts            # 角色定义
+│   ├── scripts.ts          # 剧本配置
+│   ├── zIndex.ts           # Z-Index 层级
+│   └── index.ts            # 统一导出
 ├── hooks/                  # 自定义 React Hooks
-│   └── useLongPress.ts     # 长按检测 Hook
+│   ├── useLongPress.ts     # 长按检测
+│   ├── useNomination.ts    # 提名逻辑
+│   ├── useSoundEffect.ts   # 音效管理
+│   └── useGameInteractions.ts # 游戏交互记录
 ├── lib/                    # 核心逻辑库
-│   ├── gameLogic.ts        # 纯游戏规则逻辑 (无状态)
+│   ├── gameLogic.ts        # 游戏规则逻辑
+│   ├── chainReaction.ts    # 连锁反应检测
+│   ├── distributionAnalysis.ts # 角色分布分析
+│   ├── infoGeneration.ts   # 信息生成
+│   ├── reportGenerator.ts  # 复盘战报生成
+│   ├── supabaseService.ts  # Supabase 服务层
 │   └── utils.ts            # 通用工具函数
 ├── store/                  # 状态管理 (Zustand)
-│   ├── store.ts            # Store 入口及类型定义
 │   ├── slices/             # 状态切片
-│   │   ├── createGameSlice.ts       # 游戏核心状态 (角色, 阶段, 投票)
-│   │   ├── createConnectionSlice.ts # 连接与同步 (Supabase)
-│   │   ├── createUISlice.ts         # UI 状态 (模态框, 侧边栏)
-│   │   └── createAISlice.ts         # AI 助手状态
-│   ├── utils.ts            # Store 内部工具 (数据过滤)
+│   │   ├── ai.ts           # AI 助手状态 (新命名)
+│   │   ├── ui.ts           # UI 状态 (新命名)
+│   │   ├── connection.ts   # 连接与同步 (新命名)
+│   │   ├── game.ts         # 游戏核心状态 (新命名)
+│   │   ├── game/           # 游戏子切片
+│   │   │   ├── core.ts     # 核心操作
+│   │   │   ├── flow.ts     # 游戏流程
+│   │   │   ├── roles.ts    # 角色分配
+│   │   │   ├── chat.ts     # 聊天功能
+│   │   │   ├── audio.ts    # 音频控制
+│   │   │   └── ...
+│   │   └── index.ts        # Barrel export
+│   ├── types.ts            # Store 类型定义
+│   ├── utils.ts            # Store 工具函数
 │   └── aiConfig.ts         # AI 服务商配置
-├── App.tsx                 # 根组件 (路由与全局布局)
-├── main.tsx                # 入口文件
-├── constants.ts            # 全局常量 (角色定义, 音频配置, Z-Index)
-├── types.ts                # TypeScript 类型定义
-└── index.css               # 全局样式 (Tailwind 指令)
+├── App.tsx                 # 根组件
+├── store.ts                # Store 入口
+├── types.ts                # 全局类型定义
+└── index.css               # 全局样式
 ```
 
 ### 关键文件详解
@@ -68,33 +102,48 @@ src/
 拆分逻辑。
 
 - **`store.ts`**: 组合所有切片，创建全局 Store。
-- **`createGameSlice.ts`**:
-  最核心的切片，处理所有游戏规则（如分配角色、切换阶段、处理夜间行动）。
-- **`createConnectionSlice.ts`**: 负责与 Supabase Realtime
-  的交互，处理数据同步、心跳检测和房间管理。
+- **`slices/ai.ts`**: AI 助手状态 (原 `createAISlice.ts`)
+- **`slices/ui.ts`**: UI 状态管理 (原 `createUISlice.ts`)
+- **`slices/connection.ts`**: Supabase 连接与同步 (原 `createConnectionSlice.ts`)
+- **`slices/game.ts`**: 游戏核心状态 (原 `createGameSlice.ts`)
 
-#### 2. 核心组件 (`src/components/`)
+> 注意: 旧命名 (`createXSlice`) 仍保持向后兼容导出。
 
-- **`Grimoire.tsx`**: 游戏的核心界面。使用 `react-konva`
-  绘制交互式魔典，支持拖拽、缩放和点击交互。
-- **`Controls.tsx`**: 功能控制中心。包含多个 Tab (Game, Chat, AI,
-  Audio)，根据用户角色（说书人/玩家）动态展示不同内容。
+#### 2. 音频资源管理 (`src/assets/audioMap.ts`)
 
-#### 3. 游戏逻辑 (`src/lib/gameLogic.ts`)
+集中管理所有音频资源路径，避免硬编码：
 
-将纯粹的游戏规则计算从 Store 中剥离出来，便于测试和复用。包含：
+- **`BGM_PATHS`**: 背景音乐路径常量
+- **`SFX_PATHS`**: 音效路径常量
+- **`getBgmForPhase()`**: 根据游戏阶段获取 BGM
+- **`getVictoryBgm()`**: 获取胜利音乐
+- **`getAvailableBgmList()`**: 获取可用 BGM 列表
 
-- `generateRoleAssignment`: 角色随机分配算法
-- `checkGameOver`: 胜利条件判断
-- `buildNightQueue`: 夜间行动顺序构建
+#### 3. 核心组件 (`src/components/game/`)
 
-#### 4. 常量定义 (`src/constants.ts`)
+按功能分类到子目录，通过 barrel export 统一导入：
 
-存储了游戏中所有的静态数据：
+```typescript
+// 使用方式
+import { Grimoire, RoleCard, NightActionPanel } from './components/game';
+```
 
-- **`ROLES`**: 所有角色的详细定义（能力、阵营、图标）。
-- **`SCRIPTS`**: 预设剧本配置（如 Trouble Brewing）。
-- **`AUDIO_TRACKS`**: 音频文件路径映射。
+- **`core/`**: Grimoire, TownSquare, PhaseIndicator 等核心视图
+- **`night/`**: NightActionPanel, DoomsdayClock 等夜晚组件
+- **`player/`**: RoleCard, ActiveAbilityButton 等玩家组件
+- **`overlay/`**: CandlelightOverlay, Confetti 等视觉效果
+- **`voting/`**: VoteButton, VotingChart 等投票组件
+- **`modals/`**: RoleRevealModal, SwapRequestModal 等模态框
+
+#### 4. 游戏逻辑 (`src/lib/`)
+
+将纯粹的游戏规则计算从 Store 中剥离出来，便于测试和复用：
+
+- `gameLogic.ts`: 角色分配、胜利判断、夜间队列
+- `chainReaction.ts`: 连锁反应检测 (如祖母-孙子)
+- `distributionAnalysis.ts`: 角色分布验证和规则检查
+- `infoGeneration.ts`: 信息生成 (共情者、调查员等)
+- `reportGenerator.ts`: 复盘战报生成
 
 ---
 

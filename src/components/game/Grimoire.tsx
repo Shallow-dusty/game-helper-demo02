@@ -52,11 +52,13 @@ interface SeatNodeProps {
   isSwapSource?: boolean;
   publicOnly?: boolean;
   setupPhase?: string; // New prop to check phase
+  rolesRevealed?: boolean; // 从父组件传入，避免子组件订阅整个store
+  votingClockHandSeatId?: number | null; // 从父组件传入
 }
 
 
 
-const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress, onContextMenu, disableInteractions = false, isSwapSource = false, publicOnly = false, setupPhase }) => {
+const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, angle, isST, isCurrentUser, scale, onClick, onLongPress, onContextMenu, disableInteractions = false, isSwapSource = false, publicOnly = false, setupPhase, rolesRevealed = false, votingClockHandSeatId }) => {
   const x = cx + radius * Math.cos(angle);
   const y = cy + radius * Math.sin(angle);
   const [isHovered, setIsHovered] = React.useState(false);
@@ -83,9 +85,7 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
     return undefined;
   }, [isPressing]);
 
-  const rolesRevealed = useStore(state => state.gameState?.rolesRevealed);
-  
-  // Visibility Logic:
+  // Visibility Logic: (现在使用 props 而不是 store)
   // 1. Storyteller: Always see real role (if exists), otherwise seen role
   // 2. Current User: Only see if roles are revealed AND it's their seat
   const displayRoleId = isST 
@@ -98,8 +98,7 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
   // Misled logic (ST only)
   const isMisled = isST && seat.realRoleId && seat.seenRoleId && seat.realRoleId !== seat.seenRoleId;
   const seenRoleDef = isMisled ? ROLES[seat.seenRoleId!] : null;
-  const votingState = useStore(state => state.gameState?.voting);
-  const isClockHand = votingState?.clockHandSeatId === seat.id;
+  const isClockHand = votingClockHandSeatId === seat.id;
 
   const tokenRadius = 35 * scale;
   const fontSizeName = Math.max(10, 14 * scale); // Prevent too small
@@ -154,9 +153,11 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
     };
   }, [seat.isNominated, scale]);
 
-  // Death FX
+  // Death FX - 死亡粒子特效
+  const prevIsDeadRef = useRef(seat.isDead);
   useEffect(() => {
-    if (seat.isDead) {
+    // 只在从存活变为死亡时触发粒子效果
+    if (seat.isDead && !prevIsDeadRef.current) {
       const layer = groupRef.current?.getLayer();
       if (!layer) return;
 
@@ -184,38 +185,7 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
         }).play();
       }
     }
-  }, [seat.isDead, x, y]);
-
-  // Death FX
-  useEffect(() => {
-    if (seat.isDead) {
-      const layer = groupRef.current?.getLayer();
-      if (!layer) return;
-
-      // Create particles
-      for (let i = 0; i < 20; i++) {
-        const particle = new Konva.Circle({
-          x: x,
-          y: y,
-          radius: Math.random() * 3 + 1,
-          fill: '#ef4444',
-          opacity: 1,
-        });
-        layer.add(particle);
-
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 50 + 20;
-
-        new Konva.Tween({
-          node: particle,
-          duration: 1,
-          x: x + Math.cos(angle) * speed,
-          y: y + Math.sin(angle) * speed,
-          opacity: 0,
-          onFinish: () => particle.destroy(),
-        }).play();
-      }
-    }
+    prevIsDeadRef.current = seat.isDead;
   }, [seat.isDead, x, y]);
 
   return (

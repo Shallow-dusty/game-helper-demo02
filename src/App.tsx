@@ -1,46 +1,52 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { useStore } from './store';
 import { useSandboxStore } from './sandboxStore';
 
-// Lobby
+// 加载状态组件 - 立即加载
+import { 
+  LoadingFallback, 
+  GrimoireLoadingFallback, 
+  ControlsLoadingFallback,
+  ModalLoadingFallback 
+} from './components/ui/LoadingFallback';
+
+// 核心组件 - 立即加载 (小型、关键路径)
 import { Lobby } from './components/lobby/Lobby';
 import { RoomSelection } from './components/lobby/RoomSelection';
-
-// Game - using barrel exports from subdirectories
-import {
-  Grimoire,
-  TownSquare,
-  PhaseIndicator,
-  WaitingArea,
-  FloatingVoteButton,
-  RoleRevealModal,
-  SwapRequestModal,
-  Confetti,
-  WelcomeAnnouncement,
-  TruthReveal,
-  DeathEchoEffect,
-  useDeathEcho,
-  GhostlyVisionOverlay,
-  useGhostlyVision,
-  CorruptionOverlay,
-} from './components/game';
-
-// History
-import { AfterActionReportView } from './components/history/AfterActionReportView';
-
-// Controls
-import { Controls } from './components/controls/Controls';
-import { AudioManager } from './components/controls/AudioManager';
-import { RoleReferencePanel } from './components/controls/RoleReferencePanel';
-import { RoleReferenceSidebar } from './components/controls/RoleReferenceSidebar';
-
-// Sandbox
-import { SandboxView } from './components/sandbox/SandboxView';
-
-// UI
 import { ToastContainer, useToasts } from './components/ui/Toast';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+
+// 大型组件 - 懒加载
+const Grimoire = lazy(() => import('./components/game/Grimoire').then(m => ({ default: m.Grimoire })));
+const TownSquare = lazy(() => import('./components/game/TownSquare').then(m => ({ default: m.TownSquare })));
+const Controls = lazy(() => import('./components/controls/Controls').then(m => ({ default: m.Controls })));
+const SandboxView = lazy(() => import('./components/sandbox/SandboxView').then(m => ({ default: m.SandboxView })));
+
+// 游戏视图组件 - 懒加载
+const PhaseIndicator = lazy(() => import('./components/game/PhaseIndicator').then(m => ({ default: m.PhaseIndicator })));
+const WaitingArea = lazy(() => import('./components/game/WaitingArea').then(m => ({ default: m.WaitingArea })));
+const FloatingVoteButton = lazy(() => import('./components/game/FloatingVoteButton').then(m => ({ default: m.FloatingVoteButton })));
+const Confetti = lazy(() => import('./components/game/Confetti').then(m => ({ default: m.Confetti })));
+const WelcomeAnnouncement = lazy(() => import('./components/game/WelcomeAnnouncement').then(m => ({ default: m.WelcomeAnnouncement })));
+
+// 模态框 - 懒加载
+const RoleRevealModal = lazy(() => import('./components/game/RoleRevealModal').then(m => ({ default: m.RoleRevealModal })));
+const SwapRequestModal = lazy(() => import('./components/game/SwapRequestModal').then(m => ({ default: m.SwapRequestModal })));
+const TruthReveal = lazy(() => import('./components/game/TruthReveal').then(m => ({ default: m.TruthReveal })));
+const RoleReferencePanel = lazy(() => import('./components/controls/RoleReferencePanel').then(m => ({ default: m.RoleReferencePanel })));
+const RoleReferenceSidebar = lazy(() => import('./components/controls/RoleReferenceSidebar').then(m => ({ default: m.RoleReferenceSidebar })));
+const AfterActionReportView = lazy(() => import('./components/history/AfterActionReportView').then(m => ({ default: m.AfterActionReportView })));
+
+// 视觉效果 - 懒加载
+const DeathEchoEffect = lazy(() => import('./components/game/DeathEchoEffect').then(m => ({ default: m.DeathEchoEffect })));
+const GhostlyVisionOverlay = lazy(() => import('./components/game/GhostlyVisionOverlay').then(m => ({ default: m.GhostlyVisionOverlay })));
+const CorruptionOverlay = lazy(() => import('./components/game/CorruptionOverlay').then(m => ({ default: m.CorruptionOverlay })));
+const AudioManager = lazy(() => import('./components/controls/AudioManager').then(m => ({ default: m.AudioManager })));
+
+// Hooks 从独立文件导入 (避免混合静态/动态导入)
+import { useDeathEcho } from './hooks/useDeathEcho';
+import { useGhostlyVision } from './hooks/useGhostlyVision';
 
 // Constants
 import { SCRIPTS, ROLES, Z_INDEX } from './constants';
@@ -178,7 +184,11 @@ const App = () => {
 
   // 0. Town Square Mode (Public View)
   if (window.location.pathname === '/townsquare' || window.location.search.includes('mode=townsquare')) {
-    return <TownSquare />;
+    return (
+      <Suspense fallback={<LoadingFallback fullScreen message="加载广场视图..." />}>
+        <TownSquare />
+      </Suspense>
+    );
   }
 
   // 1. Not Logged In -> Lobby
@@ -188,7 +198,11 @@ const App = () => {
 
   // 1.5. Sandbox Mode Active -> Sandbox View
   if (isSandboxActive) {
-    return <SandboxView />;
+    return (
+      <Suspense fallback={<LoadingFallback fullScreen message="加载沙盒模式..." />}>
+        <SandboxView />
+      </Suspense>
+    );
   }
 
   // 2. Logged In but No Game (No Room ID or Sync failed) -> Room Selection
@@ -219,43 +233,52 @@ const App = () => {
         height: appHeight ? `${String(appHeight)}px` : '100vh'
       }}
     >
-      <Confetti
-        active={!!gameState.gameOver.winner}
-        colors={gameState.gameOver.winner === 'GOOD'
-          ? ['#3b82f6', '#fbbf24', '#60a5fa', '#f59e0b', '#ffffff']
-          : ['#ef4444', '#a855f7', '#dc2626', '#7c3aed', '#000000']
-        }
-      />
+      {/* 核心 UI - 使用 Suspense 包裹懒加载组件 */}
+      <Suspense fallback={null}>
+        <Confetti
+          active={!!gameState.gameOver.winner}
+          colors={gameState.gameOver.winner === 'GOOD'
+            ? ['#3b82f6', '#fbbf24', '#60a5fa', '#f59e0b', '#ffffff']
+            : ['#ef4444', '#a855f7', '#dc2626', '#7c3aed', '#000000']
+          }
+        />
+        <WelcomeAnnouncement />
+        <PhaseIndicator />
+        <WaitingArea />
+        <AudioManager />
+      </Suspense>
 
-      <WelcomeAnnouncement />
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      <RoleRevealModal />
-      <PhaseIndicator />
-      <WaitingArea />
-      <AudioManager />
-      <SwapRequestModal />
 
-      {/* v2.0 真相揭示与战报组件 */}
-      <TruthReveal isOpen={isTruthRevealOpen} onClose={closeTruthReveal} />
-      <AfterActionReportView isOpen={isReportOpen} onClose={closeReport} />
+      {/* 模态框 - 按需加载 */}
+      <Suspense fallback={null}>
+        <RoleRevealModal />
+        <SwapRequestModal />
+        <TruthReveal isOpen={isTruthRevealOpen} onClose={closeTruthReveal} />
+        <AfterActionReportView isOpen={isReportOpen} onClose={closeReport} />
+      </Suspense>
 
       {/* v2.0 "最后的回响" - 死亡视觉/音效反馈 */}
-      <DeathEchoEffect 
-        deathSeatId={deathSeatId} 
-        playerName={deathPlayerName}
-        onComplete={clearDeathEcho}
-      />
+      <Suspense fallback={null}>
+        <DeathEchoEffect 
+          deathSeatId={deathSeatId} 
+          playerName={deathPlayerName}
+          onComplete={clearDeathEcho}
+        />
+      </Suspense>
 
       {/* v2.0 "亡者视界" - 死亡玩家视觉滤镜 */}
-      {isCurrentUserDead && !user?.isStoryteller && (
-        <GhostlyVisionOverlay 
-          isActive={true} 
-          playerName={currentUserSeat?.userName}
-        />
-      )}
+      <Suspense fallback={null}>
+        {isCurrentUserDead && !user?.isStoryteller && (
+          <GhostlyVisionOverlay 
+            isActive={true} 
+            playerName={currentUserSeat?.userName}
+          />
+        )}
 
-      {/* 腐化效果背景 - 随存活人数变化 */}
-      <CorruptionOverlay stage={corruptionStage} />
+        {/* 腐化效果背景 - 随存活人数变化 */}
+        <CorruptionOverlay stage={corruptionStage} />
+      </Suspense>
 
       <div className="absolute inset-0 pointer-events-none z-0 bg-cover bg-center transition-all duration-1000"
            style={{ 
@@ -273,12 +296,11 @@ const App = () => {
           ref={containerRef}
         >
           {dimensions.width > 0 && dimensions.height > 0 ? (
-            <Grimoire width={dimensions.width} height={dimensions.height} readOnly={user.isObserver} />
+            <Suspense fallback={<GrimoireLoadingFallback />}>
+              <Grimoire width={dimensions.width} height={dimensions.height} readOnly={user.isObserver} />
+            </Suspense>
           ) : (
-            <div className="flex flex-col items-center justify-center gap-4 text-stone-500">
-              <div className="w-12 h-12 border-4 border-stone-700 border-t-amber-500 rounded-full animate-spin"></div>
-              <span className="text-sm font-cinzel">正在加载魔典...</span>
-            </div>
+            <GrimoireLoadingFallback />
           )}
 
           <div className="absolute bottom-6 left-6 z-0 text-stone-500 text-xs select-none pointer-events-none transition-opacity duration-500 font-cinzel opacity-60 md:opacity-40">
@@ -306,7 +328,9 @@ const App = () => {
             `}
             style={{ zIndex: Z_INDEX.sidebar }}
           >
-            <Controls onClose={() => setIsMobileMenuOpen(false)} />
+            <Suspense fallback={<ControlsLoadingFallback />}>
+              <Controls onClose={() => setIsMobileMenuOpen(false)} />
+            </Suspense>
           </div>
         )}
       </div>
@@ -321,7 +345,9 @@ const App = () => {
         </button>
       )}
 
-      {!user.isObserver && <FloatingVoteButton />}
+      <Suspense fallback={null}>
+        {!user.isObserver && <FloatingVoteButton />}
+      </Suspense>
 
       {isMobileMenuOpen && (
         <div
@@ -345,7 +371,7 @@ const App = () => {
         const playerRoleId = playerSeat?.seenRoleId ?? null;
 
         return (
-          <>
+          <Suspense fallback={null}>
             {roleReferenceMode === 'modal' && (
               <RoleReferencePanel
                 isOpen={isRolePanelOpen}
@@ -363,7 +389,7 @@ const App = () => {
                 scriptRoles={currentScript}
               />
             )}
-          </>
+          </Suspense>
         );
       })()}
 

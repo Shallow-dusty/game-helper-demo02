@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store';
 import { ROLES, TEAM_COLORS } from '../../constants';
 
 export const RoleRevealModal: React.FC = () => {
     const user = useStore(state => state.user);
-    const gameState = useStore(state => state.gameState);
+    // 优化：只订阅需要的字段，减少不必要的重新渲染
+    const rolesRevealed = useStore(state => state.gameState?.rolesRevealed);
+    const roomId = useStore(state => state.gameState?.roomId);
+    const seats = useStore(state => state.gameState?.seats);
     const isRoleRevealOpen = useStore(state => state.isRoleRevealOpen);
     const closeRoleReveal = useStore(state => state.closeRoleReveal);
     
@@ -13,12 +16,18 @@ export const RoleRevealModal: React.FC = () => {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
     const [countdown, setCountdown] = useState<number | null>(null);
+    
+    // 追踪 rolesRevealed 的变化，用于检测从 false -> true 的转换
+    const prevRolesRevealedRef = useRef<boolean | undefined>(undefined);
 
-    // 获取当前玩家的角色
-    const currentSeat = gameState?.seats.find(s => s.userId === user?.id);
-    // 使用 seenRoleId 以支持酒鬼/疯子等机制
-    const roleId = currentSeat?.seenRoleId || currentSeat?.roleId;
-    const role = roleId ? ROLES[roleId] : null;
+    // 获取当前玩家的角色 - 使用 useMemo 优化
+    const { role } = useMemo(() => {
+        const seat = seats?.find(s => s.userId === user?.id);
+        // 使用 seenRoleId 以支持酒鬼/疯子等机制
+        const rId = seat?.seenRoleId || seat?.roleId;
+        const r = rId ? ROLES[rId] : null;
+        return { role: r };
+    }, [seats, user?.id]);
 
     // 监听手动打开请求
     useEffect(() => {
@@ -31,13 +40,18 @@ export const RoleRevealModal: React.FC = () => {
 
     // 监听自动打开请求 & 状态重置
     useEffect(() => {
-        if (!gameState || !user) return;
+        if (!roomId || !user) return;
 
-        const storageKey = `grimoire_last_seen_role_${gameState.roomId}_${user.id}`;
+        const storageKey = `grimoire_last_seen_role_${roomId}_${user.id}`;
         const lastSeenRoleId = localStorage.getItem(storageKey);
+        
+        // 检测 rolesRevealed 从 false -> true 的变化
+        const wasRolesRevealedJustEnabled = rolesRevealed && prevRolesRevealedRef.current === false;
 
         console.log('RoleReveal Auto-Check:', {
-            rolesRevealed: gameState.rolesRevealed,
+            rolesRevealed,
+            prevRolesRevealed: prevRolesRevealedRef.current,
+            wasRolesRevealedJustEnabled,
             hasRole: !!role,
             roleId: role?.id,
             lastSeenRoleId,
@@ -47,9 +61,12 @@ export const RoleRevealModal: React.FC = () => {
             isRoleRevealOpen,
             storageKey
         });
+        
+        // 更新 ref
+        prevRolesRevealedRef.current = rolesRevealed;
 
         // 1. 如果 rolesRevealed 为 false，说明游戏重置或未开始，清除"已查看"记录
-        if (!gameState.rolesRevealed) {
+        if (!rolesRevealed) {
             if (lastSeenRoleId) {
                 console.log('Clearing seen role history due to reset');
                 localStorage.removeItem(storageKey);
@@ -57,14 +74,18 @@ export const RoleRevealModal: React.FC = () => {
             return;
         }
 
-        // 2. 如果 rolesRevealed 为 true，检查是否需要显示
+        // 2. 如果 rolesRevealed 刚刚变为 true，或者角色有变化，触发倒计时
         if (role && !isRoleRevealOpen) {
-            // 如果从未看过，或者看过的角色与当前不符
-            if (lastSeenRoleId !== role.id && !isVisible && !isExiting && countdown === null) {
-                console.log('Auto-triggering role reveal! Reason: New role or not seen yet');
+            // 条件1: rolesRevealed 刚从 false 变为 true（新游戏开始）
+            // 条件2: 从未看过这个角色（新用户/角色变更）
+            const shouldTrigger = wasRolesRevealedJustEnabled || lastSeenRoleId !== role.id;
+            
+            if (shouldTrigger && !isVisible && !isExiting && countdown === null) {
+                console.log('Auto-triggering role reveal! Reason:', wasRolesRevealedJustEnabled ? 'Game just started' : 'New role or not seen yet');
                 setCountdown(3);
             } else {
                 console.log('Skipping auto-trigger:', {
+                    shouldTrigger,
                     seenMatch: lastSeenRoleId === role.id,
                     isVisible,
                     isExiting,
@@ -72,7 +93,7 @@ export const RoleRevealModal: React.FC = () => {
                 });
             }
         }
-    }, [gameState?.rolesRevealed, gameState?.roomId, user?.id, role?.id, isVisible, isExiting, countdown, isRoleRevealOpen]);
+    }, [rolesRevealed, roomId, user?.id, role?.id, isVisible, isExiting, countdown, isRoleRevealOpen, role, user]);
 
     // 倒计时逻辑
     useEffect(() => {
@@ -92,10 +113,10 @@ export const RoleRevealModal: React.FC = () => {
     }, [countdown]);
 
     const handleConfirm = () => {
-        if (!gameState || !user || !role) return;
+        if (!roomId || !user || !role) return;
         
         // 标记为已查看当前角色
-        const storageKey = `grimoire_last_seen_role_${gameState.roomId}_${user.id}`;
+        const storageKey = `grimoire_last_seen_role_${roomId}_${user.id}`;
         localStorage.setItem(storageKey, role.id);
 
         // 开始退出动画

@@ -4,7 +4,8 @@ import { SCRIPTS, ROLES } from '../../constants';
 import { NightActionManager } from '../game/NightActionManager';
 import { DistributionConfirmationModal } from '../modals/DistributionConfirmationModal';
 import { analyzeDistribution, DistributionAnalysisResult } from '../../lib/distributionAnalysis';
-import { Flame, FlameKindling } from 'lucide-react';
+import { RuleCompliancePanel } from '../game/RuleCompliancePanel';
+import { Flame, FlameKindling, Shield } from 'lucide-react';
 
 interface ControlsSTSectionProps {
     onShowCompositionGuide: () => void;
@@ -30,6 +31,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
     // Confirmation Modal State
     const [showDistributeConfirm, setShowDistributeConfirm] = useState(false);
     const [distributionAnalysis, setDistributionAnalysis] = useState<DistributionAnalysisResult | null>(null);
+    const [showRuleCompliance, setShowRuleCompliance] = useState(false);
 
     // 可折叠区块状态
     const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -177,9 +179,15 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     </button>
                     <button
                         onClick={onShowCompositionGuide}
-                        className="col-span-2 bg-stone-800 hover:bg-amber-900 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-2"
+                        className="bg-stone-800 hover:bg-amber-900 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-2"
                     >
                         <span>📊</span> 查看板子配置建议
+                    </button>
+                    <button
+                        onClick={() => setShowRuleCompliance(true)}
+                        className="bg-stone-800 hover:bg-emerald-900 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <Shield className="w-3 h-3" /> 规则检查
                     </button>
                 </div>
             </div>
@@ -338,6 +346,15 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     analysis={distributionAnalysis}
                 />
             )}
+
+            {/* Rule Compliance Panel */}
+            <RuleCompliancePanel
+                seats={gameState.seats}
+                scriptId={gameState.currentScriptId}
+                playerCount={gameState.seats.filter(s => s.userId || s.isVirtual).length}
+                isOpen={showRuleCompliance}
+                onClose={() => setShowRuleCompliance(false)}
+            />
         </div>
     );
 };

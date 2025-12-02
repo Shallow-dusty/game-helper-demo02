@@ -1,6 +1,7 @@
 import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
 import { useStore } from '../../store';
 import { ROLES, SCRIPTS } from '../../constants';
+import { getStandardComposition } from '../../lib/distributionAnalysis';
 import type { RoleDef } from '../../types';
 
 // 简单的错误边界组件，用于捕获渲染错误
@@ -283,24 +284,7 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
     // 安全的玩家数量，确保始终有效
     const safePlayerCount = (playerCount && playerCount >= 5 && playerCount <= 15) ? playerCount : 7;
 
-    // 获取标准配比
-    const getStandardComposition = (players: number) => {
-        const rules: Record<number, { townsfolk: number; outsider: number; minion: number; demon: number }> = {
-            5: { townsfolk: 3, outsider: 0, minion: 1, demon: 1 },
-            6: { townsfolk: 3, outsider: 1, minion: 1, demon: 1 },
-            7: { townsfolk: 5, outsider: 0, minion: 1, demon: 1 },
-            8: { townsfolk: 5, outsider: 1, minion: 1, demon: 1 },
-            9: { townsfolk: 5, outsider: 2, minion: 1, demon: 1 },
-            10: { townsfolk: 7, outsider: 0, minion: 2, demon: 1 },
-            11: { townsfolk: 7, outsider: 1, minion: 2, demon: 1 },
-            12: { townsfolk: 7, outsider: 2, minion: 2, demon: 1 },
-            13: { townsfolk: 9, outsider: 0, minion: 3, demon: 1 },
-            14: { townsfolk: 9, outsider: 1, minion: 3, demon: 1 },
-            15: { townsfolk: 9, outsider: 2, minion: 3, demon: 1 }
-        };
-        return rules[players] || rules[7];
-    };
-
+    // 使用统一的标准配比函数
     const composition = getStandardComposition(safePlayerCount);
 
     // Get current script from store

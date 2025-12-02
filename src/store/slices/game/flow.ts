@@ -11,13 +11,14 @@ import {
 
 export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'nightNext' | 'nightPrev' | 'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote' | 'startGame' | 'endGame' | 'toggleCandlelight' | 'addInteractionLog'>> = (set, get) => ({
     
-    // v2.0: 烛光模式控制
+    // v2.0: 烛光模式控制 (手动开关，需要同步)
     toggleCandlelight: () => {
         set((state) => {
             if (state.gameState) {
                 state.gameState.candlelightEnabled = !state.gameState.candlelightEnabled;
             }
         });
+        get().sync();
     },
     
     // v2.0: 添加交互日志

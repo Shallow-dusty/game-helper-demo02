@@ -39,9 +39,9 @@ export const createGameNightSlice: StoreSlice<Pick<GameSlice, 'performNightActio
                 gameState.roundInfo.nightCount,
                 seat.id,
                 action.roleId,
-                getTeamFromRoleType(roleData?.type),
+                getTeamFromRoleType(roleData?.team),
                 targetSeatId,
-                targetSeat?.roleId,
+                targetSeat?.roleId ?? undefined,
                 'SUCCESS',
                 action.payload
             );

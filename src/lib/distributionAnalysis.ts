@@ -1,5 +1,5 @@
 import { Seat } from '../types';
-import { ROLES } from '../constants';
+import { ROLES, SCRIPTS } from '../constants';
 
 export interface DistributionAnalysisResult {
     isValid: boolean;
@@ -93,7 +93,8 @@ export const getStandardComposition = (players: number) => {
         14: { townsfolk: 9, outsider: 1, minion: 3, demon: 1 },
         15: { townsfolk: 9, outsider: 2, minion: 3, demon: 1 }
     };
-    return rules[players] || null;
+    // 超出范围时返回 null，调用者需要自己做边界检查
+    return rules[players] ?? null;
 };
 
 export const analyzeDistribution = (seats: Seat[], playerCount: number): DistributionAnalysisResult => {
@@ -142,16 +143,20 @@ export const analyzeDistribution = (seats: Seat[], playerCount: number): Distrib
     }
 
     // 3. 策略评估
-    let bestStrategy = STRATEGIES[0]; // Default to balanced
+    const defaultStrategy = STRATEGIES[0]!; // Default to balanced
+    let bestStrategy = defaultStrategy;
 
     // 简单评分逻辑：满足条件得1分，否则0分。
     // 改进：可以计算匹配度。这里简化处理，按优先级匹配。
     // 优先级：混乱 > 邪恶 > 好人 > 平衡 (默认)
+    const chaoticStrategy = STRATEGIES[3];
+    const evilStrategy = STRATEGIES[1];
+    const goodStrategy = STRATEGIES[2];
     
-    if (STRATEGIES[3].criteria(assignedRoles)) bestStrategy = STRATEGIES[3]; // Chaotic
-    else if (STRATEGIES[1].criteria(assignedRoles)) bestStrategy = STRATEGIES[1]; // Evil
-    else if (STRATEGIES[2].criteria(assignedRoles)) bestStrategy = STRATEGIES[2]; // Good
-    else bestStrategy = STRATEGIES[0]; // Balanced
+    if (chaoticStrategy?.criteria(assignedRoles)) bestStrategy = chaoticStrategy; // Chaotic
+    else if (evilStrategy?.criteria(assignedRoles)) bestStrategy = evilStrategy; // Evil
+    else if (goodStrategy?.criteria(assignedRoles)) bestStrategy = goodStrategy; // Good
+    else bestStrategy = defaultStrategy; // Balanced
 
     return {
         isValid: warnings.length === 0,
@@ -177,25 +182,32 @@ export interface ValidationResult {
     isValid: boolean;
     errors: string[];
     warnings: string[];
+    /** 详细的规则检查结果 */
+    ruleChecks: RuleCheckResult[];
 }
 
-export const validateDistribution = (seats: Seat[], scriptId: string, playerCount: number): ValidationResult => {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    
-    // 获取标准组合
+export interface RuleCheckResult {
+    rule: string;
+    passed: boolean;
+    message: string;
+    severity: 'error' | 'warning' | 'info';
+}
+
+/**
+ * 增强的规则合规性检查
+ * 检查游戏设置是否符合官方规则
+ */
+export const checkRuleCompliance = (seats: Seat[], scriptId: string, playerCount: number): RuleCheckResult[] => {
+    const checks: RuleCheckResult[] = [];
     const standard = getStandardComposition(playerCount);
     
     // 统计当前分配
     const roleIds = seats.map(s => s.realRoleId || s.roleId).filter((id): id is string => !!id);
-    const composition = {
-        townsfolk: 0,
-        outsider: 0,
-        minion: 0,
-        demon: 0
-    };
+    const composition = { townsfolk: 0, outsider: 0, minion: 0, demon: 0 };
+    const duplicateCheck = new Map<string, number>();
     
     roleIds.forEach(id => {
+        duplicateCheck.set(id, (duplicateCheck.get(id) || 0) + 1);
         const role = ROLES[id];
         if (role) {
             if (role.team === 'TOWNSFOLK') composition.townsfolk++;
@@ -205,34 +217,152 @@ export const validateDistribution = (seats: Seat[], scriptId: string, playerCoun
         }
     });
     
-    // 检查未分配座位
-    const unassignedCount = seats.length - roleIds.length;
-    if (unassignedCount > 0) {
-        warnings.push(`有 ${unassignedCount} 个座位未分配角色`);
-    }
+    // 规则1: 必须有且仅有一个恶魔
+    checks.push({
+        rule: 'DEMON_COUNT',
+        passed: composition.demon === 1,
+        message: composition.demon === 0 
+            ? '游戏必须有一个恶魔角色' 
+            : composition.demon === 1 
+                ? '恶魔数量正确 (1个)' 
+                : `恶魔数量异常: ${composition.demon}个 (应为1个)`,
+        severity: composition.demon === 1 ? 'info' : 'error'
+    });
     
-    // 检查恶魔数量
-    if (composition.demon === 0) {
-        errors.push('缺少恶魔角色');
-    } else if (composition.demon > 1) {
-        errors.push(`恶魔数量过多: ${composition.demon} (应为 1)`);
-    }
-    
-    // 检查与标准的差异
+    // 规则2: 爪牙数量检查
     if (standard) {
-        if (composition.minion !== standard.minion) {
-            if (composition.minion < standard.minion) {
-                errors.push(`爪牙不足: ${composition.minion} (需要 ${standard.minion})`);
-            } else {
-                errors.push(`爪牙过多: ${composition.minion} (应为 ${standard.minion})`);
+        checks.push({
+            rule: 'MINION_COUNT',
+            passed: composition.minion === standard.minion,
+            message: composition.minion === standard.minion
+                ? `爪牙数量正确 (${standard.minion}个)`
+                : `爪牙数量: ${composition.minion}个 (标准: ${standard.minion}个)`,
+            severity: composition.minion === standard.minion ? 'info' : 'warning'
+        });
+        
+        // 规则3: 外来者数量检查
+        checks.push({
+            rule: 'OUTSIDER_COUNT',
+            passed: composition.outsider === standard.outsider,
+            message: composition.outsider === standard.outsider
+                ? `外来者数量正确 (${standard.outsider}个)`
+                : `外来者数量: ${composition.outsider}个 (标准: ${standard.outsider}个)`,
+            severity: composition.outsider === standard.outsider ? 'info' : 'warning'
+        });
+        
+        // 规则4: 镇民数量检查
+        checks.push({
+            rule: 'TOWNSFOLK_COUNT',
+            passed: composition.townsfolk === standard.townsfolk,
+            message: composition.townsfolk === standard.townsfolk
+                ? `镇民数量正确 (${standard.townsfolk}个)`
+                : `镇民数量: ${composition.townsfolk}个 (标准: ${standard.townsfolk}个)`,
+            severity: composition.townsfolk === standard.townsfolk ? 'info' : 'warning'
+        });
+    }
+    
+    // 规则5: 不应有重复角色
+    const duplicates = Array.from(duplicateCheck.entries()).filter(([, count]) => count > 1);
+    checks.push({
+        rule: 'NO_DUPLICATES',
+        passed: duplicates.length === 0,
+        message: duplicates.length === 0
+            ? '无重复角色'
+            : `发现重复角色: ${duplicates.map(([id]) => ROLES[id]?.name || id).join(', ')}`,
+        severity: duplicates.length === 0 ? 'info' : 'error'
+    });
+    
+    // 规则6: 所有座位都应分配角色
+    // 只检查有玩家或虚拟玩家的座位，如果没有这样的座位则检查所有座位
+    const activeSeats = seats.filter(s => s.userId || s.isVirtual);
+    const seatsToCheck = activeSeats.length > 0 ? activeSeats : seats;
+    const unassignedCount = seatsToCheck.filter(s => !(s.realRoleId || s.roleId)).length;
+    checks.push({
+        rule: 'ALL_ASSIGNED',
+        passed: unassignedCount === 0,
+        message: unassignedCount === 0
+            ? '所有座位已分配角色'
+            : `${unassignedCount}个座位未分配角色`,
+        severity: unassignedCount === 0 ? 'info' : 'warning'
+    });
+    
+    // 规则7: 角色应属于当前剧本
+    const script = SCRIPTS[scriptId];
+    if (script) {
+        const scriptRoleSet = new Set(script.roles);
+        const invalidRoles = roleIds.filter(id => !scriptRoleSet.has(id));
+        checks.push({
+            rule: 'SCRIPT_ROLES',
+            passed: invalidRoles.length === 0,
+            message: invalidRoles.length === 0
+                ? '所有角色属于当前剧本'
+                : `以下角色不属于当前剧本: ${invalidRoles.map(id => ROLES[id]?.name || id).join(', ')}`,
+            severity: invalidRoles.length === 0 ? 'info' : 'warning'
+        });
+    }
+    
+    // 规则8: 玩家数量检查
+    // 如果没有活跃座位（测试情况），使用传入的 playerCount
+    const activePlayerCount = seats.filter(s => s.userId || s.isVirtual).length || playerCount;
+    checks.push({
+        rule: 'PLAYER_COUNT',
+        passed: activePlayerCount >= 5 && activePlayerCount <= 15,
+        message: activePlayerCount >= 5 && activePlayerCount <= 15
+            ? `玩家数量合适 (${activePlayerCount}人)`
+            : activePlayerCount < 5
+                ? `玩家数量过少 (${activePlayerCount}人, 最少5人)`
+                : `玩家数量过多 (${activePlayerCount}人, 最多15人)`,
+        severity: (activePlayerCount >= 5 && activePlayerCount <= 15) ? 'info' : 'error'
+    });
+    
+    // 规则9: 检查特殊角色限制 (如男爵增加外来者)
+    const hasGodfather = roleIds.includes('godfather');
+    const hasBaron = roleIds.includes('baron');
+    if (hasBaron && standard) {
+        const expectedOutsiders = standard.outsider + 2;
+        checks.push({
+            rule: 'BARON_OUTSIDERS',
+            passed: composition.outsider === expectedOutsiders,
+            message: composition.outsider === expectedOutsiders
+                ? `男爵效果: 外来者+2 已正确调整`
+                : `男爵在场时, 外来者应为 ${expectedOutsiders}个 (当前: ${composition.outsider}个)`,
+            severity: composition.outsider === expectedOutsiders ? 'info' : 'warning'
+        });
+    }
+    if (hasGodfather && standard) {
+        // 教父可能减少外来者
+        checks.push({
+            rule: 'GODFATHER_EFFECT',
+            passed: true,
+            message: '教父在场: 注意可能影响外来者数量',
+            severity: 'info'
+        });
+    }
+    
+    return checks;
+};
+
+export const validateDistribution = (seats: Seat[], scriptId: string, playerCount: number): ValidationResult => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const ruleChecks = checkRuleCompliance(seats, scriptId, playerCount);
+    
+    // 从规则检查结果中提取错误和警告
+    ruleChecks.forEach(check => {
+        if (!check.passed) {
+            if (check.severity === 'error') {
+                errors.push(check.message);
+            } else if (check.severity === 'warning') {
+                warnings.push(check.message);
             }
         }
-    }
+    });
     
     return {
         isValid: errors.length === 0,
         errors,
-        warnings
+        warnings,
+        ruleChecks
     };
 };
 
@@ -249,20 +379,30 @@ export const suggestDistributionFixes = (seats: Seat[], scriptId: string, player
     const suggestions: string[] = [];
     const standard = getStandardComposition(playerCount);
     
-    // 根据错误生成建议
-    validation.errors.forEach(error => {
-        if (error.includes('恶魔')) {
-            if (error.includes('缺少')) {
-                suggestions.push('建议添加一个恶魔角色（如小鬼）');
-            } else if (error.includes('过多')) {
-                suggestions.push('建议移除多余的恶魔角色');
+    // 根据规则检查结果生成建议
+    validation.ruleChecks.forEach(check => {
+        if (!check.passed) {
+            if (check.rule === 'DEMON_COUNT') {
+                if (check.message.includes('必须有')) {
+                    suggestions.push('建议添加一个恶魔角色（如小鬼）');
+                } else if (check.message.includes('异常')) {
+                    suggestions.push('建议移除多余的恶魔角色');
+                }
             }
-        }
-        if (error.includes('爪牙')) {
-            if (error.includes('不足')) {
-                suggestions.push(`建议添加爪牙角色至 ${standard?.minion || 1} 个`);
-            } else if (error.includes('过多')) {
-                suggestions.push(`建议移除多余的爪牙角色，保留 ${standard?.minion || 1} 个`);
+            if (check.rule === 'MINION_COUNT' && standard) {
+                const match = /爪牙数量:\s*(\d+)/.exec(check.message);
+                const current = match?.[1] ? parseInt(match[1], 10) : 0;
+                if (current < standard.minion) {
+                    suggestions.push(`建议添加爪牙角色至 ${standard.minion} 个`);
+                } else if (current > standard.minion) {
+                    suggestions.push(`建议移除多余的爪牙角色，保留 ${standard.minion} 个`);
+                }
+            }
+            if (check.rule === 'NO_DUPLICATES') {
+                suggestions.push('建议移除重复角色，确保每个角色只出现一次');
+            }
+            if (check.rule === 'ALL_ASSIGNED') {
+                suggestions.push('建议为所有座位分配角色');
             }
         }
     });

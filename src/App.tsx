@@ -18,6 +18,8 @@ import { SwapRequestModal } from './components/game/SwapRequestModal';
 import { Confetti } from './components/game/Confetti';
 import { WelcomeAnnouncement } from './components/game/WelcomeAnnouncement';
 import { TruthReveal } from './components/game/TruthReveal';
+import { DeathEchoEffect, useDeathEcho } from './components/game/DeathEchoEffect';
+import { GhostlyVisionOverlay, useGhostlyVision } from './components/game/GhostlyVisionOverlay';
 
 // History
 import { AfterActionReportView } from './components/history/AfterActionReportView';
@@ -79,6 +81,38 @@ const App = () => {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [viewportSize] = useState(() => getViewportMetrics());
+
+  // 死亡效果状态
+  const { deathSeatId, playerName: deathPlayerName, triggerDeathEcho, clearDeathEcho } = useDeathEcho();
+  const prevDeadSeatsRef = useRef<Set<number>>(new Set());
+
+  // 当前用户是否死亡（用于亡者视界）
+  const currentUserSeat = gameState?.seats.find(s => s.userId === user?.id);
+  const isCurrentUserDead = currentUserSeat?.isDead ?? false;
+  
+  // 启用亡者视界滤镜（非说书人）
+  useGhostlyVision(isCurrentUserDead && !user?.isStoryteller);
+
+  // 监听死亡状态变化，触发死亡效果
+  useEffect(() => {
+    if (!gameState?.seats) return;
+    
+    const currentDeadSeats = new Set(
+      gameState.seats.filter(s => s.isDead).map(s => s.id)
+    );
+    
+    // 检测新死亡的座位
+    currentDeadSeats.forEach(seatId => {
+      if (!prevDeadSeatsRef.current.has(seatId)) {
+        const seat = gameState.seats.find(s => s.id === seatId);
+        if (seat) {
+          triggerDeathEcho(seatId, seat.userName);
+        }
+      }
+    });
+    
+    prevDeadSeatsRef.current = currentDeadSeats;
+  }, [gameState?.seats, triggerDeathEcho]);
 
 
   useEffect(() => {
@@ -192,6 +226,21 @@ const App = () => {
       {/* v2.0 真相揭示与战报组件 */}
       <TruthReveal isOpen={isTruthRevealOpen} onClose={closeTruthReveal} />
       <AfterActionReportView isOpen={isReportOpen} onClose={closeReport} />
+
+      {/* v2.0 "最后的回响" - 死亡视觉/音效反馈 */}
+      <DeathEchoEffect 
+        deathSeatId={deathSeatId} 
+        playerName={deathPlayerName}
+        onComplete={clearDeathEcho}
+      />
+
+      {/* v2.0 "亡者视界" - 死亡玩家视觉滤镜 */}
+      {isCurrentUserDead && !user?.isStoryteller && (
+        <GhostlyVisionOverlay 
+          isActive={true} 
+          playerName={currentUserSeat?.userName}
+        />
+      )}
 
       {/* 腐化效果背景 - 随存活人数变化 */}
       {corruptionStage >= 1 && (

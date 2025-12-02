@@ -6,6 +6,8 @@ import { Seat } from '../../types';
 import Konva from 'konva';
 import { showWarning } from '../ui/Toast';
 import { StorytellerMenu } from './StorytellerMenu';
+import { ChainReactionModal } from './ChainReactionModal';
+import { detectChainReactions, type ChainReactionEvent } from '../../lib/chainReaction';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { X, Lock, Unlock } from 'lucide-react';
@@ -536,6 +538,10 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
   const [swapSourceId, setSwapSourceId] = useState<number | null>(null);
   const [isLocked, setIsLocked] = useState(false);
   const [joiningId, setJoiningId] = useState<number | null>(null);
+  
+  // 连锁结算状态
+  const [chainEvents, setChainEvents] = useState<ChainReactionEvent[]>([]);
+  const [_pendingDeathSeatId, setPendingDeathSeatId] = useState<number | null>(null);
 
   // Pinch-zoom state
   const stageRef = useRef<Konva.Stage>(null);
@@ -710,6 +716,68 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
   };
 
   const currentScriptRoles = SCRIPTS[gameState.currentScriptId]?.roles || [];
+  
+  // 连锁检测处理函数
+  const handleToggleDeadWithChainCheck = useCallback((seatId: number) => {
+    if (!gameState) return;
+    
+    const seat = gameState.seats[seatId];
+    if (!seat) return;
+    
+    // 如果是复活操作，直接执行
+    if (seat.isDead) {
+      toggleDead(seatId);
+      return;
+    }
+    
+    // 检测连锁反应
+    const events = detectChainReactions(gameState, 'death', seatId);
+    
+    if (events.length > 0) {
+      // 有连锁事件，先执行死亡，然后显示确认
+      toggleDead(seatId);
+      setPendingDeathSeatId(seatId);
+      setChainEvents(events);
+    } else {
+      // 没有连锁事件，直接执行
+      toggleDead(seatId);
+    }
+  }, [gameState, toggleDead]);
+  
+  const handleChainEventConfirm = useCallback((event: ChainReactionEvent) => {
+    // 根据事件类型执行相应操作
+    if (event.suggestedAction === 'mark_dead') {
+      event.affectedSeatIds.forEach(id => toggleDead(id));
+    } else if (event.suggestedAction === 'end_game') {
+      const data = event.data as { winner: 'GOOD' | 'EVIL'; reason: string } | undefined;
+      if (data) {
+        useStore.getState().endGame(data.winner, data.reason);
+      }
+    }
+    
+    // 移除已处理的事件
+    setChainEvents(prev => prev.slice(1));
+    
+    // 如果没有更多事件，清理状态
+    if (chainEvents.length <= 1) {
+      setPendingDeathSeatId(null);
+    }
+  }, [chainEvents.length, toggleDead]);
+  
+  const handleChainEventSkip = useCallback((_event: ChainReactionEvent) => {
+    // 跳过当前事件
+    setChainEvents(prev => prev.slice(1));
+    
+    if (chainEvents.length <= 1) {
+      setPendingDeathSeatId(null);
+    }
+  }, [chainEvents.length]);
+  
+  const handleChainModalClose = useCallback(() => {
+    setChainEvents([]);
+    setPendingDeathSeatId(null);
+  }, []);
+
   const activeJinxes = React.useMemo(() => {
     if (!user.isStoryteller) return [];
     const activeRoleIds = new Set(gameState.seats.map(s => s.realRoleId || s.roleId).filter(Boolean));
@@ -1058,8 +1126,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
         )}
       </Stage>
 
-      {/* v2.0 烛光守夜模式遮罩 - 仅在夜晚且启用时显示 */}
-      {gameState.candlelightEnabled && gameState.phase === 'NIGHT' && !readOnly && (
+      {/* v2.0 烛光守夜模式遮罩 - 仅在夜晚且启用时显示，说书人端不显示 (作为反馈模式，仅主动开启时生效) */}
+      {gameState.candlelightEnabled && gameState.phase === 'NIGHT' && !readOnly && !user.isStoryteller && (
         <CandlelightOverlay 
           width={width} 
           height={height} 
@@ -1074,7 +1142,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
           onClose={() => setContextMenu(null)}
           currentScriptId={gameState.currentScriptId}
           actions={{
-            toggleDead,
+            toggleDead: handleToggleDeadWithChainCheck,
             toggleAbilityUsed,
             toggleStatus,
             addReminder,
@@ -1087,6 +1155,15 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
           }}
         />
       )}
+      
+      {/* 连锁结算确认模态框 */}
+      <ChainReactionModal
+        isOpen={chainEvents.length > 0}
+        events={chainEvents}
+        onConfirm={handleChainEventConfirm}
+        onSkip={handleChainEventSkip}
+        onClose={handleChainModalClose}
+      />
 
       {/* Role Selector Modal */}
       {roleSelectSeat !== null && (

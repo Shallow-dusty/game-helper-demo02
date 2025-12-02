@@ -32,7 +32,7 @@ export type GamePhase = 'DAY' | 'NIGHT' | 'DUSK' | 'DAWN';
 export type Team = 'GOOD' | 'EVIL' | 'NEUTRAL';
 
 export interface InteractionLogInput {
-    roomId: number;  // BIGINT in database
+    roomId: string;  // Room code (e.g., "1234")
     gameDay: number;
     phase: GamePhase;
     actorSeat?: number;
@@ -148,7 +148,7 @@ export async function logDeath(
     phase: GamePhase,
     targetSeat: number,
     targetRole: string,
-    targetTeam: Team,
+    _targetTeam: Team,
     cause: string
 ): Promise<string | null> {
     return logInteraction({

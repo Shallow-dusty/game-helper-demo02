@@ -169,3 +169,105 @@ export const analyzeDistribution = (seats: Seat[], playerCount: number): Distrib
         standardComposition: standard
     };
 };
+
+/**
+ * 验证分配的有效性
+ * 返回验证结果，包括是否有效和错误/警告信息
+ */
+export interface ValidationResult {
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+}
+
+export const validateDistribution = (seats: Seat[], scriptId: string, playerCount: number): ValidationResult => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    
+    // 获取标准组合
+    const standard = getStandardComposition(playerCount);
+    
+    // 统计当前分配
+    const roleIds = seats.map(s => s.realRoleId || s.roleId).filter((id): id is string => !!id);
+    const composition = {
+        townsfolk: 0,
+        outsider: 0,
+        minion: 0,
+        demon: 0
+    };
+    
+    roleIds.forEach(id => {
+        const role = ROLES[id];
+        if (role) {
+            if (role.team === 'TOWNSFOLK') composition.townsfolk++;
+            else if (role.team === 'OUTSIDER') composition.outsider++;
+            else if (role.team === 'MINION') composition.minion++;
+            else if (role.team === 'DEMON') composition.demon++;
+        }
+    });
+    
+    // 检查未分配座位
+    const unassignedCount = seats.length - roleIds.length;
+    if (unassignedCount > 0) {
+        warnings.push(`有 ${unassignedCount} 个座位未分配角色`);
+    }
+    
+    // 检查恶魔数量
+    if (composition.demon === 0) {
+        errors.push('缺少恶魔角色');
+    } else if (composition.demon > 1) {
+        errors.push(`恶魔数量过多: ${composition.demon} (应为 1)`);
+    }
+    
+    // 检查与标准的差异
+    if (standard) {
+        if (composition.minion !== standard.minion) {
+            if (composition.minion < standard.minion) {
+                errors.push(`爪牙不足: ${composition.minion} (需要 ${standard.minion})`);
+            } else {
+                errors.push(`爪牙过多: ${composition.minion} (应为 ${standard.minion})`);
+            }
+        }
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors,
+        warnings
+    };
+};
+
+/**
+ * 建议分配修复方案
+ */
+export const suggestDistributionFixes = (seats: Seat[], scriptId: string, playerCount: number): string[] => {
+    const validation = validateDistribution(seats, scriptId, playerCount);
+    
+    if (validation.isValid) {
+        return [];
+    }
+    
+    const suggestions: string[] = [];
+    const standard = getStandardComposition(playerCount);
+    
+    // 根据错误生成建议
+    validation.errors.forEach(error => {
+        if (error.includes('恶魔')) {
+            if (error.includes('缺少')) {
+                suggestions.push('建议添加一个恶魔角色（如小鬼）');
+            } else if (error.includes('过多')) {
+                suggestions.push('建议移除多余的恶魔角色');
+            }
+        }
+        if (error.includes('爪牙')) {
+            if (error.includes('不足')) {
+                suggestions.push(`建议添加爪牙角色至 ${standard?.minion || 1} 个`);
+            } else if (error.includes('过多')) {
+                suggestions.push(`建议移除多余的爪牙角色，保留 ${standard?.minion || 1} 个`);
+            }
+        }
+    });
+    
+    return suggestions;
+};
+

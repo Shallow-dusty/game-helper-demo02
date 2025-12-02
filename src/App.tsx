@@ -17,6 +17,10 @@ import { RoleRevealModal } from './components/game/RoleRevealModal';
 import { SwapRequestModal } from './components/game/SwapRequestModal';
 import { Confetti } from './components/game/Confetti';
 import { WelcomeAnnouncement } from './components/game/WelcomeAnnouncement';
+import { TruthReveal } from './components/game/TruthReveal';
+
+// History
+import { AfterActionReportView } from './components/history/AfterActionReportView';
 
 // Controls
 import { Controls } from './components/controls/Controls';
@@ -57,6 +61,12 @@ const App = () => {
   const openRolePanel = useStore(state => state.openRolePanel);
   const closeRolePanel = useStore(state => state.closeRolePanel);
   const toggleSidebar = useStore(state => state.toggleSidebar);
+
+  // Truth Reveal & Report modals
+  const isTruthRevealOpen = useStore(state => state.isTruthRevealOpen);
+  const closeTruthReveal = useStore(state => state.closeTruthReveal);
+  const isReportOpen = useStore(state => state.isReportOpen);
+  const closeReport = useStore(state => state.closeReport);
 
   // Sandbox mode
   const isSandboxActive = useSandboxStore(state => state.isActive);
@@ -168,6 +178,10 @@ const App = () => {
       <WaitingArea />
       <AudioManager />
       <SwapRequestModal />
+
+      {/* v2.0 真相揭示与战报组件 */}
+      <TruthReveal isOpen={isTruthRevealOpen} onClose={closeTruthReveal} />
+      <AfterActionReportView isOpen={isReportOpen} onClose={closeReport} />
 
       <div className="absolute inset-0 pointer-events-none z-0 bg-cover bg-center transition-all duration-1000"
            style={{ 

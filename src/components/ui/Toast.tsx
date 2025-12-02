@@ -1,42 +1,57 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export type ToastType = 'error' | 'success' | 'warning' | 'info';
+export type ToastStyle = 'default' | 'parchment'; // 新增样式变体
 
 interface ToastProps {
     message: string;
     type?: ToastType;
+    style?: ToastStyle;
     duration?: number;
     onClose: () => void;
 }
 
-const typeStyles: Record<ToastType, { bg: string; border: string; icon: string; iconColor: string }> = {
+// 火漆印章颜色映射
+const sealColors: Record<ToastType, string> = {
+    error: '#991b1b',     // 红色 - 死亡/攻击
+    success: '#166534',   // 绿色 - 成功
+    warning: '#b45309',   // 琥珀色 - 警告
+    info: '#1e40af',      // 蓝色 - 信息
+};
+
+const typeStyles: Record<ToastType, { bg: string; border: string; icon: string; iconColor: string; sealIcon: string }> = {
     error: {
         bg: 'bg-red-950/95',
         border: 'border-red-700',
         icon: '❌',
-        iconColor: 'text-red-400'
+        iconColor: 'text-red-400',
+        sealIcon: '☠️'
     },
     success: {
         bg: 'bg-green-950/95',
         border: 'border-green-700',
         icon: '✅',
-        iconColor: 'text-green-400'
+        iconColor: 'text-green-400',
+        sealIcon: '✓'
     },
     warning: {
         bg: 'bg-amber-950/95',
         border: 'border-amber-700',
         icon: '⚠️',
-        iconColor: 'text-amber-400'
+        iconColor: 'text-amber-400',
+        sealIcon: '⚠'
     },
     info: {
         bg: 'bg-blue-950/95',
         border: 'border-blue-700',
         icon: 'ℹ️',
-        iconColor: 'text-blue-400'
+        iconColor: 'text-blue-400',
+        sealIcon: '📜'
     }
 };
 
-export const Toast: React.FC<ToastProps> = ({ message, type = 'info', duration = 4000, onClose }) => {
+export const Toast: React.FC<ToastProps> = ({ message, type = 'info', style = 'default', duration = 4000, onClose }) => {
     const [isExiting, setIsExiting] = useState(false);
     const styles = typeStyles[type];
 
@@ -53,6 +68,97 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'info', duration =
         setIsExiting(true);
         setTimeout(onClose, 300);
     };
+
+    // 羊皮卷风格
+    if (style === 'parchment') {
+        return (
+            <motion.div
+                initial={{ opacity: 0, scaleY: 0, originY: 0 }}
+                animate={{ opacity: 1, scaleY: 1 }}
+                exit={{ opacity: 0, scaleY: 0 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className={`
+                    pointer-events-auto
+                    w-full max-w-sm
+                    relative
+                    ${isExiting ? 'opacity-0' : 'opacity-100'}
+                `}
+            >
+                {/* 羊皮纸背景 */}
+                <div className="
+                    relative overflow-hidden
+                    bg-gradient-to-br from-amber-100 via-amber-50 to-yellow-100
+                    border border-amber-300/50
+                    rounded-sm
+                    shadow-[0_4px_20px_rgba(0,0,0,0.3),inset_0_0_30px_rgba(139,69,19,0.1)]
+                ">
+                    {/* 羊皮纸纹理覆盖层 */}
+                    <div className="absolute inset-0 opacity-30 pointer-events-none"
+                         style={{
+                             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                         }}
+                    />
+                    
+                    {/* 烧焦边缘效果（仅错误类型） */}
+                    {type === 'error' && (
+                        <div className="absolute inset-0 pointer-events-none"
+                             style={{
+                                 background: 'radial-gradient(ellipse at 100% 0%, rgba(139,69,19,0.3) 0%, transparent 50%), radial-gradient(ellipse at 0% 100%, rgba(139,69,19,0.2) 0%, transparent 50%)'
+                             }}
+                        />
+                    )}
+                    
+                    <div className="flex items-start gap-4 p-4 relative">
+                        {/* 火漆印章 */}
+                        <div 
+                            className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center
+                                       shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_-2px_4px_rgba(0,0,0,0.2)]"
+                            style={{ 
+                                backgroundColor: sealColors[type],
+                                backgroundImage: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 50%)'
+                            }}
+                        >
+                            <span className="text-white text-lg font-bold drop-shadow-sm">
+                                {styles.sealIcon}
+                            </span>
+                        </div>
+                        
+                        {/* 内容 */}
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-stone-800 leading-relaxed break-words"
+                               style={{ fontFamily: 'Cinzel, serif' }}>
+                                {message}
+                            </p>
+                        </div>
+                        
+                        {/* 关闭按钮 */}
+                        <button
+                            onClick={handleClose}
+                            className="text-stone-500 hover:text-stone-700 transition-colors text-lg leading-none"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    
+                    {/* 进度条 - 墨水风格 */}
+                    <div className="h-0.5 bg-amber-200/50 w-full">
+                        <div
+                            className="h-full"
+                            style={{
+                                backgroundColor: sealColors[type],
+                                animation: `shrink ${duration}ms linear forwards`
+                            }}
+                        />
+                    </div>
+                </div>
+                
+                {/* 卷轴卷曲阴影 */}
+                <div className="absolute -bottom-1 left-2 right-2 h-2 bg-gradient-to-b from-amber-900/20 to-transparent rounded-b-full" />
+            </motion.div>
+        );
+    }
+
+    // 默认风格（保持原有逻辑）
 
     return (
         <div
@@ -107,6 +213,7 @@ interface ToastItem {
     id: string;
     message: string;
     type: ToastType;
+    style?: ToastStyle;
 }
 
 interface ToastContainerProps {
@@ -117,14 +224,17 @@ interface ToastContainerProps {
 export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove }) => {
     return (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-3 pointer-events-none w-full max-w-sm px-4">
-            {toasts.map((toast) => (
-                <Toast
-                    key={toast.id}
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={() => onRemove(toast.id)}
-                />
-            ))}
+            <AnimatePresence mode="popLayout">
+                {toasts.map((toast) => (
+                    <Toast
+                        key={toast.id}
+                        message={toast.message}
+                        type={toast.type}
+                        style={toast.style}
+                        onClose={() => onRemove(toast.id)}
+                    />
+                ))}
+            </AnimatePresence>
         </div>
     );
 };
@@ -138,11 +248,21 @@ const notifyListeners = () => {
     toastListeners.forEach(listener => listener([...toastList]));
 };
 
-export const showToast = (message: string, type: ToastType = 'info') => {
+export const showToast = (message: string, type: ToastType = 'info', style: ToastStyle = 'default') => {
     const id = `toast-${++toastIdCounter}`;
-    toastList = [...toastList, { id, message, type }];
+    toastList = [...toastList, { id, message, type, style }];
     notifyListeners();
     return id;
+};
+
+// 新增：羊皮卷风格通知
+export const showParchmentToast = (message: string, type: ToastType = 'info') => {
+    return showToast(message, type, 'parchment');
+};
+
+// 新增：皇室谕令通知（羊皮卷 + 特定图标）
+export const showRoyalDecree = (message: string, type: ToastType = 'info') => {
+    return showToast(`📜 ${message}`, type, 'parchment');
 };
 
 export const removeToast = (id: string) => {

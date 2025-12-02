@@ -187,3 +187,254 @@ h1, h2, h3, h4, h5, h6 {
     transform: scale(0.98) translateY(0);
     box-shadow: 0 0 10px rgba(192, 160, 96, 0.2);
 }
+
+/* ===== 沉浸式 UI 样式 (Immersive Experience) ===== */
+
+/* 烛光守夜模式遮罩 */
+.candlelight-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    transition: opacity 1.5s ease-in-out;
+}
+
+/* 呼吸动画 - 生命体征令牌 */
+@keyframes breath {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.animate-breath {
+    animation: breath 3s ease-in-out infinite;
+    animation-delay: var(--breath-delay, 0s);
+}
+
+/* 震颤动画 - 濒死/被提名状态 */
+@keyframes tremble {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-1px, 0); }
+    20% { transform: translate(1px, -1px); }
+    30% { transform: translate(-1px, 1px); }
+    40% { transform: translate(1px, 0); }
+    50% { transform: translate(-1px, -1px); }
+    60% { transform: translate(1px, 1px); }
+    70% { transform: translate(0, -1px); }
+    80% { transform: translate(-1px, 0); }
+    90% { transform: translate(1px, -1px); }
+}
+
+.animate-tremble {
+    animation: tremble 0.3s ease-in-out infinite;
+}
+
+/* 死亡去色效果 */
+.death-grayscale {
+    filter: grayscale(1) brightness(0.7);
+    transition: filter 0.5s ease-out;
+}
+
+/* 灰烬粒子容器 */
+@keyframes ash-fall {
+    0% {
+        opacity: 1;
+        transform: translateY(0) rotate(0deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(30px) rotate(45deg);
+    }
+}
+
+.ash-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: linear-gradient(45deg, #57534e, #292524);
+    border-radius: 1px;
+    animation: ash-fall 2s ease-out forwards;
+}
+
+/* 羊皮卷展开动画 */
+@keyframes scroll-unfurl {
+    0% {
+        max-height: 0;
+        opacity: 0;
+        transform: scaleY(0);
+        transform-origin: top;
+    }
+    100% {
+        max-height: 200px;
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}
+
+.animate-scroll-unfurl {
+    animation: scroll-unfurl 0.4s ease-out forwards;
+}
+
+/* 纸张燃烧动画 */
+@keyframes paper-burn {
+    0% {
+        opacity: 1;
+        filter: brightness(1) sepia(0);
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+    30% {
+        filter: brightness(1.3) sepia(0.3);
+    }
+    60% {
+        filter: brightness(0.8) sepia(0.8);
+        clip-path: polygon(5% 0, 95% 5%, 90% 95%, 10% 100%);
+    }
+    100% {
+        opacity: 0;
+        filter: brightness(0.3) sepia(1);
+        clip-path: polygon(20% 10%, 80% 20%, 70% 80%, 30% 90%);
+    }
+}
+
+.animate-paper-burn {
+    animation: paper-burn 0.8s ease-in forwards;
+}
+
+/* 命运时钟脉冲 */
+@keyframes clock-pulse {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(220, 38, 38, 0.6), 0 0 60px rgba(220, 38, 38, 0.3);
+    }
+}
+
+.animate-clock-pulse {
+    animation: clock-pulse 1s ease-in-out infinite;
+}
+
+/* 数字故障效果 - 终局真相揭示 */
+@keyframes glitch {
+    0% {
+        clip-path: inset(40% 0 61% 0);
+        transform: translate(-2px, 2px);
+    }
+    20% {
+        clip-path: inset(92% 0 1% 0);
+        transform: translate(2px, -2px);
+    }
+    40% {
+        clip-path: inset(43% 0 1% 0);
+        transform: translate(-1px, 1px);
+    }
+    60% {
+        clip-path: inset(25% 0 58% 0);
+        transform: translate(1px, -1px);
+    }
+    80% {
+        clip-path: inset(54% 0 7% 0);
+        transform: translate(-2px, 2px);
+    }
+    100% {
+        clip-path: inset(58% 0 43% 0);
+        transform: translate(2px, -2px);
+    }
+}
+
+.glitch-effect {
+    position: relative;
+}
+
+.glitch-effect::before,
+.glitch-effect::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.glitch-effect::before {
+    animation: glitch 0.3s infinite linear alternate-reverse;
+    color: #ff0000;
+    mix-blend-mode: multiply;
+}
+
+.glitch-effect::after {
+    animation: glitch 0.3s 0.1s infinite linear alternate-reverse;
+    color: #0000ff;
+    mix-blend-mode: multiply;
+}
+
+/* 噪点效果 */
+@keyframes noise {
+    0%, 100% { background-position: 0 0; }
+    10% { background-position: -5% -10%; }
+    20% { background-position: -15% 5%; }
+    30% { background-position: 7% -25%; }
+    40% { background-position: 20% 25%; }
+    50% { background-position: -25% 10%; }
+    60% { background-position: 15% 5%; }
+    70% { background-position: 0 15%; }
+    80% { background-position: 25% 35%; }
+    90% { background-position: -10% 10%; }
+}
+
+.noise-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    animation: noise 0.5s steps(10) infinite;
+}
+
+/* 火漆印章样式 */
+.wax-seal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1);
+    background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 50%);
+}
+
+.wax-seal-red { background-color: #991b1b; }
+.wax-seal-blue { background-color: #1e40af; }
+.wax-seal-gold { background-color: #b45309; }
+.wax-seal-green { background-color: #166534; }
+
+/* 羊皮纸纹理 */
+.parchment-bg {
+    background: linear-gradient(135deg, 
+        #f5e6d3 0%, 
+        #e8d5c4 25%, 
+        #f0e2d0 50%, 
+        #e5d2c0 75%, 
+        #f2e4d4 100%
+    );
+    position: relative;
+}
+
+.parchment-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.15;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+}
+
+/* 卷轴边缘阴影 */
+.scroll-shadow {
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.3),
+        inset 0 0 30px rgba(139, 69, 19, 0.1);
+}
+

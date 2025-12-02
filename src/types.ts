@@ -179,6 +179,27 @@ export interface SwapRequest {
   timestamp: number;
 }
 
+// 交互日志条目（用于战报生成）
+export interface InteractionLogEntry {
+  id: string;
+  timestamp: number;
+  type: 'info_given' | 'ability_used' | 'death' | 'vote' | 'nomination' | 'phase_change' | 'chain_reaction';
+  actorSeatId?: number;
+  targetSeatIds?: number[];
+  roleId?: string;
+  description: string;
+  isConfirmed: boolean; // ST 是否确认过
+  metadata?: Record<string, unknown>;
+}
+
+// 每日提名记录
+export interface DailyNomination {
+  nominatorSeatId: number;
+  nomineeSeatId: number;
+  round: number;
+  timestamp: number;
+}
+
 export interface GameState {
   roomId: string;
   currentScriptId: string; // 'tb', 'bmr', 'sv'
@@ -225,6 +246,17 @@ export interface GameState {
 
   // 语音房间链接（可选）
   voiceRoomUrl?: string;
+
+  // === v2.0 新增字段 ===
+  
+  // 烛光守夜模式
+  candlelightEnabled: boolean;
+  
+  // 每日提名记录（用于规则约束）
+  dailyNominations: DailyNomination[];
+  
+  // 交互日志（用于战报生成）
+  interactionLog: InteractionLogEntry[];
 }
 
 export interface GameHistory {

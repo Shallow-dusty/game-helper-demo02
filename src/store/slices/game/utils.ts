@@ -49,7 +49,11 @@ export const getInitialState = (roomId: string, seatCount: number, currentScript
     storytellerNotes: [],
     skillDescriptionMode: 'simple',
     aiMessages: [],
-    nightActionRequests: []
+    nightActionRequests: [],
+    // v2.0 新增字段
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: [],
 });
 
 export const fallbackTownsfolk = ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller', 'undertaker', 'monk', 'ravenkeeper'];

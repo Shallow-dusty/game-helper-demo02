@@ -95,6 +95,10 @@ export interface GameSlice {
     // History
     fetchGameHistory: () => Promise<GameHistory[]>;
     saveGameHistory: (game: GameState) => Promise<void>;
+    
+    // v2.0 沉浸式 UI 控制
+    toggleCandlelight: () => void;
+    addInteractionLog: (entry: Omit<import('../types').InteractionLogEntry, 'id' | 'timestamp'>) => void;
 }
 
 export interface AppState extends GameSlice {
@@ -107,6 +111,9 @@ export interface AppState extends GameSlice {
     isSidebarExpanded: boolean;
     isRolePanelOpen: boolean;
     isRoleRevealOpen: boolean;
+    isTruthRevealOpen: boolean;  // v2.0: 真相揭示模态框
+    isReportOpen: boolean;       // v2.0: 战报模态框
+
 
     login: (name: string, isStoryteller: boolean) => void;
     joinGame: (roomCode: string) => Promise<void>;
@@ -119,6 +126,12 @@ export interface AppState extends GameSlice {
     closeRolePanel: () => void;
     openRoleReveal: () => void;
     closeRoleReveal: () => void;
+    
+    // v2.0: 真相揭示和战报控制
+    openTruthReveal: () => void;
+    closeTruthReveal: () => void;
+    openReport: () => void;
+    closeReport: () => void;
 
     askAi: (prompt: string) => Promise<void>;
     setAiProvider: (provider: AiProvider) => void;
@@ -131,6 +144,7 @@ export interface AppState extends GameSlice {
     sync: () => void;
     syncToCloud: () => Promise<void>;
     refreshFromCloud: () => Promise<void>;
+
 
     // UI State
     isModalOpen: boolean;

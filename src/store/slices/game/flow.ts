@@ -3,8 +3,41 @@ import { addSystemMessage } from '../../utils';
 import { supabase } from '../createConnectionSlice';
 import { PHASE_LABELS, NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '../../../constants';
 import { checkGameOver } from '../../../lib/gameLogic';
+import { InteractionLogEntry } from '../../../types';
+import { 
+    logInteraction, 
+    logExecution, 
+    logDeath,
+    updateNominationResult,
+    getTeamFromRoleType,
+    mapPhase 
+} from '../../../lib/supabaseService';
 
-export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'nightNext' | 'nightPrev' | 'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote' | 'startGame' | 'endGame'>> = (set, get) => ({
+export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'nightNext' | 'nightPrev' | 'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote' | 'startGame' | 'endGame' | 'toggleCandlelight' | 'addInteractionLog'>> = (set, get) => ({
+    
+    // v2.0: 烛光模式控制
+    toggleCandlelight: () => {
+        set((state) => {
+            if (state.gameState) {
+                state.gameState.candlelightEnabled = !state.gameState.candlelightEnabled;
+            }
+        });
+    },
+    
+    // v2.0: 添加交互日志
+    addInteractionLog: (entry: Omit<InteractionLogEntry, 'id' | 'timestamp'>) => {
+        set((state) => {
+            if (state.gameState) {
+                const logEntry: InteractionLogEntry = {
+                    ...entry,
+                    id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+                    timestamp: Date.now(),
+                };
+                state.gameState.interactionLog.push(logEntry);
+            }
+        });
+    },
+    
     setPhase: (phase) => {
         set((state) => {
             if (state.gameState) {
@@ -15,9 +48,15 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
                 if (phase === 'NIGHT' && oldPhase !== 'NIGHT') {
                     state.gameState.roundInfo.nightCount++;
                     state.gameState.roundInfo.totalRounds++;
+                    // 进入夜晚自动开启烛光
+                    state.gameState.candlelightEnabled = true;
                 }
                 if (phase === 'DAY' && oldPhase !== 'DAY') {
                     state.gameState.roundInfo.dayCount++;
+                    // 进入白天自动关闭烛光
+                    state.gameState.candlelightEnabled = false;
+                    // 重置每日提名记录
+                    state.gameState.dailyNominations = [];
                 }
 
                 // If entering NIGHT, recalculate queue
@@ -142,20 +181,34 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
     },
 
     closeVote: () => {
+        const { user } = get();
+        
         set((state) => {
             if (state.gameState?.voting) {
-                const { nomineeSeatId, votes } = state.gameState.voting;
+                const { nomineeSeatId, nominatorSeatId, votes } = state.gameState.voting;
                 const aliveCount = state.gameState.seats.filter(s => !s.isDead).length;
                 const isExecuted = votes.length >= (aliveCount / 2) && votes.length > 0;
                 
                 let result: 'executed' | 'survived' | 'cancelled' = 'survived';
                 
+                const nomineeSeat = state.gameState.seats.find(s => s.id === nomineeSeatId);
+                
                 if (isExecuted) {
                     result = 'executed';
-                    const seat = state.gameState.seats.find(s => s.id === nomineeSeatId);
-                    if (seat) {
-                        seat.isDead = true;
-                        addSystemMessage(state.gameState, `${seat.userName} 被处决了 (票数: ${votes.length})`);
+                    if (nomineeSeat) {
+                        nomineeSeat.isDead = true;
+                        addSystemMessage(state.gameState, `${nomineeSeat.userName} 被处决了 (票数: ${votes.length})`);
+                        
+                        // v2.0: Log execution to database (async, non-blocking)
+                        if (user?.roomId && nomineeSeatId !== null) {
+                            logExecution(
+                                user.roomId,
+                                state.gameState.roundInfo.dayCount,
+                                nomineeSeatId,
+                                nomineeSeat.roleId || 'unknown',
+                                votes.length
+                            ).catch(console.error);
+                        }
                         
                         const gameOver = checkGameOver(state.gameState.seats);
                         if (gameOver) {
@@ -166,13 +219,25 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
                 } else {
                     addSystemMessage(state.gameState, `票数不足 (${votes.length}), 无人被处决`);
                 }
+                
+                // v2.0: Update nomination result in database (async, non-blocking)
+                if (user?.roomId && nomineeSeatId !== null) {
+                    updateNominationResult(
+                        user.roomId,
+                        state.gameState.roundInfo.dayCount,
+                        nomineeSeatId,
+                        votes.length > 0,
+                        votes.length,
+                        isExecuted
+                    ).catch(console.error);
+                }
 
                 state.gameState.voteHistory.push({
                     round: state.gameState.roundInfo.dayCount,
-                    nominatorSeatId: state.gameState.voting.nominatorSeatId || -1,
-                    nomineeSeatId: state.gameState.voting.nomineeSeatId || -1,
-                    votes: state.gameState.voting.votes,
-                    voteCount: state.gameState.voting.votes.length,
+                    nominatorSeatId: nominatorSeatId || -1,
+                    nomineeSeatId: nomineeSeatId || -1,
+                    votes: votes,
+                    voteCount: votes.length,
                     timestamp: Date.now(),
                     result: result
                 });
@@ -201,6 +266,9 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
                 
                 state.gameState.nightQueue = queue;
                 state.gameState.nightCurrentIndex = -1;
+                
+                // 夜晚自动启用烛光模式
+                state.gameState.candlelightEnabled = true;
             }
         });
         get().sync();
@@ -215,6 +283,9 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
                     reason
                 };
                 addSystemMessage(state.gameState, `游戏结束！${winner === 'GOOD' ? '好人' : '邪恶'} 获胜 - ${reason}`);
+                
+                // 游戏结束时关闭烛光模式
+                state.gameState.candlelightEnabled = false;
             }
         });
         get().sync();

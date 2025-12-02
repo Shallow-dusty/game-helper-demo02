@@ -4,6 +4,7 @@ import { SCRIPTS, ROLES } from '../../constants';
 import { NightActionManager } from '../game/NightActionManager';
 import { DistributionConfirmationModal } from '../modals/DistributionConfirmationModal';
 import { analyzeDistribution, DistributionAnalysisResult } from '../../lib/distributionAnalysis';
+import { Flame, FlameKindling } from 'lucide-react';
 
 interface ControlsSTSectionProps {
     onShowCompositionGuide: () => void;
@@ -21,6 +22,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
     const gameState = useStore(state => state.gameState);
     const setPhase = useStore(state => state.setPhase);
     const setScript = useStore(state => state.setScript);
+    const toggleCandlelight = useStore(state => state.toggleCandlelight);
 
     const nextClockHand = useStore(state => state.nextClockHand);
     const closeVote = useStore(state => state.closeVote);
@@ -227,6 +229,24 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                             {gameState.vibrationEnabled ? '振动: 开' : '振动: 关'}
                         </button>
                     </div>
+
+                    {/* 烛光守夜模式开关 (v2.0) */}
+                    <button
+                        onClick={() => toggleCandlelight?.()}
+                        className={`w-full py-2 px-3 rounded text-xs border transition-all flex items-center justify-center gap-2 ${
+                            gameState.candlelightEnabled
+                                ? 'bg-amber-900/60 border-amber-600/50 text-amber-300 hover:bg-amber-800/60 shadow-[0_0_10px_rgba(251,191,36,0.2)]'
+                                : 'bg-stone-800 border-stone-600 text-stone-400 hover:bg-stone-700'
+                        }`}
+                        title={gameState.candlelightEnabled ? '关闭烛光模式' : '开启烛光模式 - 夜晚时玩家视野受限'}
+                    >
+                        {gameState.candlelightEnabled ? (
+                            <Flame className="w-4 h-4" />
+                        ) : (
+                            <FlameKindling className="w-4 h-4" />
+                        )}
+                        <span>{gameState.candlelightEnabled ? '🕯️ 烛光模式: 开' : '🕯️ 烛光模式: 关'}</span>
+                    </button>
                 </div>
             </div>
 

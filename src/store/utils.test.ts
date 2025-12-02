@@ -44,7 +44,10 @@ describe('utils', () => {
     storytellerNotes: [{ id: '1', content: 'Secret Note', timestamp: 123, type: 'manual' }],
     skillDescriptionMode: 'simple',
     aiMessages: [],
-    nightActionRequests: []
+    nightActionRequests: [],
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: []
   };
 
   describe('splitGameState', () => {

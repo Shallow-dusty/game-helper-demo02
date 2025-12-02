@@ -74,7 +74,10 @@ const getInitialSandboxState = (seatCount: number, scriptId = 'tb'): GameState =
     skillDescriptionMode: 'simple',
     aiMessages: [],
     nightActionRequests: [],
-    swapRequests: []
+    swapRequests: [],
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: []
 });
 
 interface SandboxState {

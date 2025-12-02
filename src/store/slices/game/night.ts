@@ -1,6 +1,8 @@
 import { StoreSlice, GameSlice } from '../../types';
 import { supabase } from '../createConnectionSlice';
 import { addSystemMessage } from '../../utils';
+import { logNightAction, getTeamFromRoleType } from '../../../lib/supabaseService';
+import { ROLES } from '../../../constants';
 
 export const createGameNightSlice: StoreSlice<Pick<GameSlice, 'performNightAction' | 'submitNightAction' | 'resolveNightAction' | 'getPendingNightActions'>> = (set, get) => ({
     performNightAction: (_action) => {
@@ -23,6 +25,25 @@ export const createGameNightSlice: StoreSlice<Pick<GameSlice, 'performNightActio
             });
 
             if (error) throw error;
+            
+            // v2.0: Log night action to database
+            const roleData = ROLES[action.roleId];
+            const targetSeatId = action.payload?.targetSeat as number | undefined;
+            const targetSeat = targetSeatId !== undefined 
+                ? gameState.seats.find(s => s.id === targetSeatId) 
+                : undefined;
+            
+            await logNightAction(
+                user.roomId!,
+                gameState.roundInfo.nightCount,
+                seat.id,
+                action.roleId,
+                getTeamFromRoleType(roleData?.type),
+                targetSeatId,
+                targetSeat?.roleId,
+                'SUCCESS',
+                action.payload
+            );
             
             addSystemMessage(gameState, `已提交夜间行动`);
             

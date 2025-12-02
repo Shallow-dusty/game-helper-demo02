@@ -6,6 +6,9 @@ export interface UISlice {
     isRolePanelOpen: boolean;
     isRoleRevealOpen: boolean;
     isModalOpen: boolean;
+    // v2.0 新增
+    isTruthRevealOpen: boolean;
+    isReportOpen: boolean;
 
     setRoleReferenceMode: (mode: 'modal' | 'sidebar') => void;
     toggleSidebar: () => void;
@@ -14,6 +17,11 @@ export interface UISlice {
     openRoleReveal: () => void;
     closeRoleReveal: () => void;
     setModalOpen: (isOpen: boolean) => void;
+    // v2.0 新增
+    openTruthReveal: () => void;
+    closeTruthReveal: () => void;
+    openReport: () => void;
+    closeReport: () => void;
 }
 
 export const createUISlice: StoreSlice<UISlice> = (set) => ({
@@ -22,6 +30,9 @@ export const createUISlice: StoreSlice<UISlice> = (set) => ({
     isRolePanelOpen: false,
     isRoleRevealOpen: false,
     isModalOpen: false,
+    // v2.0 新增
+    isTruthRevealOpen: false,
+    isReportOpen: false,
 
     setRoleReferenceMode: (mode) => set({ roleReferenceMode: mode }),
     toggleSidebar: () => set((state) => { state.isSidebarExpanded = !state.isSidebarExpanded; }),
@@ -30,4 +41,9 @@ export const createUISlice: StoreSlice<UISlice> = (set) => ({
     openRoleReveal: () => set({ isRoleRevealOpen: true, isModalOpen: true }),
     closeRoleReveal: () => set({ isRoleRevealOpen: false, isModalOpen: false }),
     setModalOpen: (isOpen) => set({ isModalOpen: isOpen }),
+    // v2.0 新增
+    openTruthReveal: () => set({ isTruthRevealOpen: true, isModalOpen: true }),
+    closeTruthReveal: () => set({ isTruthRevealOpen: false, isModalOpen: false }),
+    openReport: () => set({ isReportOpen: true, isModalOpen: true }),
+    closeReport: () => set({ isReportOpen: false, isModalOpen: false }),
 });

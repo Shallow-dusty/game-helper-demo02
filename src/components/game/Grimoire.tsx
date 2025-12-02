@@ -10,6 +10,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { X, Lock, Unlock } from 'lucide-react';
 import { useLongPress } from '../../hooks/useLongPress';
+import { CandlelightOverlay } from './CandlelightOverlay';
 
 interface GrimoireProps {
   width: number;
@@ -874,6 +875,15 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
           })}
         </Layer>
       </Stage>
+
+      {/* v2.0 烛光守夜模式遮罩 - 仅在夜晚且启用时显示 */}
+      {gameState.candlelightEnabled && gameState.phase === 'NIGHT' && !readOnly && (
+        <CandlelightOverlay 
+          width={width} 
+          height={height} 
+          isActive={true} 
+        />
+      )}
 
       {/* Storyteller Menu Modal */}
       {contextMenu && user.isStoryteller && (

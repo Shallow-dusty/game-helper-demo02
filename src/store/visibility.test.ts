@@ -30,7 +30,10 @@ const createMockState = (): GameState => ({
     skillDescriptionMode: 'simple',
     aiMessages: [],
     nightActionRequests: [],
-    swapRequests: []
+    swapRequests: [],
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: []
 });
 
 describe('Visibility & Security', () => {

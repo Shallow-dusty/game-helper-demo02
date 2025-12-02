@@ -259,16 +259,17 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
         />
       )}
 
-      {/* Seat Circle (Token Base) with 3D Effect */}
-      <Circle
+      {/* Seat Token (Gothic Stone Style) */}
+      <RegularPolygon
+        sides={6}
         radius={tokenRadius}
         fillRadialGradientStartPoint={{ x: -tokenRadius / 3, y: -tokenRadius / 3 }}
         fillRadialGradientStartRadius={0}
         fillRadialGradientEndPoint={{ x: 0, y: 0 }}
         fillRadialGradientEndRadius={tokenRadius}
         fillRadialGradientColorStops={[
-          0, seat.isDead ? '#57534e' : (isCurrentUser ? '#fbbf24' : '#57534e'), // Highlight
-          0.4, seat.isDead ? '#292524' : (TEAM_COLORS[roleDef?.team || 'TOWNSFOLK'] || '#44403c'), // Midtone
+          0, seat.isDead ? '#44403c' : (isCurrentUser ? '#fbbf24' : '#57534e'), // Highlight
+          0.6, seat.isDead ? '#1c1917' : (TEAM_COLORS[roleDef?.team || 'TOWNSFOLK'] || '#292524'), // Midtone
           1, '#0c0a09' // Shadow
         ]}
         stroke={isCurrentUser ? '#f59e0b' : '#78350f'}
@@ -278,15 +279,46 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
         shadowOpacity={0.8}
         opacity={seat.isDead ? 0.9 : 1}
         dash={seat.isVirtual ? [5, 5] : undefined}
+        rotation={30}
       />
 
-      {/* Inner Gold Ring for Style */}
-      <Circle
-        radius={tokenRadius - 4}
-        stroke="#d4af37"
+      {/* Inner Border for Detail */}
+      <RegularPolygon
+        sides={6}
+        radius={tokenRadius - 5}
+        stroke="#a8a29e"
         strokeWidth={1}
         opacity={0.3}
         listening={false}
+        rotation={30}
+      />
+
+      {/* Roman Numeral Seat ID */}
+      <Text
+        text={(() => {
+            const num = seat.id + 1;
+            const map: [number, string][] = [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
+            let result = '';
+            let n = num;
+            for (const [val, roman] of map) {
+                while (n >= val) {
+                    result += roman;
+                    n -= val;
+                }
+            }
+            return result;
+        })()}
+        y={-tokenRadius - 15}
+        fontSize={12 * scale}
+        fill="#78350f"
+        fontFamily="Cinzel"
+        fontStyle="bold"
+        align="center"
+        width={tokenRadius * 2}
+        offsetX={tokenRadius}
+        listening={false}
+        shadowColor="#000"
+        shadowBlur={2}
       />
 
       {/* Dead Indicator (X) */}

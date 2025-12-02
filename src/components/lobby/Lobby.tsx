@@ -119,7 +119,10 @@ export const Lobby: React.FC = () => {
 
     return (
 
-        <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden">
+        <div 
+            className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(/src/assets/lobby_bg.png)` }}
+        >
             {/* Main Container */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}

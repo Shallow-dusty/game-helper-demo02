@@ -99,7 +99,10 @@ export const TownSquare = () => {
                 }
             />
 
-            <div className="absolute inset-0 pointer-events-none opacity-[0.05] z-0 bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')]"></div>
+            <div 
+                className="absolute inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat opacity-50"
+                style={{ backgroundImage: `url(/src/assets/game_bg.png)` }}
+            ></div>
 
             {/* Header / Info Overlay */}
             <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start z-10 pointer-events-none">

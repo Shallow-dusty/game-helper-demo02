@@ -95,13 +95,13 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
       exit={{ opacity: 0, scale: 0.8 }}
       className={`relative ${className}`}
     >
-      {/* 钟面容器 */}
+      {/* 钟面容器 - Placeholder for Image Asset */}
       <div className={`
         relative w-64 h-64 mx-auto
         rounded-full
-        bg-gradient-to-b from-stone-900 to-stone-950
+        bg-stone-900
         border-4 border-amber-900/50
-        shadow-[0_0_30px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(0,0,0,0.5)]
+        shadow-[0_0_30px_rgba(0,0,0,0.8),inset_0_0_50px_rgba(0,0,0,0.8)]
         ${isDanger ? 'animate-pulse' : ''}
       `}>
         {/* 危险状态红光 */}
@@ -117,35 +117,37 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
           )}
         </AnimatePresence>
         
-        {/* 钟面刻度 */}
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 200">
-          {/* 外圈装饰 */}
-          <circle cx="100" cy="100" r="95" fill="none" stroke="#78350f" strokeWidth="2" opacity="0.5" />
-          <circle cx="100" cy="100" r="85" fill="none" stroke="#92400e" strokeWidth="1" opacity="0.3" />
-          
-          {/* 刻度线 */}
-          {Array.from({ length: 12 }).map((_, i) => {
-            const angle = (i * 30 - 90) * (Math.PI / 180);
-            const x1 = 100 + 75 * Math.cos(angle);
-            const y1 = 100 + 75 * Math.sin(angle);
-            const x2 = 100 + 85 * Math.cos(angle);
-            const y2 = 100 + 85 * Math.sin(angle);
-            const isMainTick = i % 3 === 0;
-            
+        {/* 钟面刻度 (CSS Placeholder) */}
+        <div className="absolute inset-0 rounded-full border-[10px] border-stone-800 box-border"></div>
+        <div className="absolute inset-2 rounded-full border-[2px] border-amber-700/30 box-border"></div>
+        
+        {/* Roman Numerals */}
+        {Array.from({ length: 12 }).map((_, i) => {
+            const angle = i * 30;
+            const roman = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'][i];
             return (
-              <line
-                key={i}
-                x1={x1} y1={y1}
-                x2={x2} y2={y2}
-                stroke={isMainTick ? '#c0a060' : '#78350f'}
-                strokeWidth={isMainTick ? 3 : 1}
-                strokeLinecap="round"
-              />
+                <div 
+                    key={i}
+                    className="absolute w-8 h-8 text-center"
+                    style={{
+                        top: '50%',
+                        left: '50%',
+                        transform: `translate(-50%, -50%) rotate(${angle}deg) translate(0, -90px) rotate(-${angle}deg)`,
+                    }}
+                >
+                    <span className="text-amber-700/80 font-serif font-bold text-sm tracking-widest" style={{ textShadow: '0 1px 2px black' }}>
+                        {roman}
+                    </span>
+                </div>
             );
-          })}
-          
+        })}
+
+        {/* Center Decoration */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border border-amber-900/20"></div>
+
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 200">
           {/* 12点位置的处决标记 */}
-          <g transform="translate(100, 25)">
+          <g transform="translate(100, 45)">
             <text
               textAnchor="middle"
               fill="#dc2626"
@@ -159,24 +161,12 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
               y="15"
               textAnchor="middle"
               fill="#ef4444"
-              fontSize="8"
+              fontSize="10"
               fontFamily="Cinzel"
             >
               {requiredVotes}
             </text>
           </g>
-          
-          {/* 6点位置起始标记 */}
-          <text
-            x="100"
-            y="185"
-            textAnchor="middle"
-            fill="#78350f"
-            fontSize="10"
-            fontFamily="Cinzel"
-          >
-            0
-          </text>
           
           {/* 当前票数显示 */}
           <text
@@ -187,6 +177,7 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
             fontSize="36"
             fontFamily="Cinzel"
             fontWeight="bold"
+            style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }}
           >
             {voteCount}
           </text>
@@ -202,13 +193,13 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
           </text>
         </svg>
         
-        {/* 时针 */}
+        {/* 时针 (Placeholder Style) */}
         <motion.div
           className="absolute left-1/2 bottom-1/2 origin-bottom"
           style={{ 
-            width: 6, 
+            width: 8, 
             height: 70,
-            marginLeft: -3,
+            marginLeft: -4,
           }}
           animate={{ rotate: needleAngle }}
           transition={{ 
@@ -220,24 +211,24 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
         >
           {/* 时针本体 */}
           <div className={`
-            w-full h-full rounded-t-full
-            bg-gradient-to-t from-amber-700 via-amber-500 to-amber-300
-            shadow-[0_0_10px_rgba(245,158,11,0.5)]
-            ${isExecutable ? 'bg-gradient-to-t from-red-700 via-red-500 to-red-300' : ''}
-          `} />
-          
-          {/* 时针装饰尖头 */}
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 
-                          border-l-[6px] border-r-[6px] border-b-[12px] 
-                          border-l-transparent border-r-transparent border-b-amber-300" />
+            w-full h-full
+            bg-gradient-to-t from-stone-800 via-stone-600 to-stone-400
+            border border-stone-900
+            shadow-[0_0_5px_rgba(0,0,0,0.8)]
+            relative
+          `}>
+             <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 
+                          border-l-[8px] border-r-[8px] border-b-[16px] 
+                          border-l-transparent border-r-transparent border-b-stone-400" />
+          </div>
         </motion.div>
         
         {/* 中心装饰 */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 
-                        w-6 h-6 rounded-full 
-                        bg-gradient-to-br from-amber-400 to-amber-700
-                        border-2 border-amber-300
-                        shadow-[0_0_15px_rgba(245,158,11,0.6)]" />
+                        w-4 h-4 rounded-full 
+                        bg-stone-900
+                        border-2 border-stone-500
+                        shadow-[0_0_5px_black]" />
       </div>
       
       {/* 被提名者信息 */}

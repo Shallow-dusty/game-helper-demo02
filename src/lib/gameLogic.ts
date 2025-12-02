@@ -120,11 +120,23 @@ export const generateRoleAssignment = (scriptId: string, playerCount: number): s
     // 随机打乱
     const shuffle = <T>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
 
+    // 先随机选择爪牙（需要先确定是否有男爵）
+    const selectedMinions = shuffle(minionRoles).slice(0, composition.minion);
+    const hasBaron = selectedMinions.includes('baron');
+
+    // 男爵规则：外来者 +2，村民 -2
+    let townsfolkCount = composition.townsfolk;
+    let outsiderCount = composition.outsider;
+    if (hasBaron) {
+        outsiderCount = Math.min(outsiderCount + 2, outsiderRoles.length);
+        townsfolkCount = Math.max(townsfolkCount - 2, 0);
+    }
+
     // 选择角色
     const selectedRoles: string[] = [
-        ...shuffle(townsfolkRoles).slice(0, composition.townsfolk),
-        ...shuffle(outsiderRoles).slice(0, composition.outsider),
-        ...shuffle(minionRoles).slice(0, composition.minion),
+        ...shuffle(townsfolkRoles).slice(0, townsfolkCount),
+        ...shuffle(outsiderRoles).slice(0, outsiderCount),
+        ...selectedMinions,
         ...shuffle(demonRoles).slice(0, composition.demon)
     ];
 

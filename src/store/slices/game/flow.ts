@@ -45,8 +45,8 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
                 if (phase === 'NIGHT' && oldPhase !== 'NIGHT') {
                     state.gameState.roundInfo.nightCount++;
                     state.gameState.roundInfo.totalRounds++;
-                    // 进入夜晚自动开启烛光
-                    state.gameState.candlelightEnabled = true;
+                    // 烛光模式由 ST 手动控制，进入夜晚时不自动开启
+                    // state.gameState.candlelightEnabled = true;
                 }
                 if (phase === 'DAY' && oldPhase !== 'DAY') {
                     state.gameState.roundInfo.dayCount++;
@@ -265,8 +265,8 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
                 state.gameState.nightQueue = queue;
                 state.gameState.nightCurrentIndex = -1;
                 
-                // 夜晚自动启用烛光模式
-                state.gameState.candlelightEnabled = true;
+                // 烛光模式由 ST 手动控制，不自动开启
+                // state.gameState.candlelightEnabled = true;
             }
         });
         get().sync();

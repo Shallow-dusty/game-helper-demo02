@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateInfoForRole, getInfoRolesForNight, InfoGenerationResult } from '../../lib/infoGeneration';
-import { Brain, RefreshCw, ChevronDown, ChevronUp, Copy, Check, AlertTriangle, Sparkles } from 'lucide-react';
+import { Brain, RefreshCw, ChevronDown, ChevronUp, Copy, Check, AlertTriangle, Sparkles, Target } from 'lucide-react';
 import { ROLES } from '../../constants/roles';
 
 /**
@@ -12,12 +12,16 @@ import { ROLES } from '../../constants/roles';
  * - 自动检测当前夜晚需要处理的信息角色
  * - 生成真实信息和伪造信息（中毒/醉酒状态）
  * - 一键复制信息到剪贴板
+ * - 占卜师目标选择支持
  */
 
 interface SmartInfoPanelProps {
   isExpanded?: boolean;
   onToggle?: () => void;
 }
+
+// 需要额外参数的角色
+const ROLES_NEED_PARAMS = ['fortune_teller', 'undertaker'];
 
 export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
   isExpanded = false,
@@ -26,6 +30,9 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
   const gameState = useStore(state => state.gameState);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [generatedResults, setGeneratedResults] = useState<Map<number, InfoGenerationResult>>(new Map());
+  
+  // 占卜师目标选择状态
+  const [fortuneTellerTargets, setFortuneTellerTargets] = useState<Map<number, { target1: number | null; target2: number | null }>>(new Map());
 
   // 检测当前夜晚的信息角色
   const infoRoles = useMemo(() => {
@@ -34,11 +41,17 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
     return getInfoRolesForNight(gameState, isFirstNight);
   }, [gameState]);
 
+  // 获取存活玩家列表（用于占卜师目标选择）
+  const alivePlayers = useMemo(() => {
+    if (!gameState) return [];
+    return gameState.seats.filter(s => !s.isDead);
+  }, [gameState]);
+
   // 生成单个角色的信息
-  const generateInfo = (seatId: number, roleId: string) => {
+  const generateInfo = (seatId: number, roleId: string, additionalParams?: { target1SeatId?: number; target2SeatId?: number; executedSeatId?: number }) => {
     if (!gameState) return;
     
-    const result = generateInfoForRole(gameState, roleId, seatId);
+    const result = generateInfoForRole(gameState, roleId, seatId, additionalParams);
     if (result) {
       setGeneratedResults(prev => {
         const next = new Map(prev);
@@ -48,18 +61,25 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
     }
   };
 
-  // 生成所有信息
+  // 生成所有信息（跳过需要参数的角色）
   const generateAllInfo = () => {
     if (!gameState) return;
     
     const newResults = new Map<number, InfoGenerationResult>();
     infoRoles.forEach(({ seatId, roleId }) => {
+      // 跳过需要额外参数的角色
+      if (ROLES_NEED_PARAMS.includes(roleId)) return;
+      
       const result = generateInfoForRole(gameState, roleId, seatId);
       if (result) {
         newResults.set(seatId, result);
       }
     });
-    setGeneratedResults(newResults);
+    setGeneratedResults(prev => {
+      const next = new Map(prev);
+      newResults.forEach((v, k) => next.set(k, v));
+      return next;
+    });
   };
 
   // 复制到剪贴板
@@ -73,7 +93,22 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
     }
   };
 
-  if (!gameState || gameState.phase !== 'NIGHT') {
+  // 更新占卜师目标
+  const updateFortuneTellerTarget = (seatId: number, targetNum: 1 | 2, targetSeatId: number | null) => {
+    setFortuneTellerTargets(prev => {
+      const next = new Map(prev);
+      const current = next.get(seatId) ?? { target1: null, target2: null };
+      if (targetNum === 1) {
+        current.target1 = targetSeatId;
+      } else {
+        current.target2 = targetSeatId;
+      }
+      next.set(seatId, current);
+      return next;
+    });
+  };
+
+  if (gameState?.phase !== 'NIGHT') {
     return null;
   }
 
@@ -132,10 +167,12 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                       const result = generatedResults.get(seatId);
                       const seat = gameState.seats[seatId];
                       const isTainted = seat?.statuses.includes('POISONED') || seat?.statuses.includes('DRUNK');
+                      const needsParams = ROLES_NEED_PARAMS.includes(roleId);
+                      const ftTargets = fortuneTellerTargets.get(seatId);
                       
                       return (
                         <div
-                          key={`${seatId}-${roleId}`}
+                          key={`${String(seatId)}-${roleId}`}
                           className={`rounded border p-3 ${
                             isTainted 
                               ? 'bg-purple-950/30 border-purple-700/50' 
@@ -145,10 +182,10 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                           {/* 角色标题 */}
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-lg">{ROLES[roleId]?.icon || '❓'}</span>
+                              <span className="text-lg">{ROLES[roleId]?.icon ?? '❓'}</span>
                               <div>
                                 <p className="text-sm font-bold text-stone-200">
-                                  {seat?.userName || `座位 ${seatId + 1}`}
+                                  {seat?.userName ?? `座位 ${String(seatId + 1)}`}
                                 </p>
                                 <p className="text-xs text-stone-500">{roleName}</p>
                               </div>
@@ -160,15 +197,67 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                                   中毒/醉酒
                                 </span>
                               )}
-                              <button
-                                onClick={() => generateInfo(seatId, roleId)}
-                                className="p-1.5 rounded bg-stone-700 hover:bg-stone-600 transition-colors"
-                                title="重新生成"
-                              >
-                                <RefreshCw className="w-3.5 h-3.5 text-stone-400" />
-                              </button>
+                              {!needsParams && (
+                                <button
+                                  onClick={() => generateInfo(seatId, roleId)}
+                                  className="p-1.5 rounded bg-stone-700 hover:bg-stone-600 transition-colors"
+                                  title="重新生成"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5 text-stone-400" />
+                                </button>
+                              )}
                             </div>
                           </div>
+
+                          {/* 占卜师目标选择 */}
+                          {roleId === 'fortune_teller' && (
+                            <div className="mb-3 p-2 bg-stone-900/50 rounded border border-stone-700/50">
+                              <div className="flex items-center gap-1 mb-2 text-xs text-stone-400">
+                                <Target className="w-3 h-3" />
+                                <span>选择查验目标</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <select
+                                  value={ftTargets?.target1 ?? ''}
+                                  onChange={(e) => updateFortuneTellerTarget(seatId, 1, e.target.value ? Number(e.target.value) : null)}
+                                  className="bg-stone-800 border border-stone-600 rounded text-xs text-stone-300 p-1.5"
+                                >
+                                  <option value="">目标 1</option>
+                                  {alivePlayers.filter(p => p.id !== seatId && p.id !== ftTargets?.target2).map(p => (
+                                    <option key={p.id} value={p.id}>{String(p.id + 1)}号 {p.userName}</option>
+                                  ))}
+                                </select>
+                                <select
+                                  value={ftTargets?.target2 ?? ''}
+                                  onChange={(e) => updateFortuneTellerTarget(seatId, 2, e.target.value ? Number(e.target.value) : null)}
+                                  className="bg-stone-800 border border-stone-600 rounded text-xs text-stone-300 p-1.5"
+                                >
+                                  <option value="">目标 2</option>
+                                  {alivePlayers.filter(p => p.id !== seatId && p.id !== ftTargets?.target1).map(p => (
+                                    <option key={p.id} value={p.id}>{String(p.id + 1)}号 {p.userName}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  if (ftTargets?.target1 != null && ftTargets?.target2 != null) {
+                                    generateInfo(seatId, roleId, {
+                                      target1SeatId: ftTargets.target1,
+                                      target2SeatId: ftTargets.target2
+                                    });
+                                  }
+                                }}
+                                disabled={ftTargets?.target1 == null || ftTargets?.target2 == null}
+                                className={`w-full mt-2 py-1.5 rounded text-xs transition-colors ${
+                                  ftTargets?.target1 != null && ftTargets?.target2 != null
+                                    ? 'bg-indigo-900 hover:bg-indigo-800 text-indigo-200'
+                                    : 'bg-stone-700 text-stone-500 cursor-not-allowed'
+                                }`}
+                              >
+                                生成查验结果
+                              </button>
+                            </div>
+                          )}
 
                           {/* 生成的信息 */}
                           {result ? (
@@ -182,11 +271,11 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                                       {result.suggestedInfo}
                                     </p>
                                     <button
-                                      onClick={() => copyToClipboard(result.suggestedInfo, `${seatId}-suggested`)}
+                                      onClick={() => void copyToClipboard(result.suggestedInfo, `${String(seatId)}-suggested`)}
                                       className="p-1 rounded hover:bg-stone-700 transition-colors"
                                       title="复制"
                                     >
-                                      {copiedId === `${seatId}-suggested` ? (
+                                      {copiedId === `${String(seatId)}-suggested` ? (
                                         <Check className="w-3.5 h-3.5 text-emerald-400" />
                                       ) : (
                                         <Copy className="w-3.5 h-3.5 text-stone-500" />
@@ -206,11 +295,11 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                                         {result.realInfo}
                                       </p>
                                       <button
-                                        onClick={() => copyToClipboard(result.realInfo, `${seatId}-real`)}
+                                        onClick={() => void copyToClipboard(result.realInfo, `${String(seatId)}-real`)}
                                         className="p-1 rounded hover:bg-stone-700 transition-colors"
                                         title="复制"
                                       >
-                                        {copiedId === `${seatId}-real` ? (
+                                        {copiedId === `${String(seatId)}-real` ? (
                                           <Check className="w-3.5 h-3.5 text-emerald-400" />
                                         ) : (
                                           <Copy className="w-3.5 h-3.5 text-stone-500" />
@@ -221,13 +310,17 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                                 </div>
                               )}
                             </div>
-                          ) : (
+                          ) : !needsParams ? (
                             <button
                               onClick={() => generateInfo(seatId, roleId)}
                               className="w-full py-2 text-xs text-stone-500 hover:text-stone-400 border border-dashed border-stone-700 rounded hover:border-stone-600 transition-colors"
                             >
                               点击生成信息
                             </button>
+                          ) : roleId !== 'fortune_teller' && (
+                            <p className="text-xs text-stone-500 text-center py-2">
+                              请先选择目标后生成
+                            </p>
                           )}
                         </div>
                       );
@@ -238,7 +331,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
 
               {/* 帮助提示 */}
               <div className="text-[10px] text-stone-600 bg-stone-800/50 p-2 rounded">
-                💡 提示：中毒/醉酒状态的玩家会收到伪造信息。点击信息旁的复制按钮可快速复制到剪贴板。
+                💡 提示：占卜师需要选择两个查验目标。中毒/醉酒状态的玩家会收到伪造信息。
               </div>
             </div>
           </motion.div>

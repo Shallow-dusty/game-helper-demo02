@@ -172,12 +172,13 @@ describe('createGameFlowSlice', () => {
             expect(mockSync).toHaveBeenCalled();
         });
 
-        it('进入夜晚应该增加夜晚计数并启用烛光', () => {
+        it('进入夜晚应该增加夜晚计数（烛光由说书人手动控制）', () => {
             slice.setPhase('NIGHT');
             
             expect(mockState.gameState?.roundInfo.nightCount).toBe(1);
             expect(mockState.gameState?.roundInfo.totalRounds).toBe(1);
-            expect(mockState.gameState?.candlelightEnabled).toBe(true);
+            // 烛光不再自动启用，由说书人手动控制
+            expect(mockState.gameState?.candlelightEnabled).toBe(false);
         });
 
         it('进入白天应该增加白天计数并关闭烛光', () => {
@@ -355,7 +356,8 @@ describe('createGameFlowSlice', () => {
             
             expect(mockState.gameState?.phase).toBe('NIGHT');
             expect(mockState.gameState?.roundInfo.nightCount).toBe(1);
-            expect(mockState.gameState?.candlelightEnabled).toBe(true);
+            // 烛光模式不应自动开启，由说书人手动控制
+            expect(mockState.gameState?.candlelightEnabled).toBe(false);
             expect(mockState.gameState?.nightQueue.length).toBeGreaterThan(0);
         });
     });

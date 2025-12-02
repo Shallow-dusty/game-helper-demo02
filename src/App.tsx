@@ -89,7 +89,7 @@ const App = () => {
 
   // 死亡效果状态
   const { deathSeatId, playerName: deathPlayerName, triggerDeathEcho, clearDeathEcho } = useDeathEcho();
-  const prevDeadSeatsRef = useRef<Set<number>>(new Set());
+  const prevDeadSeatsRef = useRef<Set<number> | null>(null); // null 表示未初始化
 
   // 当前用户是否死亡（用于亡者视界）
   const currentUserSeat = gameState?.seats.find(s => s.userId === user?.id);
@@ -106,9 +106,15 @@ const App = () => {
       gameState.seats.filter(s => s.isDead).map(s => s.id)
     );
     
+    // 首次加载时，直接记录当前死者，不触发效果
+    if (prevDeadSeatsRef.current === null) {
+      prevDeadSeatsRef.current = currentDeadSeats;
+      return;
+    }
+    
     // 检测新死亡的座位
     currentDeadSeats.forEach(seatId => {
-      if (!prevDeadSeatsRef.current.has(seatId)) {
+      if (!prevDeadSeatsRef.current!.has(seatId)) {
         const seat = gameState.seats.find(s => s.id === seatId);
         if (seat) {
           triggerDeathEcho(seatId, seat.userName);

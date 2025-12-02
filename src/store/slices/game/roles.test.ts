@@ -16,7 +16,7 @@ vi.mock('../../../constants', () => ({
 }));
 
 vi.mock('./utils', () => ({
-    applyRoleAssignment: vi.fn((gameState: unknown, seat: { roleId: string | null; realRoleId: string | null }, roleId: string) => {
+    applyRoleAssignment: vi.fn((_gameState: unknown, seat: { roleId: string | null; realRoleId: string | null }, roleId: string) => {
         seat.roleId = roleId;
         seat.realRoleId = roleId;
     })
@@ -96,8 +96,8 @@ describe('createGameRolesSlice', () => {
         };
         
         slice = createGameRolesSlice(
-            createMockSet() as Parameters<typeof createGameRolesSlice>[0],
-            createMockGet() as Parameters<typeof createGameRolesSlice>[1],
+            createMockSet() as unknown as Parameters<typeof createGameRolesSlice>[0],
+            createMockGet() as unknown as Parameters<typeof createGameRolesSlice>[1],
             {} as Parameters<typeof createGameRolesSlice>[2]
         );
     });
@@ -106,15 +106,17 @@ describe('createGameRolesSlice', () => {
         it('应该分配角色给座位', () => {
             slice.assignRole(0, 'washerwoman');
             
-            expect(mockState.gameState?.seats[0].roleId).toBe('washerwoman');
+            const seat = mockState.gameState?.seats[0];
+            expect(seat?.roleId).toBe('washerwoman');
             expect(mockSync).toHaveBeenCalled();
         });
 
         it('应该自动添加角色提醒标记', () => {
             slice.assignRole(0, 'washerwoman');
             
-            expect(mockState.gameState?.seats[0].reminders.length).toBeGreaterThan(0);
-            expect(mockState.gameState?.seats[0].reminders[0].text).toBe('洗衣妇');
+            const seat = mockState.gameState?.seats[0];
+            expect(seat?.reminders.length).toBeGreaterThan(0);
+            expect(seat?.reminders[0]?.text).toBe('洗衣妇');
         });
 
         it('座位不存在时不应崩溃', () => {
@@ -124,31 +126,35 @@ describe('createGameRolesSlice', () => {
 
     describe('toggleDead', () => {
         it('应该切换死亡状态', () => {
-            mockState.gameState!.seats[0].roleId = 'washerwoman';
-            mockState.gameState!.seats[0].realRoleId = 'washerwoman';
+            const seat0 = mockState.gameState!.seats[0]!;
+            seat0.roleId = 'washerwoman';
+            seat0.realRoleId = 'washerwoman';
             
             slice.toggleDead(0);
-            expect(mockState.gameState?.seats[0].isDead).toBe(true);
+            expect(seat0.isDead).toBe(true);
             
             slice.toggleDead(0);
-            expect(mockState.gameState?.seats[0].isDead).toBe(false);
+            expect(seat0.isDead).toBe(false);
         });
 
         it('恶魔死亡时猩红女郎应该继承', () => {
-            mockState.gameState!.seats[0].roleId = 'imp';
-            mockState.gameState!.seats[0].realRoleId = 'imp';
-            mockState.gameState!.seats[1].roleId = 'scarlet_woman';
-            mockState.gameState!.seats[1].realRoleId = 'scarlet_woman';
+            const seat0 = mockState.gameState!.seats[0]!;
+            const seat1 = mockState.gameState!.seats[1]!;
+            seat0.roleId = 'imp';
+            seat0.realRoleId = 'imp';
+            seat1.roleId = 'scarlet_woman';
+            seat1.realRoleId = 'scarlet_woman';
             
             slice.toggleDead(0);
             
-            expect(mockState.gameState?.seats[0].isDead).toBe(true);
-            expect(mockState.gameState?.seats[1].realRoleId).toBe('imp');
+            expect(seat0.isDead).toBe(true);
+            expect(seat1.realRoleId).toBe('imp');
         });
 
         it('死亡后应该检查游戏结束', () => {
-            mockState.gameState!.seats[0].roleId = 'washerwoman';
-            mockState.gameState!.seats[0].realRoleId = 'washerwoman';
+            const seat0 = mockState.gameState!.seats[0]!;
+            seat0.roleId = 'washerwoman';
+            seat0.realRoleId = 'washerwoman';
             
             slice.toggleDead(0);
             
@@ -158,25 +164,30 @@ describe('createGameRolesSlice', () => {
 
     describe('toggleAbilityUsed', () => {
         it('应该切换能力使用状态', () => {
-            slice.toggleAbilityUsed(0);
-            expect(mockState.gameState?.seats[0].hasUsedAbility).toBe(true);
+            const seat0 = mockState.gameState!.seats[0]!;
             
             slice.toggleAbilityUsed(0);
-            expect(mockState.gameState?.seats[0].hasUsedAbility).toBe(false);
+            expect(seat0.hasUsedAbility).toBe(true);
+            
+            slice.toggleAbilityUsed(0);
+            expect(seat0.hasUsedAbility).toBe(false);
         });
     });
 
     describe('toggleStatus', () => {
         it('应该添加状态', () => {
-            slice.toggleStatus(0, 'poisoned');
-            expect(mockState.gameState?.seats[0].statuses).toContain('poisoned');
+            const seat0 = mockState.gameState!.seats[0]!;
+            
+            slice.toggleStatus(0, 'POISONED');
+            expect(seat0.statuses).toContain('POISONED');
         });
 
         it('应该移除已有状态', () => {
-            mockState.gameState!.seats[0].statuses = ['poisoned'];
+            const seat0 = mockState.gameState!.seats[0]!;
+            seat0.statuses = ['POISONED'];
             
-            slice.toggleStatus(0, 'poisoned');
-            expect(mockState.gameState?.seats[0].statuses).not.toContain('poisoned');
+            slice.toggleStatus(0, 'POISONED');
+            expect(seat0.statuses).not.toContain('POISONED');
         });
     });
 
@@ -184,19 +195,21 @@ describe('createGameRolesSlice', () => {
         it('应该添加提醒标记', () => {
             slice.addReminder(0, '被保护', '🛡️', 'blue');
             
-            const reminder = mockState.gameState?.seats[0].reminders[0];
+            const seat0 = mockState.gameState!.seats[0]!;
+            const reminder = seat0.reminders[0];
             expect(reminder?.text).toBe('被保护');
             expect(reminder?.icon).toBe('🛡️');
             expect(reminder?.color).toBe('blue');
         });
 
         it('应该移除提醒标记', () => {
-            mockState.gameState!.seats[0].reminders = [
+            const seat0 = mockState.gameState!.seats[0]!;
+            seat0.reminders = [
                 { id: 'rem-1', text: '测试', sourceRole: 'manual', seatId: 0 }
             ];
             
             slice.removeReminder('rem-1');
-            expect(mockState.gameState?.seats[0].reminders).toHaveLength(0);
+            expect(seat0.reminders).toHaveLength(0);
         });
     });
 
@@ -260,17 +273,19 @@ describe('createGameRolesSlice', () => {
             
             slice.applyStrategy('测试策略', roles);
             
-            expect(mockState.gameState?.seats.filter(s => s.roleId !== null).length).toBe(5);
+            const assignedCount = mockState.gameState!.seats.filter(s => s.roleId !== null).length;
+            expect(assignedCount).toBe(5);
             expect(mockSync).toHaveBeenCalled();
         });
 
         it('应该先重置再分配', () => {
-            mockState.gameState!.seats[0].statuses = ['poisoned'];
-            mockState.gameState!.seats[0].reminders = [{ id: 'r1', text: 'test', sourceRole: 'test', seatId: 0 }];
+            const seat0 = mockState.gameState!.seats[0]!;
+            seat0.statuses = ['POISONED'];
+            seat0.reminders = [{ id: 'r1', text: 'test', sourceRole: 'test', seatId: 0 }];
             
             slice.applyStrategy('测试策略', ['washerwoman']);
             
-            expect(mockState.gameState?.seats[0].statuses).toEqual([]);
+            expect(seat0.statuses).toEqual([]);
         });
     });
 });

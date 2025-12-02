@@ -108,8 +108,8 @@ describe('createGameFlowSlice', () => {
         };
         
         slice = createGameFlowSlice(
-            createMockSet() as Parameters<typeof createGameFlowSlice>[0],
-            createMockGet() as Parameters<typeof createGameFlowSlice>[1],
+            createMockSet() as unknown as Parameters<typeof createGameFlowSlice>[0],
+            createMockGet() as unknown as Parameters<typeof createGameFlowSlice>[1],
             {} as Parameters<typeof createGameFlowSlice>[2]
         );
     });
@@ -136,18 +136,18 @@ describe('createGameFlowSlice', () => {
             const entry = {
                 type: 'nomination' as const,
                 actorSeatId: 0,
-                targetSeatId: 1,
-                phase: 'DAY' as const,
-                day: 1
+                targetSeatIds: [1],
+                description: '玩家1提名了玩家2',
+                isConfirmed: true
             };
             
             slice.addInteractionLog(entry);
             
             expect(mockState.gameState?.interactionLog).toHaveLength(1);
-            expect(mockState.gameState?.interactionLog[0]).toMatchObject({
+            expect((mockState.gameState?.interactionLog[0] as { type: string; actorSeatId: number; targetSeatIds: number[] })).toMatchObject({
                 type: 'nomination',
                 actorSeatId: 0,
-                targetSeatId: 1
+                targetSeatIds: [1]
             });
         });
 
@@ -155,8 +155,8 @@ describe('createGameFlowSlice', () => {
             slice.addInteractionLog({
                 type: 'vote' as const,
                 actorSeatId: 0,
-                phase: 'VOTING' as const,
-                day: 1
+                description: '玩家投票',
+                isConfirmed: true
             });
             
             const log = mockState.gameState?.interactionLog[0] as { id: string; timestamp: number };
@@ -301,7 +301,8 @@ describe('createGameFlowSlice', () => {
             
             slice.closeVote();
             
-            expect(mockState.gameState?.seats[1].isDead).toBe(true);
+            const seat = mockState.gameState?.seats[1];
+            expect(seat?.isDead).toBe(true);
             expect(mockState.gameState?.voting).toBeNull();
             expect(mockState.gameState?.phase).toBe('DAY');
             expect(mockState.gameState?.voteHistory).toHaveLength(1);
@@ -323,7 +324,8 @@ describe('createGameFlowSlice', () => {
             
             slice.closeVote();
             
-            expect(mockState.gameState?.seats[1].isDead).toBe(false);
+            const seat = mockState.gameState?.seats[1];
+            expect(seat?.isDead).toBe(false);
             expect(mockState.gameState?.voteHistory[0]).toMatchObject({
                 result: 'survived',
                 voteCount: 1
@@ -342,7 +344,8 @@ describe('createGameFlowSlice', () => {
             
             slice.closeVote();
             
-            expect(mockState.gameState?.seats[1].isDead).toBe(false);
+            const seat0votes = mockState.gameState?.seats[1];
+            expect(seat0votes?.isDead).toBe(false);
         });
     });
 

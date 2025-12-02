@@ -83,8 +83,8 @@ describe('createGameNightSlice', () => {
     describe('performNightAction', () => {
         it('应该是一个占位函数', () => {
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             // 直接调用不应抛出
@@ -98,8 +98,8 @@ describe('createGameNightSlice', () => {
             vi.mocked(supabase.rpc).mockResolvedValue({ data: null, error: null } as never);
             
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
@@ -121,8 +121,8 @@ describe('createGameNightSlice', () => {
             mockState.user = null;
             
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
@@ -139,8 +139,8 @@ describe('createGameNightSlice', () => {
             mockState.gameState = null;
             
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
@@ -157,8 +157,8 @@ describe('createGameNightSlice', () => {
             mockState.user = { id: 'unknown-user', roomId: 123 };
             
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
@@ -179,8 +179,8 @@ describe('createGameNightSlice', () => {
             } as never);
             
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
@@ -198,12 +198,12 @@ describe('createGameNightSlice', () => {
     describe('resolveNightAction', () => {
         it('应该解决夜间行动请求', () => {
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
-            const result = { info: '你看到了一个镇民' };
+            const result = '你看到了一个镇民';
             slice.resolveNightAction('req-1', result);
             
             const request = mockState.gameState?.nightActionRequests.find(r => r.id === 'req-1');
@@ -214,12 +214,12 @@ describe('createGameNightSlice', () => {
 
         it('请求不存在时不应崩溃', () => {
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
-            slice.resolveNightAction('non-existent', {});
+            slice.resolveNightAction('non-existent', '空结果');
             expect(true).toBe(true);
         });
 
@@ -227,12 +227,12 @@ describe('createGameNightSlice', () => {
             mockState.gameState = null;
             
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
-            slice.resolveNightAction('req-1', {});
+            slice.resolveNightAction('req-1', '空结果');
             expect(true).toBe(true);
         });
     });
@@ -240,8 +240,8 @@ describe('createGameNightSlice', () => {
     describe('getPendingNightActions', () => {
         it('应该返回待处理的夜间行动', () => {
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
@@ -255,8 +255,8 @@ describe('createGameNightSlice', () => {
             mockState.gameState = null;
             
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
@@ -273,8 +273,8 @@ describe('createGameNightSlice', () => {
             }
             
             const slice = createGameNightSlice(
-                mockSet as Parameters<typeof createGameNightSlice>[0],
-                mockGet as Parameters<typeof createGameNightSlice>[1],
+                mockSet as unknown as Parameters<typeof createGameNightSlice>[0],
+                mockGet as unknown as Parameters<typeof createGameNightSlice>[1],
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             

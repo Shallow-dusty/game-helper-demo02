@@ -194,14 +194,15 @@ const App = () => {
 
   const appHeight = viewportSize.height > 0 ? viewportSize.height : undefined;
 
-  // Corruption Logic
+  // Corruption Logic - 腐蚀阶段计算
   const aliveCount = gameState?.seats.filter(s => !s.isDead && (s.userId || s.isVirtual)).length || 0;
   const totalPlayers = gameState?.seats.filter(s => s.userId || s.isVirtual).length || 0;
   
-  let corruptionStage = 0;
+  let corruptionStage: 0 | 1 | 2 | 3 = 0;
   if (totalPlayers > 0) {
-      if (aliveCount <= 4) corruptionStage = 2;
-      else if (aliveCount <= totalPlayers * 0.66) corruptionStage = 1;
+      if (aliveCount <= 3) corruptionStage = 3; // 决战阶段：≤3人存活
+      else if (aliveCount <= 4) corruptionStage = 2; // 严重：≤4人存活
+      else if (aliveCount <= totalPlayers * 0.66) corruptionStage = 1; // 轻微：≤66%存活
   }
 
   return (
@@ -248,7 +249,7 @@ const App = () => {
       )}
 
       {/* 腐化效果背景 - 随存活人数变化 */}
-      <CorruptionOverlay stage={corruptionStage as 0 | 1 | 2} />
+      <CorruptionOverlay stage={corruptionStage} />
 
       <div className="absolute inset-0 pointer-events-none z-0 bg-cover bg-center transition-all duration-1000"
            style={{ 

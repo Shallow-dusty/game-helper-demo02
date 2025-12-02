@@ -46,7 +46,9 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
                 height,
                 wireframes: false,
                 background: 'transparent',
-                pixelRatio: window.devicePixelRatio
+                pixelRatio: window.devicePixelRatio,
+                // 启用阴影
+                hasBounds: false,
             }
         });
         renderRef.current = render;
@@ -69,6 +71,45 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
         });
 
         Composite.add(engine.world, [ground, leftWall, rightWall, leftSlope, rightSlope]);
+
+        // 自定义渲染：添加3D阴影效果 (仅在浏览器环境)
+        if (render.context && typeof Matter.Events?.on === 'function') {
+            Matter.Events.on(render, 'afterRender', () => {
+                const ctx = render.context;
+                if (!ctx) return;
+                const bodies = Matter.Composite.allBodies(engine.world);
+                
+                bodies.filter(b => !b.isStatic).forEach(body => {
+                    const pos = body.position;
+                    const radius = 15;
+                    
+                    // 绘制阴影
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(pos.x + 3, pos.y + 3, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                    ctx.fill();
+                    ctx.restore();
+                    
+                    // 绘制内部高光渐变
+                    ctx.save();
+                    const gradient = ctx.createRadialGradient(
+                        pos.x - 4, pos.y - 4, 0,
+                        pos.x, pos.y, radius
+                    );
+                    const baseColor = body.render.fillStyle as string || '#f59e0b';
+                    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+                    gradient.addColorStop(0.3, baseColor);
+                    gradient.addColorStop(1, baseColor);
+                    
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, radius - 1, 0, Math.PI * 2);
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                    ctx.restore();
+                });
+            });
+        }
 
         Render.run(render);
         
@@ -126,7 +167,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
              // But wait, if we just started, length is 0.
         }
         
-    }, [currentVotes, gameState, width]);
+    }, [currentVotes, gameState, width, playSound]);
 
     // Reset logic when nomination changes
     useEffect(() => {

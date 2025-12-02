@@ -41,6 +41,10 @@ export const CandlelightOverlay: React.FC<CandlelightOverlayProps> = ({ width, h
   const DARKNESS_OPACITY = 0.92; // 黑暗遮罩透明度
   const DEAD_SEAT_TRIGGER_RADIUS = 80; // 触发死亡座位音效的距离
 
+  // 死亡座位环境音效池 (低概率触发)
+  const AMBIENT_SOUNDS = ['ghost_whisper', 'wind_howl', 'crow_caw'] as const;
+  const TRIGGER_PROBABILITY = 0.3; // 30% 触发概率
+
   // 检测烛光是否经过死亡座位
   const checkDeadSeatProximity = useCallback((candleX: number, candleY: number) => {
     deadSeatPositions.forEach(deadSeat => {
@@ -49,9 +53,12 @@ export const CandlelightOverlay: React.FC<CandlelightOverlayProps> = ({ width, h
       );
       
       if (distance < DEAD_SEAT_TRIGGER_RADIUS && !triggeredDeadSeats.current.has(deadSeat.id)) {
-        // 烛光首次经过此死亡座位
+        // 烛光首次经过此死亡座位 - 30% 概率触发随机环境音效
         triggeredDeadSeats.current.add(deadSeat.id);
-        playSound('ghost_whisper');
+        if (Math.random() < TRIGGER_PROBABILITY) {
+          const randomSound = AMBIENT_SOUNDS[Math.floor(Math.random() * AMBIENT_SOUNDS.length)];
+          if (randomSound) playSound(randomSound);
+        }
       } else if (distance > DEAD_SEAT_TRIGGER_RADIUS * 1.5 && triggeredDeadSeats.current.has(deadSeat.id)) {
         // 烛光离开足够远，重置可再次触发
         triggeredDeadSeats.current.delete(deadSeat.id);
@@ -106,17 +113,20 @@ export const CandlelightOverlay: React.FC<CandlelightOverlayProps> = ({ width, h
       ctx.fillStyle = `rgba(5, 2, 2, ${DARKNESS_OPACITY})`;
       ctx.fillRect(0, 0, width, height);
 
-      // 创建烛光渐变
+      // 创建烛光渐变 - 优化羽化效果，更柔和的光照过渡
       const gradient = ctx.createRadialGradient(
         candleX, candleY, 0,
-        candleX, candleY, breathingRadius
+        candleX, candleY, breathingRadius * 1.2 // 扩大渐变范围使边缘更柔和
       );
       
-      // 多层渐变模拟真实烛光
+      // 多层渐变模拟真实烛光 - 更细腻的羽化过渡
       gradient.addColorStop(0, 'rgba(0, 0, 0, 1)'); // 中心完全透明（显示底层）
-      gradient.addColorStop(0.3, 'rgba(0, 0, 0, 0.95)');
-      gradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.7)');
-      gradient.addColorStop(0.85, 'rgba(0, 0, 0, 0.3)');
+      gradient.addColorStop(0.15, 'rgba(0, 0, 0, 0.98)');
+      gradient.addColorStop(0.35, 'rgba(0, 0, 0, 0.92)');
+      gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.75)');
+      gradient.addColorStop(0.65, 'rgba(0, 0, 0, 0.5)');
+      gradient.addColorStop(0.8, 'rgba(0, 0, 0, 0.25)');
+      gradient.addColorStop(0.9, 'rgba(0, 0, 0, 0.1)');
       gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
       // 使用 destination-out 混合模式"挖洞"

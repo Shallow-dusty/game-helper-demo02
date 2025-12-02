@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
 
 interface CorruptionOverlayProps {
-  /** 腐蚀阶段：0=无, 1=轻微, 2=严重 */
-  stage: 0 | 1 | 2;
+  /** 腐蚀阶段：0=无, 1=轻微, 2=严重, 3=决战 */
+  stage: 0 | 1 | 2 | 3;
 }
 
 /**
@@ -12,16 +12,63 @@ interface CorruptionOverlayProps {
  * 
  * 随着玩家死亡，界面逐渐被"腐蚀"：
  * - Stage 1 (≤66% 存活): 边缘暗角 + 轻微噪点纹理
- * - Stage 2 (≤4人存活): 更强的暗角 + 脉动血脉纹理 + 低频嗡鸣音
+ * - Stage 2 (≤4人存活): 更强的暗角 + 脉动血脉纹理 + 边缘蔓藤
+ * - Stage 3 (决战): 最强暗角 + 老电影噪点滤镜 + 低频Drone音轨
  */
 export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) => {
   const { playSound } = useSoundEffect();
+  const droneAudioRef = useRef<HTMLAudioElement | null>(null);
+  const prevStageRef = useRef(stage);
 
-  // Stage 2 时播放环境音效 (仅播放一次)
-  React.useEffect(() => {
-    if (stage === 2) {
-      // 可以在这里添加持续的低频嗡鸣 (需要额外的 BGM 控制)
-      // 暂时使用 death_toll 作为过渡效果
+  // Stage 3 时淡入低频 Drone 音轨
+  useEffect(() => {
+    if (stage === 3 && prevStageRef.current !== 3) {
+      // 进入 Stage 3，启动 Drone
+      try {
+        const audio = new Audio('/audio/sfx/drone_low.mp3');
+        audio.loop = true;
+        audio.volume = 0;
+        droneAudioRef.current = audio;
+        audio.play().catch(() => { /* ignore autoplay errors */ });
+        
+        // 淡入效果
+        let vol = 0;
+        const fadeIn = setInterval(() => {
+          vol = Math.min(vol + 0.02, 0.25);
+          if (droneAudioRef.current) droneAudioRef.current.volume = vol;
+          if (vol >= 0.25) clearInterval(fadeIn);
+        }, 100);
+      } catch {
+        console.warn('Failed to play drone audio');
+      }
+    } else if (stage < 3 && prevStageRef.current === 3 && droneAudioRef.current) {
+      // 离开 Stage 3，淡出 Drone
+      const audio = droneAudioRef.current;
+      let vol = audio.volume;
+      const fadeOut = setInterval(() => {
+        vol = Math.max(vol - 0.02, 0);
+        audio.volume = vol;
+        if (vol <= 0) {
+          clearInterval(fadeOut);
+          audio.pause();
+          droneAudioRef.current = null;
+        }
+      }, 100);
+    }
+    
+    prevStageRef.current = stage;
+    
+    return () => {
+      if (droneAudioRef.current) {
+        droneAudioRef.current.pause();
+        droneAudioRef.current = null;
+      }
+    };
+  }, [stage]);
+
+  // Stage 2 进入时播放音效
+  useEffect(() => {
+    if (stage === 2 && prevStageRef.current < 2) {
       playSound('death_toll', { volume: 0.3 });
     }
   }, [stage, playSound]);
@@ -30,14 +77,15 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
   const veinPoints = useMemo(() => {
     if (stage < 2) return [];
     const points: { x: number; y: number; size: number; delay: number }[] = [];
-    for (let i = 0; i < 8; i++) {
+    const count = stage === 3 ? 12 : 8; // Stage 3 更多血脉点
+    for (let i = 0; i < count; i++) {
       // 边缘位置
       const edge = Math.floor(Math.random() * 4); // 0=top, 1=right, 2=bottom, 3=left
       let x = 0, y = 0;
-      if (edge === 0) { x = Math.random() * 100; y = Math.random() * 15; }
-      else if (edge === 1) { x = 85 + Math.random() * 15; y = Math.random() * 100; }
-      else if (edge === 2) { x = Math.random() * 100; y = 85 + Math.random() * 15; }
-      else { x = Math.random() * 15; y = Math.random() * 100; }
+      if (edge === 0) { x = Math.random() * 100; y = Math.random() * 20; }
+      else if (edge === 1) { x = 80 + Math.random() * 20; y = Math.random() * 100; }
+      else if (edge === 2) { x = Math.random() * 100; y = 80 + Math.random() * 20; }
+      else { x = Math.random() * 20; y = Math.random() * 100; }
       
       points.push({
         x,
@@ -49,7 +97,27 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
     return points;
   }, [stage]);
 
+  // 生成蔓藤路径
+  const vinePaths = useMemo(() => {
+    if (stage < 2) return [];
+    return [
+      // 左上角蔓藤
+      'M0,0 Q30,20 15,60 Q5,80 20,120 Q10,150 0,180',
+      // 右上角蔓藤  
+      'M100%,0 Q calc(100% - 30px),25 calc(100% - 10px),70 Q calc(100% - 25px),100 calc(100% - 5px),140',
+      // 左下角蔓藤
+      'M0,100% Q25,calc(100% - 30px) 10,calc(100% - 80px) Q30,calc(100% - 120px) 5,calc(100% - 160px)',
+      // 右下角蔓藤
+      'M100%,100% Q calc(100% - 20px),calc(100% - 40px) calc(100% - 8px),calc(100% - 90px)',
+    ];
+  }, [stage]);
+
   if (stage === 0) return null;
+
+  // 根据 stage 计算不同参数
+  const vignetteOpacity = stage === 1 ? 0.6 : stage === 2 ? 0.85 : 1;
+  const noiseOpacity = stage === 1 ? 0.15 : stage === 2 ? 0.25 : 0.4;
+  const vignetteIntensity = stage === 3 ? '20%' : '30%';
 
   return (
     <AnimatePresence>
@@ -57,7 +125,7 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
       <motion.div
         key="corruption-vignette"
         initial={{ opacity: 0 }}
-        animate={{ opacity: stage === 1 ? 0.6 : 1 }}
+        animate={{ opacity: vignetteOpacity }}
         exit={{ opacity: 0 }}
         transition={{ duration: 1.5 }}
         className="absolute inset-0 pointer-events-none z-[1]"
@@ -65,10 +133,10 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
           background: `
             radial-gradient(
               ellipse at center,
-              transparent 30%,
-              rgba(40, 10, 10, 0.3) 60%,
-              rgba(20, 5, 5, 0.6) 80%,
-              rgba(10, 0, 0, 0.85) 100%
+              transparent ${vignetteIntensity},
+              rgba(40, 10, 10, 0.3) 50%,
+              rgba(20, 5, 5, 0.6) 70%,
+              rgba(10, 0, 0, 0.9) 100%
             )
           `
         }}
@@ -78,7 +146,7 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
       <motion.div
         key="corruption-noise"
         initial={{ opacity: 0 }}
-        animate={{ opacity: stage === 1 ? 0.15 : 0.25 }}
+        animate={{ opacity: noiseOpacity }}
         exit={{ opacity: 0 }}
         transition={{ duration: 1 }}
         className="absolute inset-0 pointer-events-none z-[2] mix-blend-overlay"
@@ -166,13 +234,19 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
           key="corruption-cracks"
           className="absolute inset-0 w-full h-full pointer-events-none z-[5]"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.4 }}
+          animate={{ opacity: stage === 3 ? 0.6 : 0.4 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 2, delay: 0.5 }}
+          preserveAspectRatio="none"
         >
           <defs>
             <linearGradient id="crack-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="rgba(60, 10, 10, 0.8)" />
+              <stop offset="100%" stopColor="transparent" />
+            </linearGradient>
+            <linearGradient id="vine-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(30, 15, 5, 0.9)" />
+              <stop offset="50%" stopColor="rgba(20, 10, 5, 0.7)" />
               <stop offset="100%" stopColor="transparent" />
             </linearGradient>
           </defs>
@@ -181,13 +255,71 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
             d="M0,0 L0,80 Q10,60 5,40 Q15,30 10,15 Q20,10 30,0 Z"
             fill="url(#crack-gradient)"
           />
+          {/* 右上角裂纹 */}
+          <path
+            d="M100%,0 L calc(100% - 30px),0 Q calc(100% - 20px),15 calc(100% - 10px),10 Q calc(100% - 5px),25 100%,60 Z"
+            fill="url(#crack-gradient)"
+          />
+          {/* 左下角裂纹 */}
+          <path
+            d="M0,100% L30,100% Q15,calc(100% - 15px) 10,calc(100% - 25px) Q20,calc(100% - 40px) 0,calc(100% - 70px) Z"
+            fill="url(#crack-gradient)"
+          />
           {/* 右下角裂纹 */}
           <path
-            d="M100%,100% L100%,calc(100% - 80px) Q calc(100% - 10px),calc(100% - 60px) calc(100% - 5px),calc(100% - 40px) Q calc(100% - 15px),calc(100% - 30px) calc(100% - 10px),calc(100% - 15px) Q calc(100% - 20px),calc(100% - 10px) calc(100% - 30px),100% Z"
+            d="M100%,100% L100%,calc(100% - 70px) Q calc(100% - 20px),calc(100% - 40px) calc(100% - 10px),calc(100% - 25px) Q calc(100% - 15px),calc(100% - 15px) calc(100% - 30px),100% Z"
             fill="url(#crack-gradient)"
-            style={{ transform: 'rotate(180deg)', transformOrigin: 'center' }}
           />
+          {/* 蔓藤装饰 */}
+          {vinePaths.map((path, idx) => (
+            <motion.path
+              key={`vine-${idx}`}
+              d={path}
+              stroke="rgba(40, 20, 10, 0.6)"
+              strokeWidth={stage === 3 ? 4 : 3}
+              fill="none"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 3, delay: idx * 0.3, ease: 'easeOut' }}
+            />
+          ))}
         </motion.svg>
+      )}
+
+      {/* Stage 3: 老电影噪点滤镜效果 */}
+      {stage === 3 && (
+        <motion.div
+          key="film-grain"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.15 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.5 }}
+          className="absolute inset-0 pointer-events-none z-[6]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+            mixBlendMode: 'overlay',
+          }}
+        />
+      )}
+
+      {/* Stage 3: 脉动边框效果 */}
+      {stage === 3 && (
+        <motion.div
+          key="pulsing-border"
+          className="absolute inset-0 pointer-events-none z-[7]"
+          animate={{
+            boxShadow: [
+              'inset 0 0 100px rgba(80, 0, 0, 0.4)',
+              'inset 0 0 150px rgba(100, 0, 0, 0.6)',
+              'inset 0 0 100px rgba(80, 0, 0, 0.4)',
+            ]
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: 'easeInOut'
+          }}
+        />
       )}
     </AnimatePresence>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skull } from 'lucide-react';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
@@ -12,12 +12,21 @@ interface DeathEchoEffectProps {
   onComplete?: () => void;
 }
 
+// 灰烬粒子形状 SVG 路径
+const ASH_SHAPES = [
+  'M0,0 Q2,-3 5,-2 Q8,0 6,3 Q3,5 0,3 Q-2,1 0,0', // 不规则形状1
+  'M0,0 L3,-2 L6,0 L5,3 L2,4 L-1,2 Z', // 不规则多边形
+  'M0,0 Q4,-1 3,2 Q1,4 -1,2 Q-2,0 0,0', // 弯曲形状
+  'M0,0 L2,-3 L4,-1 L3,2 L0,3 L-2,1 Z', // 碎片形状
+];
+
 /**
  * "最后的回响" (Last Echo) - 死亡视觉/音效反馈组件
  * 
  * 当玩家被标记死亡时触发：
- * - 全屏血红闪光效果
+ * - 全屏灰烬色闪光效果
  * - 骷髅图标从中心扩散
+ * - 不规则灰烬粒子飘散
  * - 死亡丧钟音效
  * - 玩家名称淡出动画
  */
@@ -29,6 +38,25 @@ export const DeathEchoEffect: React.FC<DeathEchoEffectProps> = ({
   const [isActive, setIsActive] = useState(false);
   const [lastDeathId, setLastDeathId] = useState<number | null>(null);
   const { playSound } = useSoundEffect();
+
+  // 生成灰烬粒子
+  const ashParticles = useMemo(() => {
+    if (!isActive) return [];
+    return Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      x: 50 + (Math.random() - 0.5) * 30, // 中心附近
+      y: 50 + (Math.random() - 0.5) * 30,
+      size: 4 + Math.random() * 8,
+      rotation: Math.random() * 360,
+      shape: ASH_SHAPES[Math.floor(Math.random() * ASH_SHAPES.length)],
+      delay: Math.random() * 0.5,
+      duration: 2 + Math.random() * 1.5,
+      // 随机飘散方向
+      dx: (Math.random() - 0.5) * 60,
+      dy: -20 - Math.random() * 40, // 向上飘
+      dr: (Math.random() - 0.5) * 180, // 旋转
+    }));
+  }, [isActive]);
 
   // 检测新的死亡事件
   useEffect(() => {
@@ -154,6 +182,50 @@ export const DeathEchoEffect: React.FC<DeathEchoEffectProps> = ({
               boxShadow: 'inset 0 0 150px rgba(87, 83, 78, 0.6), inset 0 0 80px rgba(68, 64, 60, 0.4)',
             }}
           />
+
+          {/* 灰烬粒子效果 */}
+          {ashParticles.map(particle => (
+            <motion.div
+              key={particle.id}
+              className="fixed pointer-events-none z-[1104]"
+              style={{
+                left: `${particle.x}%`,
+                top: `${particle.y}%`,
+              }}
+              initial={{ 
+                opacity: 0, 
+                scale: 0,
+                x: 0,
+                y: 0,
+                rotate: particle.rotation 
+              }}
+              animate={{ 
+                opacity: [0, 0.8, 0.6, 0],
+                scale: [0, 1, 0.8, 0.3],
+                x: particle.dx,
+                y: particle.dy,
+                rotate: particle.rotation + particle.dr,
+              }}
+              transition={{ 
+                duration: particle.duration,
+                delay: particle.delay,
+                ease: 'easeOut'
+              }}
+            >
+              <svg 
+                width={particle.size * 2} 
+                height={particle.size * 2} 
+                viewBox="-5 -5 15 15"
+                style={{ transform: 'translate(-50%, -50%)' }}
+              >
+                <path
+                  d={particle.shape}
+                  fill={`rgba(${60 + Math.random() * 40}, ${55 + Math.random() * 30}, ${50 + Math.random() * 20}, 0.9)`}
+                  style={{ filter: 'blur(0.5px)' }}
+                />
+              </svg>
+            </motion.div>
+          ))}
         </>
       )}
     </AnimatePresence>

@@ -30,6 +30,10 @@ export const FOLEY_SOUNDS = {
   night_owl: { url: '/audio/sfx/owl.mp3', volume: 0.5 },
   death_toll: { url: '/audio/sfx/death_toll.mp3', volume: 0.7 },
   ghost_whisper: { url: '/audio/sfx/ghost_whisper.mp3', volume: 0.4 },
+  wind_howl: { url: '/audio/sfx/wind_howl.mp3', volume: 0.35 },
+  crow_caw: { url: '/audio/sfx/crow_caw.mp3', volume: 0.4 },
+  // 腐蚀/决战音效
+  drone_low: { url: '/audio/sfx/drone_low.mp3', volume: 0.25 },
   
   // 投票音效
   hand_raise: { url: '/audio/sfx/hand_raise.mp3', volume: 0.5 },

@@ -5,6 +5,7 @@ import { NightActionManager } from '../game/NightActionManager';
 import { DistributionConfirmationModal } from '../modals/DistributionConfirmationModal';
 import { analyzeDistribution, DistributionAnalysisResult } from '../../lib/distributionAnalysis';
 import { RuleCompliancePanel } from '../game/RuleCompliancePanel';
+import { SmartInfoPanel } from './SmartInfoPanel';
 import { Flame, FlameKindling, Shield } from 'lucide-react';
 
 interface ControlsSTSectionProps {
@@ -38,6 +39,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
         seats: false,
         roles: false,
         game: false,
+        smartInfo: true, // 智能信息面板默认折叠
         audio: true, // 默认折叠音频
         voting: false
     });
@@ -257,6 +259,14 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     </button>
                 </div>
             </div>
+
+            {/* Smart Info Panel - 智能信息生成 */}
+            {gameState.phase === 'NIGHT' && (
+                <SmartInfoPanel
+                    isExpanded={!collapsedSections.smartInfo}
+                    onToggle={() => toggleSection('smartInfo')}
+                />
+            )}
 
             {/* Night Queue Manager */}
             {gameState.phase === 'NIGHT' && (() => {

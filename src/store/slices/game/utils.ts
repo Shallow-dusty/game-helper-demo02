@@ -73,16 +73,30 @@ export const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: st
 
     const script = SCRIPTS[gameState.currentScriptId];
 
-    const assignedRoles = gameState.seats
-        .filter(s => s.realRoleId && s.id !== seat.id)
-        .map(s => s.realRoleId!);
+    // 收集所有已分配的角色（包括真实角色和假角色），避免重复
+    const usedRoles = new Set<string>();
+    gameState.seats.forEach(s => {
+        if (s.id === seat.id) return; // 跳过当前座位
+        if (s.realRoleId) usedRoles.add(s.realRoleId);
+        if (s.seenRoleId && s.seenRoleId !== s.realRoleId) usedRoles.add(s.seenRoleId);
+    });
 
     const pickTownsfolk = (): string | null => {
         const availableTownsfolk = script?.roles
             .map(id => ROLES[id])
-            .filter(r => r?.team === 'TOWNSFOLK' && r?.id && !assignedRoles.includes(r.id))
+            .filter(r => r?.team === 'TOWNSFOLK' && r?.id && !usedRoles.has(r.id))
             .map(r => r!.id) || [];
-        const pool = availableTownsfolk.length > 0 ? availableTownsfolk : fallbackTownsfolk;
+        
+        // 如果剧本中没有可用的，尝试从备用列表中选择
+        const fallbackAvailable = fallbackTownsfolk.filter(id => !usedRoles.has(id));
+        const pool = availableTownsfolk.length > 0 ? availableTownsfolk : fallbackAvailable;
+        
+        if (pool.length === 0) {
+            // 极端情况：没有可用的村民，选择第一个备用
+            console.warn('No available townsfolk for fake role assignment');
+            return fallbackTownsfolk[0] ?? null;
+        }
+        
         return pool[Math.floor(Math.random() * pool.length)] ?? null;
     };
 

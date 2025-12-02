@@ -318,6 +318,10 @@ export const checkRuleCompliance = (seats: Seat[], scriptId: string, playerCount
     // 规则9: 检查特殊角色限制 (如男爵增加外来者)
     const hasGodfather = roleIds.includes('godfather');
     const hasBaron = roleIds.includes('baron');
+    const hasDrunk = roleIds.includes('drunk');
+    const hasLunatic = roleIds.includes('lunatic');
+    const hasMarionette = roleIds.includes('marionette');
+    
     if (hasBaron && standard) {
         const expectedOutsiders = standard.outsider + 2;
         checks.push({
@@ -335,6 +339,21 @@ export const checkRuleCompliance = (seats: Seat[], scriptId: string, playerCount
             rule: 'GODFATHER_EFFECT',
             passed: true,
             message: '教父在场: 注意可能影响外来者数量',
+            severity: 'info'
+        });
+    }
+    
+    // 规剃10: 检查“表里不一”角色 (酒鬼/疑子/魔偶)
+    if (hasDrunk || hasLunatic || hasMarionette) {
+        const misledRoles: string[] = [];
+        if (hasDrunk) misledRoles.push('酒鬼');
+        if (hasLunatic) misledRoles.push('疑子');
+        if (hasMarionette) misledRoles.push('魔偶');
+        
+        checks.push({
+            rule: 'MISLED_ROLES',
+            passed: true,
+            message: `存在“表里不一”角色: ${misledRoles.join(', ')} - 他们看到的角色与真实身份不同`,
             severity: 'info'
         });
     }

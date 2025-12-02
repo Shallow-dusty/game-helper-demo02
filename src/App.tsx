@@ -145,6 +145,16 @@ const App = () => {
 
   const appHeight = viewportSize.height > 0 ? viewportSize.height : undefined;
 
+  // Corruption Logic
+  const aliveCount = gameState?.seats.filter(s => !s.isDead && (s.userId || s.isVirtual)).length || 0;
+  const totalPlayers = gameState?.seats.filter(s => s.userId || s.isVirtual).length || 0;
+  
+  let corruptionStage = 0;
+  if (totalPlayers > 0) {
+      if (aliveCount <= 4) corruptionStage = 2;
+      else if (aliveCount <= totalPlayers * 0.66) corruptionStage = 1;
+  }
+
   return (
     <div
       className="flex flex-col w-screen bg-stone-950 overflow-hidden relative font-serif"
@@ -168,15 +178,22 @@ const App = () => {
       <WaitingArea />
       <AudioManager />
       <SwapRequestModal />
-
-      <div className="absolute inset-0 pointer-events-none z-0 bg-cover bg-center transition-all duration-1000"
-           style={{ 
-             backgroundImage: `url(${!user ? '/img/lobby-bg.png' : '/img/grimoire-bg.png'})`,
-             opacity: 1 
-           }}
-      >
-        <div className="absolute inset-0 bg-black/30"></div>
-      </div>
+      {corruptionStage >= 1 && (
+          <div className="absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000"
+               style={{ 
+                   background: 'radial-gradient(circle at center, transparent 40%, rgba(50, 20, 20, 0.4) 80%, rgba(20, 0, 0, 0.8) 100%)',
+                   opacity: corruptionStage === 1 ? 0.6 : 1
+               }}
+          />
+      )}
+      {corruptionStage >= 2 && (
+          <div className="absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 mix-blend-multiply"
+               style={{ 
+                   backgroundColor: '#2a0a0a',
+                   opacity: 0.4
+               }}
+          />
+      )}
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative min-h-0">
         <div

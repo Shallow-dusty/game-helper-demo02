@@ -3,7 +3,7 @@ import { useStore } from '../../store';
 import { RoleDef, Seat, GamePhase } from '../../types';
 import { ROLES, TEAM_COLORS } from '../../constants';
 import { VoteButton } from '../game/VoteButton';
-import { VotingChart } from '../game/VotingChart';
+import { DoomsdayClock } from '../game/DoomsdayClock';
 
 const ACTIVE_ABILITY_ROLES: Record<string, {
     name: string;
@@ -331,7 +331,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
             )}
 
             {/* Voting Stats Chart */}
-            <VotingChart />
+            <DoomsdayClock />
 
             {/* Settings / Tools */}
             <div className="grid grid-cols-2 gap-2">

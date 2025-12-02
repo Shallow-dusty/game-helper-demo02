@@ -19,12 +19,12 @@ export const ControlsAITab: React.FC = () => {
 
   if (!user || !gameState) return null;
 
-  const handleAiSubmit = async (e: React.FormEvent) => {
+  const handleAiSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!aiPrompt.trim()) return;
     const prompt = aiPrompt;
     setAiPrompt('');
-    await askAi(prompt);
+    void askAi(prompt);
   };
 
   // 获取当前 provider 的配置状态

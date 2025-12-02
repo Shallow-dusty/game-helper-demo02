@@ -34,12 +34,13 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
   
   if (!isOpen || !report) return null;
   
-  const handleCopyText = async () => {
+  const handleCopyText = () => {
     const text = formatReportAsText(report);
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    showSuccess('战报已复制到剪贴板');
-    setTimeout(() => setCopied(false), 2000);
+    void navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      showSuccess('战报已复制到剪贴板');
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
   
   const handleDownload = () => {

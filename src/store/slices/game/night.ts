@@ -9,6 +9,7 @@ export const createGameNightSlice: StoreSlice<Pick<GameSlice, 'performNightActio
         // Placeholder
     },
 
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     submitNightAction: async (action) => {
         const { user, gameState } = get();
         if (!user || !gameState) return;

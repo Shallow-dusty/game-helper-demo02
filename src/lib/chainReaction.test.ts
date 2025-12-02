@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { detectChainReactions, ChainReactionEvent } from './chainReaction';
+import { describe, it, expect } from 'vitest';
+import { detectChainReactions } from './chainReaction';
 import { GameState, Seat } from '../types';
 
 // 创建 mock 座位

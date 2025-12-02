@@ -57,7 +57,7 @@ export function useGameInteractions(): UseGameInteractionsReturn {
             }
         };
         
-        fetchInteractions();
+        void fetchInteractions();
     }, [roomId]);
     
     // Also refresh when game ends
@@ -73,7 +73,7 @@ export function useGameInteractions(): UseGameInteractionsReturn {
             }
         };
         
-        fetchInteractions();
+        void fetchInteractions();
     }, [roomId, gameState?.gameOver?.isOver]);
     
     const fetchByDay = useCallback(async (day: number): Promise<InteractionLog[]> => {

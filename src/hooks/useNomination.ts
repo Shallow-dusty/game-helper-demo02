@@ -68,7 +68,7 @@ export function useNomination(): UseNominationReturn {
             }
         };
         
-        checkEligibility();
+        void checkEligibility();
     }, [roomId, gameDay, userSeatId]);
     
     // Fetch today's nominations
@@ -84,7 +84,7 @@ export function useNomination(): UseNominationReturn {
             }
         };
         
-        fetchNominations();
+        void fetchNominations();
     }, [roomId, gameDay]);
     
     const checkSeatEligibility = useCallback(async (seatId: number): Promise<NominationEligibility> => {

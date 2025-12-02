@@ -162,8 +162,8 @@ describe('createGameSlice', () => {
   });
 
   describe('Voting Execution', () => {
-      it('should execute player if votes > half alive players', () => {
-          store.getState().createGame(5);
+      it('should execute player if votes > half alive players', async () => {
+          await store.getState().createGame(5);
           store.getState().assignRoles();
           // 5 players alive, need 3 votes to execute
           const nomineeId = 0;
@@ -191,8 +191,8 @@ describe('createGameSlice', () => {
           expect(newState.gameState!.voteHistory[0]!.result).toBe('executed');
       });
 
-      it('should NOT execute if votes <= half alive players', () => {
-        store.getState().createGame(5);
+      it('should NOT execute if votes <= half alive players', async () => {
+        await store.getState().createGame(5);
         store.getState().assignRoles();
         // 5 players alive, need 3 votes. We give 2.
         const nomineeId = 0;

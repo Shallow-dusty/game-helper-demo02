@@ -99,19 +99,21 @@ export const Lobby: React.FC = () => {
         });
     };
 
-    const handleJoin = async (e: React.FormEvent) => {
+    const handleJoin = (e: React.FormEvent) => {
         e.preventDefault();
         if (isSpectating) {
             if (roomCode.length === 4) {
-                await fadeOutAudio();
-                spectateGame(roomCode);
+                void fadeOutAudio().then(() => {
+                    void spectateGame(roomCode);
+                });
             }
             return;
         }
 
         if (name.trim()) {
-            await fadeOutAudio();
-            login(name, isST);
+            void fadeOutAudio().then(() => {
+                login(name, isST);
+            });
         }
     };
 

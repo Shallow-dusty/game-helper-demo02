@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { DistributionAnalysisResult } from '../../lib/distributionAnalysis';
-import { ROLES } from '../../constants';
 
 interface DistributionConfirmationModalProps {
     isOpen: boolean;
@@ -18,7 +17,7 @@ export const DistributionConfirmationModal: React.FC<DistributionConfirmationMod
 }) => {
     if (!isOpen) return null;
 
-    const { strategyEvaluation, composition, standardComposition, warnings, playerCount, roleCount } = analysis;
+    const { strategyEvaluation, composition, standardComposition, warnings, playerCount } = analysis;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">

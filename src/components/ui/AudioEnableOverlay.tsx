@@ -37,18 +37,14 @@ export const AudioEnableOverlay = () => {
             const audio = new Audio();
             audio.volume = 0;
             audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
-            const playPromise = audio.play();
-            if (playPromise) {
-                playPromise
-                    .then(() => {
-                        audio.pause();
-                        setAudioBlocked(false);
-                    })
-                    .catch(() => {
-                        // 仍然失败，可能需要更多用户交互
-
-                    });
-            }
+            void audio.play()
+                .then(() => {
+                    audio.pause();
+                    setAudioBlocked(false);
+                })
+                .catch(() => {
+                    // 仍然失败，可能需要更多用户交互
+                });
         } catch (e) {
             console.warn('Failed to activate audio:', e);
         }

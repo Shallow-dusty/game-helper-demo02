@@ -5,12 +5,8 @@ import { PHASE_LABELS, NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '../../../con
 import { checkGameOver } from '../../../lib/gameLogic';
 import { InteractionLogEntry } from '../../../types';
 import { 
-    logInteraction, 
-    logExecution, 
-    logDeath,
-    updateNominationResult,
-    getTeamFromRoleType,
-    mapPhase 
+    logExecution,
+    updateNominationResult
 } from '../../../lib/supabaseService';
 
 export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'nightNext' | 'nightPrev' | 'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote' | 'startGame' | 'endGame' | 'toggleCandlelight' | 'addInteractionLog'>> = (set, get) => ({
@@ -134,6 +130,7 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
         get().sync();
     },
 
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     toggleHand: async () => {
         const { user, gameState } = get();
         if (!user || !gameState?.voting) return;

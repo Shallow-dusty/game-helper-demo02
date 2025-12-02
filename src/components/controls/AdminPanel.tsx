@@ -147,7 +147,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                     </div>
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={fetchRooms}
+                            onClick={() => void fetchRooms()}
                             className="px-3 py-1 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded text-sm"
                         >
                             🔄 刷新

@@ -121,7 +121,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     const wakeSound = new Audio('/audio/sfx/wake.mp3');
                     wakeSound.volume = 0.3;
                     wakeSound.play().catch(e => console.warn('Audio blocked:', e));
-                } catch (e) {
+                } catch {
                     // Ignore audio errors
                 }
             }
@@ -132,12 +132,12 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
     const currentSeat = gameState.seats.find(s => s.userId === user.id);
 
-    const handleAiSubmit = async (e: React.FormEvent) => {
+    const handleAiSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!aiPrompt.trim()) return;
         const prompt = aiPrompt;
         setAiPrompt('');
-        await askAi(prompt);
+        void askAi(prompt);
     };
 
     const tabs = [

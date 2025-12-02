@@ -55,7 +55,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
             .subscribe();
 
         return () => {
-            supabase.removeChannel(channel);
+            void supabase.removeChannel(channel);
         };
     }, []);
 

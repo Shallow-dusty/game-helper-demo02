@@ -22,15 +22,13 @@ export const WaitingArea: React.FC = () => {
     const currentSeat = gameState.seats.find(s => s.userId === user.id);
     const isSeated = !!currentSeat;
 
-    const handleJoinSeat = async (seatId: number) => {
+    const handleJoinSeat = (seatId: number) => {
         if (joiningId !== null) return; // 防止重复点击
 
         setJoiningId(seatId);
-        try {
-            await joinSeat(seatId);
-        } finally {
+        void joinSeat(seatId).finally(() => {
             setJoiningId(null);
-        }
+        });
     };
 
     const leaveSeat = useStore(state => state.leaveSeat);
@@ -116,7 +114,7 @@ export const WaitingArea: React.FC = () => {
                     </button>
 
                     <button
-                        onClick={() => leaveSeat()}
+                        onClick={() => void leaveSeat()}
                         className="w-full py-2 rounded-lg text-sm font-bold text-stone-500 hover:text-red-400 hover:bg-red-950/30 border border-transparent hover:border-red-900/50 transition-all"
                     >
                         离开座位 (Leave Seat)

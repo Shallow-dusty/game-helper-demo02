@@ -53,7 +53,7 @@ export const RoomSelection = () => {
     void createGame(seatCount);
   };
 
-  const handleJoin = async (e?: React.FormEvent) => {
+  const handleJoin = (e?: React.FormEvent) => {
     e?.preventDefault();
     
     // 清除之前的错误
@@ -68,13 +68,10 @@ export const RoomSelection = () => {
     if (isJoining) return;
     
     setIsJoining(true);
-    try {
-      await joinGame(roomCode);
-      // 如果成功，会自动跳转到游戏页面
-    } catch {
+    void joinGame(roomCode).catch(() => {
       // joinGame内部已经处理了错误，但我们仍然重置状态
       setIsJoining(false);
-    }
+    });
     // 注意：如果加入失败，用户还在这个页面，需要重置状态
     // 使用setTimeout确保错误Toast有时间显示
     setTimeout(() => {
@@ -82,12 +79,13 @@ export const RoomSelection = () => {
     }, 1000);
   };
 
-  const handleRejoin = async () => {
+  const handleRejoin = () => {
     if (lastRoomCode && !isRejoining) {
       setIsRejoining(true);
-      await joinGame(lastRoomCode);
-      // 如果还在这个页面，说明加入失败了
-      setIsRejoining(false);
+      void joinGame(lastRoomCode).finally(() => {
+        // 如果还在这个页面，说明加入失败了
+        setIsRejoining(false);
+      });
     }
   };
 
@@ -136,7 +134,7 @@ export const RoomSelection = () => {
                 </div>
                 <div className="flex gap-3">
                   <Button
-                    onClick={() => void handleRejoin()}
+                    onClick={() => handleRejoin()}
                     disabled={isRejoining}
                     variant="gold"
                     className="font-bold tracking-wider"
@@ -242,7 +240,7 @@ export const RoomSelection = () => {
                         if (joinError) setJoinError('');
                         // Auto-submit when 4 digits are entered
                         if (val.length === 4 && !isJoining) {
-                          void handleJoin();
+                          handleJoin();
                         }
                       }}
                       placeholder="8888"

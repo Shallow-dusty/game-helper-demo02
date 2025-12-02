@@ -17,7 +17,7 @@ export const TownSquare = () => {
         const code = params.get('room');
         if (code) {
             setRoomCode(code);
-            spectateGame(code);
+            void spectateGame(code);
         }
     }, [spectateGame]);
 
@@ -29,7 +29,7 @@ export const TownSquare = () => {
             const newUrl = `${window.location.pathname}?room=${code}`;
             window.history.pushState({ path: newUrl }, '', newUrl);
             setRoomCode(code);
-            spectateGame(code);
+            void spectateGame(code);
         }
     };
 

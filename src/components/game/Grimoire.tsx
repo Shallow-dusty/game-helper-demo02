@@ -690,14 +690,14 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
         return;
       }
       if (seat.userId === null) {
-        joinSeat(seat.id);
+        void joinSeat(seat.id);
       }
     } else {
       // Player Logic
       if (seat.userId === null) {
         if (joiningId !== null) return;
         setJoiningId(seat.id);
-        joinSeat(seat.id).finally(() => setJoiningId(null));
+        void joinSeat(seat.id).finally(() => setJoiningId(null));
         return;
       }
       if (seat.userId !== user.id) {

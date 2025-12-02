@@ -344,7 +344,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
 
                 {currentSeat && (
                     <button
-                        onClick={() => leaveSeat()}
+                        onClick={() => void leaveSeat()}
                         className="bg-stone-900 hover:bg-red-950/30 text-stone-400 hover:text-red-400 py-2 px-3 rounded text-xs border border-stone-800 hover:border-red-900/30 transition-colors flex items-center justify-center gap-2"
                     >
                         <span>🚪</span> 离开座位

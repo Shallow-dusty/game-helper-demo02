@@ -21,7 +21,7 @@ export const VoiceRoomLink: React.FC = () => {
         // 更新游戏状态
         const newState = { ...gameState, voiceRoomUrl: inputValue.trim() || undefined };
         useStore.setState({ gameState: newState });
-        syncToCloud();
+        void syncToCloud();
         setIsEditing(false);
     };
 
@@ -30,7 +30,7 @@ export const VoiceRoomLink: React.FC = () => {
         
         const newState = { ...gameState, voiceRoomUrl: undefined };
         useStore.setState({ gameState: newState });
-        syncToCloud();
+        void syncToCloud();
         setInputValue('');
         setIsEditing(false);
     };

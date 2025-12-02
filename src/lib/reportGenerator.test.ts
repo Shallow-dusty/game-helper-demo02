@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateAfterActionReport, AfterActionReport } from './reportGenerator';
+import { generateAfterActionReport } from './reportGenerator';
 import { GameState, Seat } from '../types';
 
 // 创建 mock 座位

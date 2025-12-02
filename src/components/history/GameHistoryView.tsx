@@ -13,7 +13,7 @@ export const GameHistoryView: React.FC<{ onClose: () => void }> = ({ onClose }) 
     const [activeTab, setActiveTab] = useState<'details' | 'votes'>('details');
 
     useEffect(() => {
-        fetchGameHistory().then(data => {
+        void fetchGameHistory().then(data => {
             setHistory(data);
             setLoading(false);
         });

@@ -1,5 +1,5 @@
-import { Seat, RoleDef } from '../types';
-import { ROLES, SCRIPTS } from '../constants';
+import { Seat } from '../types';
+import { ROLES } from '../constants';
 
 export interface DistributionAnalysisResult {
     isValid: boolean;
@@ -143,7 +143,6 @@ export const analyzeDistribution = (seats: Seat[], playerCount: number): Distrib
 
     // 3. 策略评估
     let bestStrategy = STRATEGIES[0]; // Default to balanced
-    const maxScore = -1;
 
     // 简单评分逻辑：满足条件得1分，否则0分。
     // 改进：可以计算匹配度。这里简化处理，按优先级匹配。

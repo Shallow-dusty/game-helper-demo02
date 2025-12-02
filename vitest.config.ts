@@ -13,7 +13,18 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['store.ts', 'components/**/*.tsx'],
+      // 按优先级覆盖：核心逻辑 > 交互组件 > 展示组件
+      include: [
+        'src/lib/**/*.ts',           // 🔴 核心逻辑层 (目标 90%+)
+        'src/store/**/*.ts',         // 🔴 状态管理层 (目标 90%+)
+        'src/hooks/**/*.ts',         // 🟡 交互 hooks (目标 70%)
+        'src/components/game/*.tsx', // 🟡 游戏组件 (目标 50-70%)
+      ],
+      exclude: [
+        'src/components/ui/**',      // ⚪ 纯展示组件 (不测)
+        '**/*.test.ts',
+        '**/*.test.tsx',
+      ],
     },
   },
   resolve: {

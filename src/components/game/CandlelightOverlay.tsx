@@ -1,11 +1,20 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, FlameKindling } from 'lucide-react';
+import { useSoundEffect } from '../../hooks/useSoundEffect';
+
+interface DeadSeatPosition {
+  id: number;
+  x: number;
+  y: number;
+}
 
 interface CandlelightOverlayProps {
   width: number;
   height: number;
   isActive?: boolean;
+  /** 死亡座位的位置信息，用于触发环境音效 */
+  deadSeatPositions?: DeadSeatPosition[];
 }
 
 /**
@@ -15,18 +24,40 @@ interface CandlelightOverlayProps {
  * - 光圈边缘羽化，模拟真实光源
  * - 扫过死亡玩家座位时可触发环境音效
  */
-export const CandlelightOverlay: React.FC<CandlelightOverlayProps> = ({ width, height, isActive = true }) => {
+export const CandlelightOverlay: React.FC<CandlelightOverlayProps> = ({ width, height, isActive = true, deadSeatPositions = [] }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const mousePos = useRef({ x: width / 2, y: height / 2 });
   const targetPos = useRef({ x: width / 2, y: height / 2 });
   const flickerOffset = useRef({ x: 0, y: 0 });
+  const triggeredDeadSeats = useRef<Set<number>>(new Set());
+  
+  const { playSound } = useSoundEffect();
   
   // 烛光参数
   const CANDLE_RADIUS = 120; // 基础光圈半径
   const FLICKER_INTENSITY = 8; // 闪烁强度
   const SMOOTHING = 0.15; // 移动平滑度
   const DARKNESS_OPACITY = 0.92; // 黑暗遮罩透明度
+  const DEAD_SEAT_TRIGGER_RADIUS = 80; // 触发死亡座位音效的距离
+
+  // 检测烛光是否经过死亡座位
+  const checkDeadSeatProximity = useCallback((candleX: number, candleY: number) => {
+    deadSeatPositions.forEach(deadSeat => {
+      const distance = Math.sqrt(
+        Math.pow(candleX - deadSeat.x, 2) + Math.pow(candleY - deadSeat.y, 2)
+      );
+      
+      if (distance < DEAD_SEAT_TRIGGER_RADIUS && !triggeredDeadSeats.current.has(deadSeat.id)) {
+        // 烛光首次经过此死亡座位
+        triggeredDeadSeats.current.add(deadSeat.id);
+        playSound('ghost_whisper');
+      } else if (distance > DEAD_SEAT_TRIGGER_RADIUS * 1.5 && triggeredDeadSeats.current.has(deadSeat.id)) {
+        // 烛光离开足够远，重置可再次触发
+        triggeredDeadSeats.current.delete(deadSeat.id);
+      }
+    });
+  }, [deadSeatPositions, playSound]);
 
   // 处理鼠标/触摸移动
   const handlePointerMove = useCallback((e: React.PointerEvent | PointerEvent) => {
@@ -60,6 +91,9 @@ export const CandlelightOverlay: React.FC<CandlelightOverlayProps> = ({ width, h
 
       const candleX = mousePos.current.x + flickerOffset.current.x;
       const candleY = mousePos.current.y + flickerOffset.current.y;
+
+      // 检测是否经过死亡座位
+      checkDeadSeatProximity(candleX, candleY);
 
       // 动态光圈大小（呼吸效果）
       const breathingRadius = CANDLE_RADIUS + Math.sin(time * 0.002) * 10;
@@ -124,7 +158,7 @@ export const CandlelightOverlay: React.FC<CandlelightOverlayProps> = ({ width, h
       }
       window.removeEventListener('pointermove', handleGlobalPointerMove);
     };
-  }, [width, height, handlePointerMove]);
+  }, [width, height, handlePointerMove, checkDeadSeatProximity]);
 
   // 不在夜晚或烛光未激活时不渲染
   if (!isActive) return null;

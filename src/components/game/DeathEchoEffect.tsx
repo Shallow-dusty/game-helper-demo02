@@ -61,7 +61,7 @@ export const DeathEchoEffect: React.FC<DeathEchoEffectProps> = ({
     <AnimatePresence>
       {isActive && (
         <>
-          {/* 血红闪光遮罩 */}
+          {/* 灰烬色闪光遮罩 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ 
@@ -74,7 +74,7 @@ export const DeathEchoEffect: React.FC<DeathEchoEffectProps> = ({
             }}
             className="fixed inset-0 pointer-events-none z-[1100]"
             style={{
-              background: 'radial-gradient(circle at center, rgba(139, 0, 0, 0.8) 0%, rgba(80, 0, 0, 0.6) 40%, rgba(30, 0, 0, 0.4) 70%, transparent 100%)',
+              background: 'radial-gradient(circle at center, rgba(87, 83, 78, 0.8) 0%, rgba(68, 64, 60, 0.6) 40%, rgba(41, 37, 36, 0.4) 70%, transparent 100%)',
             }}
           />
 
@@ -88,8 +88,8 @@ export const DeathEchoEffect: React.FC<DeathEchoEffectProps> = ({
               width: '200px',
               height: '200px',
               borderRadius: '50%',
-              border: '4px solid rgba(220, 38, 38, 0.8)',
-              boxShadow: '0 0 60px rgba(220, 38, 38, 0.6), inset 0 0 40px rgba(220, 38, 38, 0.4)',
+              border: '4px solid rgba(168, 162, 158, 0.8)',
+              boxShadow: '0 0 60px rgba(120, 113, 108, 0.6), inset 0 0 40px rgba(120, 113, 108, 0.4)',
             }}
           />
 
@@ -110,13 +110,13 @@ export const DeathEchoEffect: React.FC<DeathEchoEffectProps> = ({
           >
             <div className="relative">
               <Skull 
-                className="w-24 h-24 text-red-600 drop-shadow-[0_0_30px_rgba(220,38,38,0.8)]" 
+                className="w-24 h-24 text-stone-400 drop-shadow-[0_0_30px_rgba(168,162,158,0.8)]" 
                 strokeWidth={1.5}
               />
               {/* 骷髅发光效果 */}
               <div className="absolute inset-0 animate-pulse">
                 <Skull 
-                  className="w-24 h-24 text-red-400 blur-sm opacity-50" 
+                  className="w-24 h-24 text-stone-300 blur-sm opacity-50" 
                   strokeWidth={1.5}
                 />
               </div>
@@ -135,23 +135,23 @@ export const DeathEchoEffect: React.FC<DeathEchoEffectProps> = ({
               }}
               className="fixed top-[60%] left-1/2 -translate-x-1/2 pointer-events-none z-[1103] text-center"
             >
-              <p className="text-2xl font-cinzel text-red-500 drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]">
+              <p className="text-2xl font-cinzel text-stone-400 drop-shadow-[0_0_10px_rgba(168,162,158,0.8)]">
                 {playerName}
               </p>
-              <p className="text-sm text-red-400/80 mt-1 font-serif">
+              <p className="text-sm text-stone-500/80 mt-1 font-serif">
                 已离开人世...
               </p>
             </motion.div>
           )}
 
-          {/* 边缘血迹渐变 */}
+          {/* 边缘灰烬渐变 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 0.4, 0] }}
             transition={{ duration: 2.5, ease: 'easeOut' }}
             className="fixed inset-0 pointer-events-none z-[1099]"
             style={{
-              boxShadow: 'inset 0 0 150px rgba(139, 0, 0, 0.6), inset 0 0 80px rgba(80, 0, 0, 0.4)',
+              boxShadow: 'inset 0 0 150px rgba(87, 83, 78, 0.6), inset 0 0 80px rgba(68, 64, 60, 0.4)',
             }}
           />
         </>

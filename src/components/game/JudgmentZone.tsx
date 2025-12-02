@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import Matter from 'matter-js';
 import { useStore } from '../../store';
+import { useSoundEffect } from '../../hooks/useSoundEffect';
 
 interface JudgmentZoneProps {
     width?: number;
@@ -15,6 +16,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
     const runnerRef = useRef<Matter.Runner | null>(null);
     
     const { gameState } = useStore();
+    const { playSound } = useSoundEffect();
     const voteHistory = gameState?.voteHistory || [];
     const latestVote = voteHistory.length > 0 ? voteHistory[voteHistory.length - 1] : null;
     const currentVotes = latestVote?.votes || [];
@@ -103,10 +105,8 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
                     friction: 0.05,
                     render: {
                         fillStyle: seat?.isDead ? '#57534e' : '#f59e0b',
-                        strokeStyle: '#78350f',
-                        lineWidth: 2,
-                        // We can use sprites here later
-                        // sprite: { texture: '...' }
+                        strokeStyle: seat?.isDead ? '#44403c' : '#b45309',
+                        lineWidth: 3,
                     },
                     label: userName
                 });
@@ -114,8 +114,8 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
                 Matter.Composite.add(engineRef.current!.world, chip);
                 addedVotesRef.current.add(seatId);
                 
-                // Play sound (mock)
-                // playSound('chip_drop');
+                // 播放筹码掉落音效
+                playSound('chip_drop');
             });
         }
         

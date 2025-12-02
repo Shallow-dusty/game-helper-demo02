@@ -23,6 +23,7 @@ import {
   useDeathEcho,
   GhostlyVisionOverlay,
   useGhostlyVision,
+  CorruptionOverlay,
 } from './components/game';
 
 // History
@@ -247,22 +248,7 @@ const App = () => {
       )}
 
       {/* 腐化效果背景 - 随存活人数变化 */}
-      {corruptionStage >= 1 && (
-          <div className="absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000"
-               style={{ 
-                   background: 'radial-gradient(circle at center, transparent 40%, rgba(50, 20, 20, 0.4) 80%, rgba(20, 0, 0, 0.8) 100%)',
-                   opacity: corruptionStage === 1 ? 0.6 : 1
-               }}
-          />
-      )}
-      {corruptionStage >= 2 && (
-          <div className="absolute inset-0 pointer-events-none z-0 transition-opacity duration-1000 mix-blend-multiply"
-               style={{ 
-                   backgroundColor: '#2a0a0a',
-                   opacity: 0.4
-               }}
-          />
-      )}
+      <CorruptionOverlay stage={corruptionStage as 0 | 1 | 2} />
 
       <div className="absolute inset-0 pointer-events-none z-0 bg-cover bg-center transition-all duration-1000"
            style={{ 

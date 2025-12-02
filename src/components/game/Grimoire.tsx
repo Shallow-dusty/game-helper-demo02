@@ -1131,7 +1131,20 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
         <CandlelightOverlay 
           width={width} 
           height={height} 
-          isActive={true} 
+          isActive={true}
+          deadSeatPositions={gameState.seats
+            .filter(s => s.isDead)
+            .map((seat) => {
+              // 需要找到原始索引来计算角度
+              const originalIndex = gameState.seats.findIndex(s => s.id === seat.id);
+              const angle = (originalIndex / gameState.seats.length) * 2 * Math.PI - Math.PI / 2;
+              return {
+                id: seat.id,
+                x: cx + r * Math.cos(angle),
+                y: cy + r * Math.sin(angle)
+              };
+            })
+          }
         />
       )}
 

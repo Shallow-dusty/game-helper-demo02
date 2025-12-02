@@ -1,6 +1,7 @@
 // Visual overlay and effect components
 export { CandlelightOverlay } from '../CandlelightOverlay';
 export { Confetti } from '../Confetti';
+export { CorruptionOverlay } from '../CorruptionOverlay';
 export { DeathEchoEffect, useDeathEcho } from '../DeathEchoEffect';
 export { GhostlyVisionOverlay, useGhostlyVision } from '../GhostlyVisionOverlay';
 export { WelcomeAnnouncement } from '../WelcomeAnnouncement';

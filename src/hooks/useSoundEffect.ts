@@ -29,11 +29,13 @@ export const FOLEY_SOUNDS = {
   night_wolf: { url: '/audio/sfx/wolf.mp3', volume: 0.6 },
   night_owl: { url: '/audio/sfx/owl.mp3', volume: 0.5 },
   death_toll: { url: '/audio/sfx/death_toll.mp3', volume: 0.7 },
+  ghost_whisper: { url: '/audio/sfx/ghost_whisper.mp3', volume: 0.4 },
   
   // 投票音效
   hand_raise: { url: '/audio/sfx/hand_raise.mp3', volume: 0.5 },
   vote_cast: { url: '/audio/sfx/vote_cast.mp3', volume: 0.6 },
   gavel: { url: '/audio/sfx/gavel.mp3', volume: 0.8 },
+  chip_drop: { url: '/audio/sfx/chip_drop.mp3', volume: 0.5 },
   
   // 反馈音效
   success: { url: '/audio/sfx/success.mp3', volume: 0.6 },

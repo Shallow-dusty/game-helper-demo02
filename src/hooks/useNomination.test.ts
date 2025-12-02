@@ -1,0 +1,246 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, waitFor, act } from '@testing-library/react';
+import { useNomination } from './useNomination';
+import * as supabaseService from '../lib/supabaseService';
+
+// Mock store
+const mockStartVote = vi.fn();
+const mockUser = { id: 'test-user', roomId: 123 };
+const mockGameState = {
+    seats: [{ id: 0, userId: 'test-user' }, { id: 1, userId: 'other-user' }],
+    roundInfo: { dayCount: 1 }
+};
+
+vi.mock('../store', () => ({
+    useStore: vi.fn((selector: (state: unknown) => unknown) => {
+        const state = {
+            user: mockUser,
+            gameState: mockGameState,
+            startVote: mockStartVote
+        };
+        return selector(state);
+    })
+}));
+
+// Mock supabaseService
+vi.mock('../lib/supabaseService', () => ({
+    checkNominationEligibility: vi.fn(),
+    recordNomination: vi.fn(),
+    getNominationHistory: vi.fn()
+}));
+
+describe('useNomination', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        
+        vi.mocked(supabaseService.checkNominationEligibility).mockResolvedValue({
+            canNominate: true,
+            reason: null,
+            previousNominee: null
+        });
+        
+        vi.mocked(supabaseService.getNominationHistory).mockResolvedValue([]);
+        
+        vi.mocked(supabaseService.recordNomination).mockResolvedValue({
+            success: true,
+            error: null,
+            nominationId: 'nom-123'
+        });
+    });
+
+    describe('初始化', () => {
+        it('应该检查用户资格', async () => {
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            expect(supabaseService.checkNominationEligibility).toHaveBeenCalledWith(123, 1, 0);
+        });
+
+        it('应该获取今日提名历史', async () => {
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            expect(supabaseService.getNominationHistory).toHaveBeenCalledWith(123, 1);
+        });
+
+        it('资格检查成功时应该更新状态', async () => {
+            vi.mocked(supabaseService.checkNominationEligibility).mockResolvedValue({
+                canNominate: false,
+                reason: '今日已提名',
+                previousNominee: 3
+            });
+            
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            expect(result.current.canNominate).toBe(false);
+            expect(result.current.previousNominee).toBe(3);
+        });
+
+        it('资格检查失败时应该默认允许提名', async () => {
+            vi.mocked(supabaseService.checkNominationEligibility).mockRejectedValue(new Error('Network error'));
+            
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            expect(result.current.canNominate).toBe(true);
+        });
+    });
+
+    describe('checkSeatEligibility', () => {
+        it('应该检查指定座位的资格', async () => {
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            vi.mocked(supabaseService.checkNominationEligibility).mockResolvedValue({
+                canNominate: true,
+                reason: null,
+                previousNominee: null
+            });
+            
+            const eligibility = await result.current.checkSeatEligibility(2);
+            
+            expect(supabaseService.checkNominationEligibility).toHaveBeenCalledWith(123, 1, 2);
+            expect(eligibility.canNominate).toBe(true);
+        });
+
+        it('API 失败时应该返回默认允许', async () => {
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            vi.mocked(supabaseService.checkNominationEligibility).mockRejectedValue(new Error('Error'));
+            
+            const eligibility = await result.current.checkSeatEligibility(2);
+            
+            expect(eligibility.canNominate).toBe(true);
+        });
+    });
+
+    describe('makeNomination', () => {
+        it('提名成功应该返回 true', async () => {
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            const success = await result.current.makeNomination(0, 1);
+            
+            expect(success).toBe(true);
+            expect(supabaseService.recordNomination).toHaveBeenCalledWith(123, 1, 0, 1);
+        });
+
+        it('提名成功应该启动投票', async () => {
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            await result.current.makeNomination(0, 1);
+            
+            expect(mockStartVote).toHaveBeenCalledWith(1);
+        });
+
+        it('当前用户提名成功后应该更新本地状态', async () => {
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            await act(async () => {
+                await result.current.makeNomination(0, 1);  // 座位 0 是当前用户
+            });
+            
+            // 等待状态更新
+            await waitFor(() => {
+                expect(result.current.canNominate).toBe(false);
+            });
+            
+            expect(result.current.previousNominee).toBe(1);
+        });
+
+        it('提名失败应该返回 false', async () => {
+            vi.mocked(supabaseService.recordNomination).mockResolvedValue({
+                success: false,
+                error: '提名失败',
+                nominationId: null
+            });
+            
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            const success = await result.current.makeNomination(0, 1);
+            
+            expect(success).toBe(false);
+        });
+
+        it('API 异常应该返回 false', async () => {
+            vi.mocked(supabaseService.recordNomination).mockRejectedValue(new Error('Error'));
+            
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            const success = await result.current.makeNomination(0, 1);
+            
+            expect(success).toBe(false);
+        });
+    });
+
+    describe('refresh', () => {
+        it('应该刷新资格和提名历史', async () => {
+            const { result } = renderHook(() => useNomination());
+            
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+            
+            vi.clearAllMocks();
+            
+            vi.mocked(supabaseService.checkNominationEligibility).mockResolvedValue({
+                canNominate: false,
+                reason: '已提名',
+                previousNominee: 2
+            });
+            
+            vi.mocked(supabaseService.getNominationHistory).mockResolvedValue([
+                { id: 'nom-1', nominatorSeatId: 0, nomineeSeatId: 2, timestamp: Date.now() }
+            ]);
+            
+            await act(async () => {
+                await result.current.refresh();
+            });
+            
+            expect(supabaseService.checkNominationEligibility).toHaveBeenCalled();
+            expect(supabaseService.getNominationHistory).toHaveBeenCalled();
+            expect(result.current.canNominate).toBe(false);
+            expect(result.current.previousNominee).toBe(2);
+            expect(result.current.todayNominations.length).toBe(1);
+        });
+    });
+});

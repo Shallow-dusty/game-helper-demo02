@@ -47,6 +47,7 @@ src/
 │   │   └── index.ts        # Barrel export
 │   ├── history/            # 历史记录组件
 │   ├── lobby/              # 大厅组件
+│   ├── settings/           # 设置组件 (AudioSettingsModal)
 │   ├── sandbox/            # 沙盒模式组件
 │   ├── script/             # 剧本相关组件
 │   └── ui/                 # 通用 UI 组件
@@ -104,7 +105,8 @@ src/
 - **`store.ts`**: 组合所有切片，创建全局 Store。
 - **`slices/ai.ts`**: AI 助手状态 (原 `createAISlice.ts`)
 - **`slices/ui.ts`**: UI 状态管理 (原 `createUISlice.ts`)
-- **`slices/connection.ts`**: Supabase 连接与同步 (原 `createConnectionSlice.ts`)
+- **`slices/connection.ts`**: Supabase 连接与同步 (原
+  `createConnectionSlice.ts`)
 - **`slices/game.ts`**: 游戏核心状态 (原 `createGameSlice.ts`)
 
 > 注意: 旧命名 (`createXSlice`) 仍保持向后兼容导出。
@@ -125,7 +127,7 @@ src/
 
 ```typescript
 // 使用方式
-import { Grimoire, RoleCard, NightActionPanel } from './components/game';
+import { Grimoire, NightActionPanel, RoleCard } from "./components/game";
 ```
 
 - **`core/`**: Grimoire, TownSquare, PhaseIndicator 等核心视图

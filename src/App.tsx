@@ -214,15 +214,19 @@ const App = () => {
 
   const appHeight = viewportSize.height > 0 ? viewportSize.height : undefined;
 
-  // Corruption Logic - 腐蚀阶段计算
+  // Corruption Logic - 腐蚀阶段计算 (根据死亡比例)
   const aliveCount = gameState?.seats.filter(s => !s.isDead && (s.userId || s.isVirtual)).length || 0;
   const totalPlayers = gameState?.seats.filter(s => s.userId || s.isVirtual).length || 0;
+  const deadCount = totalPlayers - aliveCount;
   
   let corruptionStage: 0 | 1 | 2 | 3 = 0;
   if (totalPlayers > 0) {
-      if (aliveCount <= 3) corruptionStage = 3; // 决战阶段：≤3人存活
-      else if (aliveCount <= 4) corruptionStage = 2; // 严重：≤4人存活
-      else if (aliveCount <= totalPlayers * 0.66) corruptionStage = 1; // 轻微：≤66%存活
+      // Stage 1: 死亡 1/3 玩家
+      // Stage 2: ≤4人存活
+      // Stage 3: 决战 (≤3人)
+      if (aliveCount <= 3) corruptionStage = 3;
+      else if (aliveCount <= 4) corruptionStage = 2;
+      else if (deadCount >= Math.ceil(totalPlayers / 3)) corruptionStage = 1;
   }
 
   return (

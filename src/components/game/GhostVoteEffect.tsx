@@ -150,6 +150,96 @@ export const GhostVoteEffect: React.FC<GhostVoteEffectProps> = ({
             />
           </motion.div>
 
+          {/* 爆裂效果 - 幽灵到达目标时 */}
+          <motion.div
+            className="fixed pointer-events-none z-[503]"
+            style={{
+              left: endX,
+              top: endY,
+              transform: 'translate(-50%, -50%)',
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0, 1, 0] }}
+            transition={{ duration: 2, times: [0, 0.55, 0.65, 1] }}
+          >
+            {/* 爆裂粒子 */}
+            {Array.from({ length: 16 }).map((_, i) => {
+              const angle = (i / 16) * Math.PI * 2;
+              const distance = 60 + Math.random() * 40;
+              return (
+                <motion.div
+                  key={i}
+                  className="absolute w-3 h-3 rounded-full"
+                  style={{
+                    background: i % 2 === 0 
+                      ? 'radial-gradient(circle, rgba(239, 68, 68, 0.9) 0%, transparent 70%)'
+                      : 'radial-gradient(circle, rgba(192, 132, 252, 0.9) 0%, transparent 70%)',
+                    boxShadow: i % 2 === 0 
+                      ? '0 0 10px rgba(239, 68, 68, 0.6)'
+                      : '0 0 10px rgba(192, 132, 252, 0.6)',
+                  }}
+                  initial={{ 
+                    x: 0, 
+                    y: 0, 
+                    scale: 0,
+                    opacity: 0,
+                  }}
+                  animate={{ 
+                    x: Math.cos(angle) * distance,
+                    y: Math.sin(angle) * distance,
+                    scale: [0, 1.5, 0],
+                    opacity: [0, 1, 0],
+                  }}
+                  transition={{
+                    duration: 0.6,
+                    delay: 1.1,
+                    ease: 'easeOut',
+                  }}
+                />
+              );
+            })}
+            
+            {/* 冲击波环 */}
+            <motion.div
+              className="absolute rounded-full border-2 border-red-400/50"
+              style={{
+                width: 20,
+                height: 20,
+                left: -10,
+                top: -10,
+              }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ 
+                scale: [0, 5, 8],
+                opacity: [0, 0.8, 0],
+              }}
+              transition={{
+                duration: 0.8,
+                delay: 1.1,
+                ease: 'easeOut',
+              }}
+            />
+            
+            {/* 中心闪光 */}
+            <motion.div
+              className="absolute w-8 h-8 rounded-full"
+              style={{
+                background: 'radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(239, 68, 68, 0.6) 40%, transparent 70%)',
+                left: -16,
+                top: -16,
+              }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ 
+                scale: [0, 2, 0],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: 0.4,
+                delay: 1.1,
+              }}
+            />
+          </motion.div>
+
           {/* 幽灵图标飞行 */}
           <motion.div
             className="fixed pointer-events-none z-[502]"

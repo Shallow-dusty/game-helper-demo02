@@ -26,6 +26,7 @@ export const FOLEY_SOUNDS = {
   
   // 环境音效
   day_bell: { url: '/audio/sfx/bell.mp3', volume: 0.8 },
+  bird_chirp: { url: '/audio/sfx/bird_chirp.mp3', volume: 0.5 },
   night_wolf: { url: '/audio/sfx/wolf.mp3', volume: 0.6 },
   night_owl: { url: '/audio/sfx/owl.mp3', volume: 0.5 },
   death_toll: { url: '/audio/sfx/death_toll.mp3', volume: 0.7 },

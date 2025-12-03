@@ -7,7 +7,7 @@ interface DawnLightProps {
   /** 是否触发破晓效果 */
   isActive: boolean;
   /** 座位位置列表 (用于依次点亮) */
-  seatPositions?: Array<{ id: number; x: number; y: number; isDead: boolean }>;
+  seatPositions?: { id: number; x: number; y: number; isDead: boolean }[];
   /** 效果完成回调 */
   onComplete?: () => void;
 }
@@ -44,36 +44,40 @@ export const DawnLight: React.FC<DawnLightProps> = ({
 
   useEffect(() => {
     if (isActive && phase === 'idle') {
-      // 开始动画序列
+      // 开始动画序列 (总时长缩短到 ~2.5秒)
       setPhase('blackout');
       playSound('day_bell');
 
-      // 黑屏持续 500ms
-      setTimeout(() => setPhase('sweep'), 500);
+      // 黑屏持续 300ms
+      setTimeout(() => {
+        setPhase('sweep');
+        // 播放鸟鸣音效
+        playSound('bird_chirp');
+      }, 300);
 
-      // 扫光持续 2000ms
-      setTimeout(() => setPhase('glow'), 2500);
+      // 扫光持续 1500ms
+      setTimeout(() => setPhase('glow'), 1800);
 
-      // 发光持续 1000ms 后淡出
-      setTimeout(() => setPhase('fade'), 3500);
+      // 发光持续 500ms 后淡出
+      setTimeout(() => setPhase('fade'), 2300);
 
       // 完成
       setTimeout(() => {
         setPhase('idle');
         setLitSeats(new Set());
         onComplete?.();
-      }, 4500);
+      }, 2800);
     }
   }, [isActive, phase, playSound, onComplete]);
 
-  // 扫光阶段依次点亮座位
+  // 扫光阶段依次点亮座位 (加快速度)
   useEffect(() => {
     if (phase !== 'sweep') return;
 
     sortedAliveSeats.forEach((seat, idx) => {
       setTimeout(() => {
         setLitSeats(prev => new Set([...prev, seat.id]));
-      }, 100 + idx * 150); // 每150ms点亮一个
+      }, 50 + idx * 100); // 每100ms点亮一个
     });
   }, [phase, sortedAliveSeats]);
 

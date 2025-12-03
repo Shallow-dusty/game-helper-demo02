@@ -35,7 +35,7 @@ export const CandlelightOverlay: React.FC<CandlelightOverlayProps> = ({ width, h
   const { playSound } = useSoundEffect();
   
   // 烛光参数
-  const CANDLE_RADIUS = 120; // 基础光圈半径
+  const CANDLE_RADIUS = 150; // 基础光圈半径 (~150px)
   const FLICKER_INTENSITY = 8; // 闪烁强度
   const SMOOTHING = 0.15; // 移动平滑度
   const DARKNESS_OPACITY = 0.92; // 黑暗遮罩透明度
@@ -236,7 +236,7 @@ export const CandlelightToggle: React.FC<CandlelightToggleProps> = ({ enabled, o
         }
         hover:border-amber-500/50 hover:text-amber-300
       `}
-      title={enabled ? '关闭烛光模式' : '开启烛光模式（防窥）'}
+      title={enabled ? '关闭挂机防窥模式' : '开启挂机防窥模式'}
     >
       {enabled ? (
         <Flame className="w-4 h-4" />
@@ -244,7 +244,7 @@ export const CandlelightToggle: React.FC<CandlelightToggleProps> = ({ enabled, o
         <FlameKindling className="w-4 h-4" />
       )}
       <span className="text-xs font-cinzel">
-        {enabled ? '烛光开启' : '烛光关闭'}
+        {enabled ? '🕯️ 防窥开启' : '🕯️ 挂机防窥'}
       </span>
     </button>
   );

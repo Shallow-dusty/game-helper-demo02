@@ -1,5 +1,5 @@
  
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import Matter from 'matter-js';
 import { useStore } from '../../store';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
@@ -8,6 +8,156 @@ interface JudgmentZoneProps {
     width?: number;
     height?: number;
 }
+
+// 时钟表盘组件
+const ClockFace: React.FC<{ 
+    width: number; 
+    height: number; 
+    voteProgress: number; // 0-1，表示投票进度
+    isOverHalf: boolean;
+}> = ({ width, height, voteProgress, isOverHalf }) => {
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const clockRadius = Math.min(width, height) * 0.4;
+    
+    // 时钟指针角度 (从12点位置开始，顺时针旋转)
+    const handAngle = -90 + (voteProgress * 360); // -90 使指针从12点开始
+    
+    // 罗马数字
+    const romanNumerals = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
+    
+    return (
+        <svg 
+            className="absolute inset-0 pointer-events-none" 
+            width={width} 
+            height={height}
+            style={{ zIndex: 0 }}
+        >
+            {/* 红色辉光（超过半数时） */}
+            {isOverHalf && (
+                <defs>
+                    <filter id="red-glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="8" result="blur"/>
+                        <feFlood floodColor="#dc2626" floodOpacity="0.6" result="color"/>
+                        <feComposite in="color" in2="blur" operator="in" result="glow"/>
+                        <feMerge>
+                            <feMergeNode in="glow"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+            )}
+            
+            {/* 外圈装饰 */}
+            <circle 
+                cx={centerX} 
+                cy={centerY} 
+                r={clockRadius + 5}
+                fill="none"
+                stroke="#44403c"
+                strokeWidth="2"
+                opacity="0.5"
+            />
+            
+            {/* 时钟表盘背景 */}
+            <circle 
+                cx={centerX} 
+                cy={centerY} 
+                r={clockRadius}
+                fill="rgba(28, 25, 23, 0.3)"
+                stroke={isOverHalf ? "#dc2626" : "#78716c"}
+                strokeWidth="2"
+                filter={isOverHalf ? "url(#red-glow)" : undefined}
+            />
+            
+            {/* 刻度线 */}
+            {Array.from({ length: 12 }).map((_, i) => {
+                const angle = (i * 30 - 90) * (Math.PI / 180);
+                const innerR = clockRadius - 15;
+                const outerR = clockRadius - 5;
+                const x1 = centerX + Math.cos(angle) * innerR;
+                const y1 = centerY + Math.sin(angle) * innerR;
+                const x2 = centerX + Math.cos(angle) * outerR;
+                const y2 = centerY + Math.sin(angle) * outerR;
+                
+                return (
+                    <line
+                        key={i}
+                        x1={x1} y1={y1}
+                        x2={x2} y2={y2}
+                        stroke="#78716c"
+                        strokeWidth={i % 3 === 0 ? 2 : 1}
+                        opacity="0.6"
+                    />
+                );
+            })}
+            
+            {/* 罗马数字 (只显示主要的4个) */}
+            {[0, 3, 6, 9].map((i) => {
+                const angle = (i * 30 - 90) * (Math.PI / 180);
+                const numRadius = clockRadius - 28;
+                const x = centerX + Math.cos(angle) * numRadius;
+                const y = centerY + Math.sin(angle) * numRadius;
+                
+                return (
+                    <text
+                        key={i}
+                        x={x}
+                        y={y}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fill="#a8a29e"
+                        fontSize="10"
+                        fontFamily="Cinzel, serif"
+                        opacity="0.7"
+                    >
+                        {romanNumerals[i]}
+                    </text>
+                );
+            })}
+            
+            {/* 时针（投票进度） */}
+            <line
+                x1={centerX}
+                y1={centerY}
+                x2={centerX + Math.cos((handAngle) * Math.PI / 180) * (clockRadius * 0.5)}
+                y2={centerY + Math.sin((handAngle) * Math.PI / 180) * (clockRadius * 0.5)}
+                stroke={isOverHalf ? "#dc2626" : "#d6d3d1"}
+                strokeWidth="3"
+                strokeLinecap="round"
+                style={{
+                    transition: 'all 0.5s ease-out',
+                    filter: isOverHalf ? 'drop-shadow(0 0 4px #dc2626)' : 'none'
+                }}
+            />
+            
+            {/* 分针（更长的指针） */}
+            <line
+                x1={centerX}
+                y1={centerY}
+                x2={centerX + Math.cos((handAngle) * Math.PI / 180) * (clockRadius * 0.7)}
+                y2={centerY + Math.sin((handAngle) * Math.PI / 180) * (clockRadius * 0.7)}
+                stroke={isOverHalf ? "#ef4444" : "#a8a29e"}
+                strokeWidth="2"
+                strokeLinecap="round"
+                style={{
+                    transition: 'all 0.5s ease-out',
+                    filter: isOverHalf ? 'drop-shadow(0 0 3px #ef4444)' : 'none'
+                }}
+            />
+            
+            {/* 中心点 */}
+            <circle 
+                cx={centerX} 
+                cy={centerY} 
+                r="5"
+                fill={isOverHalf ? "#dc2626" : "#78716c"}
+                stroke="#44403c"
+                strokeWidth="1"
+            />
+        </svg>
+    );
+};
 
 export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height = 300 }) => {
     const sceneRef = useRef<HTMLDivElement>(null);
@@ -97,7 +247,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
                         pos.x - 4, pos.y - 4, 0,
                         pos.x, pos.y, radius
                     );
-                    const baseColor = body.render.fillStyle as string || '#f59e0b';
+                    const baseColor = body.render.fillStyle! || '#f59e0b';
                     gradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
                     gradient.addColorStop(0.3, baseColor);
                     gradient.addColorStop(1, baseColor);
@@ -179,11 +329,42 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
         }
     }, [gameState?.voting?.nomineeSeatId]);
 
+    // 计算投票进度和是否超过半数
+    const { voteProgress, isOverHalf } = useMemo(() => {
+        const totalPlayers = gameState?.seats.filter(s => s.role && !s.isDead).length || 1;
+        const requiredVotes = Math.ceil(totalPlayers / 2);
+        const currentVoteCount = currentVotes.length;
+        const progress = Math.min(currentVoteCount / totalPlayers, 1);
+        const overHalf = currentVoteCount >= requiredVotes;
+        return { voteProgress: progress, isOverHalf: overHalf };
+    }, [gameState?.seats, currentVotes.length]);
+
     return (
         <div className="relative mx-auto border border-stone-800 bg-stone-950/50 rounded-lg overflow-hidden shadow-inner" style={{ width, height }}>
-            <div ref={sceneRef} className="absolute inset-0" />
-            <div className="absolute top-2 left-2 text-xs text-stone-500 font-cinzel pointer-events-none">
+            {/* 时钟表盘背景 */}
+            <ClockFace 
+                width={width} 
+                height={height} 
+                voteProgress={voteProgress}
+                isOverHalf={isOverHalf}
+            />
+            
+            {/* Matter.js 物理区域 */}
+            <div ref={sceneRef} className="absolute inset-0" style={{ zIndex: 1 }} />
+            
+            {/* 标题 */}
+            <div className="absolute top-2 left-2 text-xs text-stone-500 font-cinzel pointer-events-none" style={{ zIndex: 2 }}>
                 JUDGMENT ZONE
+            </div>
+            
+            {/* 投票计数器 */}
+            <div 
+                className={`absolute top-2 right-2 text-xs font-cinzel pointer-events-none px-2 py-1 rounded ${
+                    isOverHalf ? 'text-red-400 bg-red-950/50' : 'text-stone-400'
+                }`}
+                style={{ zIndex: 2 }}
+            >
+                {currentVotes.length} votes
             </div>
         </div>
     );

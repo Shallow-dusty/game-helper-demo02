@@ -73,10 +73,23 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'info', style = 'd
     if (style === 'parchment') {
         return (
             <motion.div
-                initial={{ opacity: 0, scaleY: 0, originY: 0 }}
-                animate={{ opacity: 1, scaleY: 1 }}
-                exit={{ opacity: 0, scaleY: 0 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+                initial={{ opacity: 0, height: 0, scaleY: 0.3, originY: 0 }}
+                animate={{ 
+                    opacity: 1, 
+                    height: 'auto', 
+                    scaleY: 1,
+                    transition: {
+                        height: { duration: 0.3, ease: 'easeOut' },
+                        scaleY: { duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }, // 弹性展开
+                        opacity: { duration: 0.2 }
+                    }
+                }}
+                exit={{ 
+                    opacity: 0, 
+                    height: 0,
+                    scaleY: 0.3,
+                    transition: { duration: 0.25, ease: 'easeIn' }
+                }}
                 className={`
                     pointer-events-auto
                     w-full max-w-sm
@@ -85,13 +98,14 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'info', style = 'd
                 `}
             >
                 {/* 羊皮纸背景 */}
-                <div className="
+                <div className={`
                     relative overflow-hidden
                     bg-gradient-to-br from-amber-100 via-amber-50 to-yellow-100
                     border border-amber-300/50
                     rounded-sm
                     shadow-[0_4px_20px_rgba(0,0,0,0.3),inset_0_0_30px_rgba(139,69,19,0.1)]
-                ">
+                    ${type === 'error' ? 'parchment-burn' : ''}
+                `}>
                     {/* 羊皮纸纹理覆盖层 */}
                     <div className="absolute inset-0 opacity-30 pointer-events-none"
                          style={{
@@ -99,29 +113,51 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'info', style = 'd
                          }}
                     />
                     
-                    {/* 烧焦边缘效果（仅错误类型） */}
+                    {/* 烧焦边缘效果（仅错误类型 - 增强版） */}
                     {type === 'error' && (
-                        <div className="absolute inset-0 pointer-events-none"
-                             style={{
-                                 background: 'radial-gradient(ellipse at 100% 0%, rgba(139,69,19,0.3) 0%, transparent 50%), radial-gradient(ellipse at 0% 100%, rgba(139,69,19,0.2) 0%, transparent 50%)'
-                             }}
-                        />
+                        <>
+                            <div className="absolute inset-0 pointer-events-none"
+                                 style={{
+                                     background: `
+                                         radial-gradient(ellipse at 100% 0%, rgba(80,30,0,0.5) 0%, transparent 40%),
+                                         radial-gradient(ellipse at 0% 100%, rgba(80,30,0,0.4) 0%, transparent 40%),
+                                         radial-gradient(ellipse at 100% 100%, rgba(60,20,0,0.3) 0%, transparent 35%),
+                                         radial-gradient(ellipse at 50% 0%, rgba(100,40,0,0.2) 0%, transparent 30%)
+                                     `
+                                 }}
+                            />
+                            {/* 燃烧火焰粒子 */}
+                            <div className="absolute top-0 right-0 w-6 h-6 burn-ember" />
+                            <div className="absolute bottom-0 left-2 w-4 h-4 burn-ember delay-100" />
+                            <div className="absolute top-1 right-4 w-3 h-3 burn-ember delay-200" />
+                        </>
                     )}
+                    
+                    {/* 卷轴展开线效果 */}
+                    <motion.div 
+                        className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-600/40 to-transparent"
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        transition={{ delay: 0.1, duration: 0.3 }}
+                    />
                     
                     <div className="flex items-start gap-4 p-4 relative">
                         {/* 火漆印章 */}
-                        <div 
+                        <motion.div 
                             className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center
                                        shadow-[0_2px_8px_rgba(0,0,0,0.3),inset_0_-2px_4px_rgba(0,0,0,0.2)]"
                             style={{ 
                                 backgroundColor: sealColors[type],
                                 backgroundImage: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 50%)'
                             }}
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ delay: 0.15, duration: 0.4, type: 'spring', stiffness: 200 }}
                         >
                             <span className="text-white text-lg font-bold drop-shadow-sm">
                                 {styles.sealIcon}
                             </span>
-                        </div>
+                        </motion.div>
                         
                         {/* 内容 */}
                         <div className="flex-1 min-w-0">
@@ -154,6 +190,28 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'info', style = 'd
                 
                 {/* 卷轴卷曲阴影 */}
                 <div className="absolute -bottom-1 left-2 right-2 h-2 bg-gradient-to-b from-amber-900/20 to-transparent rounded-b-full" />
+                
+                {/* 燃烧效果 CSS */}
+                <style>{`
+                    .parchment-burn {
+                        animation: burn-edge 2s ease-in-out infinite alternate;
+                    }
+                    @keyframes burn-edge {
+                        0% { box-shadow: inset 0 0 30px rgba(139,69,19,0.1), 0 0 8px rgba(255,100,0,0.3); }
+                        100% { box-shadow: inset 0 0 30px rgba(139,69,19,0.2), 0 0 15px rgba(255,100,0,0.5); }
+                    }
+                    .burn-ember {
+                        background: radial-gradient(circle, rgba(255,150,50,0.8) 0%, rgba(255,100,0,0.4) 50%, transparent 70%);
+                        border-radius: 50%;
+                        animation: ember-flicker 0.8s ease-in-out infinite alternate;
+                    }
+                    .burn-ember.delay-100 { animation-delay: 0.1s; }
+                    .burn-ember.delay-200 { animation-delay: 0.2s; }
+                    @keyframes ember-flicker {
+                        0% { opacity: 0.6; transform: scale(0.8); }
+                        100% { opacity: 1; transform: scale(1.2); }
+                    }
+                `}</style>
             </motion.div>
         );
     }

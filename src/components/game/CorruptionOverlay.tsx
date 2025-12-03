@@ -97,19 +97,26 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
     return points;
   }, [stage]);
 
-  // 生成蔓藤路径
+  // 生成蔓藤路径 - Stage 1 开始显示
   const vinePaths = useMemo(() => {
-    if (stage < 2) return [];
-    return [
+    if (stage < 1) return [];
+    // Stage 1: 轻微蔓藤，Stage 2+: 更多蔓藤
+    const basePaths = [
       // 左上角蔓藤
       'M0,0 Q30,20 15,60 Q5,80 20,120 Q10,150 0,180',
       // 右上角蔓藤  
       'M100%,0 Q calc(100% - 30px),25 calc(100% - 10px),70 Q calc(100% - 25px),100 calc(100% - 5px),140',
-      // 左下角蔓藤
-      'M0,100% Q25,calc(100% - 30px) 10,calc(100% - 80px) Q30,calc(100% - 120px) 5,calc(100% - 160px)',
-      // 右下角蔓藤
-      'M100%,100% Q calc(100% - 20px),calc(100% - 40px) calc(100% - 8px),calc(100% - 90px)',
     ];
+    if (stage >= 2) {
+      // 添加更多蔓藤
+      basePaths.push(
+        // 左下角蔓藤
+        'M0,100% Q25,calc(100% - 30px) 10,calc(100% - 80px) Q30,calc(100% - 120px) 5,calc(100% - 160px)',
+        // 右下角蔓藤
+        'M100%,100% Q calc(100% - 20px),calc(100% - 40px) calc(100% - 8px),calc(100% - 90px)'
+      );
+    }
+    return basePaths;
   }, [stage]);
 
   if (stage === 0) return null;
@@ -228,13 +235,13 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
         />
       )}
 
-      {/* 边缘裂纹装饰 - SVG */}
-      {stage >= 2 && (
+      {/* 边缘裂纹装饰 - SVG (Stage 1 开始显示) */}
+      {stage >= 1 && (
         <motion.svg
           key="corruption-cracks"
           className="absolute inset-0 w-full h-full pointer-events-none z-[5]"
           initial={{ opacity: 0 }}
-          animate={{ opacity: stage === 3 ? 0.6 : 0.4 }}
+          animate={{ opacity: stage === 3 ? 0.6 : stage === 2 ? 0.4 : 0.25 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 2, delay: 0.5 }}
           preserveAspectRatio="none"

@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import html2canvas from 'html2canvas';
 import { useStore } from '../../store';
 import { generateAfterActionReport, formatReportAsText, type TimelineEvent } from '../../lib/reportGenerator';
 import { TEAM_COLORS } from '../../constants';
 import { Button } from '../ui/button';
-import { X, Download, Trophy, Skull, Clock, Users, Vote, Copy, Check } from 'lucide-react';
-import { showSuccess } from '../ui/Toast';
+import { X, Download, Trophy, Skull, Clock, Users, Vote, Copy, Check, Camera } from 'lucide-react';
+import { showSuccess, showError } from '../ui/Toast';
 
 interface AfterActionReportViewProps {
   isOpen: boolean;
@@ -25,6 +26,8 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
   const gameState = useStore(state => state.gameState);
   const [activeTab, setActiveTab] = useState<'summary' | 'timeline' | 'players'>('summary');
   const [copied, setCopied] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
   
   // 生成战报
   const report = useMemo(() => {
@@ -53,6 +56,41 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
     a.click();
     URL.revokeObjectURL(url);
     showSuccess('战报已下载');
+  };
+  
+  // 截图导出功能
+  const handleCaptureImage = async () => {
+    if (!contentRef.current) return;
+    
+    setIsCapturing(true);
+    
+    try {
+      // 等待一帧让 UI 更新
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const canvas = await html2canvas(contentRef.current, {
+        backgroundColor: '#1c1917', // stone-900
+        scale: 2, // 高清导出
+        useCORS: true,
+        logging: false,
+        windowWidth: contentRef.current.scrollWidth,
+        windowHeight: contentRef.current.scrollHeight,
+      });
+      
+      // 创建下载链接
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `grimoire-report-${report.gameId}-${Date.now()}.png`;
+      link.href = dataUrl;
+      link.click();
+      
+      showSuccess('战报图片已保存');
+    } catch (error) {
+      console.error('Failed to capture screenshot:', error);
+      showError('截图失败，请重试');
+    } finally {
+      setIsCapturing(false);
+    }
   };
   
   return (
@@ -86,11 +124,29 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={handleCopyText}>
+              <Button variant="ghost" size="sm" onClick={handleCopyText} title="复制文本">
                 {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleDownload}>
+              <Button variant="ghost" size="sm" onClick={handleDownload} title="下载文本">
                 <Download className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => void handleCaptureImage()} 
+                disabled={isCapturing}
+                title="保存为图片"
+              >
+                {isCapturing ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  >
+                    <Camera className="w-4 h-4" />
+                  </motion.div>
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
               </Button>
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="w-4 h-4" />
@@ -120,7 +176,9 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
           </div>
           
           {/* 内容区 */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div ref={contentRef} className="flex-1 overflow-y-auto p-6 bg-stone-900"
+               data-html2canvas-ignore-scroll="true"
+          >
             {/* 概览标签页 */}
             {activeTab === 'summary' && (
               <div className="space-y-6">

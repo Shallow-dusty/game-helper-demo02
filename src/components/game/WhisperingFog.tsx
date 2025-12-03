@@ -33,12 +33,16 @@ export const WhisperingFog: React.FC<WhisperingFogProps> = ({
 
   const svgRef = useRef<SVGSVGElement>(null);
   
-  // 计算最近的私聊连接（最近 30 秒内）
+  // 计算最近的私聊连接（10 秒内活跃）
   const activeConnections = useMemo(() => {
     const now = Date.now();
-    const recentThreshold = 30000; // 30 秒内的私聊
+    const recentThreshold = 10000; // 10 秒内的私聊（缩短超时时间）
     
     const connections: WhisperConnection[] = [];
+    
+    // 获取当前用户座位
+    const userSeat = seats.find(s => s.userId === user?.id);
+    const isAlivePlayer = userSeat && !userSeat.isDead && !isStoryteller;
     
     messages
       .filter(msg => {
@@ -52,12 +56,17 @@ export const WhisperingFog: React.FC<WhisperingFogProps> = ({
         
         if (!senderSeat || !recipientSeat) return;
         
-        // 可见性检查：ST 看所有，玩家只看自己参与的
-        if (!isStoryteller) {
+        // 可见性检查：
+        // - ST 看所有
+        // - 所有存活玩家都可以看到私聊雾气（但不知道具体内容）
+        // - 死亡玩家只能看自己参与的
+        if (!isStoryteller && !isAlivePlayer) {
+          // 死亡玩家只看自己参与的
           if (msg.senderId !== user?.id && msg.recipientId !== user?.id) {
             return;
           }
         }
+        // 存活玩家可以看到所有私聊连线（保持神秘感）
         
         // 避免重复连线（同一对玩家）
         const connectionId = [senderSeat.id, recipientSeat.id].sort().join('-');
@@ -184,9 +193,9 @@ export const WhisperingFog: React.FC<WhisperingFogProps> = ({
           
           const pathD = `M ${fromPos.x} ${fromPos.y} Q ${controlX} ${controlY} ${toPos.x} ${toPos.y}`;
           
-          // 计算新鲜度（越新越亮）
+          // 计算新鲜度（越新越亮, 10秒超时）
           const age = Date.now() - connection.timestamp;
-          const freshness = Math.max(0, 1 - age / 30000);
+          const freshness = Math.max(0, 1 - age / 10000);
           
           return (
             <motion.g

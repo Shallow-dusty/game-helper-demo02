@@ -108,8 +108,9 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
 
   // Animation Ref for the group (breathing/trembling)
   const groupRef = useRef<Konva.Group>(null);
+  const breathTweenRef = useRef<Konva.Tween | null>(null);
 
-  // Breathing Animation
+  // Breathing Animation with Page Visibility support
   useEffect(() => {
     if (seat.isDead || isSwapSource) return;
     const node = groupRef.current;
@@ -118,18 +119,43 @@ const SeatNode: React.FC<SeatNodeProps> = React.memo(({ seat, cx, cy, radius, an
     // Random start time to avoid sync
     const delay = Math.random() * 2;
     
-    const tween = new Konva.Tween({
-      node: node,
-      duration: 2 + Math.random(),
-      scaleX: 1.02,
-      scaleY: 1.02,
-      yoyo: true,
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      easing: Konva.Easings.EaseInOut,
-    });
+    // 创建呼吸动画 (0.98 -> 1.02 -> 0.98)
+    const createBreathTween = () => {
+      // 先设置初始缩放为0.98
+      node.scaleX(0.98);
+      node.scaleY(0.98);
+      
+      const tween = new Konva.Tween({
+        node: node,
+        duration: 2 + Math.random(),
+        scaleX: 1.02,
+        scaleY: 1.02,
+        yoyo: true,
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        easing: Konva.Easings.EaseInOut,
+      });
+      return tween;
+    };
     
-    const timer = setTimeout(() => tween.play(), delay * 1000);
-    return () => { tween.destroy(); clearTimeout(timer); };
+    breathTweenRef.current = createBreathTween();
+    const timer = setTimeout(() => breathTweenRef.current?.play(), delay * 1000);
+    
+    // Page Visibility 暂停/恢复动画
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        breathTweenRef.current?.pause();
+      } else {
+        breathTweenRef.current?.play();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => { 
+      breathTweenRef.current?.destroy(); 
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [seat.isDead, isSwapSource]);
 
   // Trembling Animation (Nomination)

@@ -29,7 +29,7 @@ export const GhostlyVisionOverlay: React.FC<GhostlyVisionOverlayProps> = ({
       {/* 全局滤镜效果 - 使用 CSS filter 应用到整个页面 */}
       <style>{`
         .ghostly-vision-active {
-          filter: saturate(0.3) brightness(0.85) contrast(1.1);
+          filter: saturate(0.3) brightness(0.85) contrast(1.1) hue-rotate(180deg);
           transition: filter 1s ease-in-out;
         }
         .ghostly-vision-active::after {
@@ -39,11 +39,27 @@ export const GhostlyVisionOverlay: React.FC<GhostlyVisionOverlayProps> = ({
           pointer-events: none;
           background: linear-gradient(
             135deg,
-            rgba(100, 116, 139, 0.1) 0%,
+            rgba(100, 150, 180, 0.15) 0%,
             transparent 50%,
-            rgba(71, 85, 105, 0.15) 100%
+            rgba(80, 120, 150, 0.2) 100%
           );
           z-index: 9998;
+        }
+        /* 灵尘粒子样式 */
+        @keyframes spirit-dust-float {
+          0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+          10% { opacity: 0.6; }
+          90% { opacity: 0.6; }
+          100% { transform: translateY(-100vh) translateX(20px) rotate(360deg); opacity: 0; }
+        }
+        .spirit-dust {
+          position: fixed;
+          width: 4px;
+          height: 4px;
+          background: radial-gradient(circle, rgba(200, 220, 255, 0.8) 0%, transparent 70%);
+          border-radius: 50%;
+          pointer-events: none;
+          animation: spirit-dust-float linear infinite;
         }
       `}</style>
 
@@ -131,6 +147,24 @@ export const GhostlyVisionOverlay: React.FC<GhostlyVisionOverlayProps> = ({
               }}
             />
           </motion.div>
+        ))}
+      </div>
+
+      {/* 灵尘粒子效果 - 边缘飘浮 */}
+      <div className="fixed inset-0 pointer-events-none z-[1047] overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={`dust-${i}`}
+            className="spirit-dust"
+            style={{
+              left: `${i < 10 ? Math.random() * 15 : 85 + Math.random() * 15}%`,
+              bottom: `${Math.random() * 30}%`,
+              animationDuration: `${8 + Math.random() * 12}s`,
+              animationDelay: `${Math.random() * 10}s`,
+              width: `${3 + Math.random() * 5}px`,
+              height: `${3 + Math.random() * 5}px`,
+            }}
+          />
         ))}
       </div>
 

@@ -16,6 +16,18 @@ export type AiProvider =
     | 'sf_kimi_k2'
     | 'sf_kimi_k2_instruct';
 
+// --- AUDIO SETTINGS ---
+export type AudioMode = 'online' | 'offline';
+
+export interface AudioSettings {
+    mode: AudioMode;
+    categories: {
+        ambience: boolean; // Public: BGM, bells
+        ui: boolean;       // Private: Clicks, feedback
+        cues: boolean;     // Secret: Night actions, whispers
+    };
+}
+
 // --- GAME SLICE INTERFACE ---
 export interface GameSlice {
     gameState: GameState | null;
@@ -149,6 +161,11 @@ export interface AppState extends GameSlice {
     // UI State
     isModalOpen: boolean;
     setModalOpen: (isOpen: boolean) => void;
+
+    // Audio Settings
+    audioSettings: AudioSettings;
+    setAudioMode: (mode: AudioMode) => void;
+    toggleAudioCategory: (category: keyof AudioSettings['categories']) => void;
 }
 
 export type StoreSlice<T> = StateCreator<AppState, [["zustand/immer", never]], [], T>;

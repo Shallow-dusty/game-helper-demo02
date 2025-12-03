@@ -680,7 +680,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
       <div className="w-full h-full flex items-center justify-center text-stone-400">
         <div className="text-center">
           <div className="text-4xl mb-4 animate-spin">⏳</div>
-          <p>Loading Grimoire...</p>
+          <p>正在加载魔典...</p>
         </div>
       </div>
     );
@@ -705,7 +705,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
     e.cancelBubble = true;
 
     if (seat.isVirtual && !user.isStoryteller) {
-      showWarning('This seat is reserved for a virtual player.');
+      showWarning('该座位预留给虚拟玩家。');
       return;
     }
 
@@ -714,9 +714,9 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
       if (swapSourceId !== null) {
         if (swapSourceId === seat.id) {
           setSwapSourceId(null);
-          showWarning('Swap cancelled');
+          showWarning('交换已取消');
         } else {
-          if (window.confirm(`Swap seat ${swapSourceId + 1} with ${seat.id + 1}?`)) {
+          if (window.confirm(`确认交换座位 ${swapSourceId + 1} 和 ${seat.id + 1} 吗?`)) {
             swapSeats(swapSourceId, seat.id);
             setSwapSourceId(null);
           }
@@ -735,7 +735,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
         return;
       }
       if (seat.userId !== user.id) {
-        if (window.confirm(`Request swap with ${seat.userName}?`)) {
+        if (window.confirm(`请求与 ${seat.userName} 交换座位?`)) {
           requestSeatSwap(seat.id);
         }
         return;

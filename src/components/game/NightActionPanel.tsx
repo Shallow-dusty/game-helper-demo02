@@ -58,25 +58,28 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
             className="fixed inset-0 pointer-events-none flex items-end justify-center pb-8 md:items-center md:pb-0 animate-in fade-in duration-300"
             style={{ zIndex: Z_INDEX.floatingPanel }}
         >
-            <div className="glass-panel max-w-md w-full p-6 relative overflow-hidden pointer-events-auto bg-stone-950/90 backdrop-blur-md border border-stone-700 shadow-2xl mx-4 rounded-xl">
+            <div className="glass-panel max-w-md w-full p-6 relative overflow-hidden pointer-events-auto bg-[#1c1917] border border-stone-800 shadow-2xl mx-4 rounded-sm">
+                {/* Background Texture */}
+                <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] z-0"></div>
+                
                 {/* Decorative glow */}
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-900/20 rounded-full blur-3xl pointer-events-none z-0" />
+                <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-blue-900/20 rounded-full blur-3xl pointer-events-none z-0" />
 
                 {/* Header */}
-                <div className="flex items-center gap-4 mb-6 border-b border-stone-800 pb-4 relative z-10">
-                    <div className="w-14 h-14 rounded-full bg-purple-900/30 border border-purple-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(147,51,234,0.2)]">
-                        <span className="text-3xl filter drop-shadow-lg">{role.icon || '🌙'}</span>
+                <div className="flex items-center gap-5 mb-6 border-b border-stone-800 pb-5 relative z-10">
+                    <div className="w-16 h-16 rounded-full bg-[#2a0a2a] border-2 border-purple-900/50 flex items-center justify-center shadow-[0_0_20px_rgba(88,28,135,0.3)]">
+                        <span className="text-4xl filter drop-shadow-lg transform scale-110">{role.icon || '🌙'}</span>
                     </div>
                     <div>
-                        <h3 className="text-2xl font-bold text-purple-200 font-cinzel tracking-wide">{role.name}</h3>
-                        <p className="text-xs text-purple-400/80 font-bold uppercase tracking-widest">Night Action</p>
+                        <h3 className="text-2xl font-bold text-purple-100 font-cinzel tracking-wide drop-shadow-md">{role.name}</h3>
+                        <p className="text-xs text-purple-400 font-bold uppercase tracking-[0.2em] mt-1 border-l-2 border-purple-800 pl-2">Night Action</p>
                     </div>
                 </div>
 
                 {/* Prompt */}
-                <div className="bg-stone-900/50 p-4 rounded-lg border border-stone-800 mb-6 relative z-10">
-                    <p className="text-stone-200 text-sm leading-relaxed font-serif italic">"{nightAction.prompt}"</p>
+                <div className="bg-[#0c0a09]/80 p-5 rounded-sm border-l-4 border-purple-900 mb-6 relative z-10 shadow-inner">
+                    <p className="text-stone-300 text-sm leading-relaxed font-serif italic tracking-wide">"{nightAction.prompt}"</p>
                 </div>
 
                 {/* Player Selection */}
@@ -91,26 +94,26 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                                 <button
                                     key={seat.id}
                                     onClick={() => togglePlayerSelection(seat.id)}
-                                    className={`w-full px-4 py-3 rounded-lg border transition-all text-left relative overflow-hidden group ${isSelected
-                                        ? 'bg-purple-900/40 border-purple-500 text-purple-100 shadow-[0_0_15px_rgba(147,51,234,0.2)]'
-                                        : 'bg-stone-800/40 border-stone-700/50 text-stone-400 hover:bg-stone-700/60 hover:border-stone-500 hover:text-stone-200'
+                                    className={`w-full px-4 py-3 rounded-sm border transition-all duration-300 text-left relative overflow-hidden group ${isSelected
+                                        ? 'bg-purple-950/40 border-purple-500/50 text-purple-100 shadow-[inset_0_0_20px_rgba(147,51,234,0.1)]'
+                                        : 'bg-[#2a2725] border-stone-800 text-stone-400 hover:bg-stone-800 hover:border-stone-600 hover:text-stone-200'
                                         }`}
                                 >
                                     <div className="flex items-center justify-between relative z-10">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border transition-colors ${isSelected ? 'bg-purple-600 border-purple-400 text-white' : 'bg-stone-900 border-stone-700 text-stone-500 group-hover:border-stone-500'}`}>
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border font-cinzel transition-colors ${isSelected ? 'bg-purple-900 border-purple-400 text-purple-100' : 'bg-[#1c1917] border-stone-700 text-stone-600 group-hover:border-stone-500'}`}>
                                                 {seat.id + 1}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-base">{seat.userName}</span>
+                                                <span className="font-bold text-base font-cinzel tracking-wide">{seat.userName}</span>
                                                 {seat.isVirtual && (
-                                                    <span className="text-[10px] text-stone-500 uppercase tracking-widest">虚拟玩家</span>
+                                                    <span className="text-[10px] text-stone-600 uppercase tracking-widest font-serif">虚拟玩家</span>
                                                 )}
                                             </div>
                                         </div>
-                                        {seat.isDead && <span className="text-[10px] font-bold text-red-400 bg-red-950/30 px-2 py-0.5 rounded border border-red-900/30">💀 已死亡</span>}
+                                        {seat.isDead && <span className="text-[10px] font-bold text-red-500 bg-red-950/20 px-2 py-0.5 rounded-sm border border-red-900/30 font-cinzel">💀 DEAD</span>}
                                     </div>
-                                    {isSelected && <div className="absolute inset-0 bg-purple-500/5 animate-pulse-glow pointer-events-none"></div>}
+                                    {isSelected && <div className="absolute inset-0 bg-gradient-to-r from-purple-900/10 to-transparent pointer-events-none"></div>}
                                 </button>
                             );
                         })}
@@ -127,7 +130,7 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                                     performNightAction({ roleId, payload: { choice: idx } });
                                     onComplete();
                                 }}
-                                className="px-4 py-4 bg-stone-800/50 hover:bg-purple-900/40 border border-stone-700 hover:border-purple-500/50 rounded-lg text-stone-300 hover:text-purple-100 transition-all font-bold text-lg shadow-lg hover:shadow-purple-900/20"
+                                className="px-4 py-4 bg-[#2a2725] hover:bg-purple-900/20 border border-stone-700 hover:border-purple-500/50 rounded-sm text-stone-300 hover:text-purple-100 transition-all font-bold text-lg shadow-lg hover:shadow-[0_0_15px_rgba(147,51,234,0.15)] font-cinzel tracking-wider"
                             >
                                 {option}
                             </button>
@@ -141,14 +144,14 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                         <button
                             onClick={handleSubmit}
                             disabled={!canSubmit}
-                            className="flex-1 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 disabled:from-stone-800 disabled:to-stone-800 disabled:text-stone-600 text-white font-bold py-3 rounded-lg transition-all shadow-lg disabled:shadow-none border border-purple-500/30 disabled:border-stone-700"
+                            className="flex-1 bg-purple-900 hover:bg-purple-800 disabled:bg-stone-800 disabled:text-stone-600 text-purple-100 font-bold py-3 rounded-sm transition-all shadow-lg disabled:shadow-none border border-purple-700 disabled:border-stone-700 font-cinzel tracking-widest uppercase"
                         >
                             确认行动
                         </button>
                     )}
                     <button
                         onClick={onComplete}
-                        className="px-6 py-3 bg-stone-800/50 hover:bg-stone-700/50 border border-stone-700 text-stone-400 hover:text-stone-200 rounded-lg transition-all"
+                        className="px-6 py-3 bg-transparent hover:bg-stone-800 border border-stone-700 text-stone-500 hover:text-stone-300 rounded-sm transition-all font-cinzel tracking-widest uppercase"
                     >
                         跳过
                     </button>

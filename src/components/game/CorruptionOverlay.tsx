@@ -101,19 +101,20 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
   const vinePaths = useMemo(() => {
     if (stage < 1) return [];
     // Stage 1: 轻微蔓藤，Stage 2+: 更多蔓藤
+    // 使用 0-100 坐标系
     const basePaths = [
       // 左上角蔓藤
       'M0,0 Q30,20 15,60 Q5,80 20,120 Q10,150 0,180',
       // 右上角蔓藤  
-      'M100%,0 Q calc(100% - 30px),25 calc(100% - 10px),70 Q calc(100% - 25px),100 calc(100% - 5px),140',
+      'M100,0 Q95,25 98,70 Q96,100 99,140',
     ];
     if (stage >= 2) {
       // 添加更多蔓藤
       basePaths.push(
         // 左下角蔓藤
-        'M0,100% Q25,calc(100% - 30px) 10,calc(100% - 80px) Q30,calc(100% - 120px) 5,calc(100% - 160px)',
+        'M0,100 Q25,95 10,85 Q30,75 5,65',
         // 右下角蔓藤
-        'M100%,100% Q calc(100% - 20px),calc(100% - 40px) calc(100% - 8px),calc(100% - 90px)'
+        'M100,100 Q96,92 98,82'
       );
     }
     return basePaths;
@@ -245,6 +246,7 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
           exit={{ opacity: 0 }}
           transition={{ duration: 2, delay: 0.5 }}
           preserveAspectRatio="none"
+          viewBox="0 0 100 100"
         >
           <defs>
             <linearGradient id="crack-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -264,17 +266,17 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
           />
           {/* 右上角裂纹 */}
           <path
-            d="M100%,0 L calc(100% - 30px),0 Q calc(100% - 20px),15 calc(100% - 10px),10 Q calc(100% - 5px),25 100%,60 Z"
+            d="M100,0 L95,0 Q96,15 98,10 Q99,25 100,60 Z"
             fill="url(#crack-gradient)"
           />
           {/* 左下角裂纹 */}
           <path
-            d="M0,100% L30,100% Q15,calc(100% - 15px) 10,calc(100% - 25px) Q20,calc(100% - 40px) 0,calc(100% - 70px) Z"
+            d="M0,100 L30,100 Q15,97 10,95 Q20,92 0,88 Z"
             fill="url(#crack-gradient)"
           />
           {/* 右下角裂纹 */}
           <path
-            d="M100%,100% L100%,calc(100% - 70px) Q calc(100% - 20px),calc(100% - 40px) calc(100% - 10px),calc(100% - 25px) Q calc(100% - 15px),calc(100% - 15px) calc(100% - 30px),100% Z"
+            d="M100,100 L100,88 Q96,92 98,95 Q97,97 95,100 Z"
             fill="url(#crack-gradient)"
           />
           {/* 蔓藤装饰 */}
@@ -283,8 +285,9 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
               key={`vine-${idx}`}
               d={path}
               stroke="rgba(40, 20, 10, 0.6)"
-              strokeWidth={stage === 3 ? 4 : 3}
+              strokeWidth={stage === 3 ? 0.5 : 0.3} // Adjusted stroke width for 0-100 scale
               fill="none"
+              vectorEffect="non-scaling-stroke" // Keep stroke width consistent
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 3, delay: idx * 0.3, ease: 'easeOut' }}

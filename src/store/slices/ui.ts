@@ -27,6 +27,11 @@ export interface UISlice {
     closeTruthReveal: () => void;
     openReport: () => void;
     closeReport: () => void;
+
+    // Audio Settings
+    audioSettings: import('../types').AudioSettings;
+    setAudioMode: (mode: import('../types').AudioMode) => void;
+    toggleAudioCategory: (category: keyof import('../types').AudioSettings['categories']) => void;
 }
 
 export const uiSlice: StoreSlice<UISlice> = (set) => ({
@@ -51,6 +56,22 @@ export const uiSlice: StoreSlice<UISlice> = (set) => ({
     closeTruthReveal: () => set({ isTruthRevealOpen: false, isModalOpen: false }),
     openReport: () => set({ isReportOpen: true, isModalOpen: true }),
     closeReport: () => set({ isReportOpen: false, isModalOpen: false }),
+
+    // Audio Settings Implementation
+    audioSettings: {
+        mode: 'online', // Default to online
+        categories: {
+            ambience: true,
+            ui: true,
+            cues: true,
+        }
+    },
+    setAudioMode: (mode) => set((state) => {
+        state.audioSettings.mode = mode;
+    }),
+    toggleAudioCategory: (category) => set((state) => {
+        state.audioSettings.categories[category] = !state.audioSettings.categories[category];
+    }),
 });
 
 // 向后兼容导出

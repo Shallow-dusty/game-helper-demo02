@@ -1,51 +1,45 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { useStore } from '../store';
+import { AudioSettings } from '../store/types';
 
 /**
  * 操作音效定义
  * 用于拟音交互 (Diegetic Foley)
  */
 export const FOLEY_SOUNDS = {
-  // Token 操作音效
-  token_place: { url: '/audio/sfx/token_place.mp3', volume: 0.6 },
-  token_drag: { url: '/audio/sfx/cloth_drag.mp3', volume: 0.4 },
-  token_select: { url: '/audio/sfx/click_soft.mp3', volume: 0.5 },
-  
-  // 机械时钟音效
-  clock_tick: { url: '/audio/sfx/clock_tick.mp3', volume: 0.7 },
-  clock_tock: { url: '/audio/sfx/clock_tock.mp3', volume: 0.7 },
-  clock_chime: { url: '/audio/sfx/clock_chime.mp3', volume: 0.8 },
-  clock_alarm: { url: '/audio/sfx/clock_alarm.mp3', volume: 0.9 },
-  
-  // 界面操作音效
-  lock_click: { url: '/audio/sfx/lock_click.mp3', volume: 0.6 },
-  paper_rustle: { url: '/audio/sfx/paper_rustle.mp3', volume: 0.5 },
-  wax_seal: { url: '/audio/sfx/wax_seal.mp3', volume: 0.6 },
-  scroll_open: { url: '/audio/sfx/scroll_open.mp3', volume: 0.5 },
-  scroll_close: { url: '/audio/sfx/scroll_close.mp3', volume: 0.5 },
-  
-  // 环境音效
-  day_bell: { url: '/audio/sfx/bell.mp3', volume: 0.8 },
-  bird_chirp: { url: '/audio/sfx/bird_chirp.mp3', volume: 0.5 },
-  night_wolf: { url: '/audio/sfx/wolf.mp3', volume: 0.6 },
-  night_owl: { url: '/audio/sfx/owl.mp3', volume: 0.5 },
-  death_toll: { url: '/audio/sfx/death_toll.mp3', volume: 0.7 },
-  ghost_whisper: { url: '/audio/sfx/ghost_whisper.mp3', volume: 0.4 },
-  wind_howl: { url: '/audio/sfx/wind_howl.mp3', volume: 0.35 },
-  crow_caw: { url: '/audio/sfx/crow_caw.mp3', volume: 0.4 },
-  // 腐蚀/决战音效
-  drone_low: { url: '/audio/sfx/drone_low.mp3', volume: 0.25 },
-  
-  // 投票音效
-  hand_raise: { url: '/audio/sfx/hand_raise.mp3', volume: 0.5 },
-  vote_cast: { url: '/audio/sfx/vote_cast.mp3', volume: 0.6 },
-  gavel: { url: '/audio/sfx/gavel.mp3', volume: 0.8 },
-  chip_drop: { url: '/audio/sfx/chip_drop.mp3', volume: 0.5 },
-  
-  // 反馈音效
-  success: { url: '/audio/sfx/success.mp3', volume: 0.6 },
-  error: { url: '/audio/sfx/error.mp3', volume: 0.5 },
-  notification: { url: '/audio/sfx/notification.mp3', volume: 0.5 },
+  // --- Ambience (Public) ---
+  day_bell: { url: '/audio/sfx/bell.mp3', volume: 0.8, category: 'ambience' },
+  clock_chime: { url: '/audio/sfx/clock_chime.mp3', volume: 0.8, category: 'ambience' },
+  night_owl: { url: '/audio/sfx/owl.mp3', volume: 0.5, category: 'ambience' },
+  bird_chirp: { url: '/audio/sfx/bird_chirp.mp3', volume: 0.5, category: 'ambience' },
+  wind_howl: { url: '/audio/sfx/wind_howl.mp3', volume: 0.35, category: 'ambience' },
+  crow_caw: { url: '/audio/sfx/crow_caw.mp3', volume: 0.4, category: 'ambience' },
+  drone_low: { url: '/audio/sfx/drone_low.mp3', volume: 0.25, category: 'ambience' },
+  gavel: { url: '/audio/sfx/gavel.mp3', volume: 0.8, category: 'ambience' },
+  clock_tick: { url: '/audio/sfx/clock_tick.mp3', volume: 0.7, category: 'ambience' },
+  clock_tock: { url: '/audio/sfx/clock_tock.mp3', volume: 0.7, category: 'ambience' },
+  clock_alarm: { url: '/audio/sfx/clock_alarm.mp3', volume: 0.9, category: 'ambience' },
+  chip_drop: { url: '/audio/sfx/chip_drop.mp3', volume: 0.5, category: 'ambience' },
+
+  // --- UI (Private) ---
+  token_place: { url: '/audio/sfx/token_place.mp3', volume: 0.6, category: 'ui' },
+  token_drag: { url: '/audio/sfx/cloth_drag.mp3', volume: 0.4, category: 'ui' },
+  token_select: { url: '/audio/sfx/click_soft.mp3', volume: 0.5, category: 'ui' },
+  lock_click: { url: '/audio/sfx/lock_click.mp3', volume: 0.6, category: 'ui' },
+  paper_rustle: { url: '/audio/sfx/paper_rustle.mp3', volume: 0.5, category: 'ui' },
+  scroll_open: { url: '/audio/sfx/scroll_open.mp3', volume: 0.5, category: 'ui' },
+  scroll_close: { url: '/audio/sfx/scroll_close.mp3', volume: 0.5, category: 'ui' },
+  hand_raise: { url: '/audio/sfx/hand_raise.mp3', volume: 0.5, category: 'ui' },
+  vote_cast: { url: '/audio/sfx/vote_cast.mp3', volume: 0.6, category: 'ui' },
+  wax_seal: { url: '/audio/sfx/wax_seal.mp3', volume: 0.6, category: 'ui' },
+  success: { url: '/audio/sfx/success.mp3', volume: 0.6, category: 'ui' },
+  error: { url: '/audio/sfx/error.mp3', volume: 0.5, category: 'ui' },
+
+  // --- Cues (Secret) ---
+  night_wolf: { url: '/audio/sfx/wolf.mp3', volume: 0.6, category: 'cues' },
+  death_toll: { url: '/audio/sfx/death_toll.mp3', volume: 0.7, category: 'cues' },
+  ghost_whisper: { url: '/audio/sfx/ghost_whisper.mp3', volume: 0.4, category: 'cues' },
+  notification: { url: '/audio/sfx/notification.mp3', volume: 0.5, category: 'cues' },
 } as const;
 
 export type FoleySoundId = keyof typeof FOLEY_SOUNDS;
@@ -92,6 +86,7 @@ function preloadAudio(url: string): HTMLAudioElement | null {
 export function useSoundEffect() {
   const isAudioBlocked = useStore(state => state.isAudioBlocked);
   const masterVolume = useStore(state => state.gameState?.audio.volume ?? 1);
+  const audioSettings = useStore(state => state.audioSettings);
   const activeAudiosRef = useRef<HTMLAudioElement[]>([]);
 
   // 清理函数
@@ -113,6 +108,18 @@ export function useSoundEffect() {
     
     const soundDef = FOLEY_SOUNDS[soundId];
     if (!soundDef?.url) return;
+
+    // --- Audio Privacy Check ---
+    const category = soundDef.category;
+    
+    // 1. Check if category is enabled
+    if (!audioSettings.categories[category]) return;
+
+    // 2. Check Offline Mode restrictions
+    // In Offline Mode, 'cues' are ALWAYS muted to prevent info leaks
+    if (audioSettings.mode === 'offline' && category === 'cues') {
+        return;
+    }
     
     try {
       // 创建新的音频实例（允许同时播放多个）
@@ -148,7 +155,7 @@ export function useSoundEffect() {
     } catch (e) {
       console.warn(`Error creating audio for ${soundId}:`, e);
     }
-  }, [isAudioBlocked, masterVolume]);
+  }, [isAudioBlocked, masterVolume, audioSettings]);
 
   /**
    * 预加载音效列表

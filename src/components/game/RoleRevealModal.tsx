@@ -134,17 +134,18 @@ export const RoleRevealModal: React.FC = () => {
     // 渲染倒计时
     if (countdown !== null) {
         return (
-            <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+            <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm pointer-events-none">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={countdown}
-                        initial={{ scale: 0.5, opacity: 0 }}
-                        animate={{ scale: 1.5, opacity: 1 }}
-                        exit={{ scale: 2, opacity: 0 }}
-                        transition={{ duration: 0.4 }}
-                        className="text-8xl md:text-9xl font-cinzel font-bold text-amber-500 drop-shadow-[0_0_30px_rgba(245,158,11,0.8)]"
+                        initial={{ scale: 0.5, opacity: 0, rotateX: -90 }}
+                        animate={{ scale: 1.5, opacity: 1, rotateX: 0 }}
+                        exit={{ scale: 2, opacity: 0, filter: "blur(10px)" }}
+                        transition={{ duration: 0.4, type: "spring", bounce: 0.5 }}
+                        className="text-9xl font-cinzel font-bold text-[#d4af37] drop-shadow-[0_0_50px_rgba(212,175,55,0.6)] relative"
                     >
                         {countdown > 0 ? countdown : "GAME START"}
+                        <div className="absolute inset-0 text-[#d4af37] blur-lg opacity-50">{countdown > 0 ? countdown : "GAME START"}</div>
                     </motion.div>
                 </AnimatePresence>
             </div>
@@ -164,73 +165,89 @@ export const RoleRevealModal: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: isExiting ? 0 : 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/80 backdrop-blur-sm pointer-events-auto"
-                    />
+                        className="absolute inset-0 bg-black/90 backdrop-blur-md pointer-events-auto"
+                    >
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-30"></div>
+                    </motion.div>
 
                     {/* 卡片容器 */}
                     <motion.div
-                        initial={{ scale: 0.5, opacity: 0, y: 50 }}
+                        initial={{ scale: 0.5, opacity: 0, y: 100 }}
                         animate={isExiting ? {
                             scale: 0.1,
                             x: -window.innerWidth / 2 + 50, // 飞向左下角 (大致位置)
                             y: window.innerHeight / 2 - 50,
-                            opacity: 0
+                            opacity: 0,
+                            rotate: -45
                         } : {
                             scale: 1,
                             x: 0,
                             y: 0,
-                            opacity: 1
+                            opacity: 1,
+                            rotate: 0
                         }}
                         transition={{ 
                             type: "spring", 
-                            stiffness: 260, 
+                            stiffness: 200, 
                             damping: 20,
-                            duration: isExiting ? 0.8 : 0.5
+                            duration: isExiting ? 0.8 : 0.6
                         }}
-                        className="relative w-80 h-[480px] perspective-[1000px] pointer-events-auto cursor-pointer"
+                        className="relative w-[340px] h-[520px] perspective-[1200px] pointer-events-auto cursor-pointer group"
                         onClick={() => !isFlipped && setIsFlipped(true)}
                     >
                         <motion.div
-                            className="w-full h-full relative transform-style-3d transition-all duration-700"
+                            className="w-full h-full relative transform-style-3d transition-all duration-700 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
                             animate={{ rotateY: isFlipped ? 180 : 0 }}
                         >
                             {/* 正面 (封面) */}
-                            <div className="absolute inset-0 backface-hidden rounded-xl border-2 border-stone-600 bg-stone-900 shadow-2xl flex flex-col items-center justify-center overflow-hidden group">
-                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')] opacity-50"></div>
-                                <div className="absolute inset-0 bg-gradient-to-br from-stone-800/50 to-stone-950/90"></div>
+                            <div className="absolute inset-0 backface-hidden rounded-sm border-[3px] border-[#44403c] bg-[#1c1917] flex flex-col items-center justify-center overflow-hidden">
+                                {/* 纹理层 */}
+                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')] opacity-60"></div>
+                                <div className="absolute inset-0 bg-gradient-to-br from-[#292524] via-transparent to-black opacity-80"></div>
                                 
+                                {/* 装饰边框 */}
+                                <div className="absolute inset-3 border border-[#57534e] opacity-50 rounded-sm"></div>
+                                <div className="absolute inset-5 border border-[#44403c] opacity-30 rounded-sm"></div>
+
+                                {/* 中心图标 */}
                                 <motion.div 
-                                    animate={{ scale: [1, 1.05, 1] }}
-                                    transition={{ repeat: Infinity, duration: 2 }}
-                                    className="w-32 h-32 rounded-full border-4 border-stone-500 flex items-center justify-center mb-8 bg-stone-950/50 backdrop-blur-md shadow-[0_0_30px_rgba(0,0,0,0.5)] z-10"
+                                    animate={{ 
+                                        scale: [1, 1.05, 1],
+                                        boxShadow: ["0 0 20px rgba(212,175,55,0.1)", "0 0 40px rgba(212,175,55,0.3)", "0 0 20px rgba(212,175,55,0.1)"]
+                                    }}
+                                    transition={{ repeat: Infinity, duration: 3 }}
+                                    className="w-40 h-40 rounded-full border-4 border-[#57534e] flex items-center justify-center mb-10 bg-[#0c0a09] relative z-10 shadow-2xl"
                                 >
-                                    <span className="text-6xl filter drop-shadow-lg">👁️</span>
+                                    <div className="absolute inset-0 rounded-full border border-[#78716c] opacity-30 m-1"></div>
+                                    <span className="text-7xl filter drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]">👁️</span>
                                 </motion.div>
                                 
-                                <h2 className="text-3xl font-cinzel font-bold text-stone-300 tracking-[0.2em] z-10 text-center px-4">
+                                <h2 className="text-4xl font-cinzel font-bold text-[#d6d3d1] tracking-[0.2em] z-10 text-center px-4 drop-shadow-lg">
                                     你的身份
                                 </h2>
-                                <p className="text-stone-500 mt-4 font-serif italic z-10">点击翻开命运之书</p>
+                                <div className="w-16 h-1 bg-[#57534e] my-4 z-10 rounded-full opacity-50"></div>
+                                <p className="text-[#a8a29e] font-serif italic z-10 tracking-wide text-sm">点击翻开命运之书</p>
                             </div>
 
                             {/* 背面 (角色详情) */}
                             <div 
-                                className="absolute inset-0 backface-hidden rotate-y-180 rounded-xl border-2 overflow-hidden flex flex-col bg-stone-900"
+                                className="absolute inset-0 backface-hidden rotate-y-180 rounded-sm border-[3px] overflow-hidden flex flex-col bg-[#1c1917]"
                                 style={{ borderColor: teamColor }}
                             >
                                 {/* 顶部背景图 */}
-                                <div className="h-32 relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-stone-800"></div>
+                                <div className="h-40 relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-[#0c0a09]"></div>
                                     <div 
-                                        className="absolute inset-0 opacity-30 bg-cover bg-center"
+                                        className="absolute inset-0 opacity-40 bg-cover bg-center mix-blend-overlay"
                                         style={{ backgroundImage: `url('/img/roles/${role.id}.png')`, backgroundColor: teamColor }}
                                     ></div>
-                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-stone-900"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#1c1917]/50 to-[#1c1917]"></div>
                                     
-                                    <div className="absolute bottom-2 left-0 right-0 text-center">
+                                    {/* 角色图标 */}
+                                    <div className="absolute bottom-0 left-0 right-0 flex justify-center translate-y-1/3 z-20">
                                         <div 
-                                            className="w-20 h-20 mx-auto rounded-full border-4 shadow-lg flex items-center justify-center text-4xl bg-stone-900 mb-[-40px] relative z-10"
-                                            style={{ borderColor: teamColor }}
+                                            className="w-24 h-24 rounded-full border-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] flex items-center justify-center text-5xl bg-[#1c1917] relative"
+                                            style={{ borderColor: teamColor, color: teamColor }}
                                         >
                                             {role.icon || '❓'}
                                         </div>
@@ -238,18 +255,24 @@ export const RoleRevealModal: React.FC = () => {
                                 </div>
 
                                 {/* 内容区域 */}
-                                <div className="flex-1 pt-12 px-6 pb-6 flex flex-col items-center text-center">
-                                    <h3 className="text-2xl font-bold font-cinzel mb-1" style={{ color: teamColor }}>
+                                <div className="flex-1 pt-14 px-8 pb-8 flex flex-col items-center text-center relative z-10">
+                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-10 pointer-events-none"></div>
+                                    
+                                    <h3 className="text-3xl font-bold font-cinzel mb-2 tracking-wide drop-shadow-md" style={{ color: teamColor }}>
                                         {role.name}
                                     </h3>
-                                    <span className="text-xs px-2 py-0.5 rounded border border-stone-700 text-stone-400 mb-6 uppercase tracking-wider">
+                                    <span className="text-xs px-3 py-1 rounded-full border border-[#44403c] text-[#78716c] mb-6 uppercase tracking-[0.2em] bg-[#0c0a09]/50">
                                         {role.team}
                                     </span>
 
-                                    <div className="flex-1 flex items-center justify-center">
-                                        <p className="text-stone-300 font-serif leading-relaxed text-lg">
-                                            {role.ability}
-                                        </p>
+                                    <div className="flex-1 flex items-center justify-center w-full">
+                                        <div className="relative p-4 w-full">
+                                            <span className="absolute top-0 left-0 text-4xl text-[#292524] font-serif leading-none">“</span>
+                                            <p className="text-[#d6d3d1] font-serif leading-relaxed text-lg italic px-2">
+                                                {role.ability}
+                                            </p>
+                                            <span className="absolute bottom-0 right-0 text-4xl text-[#292524] font-serif leading-none">”</span>
+                                        </div>
                                     </div>
 
                                     <button
@@ -257,7 +280,7 @@ export const RoleRevealModal: React.FC = () => {
                                             e.stopPropagation();
                                             handleConfirm();
                                         }}
-                                        className="mt-6 w-full py-3 rounded bg-stone-800 hover:bg-stone-700 border border-stone-600 text-stone-200 font-cinzel transition-colors flex items-center justify-center gap-2 group"
+                                        className="mt-6 w-full py-3.5 rounded-sm bg-[#292524] hover:bg-[#44403c] border border-[#57534e] text-[#e7e5e4] font-cinzel font-bold tracking-widest transition-all duration-300 flex items-center justify-center gap-3 group shadow-lg hover:shadow-[#d4af37]/10"
                                     >
                                         <span>我已知晓</span>
                                         <span className="group-hover:translate-x-1 transition-transform">→</span>

@@ -331,7 +331,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
 
     // 计算投票进度和是否超过半数
     const { voteProgress, isOverHalf } = useMemo(() => {
-        const totalPlayers = gameState?.seats.filter(s => s.role && !s.isDead).length || 1;
+        const totalPlayers = gameState?.seats.filter(s => s.roleId && !s.isDead).length || 1;
         const requiredVotes = Math.ceil(totalPlayers / 2);
         const currentVoteCount = currentVotes.length;
         const progress = Math.min(currentVoteCount / totalPlayers, 1);
@@ -340,7 +340,11 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
     }, [gameState?.seats, currentVotes.length]);
 
     return (
-        <div className="relative mx-auto border border-stone-800 bg-stone-950/50 rounded-lg overflow-hidden shadow-inner" style={{ width, height }}>
+        <div className="relative mx-auto border-[3px] border-[#44403c] bg-[#1c1917] rounded-full overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]" style={{ width, height }}>
+            {/* 纹理背景 */}
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-40 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#292524] to-[#0c0a09] opacity-90 pointer-events-none"></div>
+
             {/* 时钟表盘背景 */}
             <ClockFace 
                 width={width} 
@@ -353,18 +357,21 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
             <div ref={sceneRef} className="absolute inset-0" style={{ zIndex: 1 }} />
             
             {/* 标题 */}
-            <div className="absolute top-2 left-2 text-xs text-stone-500 font-cinzel pointer-events-none" style={{ zIndex: 2 }}>
-                JUDGMENT ZONE
+            <div className="absolute top-6 left-0 right-0 text-center pointer-events-none" style={{ zIndex: 2 }}>
+                <div className="text-xs text-[#78716c] font-cinzel tracking-[0.3em] uppercase opacity-80">Judgment Zone</div>
+                <div className="text-lg text-[#d6d3d1] font-cinzel font-bold tracking-widest drop-shadow-md mt-1">审判区域</div>
             </div>
             
             {/* 投票计数器 */}
             <div 
-                className={`absolute top-2 right-2 text-xs font-cinzel pointer-events-none px-2 py-1 rounded ${
-                    isOverHalf ? 'text-red-400 bg-red-950/50' : 'text-stone-400'
+                className={`absolute bottom-8 left-0 right-0 mx-auto w-fit text-sm font-cinzel font-bold pointer-events-none px-4 py-1.5 rounded-full border transition-all duration-300 ${
+                    isOverHalf 
+                        ? 'text-red-200 bg-red-950/80 border-red-800 shadow-[0_0_15px_rgba(220,38,38,0.4)]' 
+                        : 'text-[#d4af37] bg-[#292524]/80 border-[#57534e] shadow-lg'
                 }`}
                 style={{ zIndex: 2 }}
             >
-                {currentVotes.length} votes
+                {currentVotes.length} 票
             </div>
         </div>
     );

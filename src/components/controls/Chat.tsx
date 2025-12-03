@@ -20,10 +20,11 @@ const MessageItem: React.FC<MessageItemProps> = ({ msg, isMe, seats, style }) =>
     // --- SYSTEM LOG RENDER ---
     if (isSystem) {
         return (
-            <div style={style} className="px-4 py-1">
-                <div className="flex items-start gap-2 my-2 text-stone-400 border-l-2 border-stone-700 pl-2 py-1 bg-black/20 rounded-r">
-                    <span className="text-[10px] mt-0.5">📜</span>
-                    <span className="text-xs font-serif leading-relaxed">{msg.content}</span>
+            <div style={style} className="px-4 py-2">
+                <div className="flex items-start gap-3 my-1 text-stone-400 border-l-2 border-stone-800 pl-3 py-2 bg-[#0c0a09]/50 rounded-r-sm font-serif relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-stone-900/50 to-transparent pointer-events-none" />
+                    <span className="text-sm mt-0.5 relative z-10 opacity-70">📜</span>
+                    <span className="text-xs leading-relaxed relative z-10 text-stone-300/90">{msg.content}</span>
                 </div>
             </div>
         );
@@ -34,21 +35,21 @@ const MessageItem: React.FC<MessageItemProps> = ({ msg, isMe, seats, style }) =>
     const displayName = senderSeat ? `[${senderSeat.id + 1}] ${msg.senderName}` : msg.senderName;
 
     return (
-        <div style={style} className="px-4 py-1">
+        <div style={style} className="px-4 py-2">
             <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-in slide-in-from-bottom-2 duration-300`}>
-                <div className="flex items-center gap-2 mb-0.5">
-                    <span className={`text-[10px] font-bold ${isPrivate ? 'text-purple-400' : 'text-stone-500'}`}>
+                <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-bold tracking-wider uppercase font-cinzel ${isPrivate ? 'text-purple-400' : 'text-stone-500'}`}>
                         {displayName}
                         {isPrivate && !isMe && " (悄悄话)"}
                         {isPrivate && isMe && ` ➜ ${seats.find(s => s.userId === msg.recipientId)?.userName || '未知'}`}
                     </span>
                 </div>
                 <div
-                    className={`px-3 py-2 rounded-lg text-sm max-w-[90%] break-words shadow-sm relative ${isPrivate
-                        ? 'bg-purple-900/40 text-purple-100 border border-purple-700/50 italic'
+                    className={`px-4 py-2.5 text-sm max-w-[90%] break-words shadow-lg relative font-serif leading-relaxed ${isPrivate
+                        ? 'bg-purple-950/40 text-purple-100 border border-purple-900/50 italic rounded-sm'
                         : isMe
-                            ? 'bg-red-900 text-stone-100 rounded-tr-none'
-                            : 'bg-stone-800 text-stone-300 rounded-tl-none border border-stone-700'
+                            ? 'bg-[#2a0a0a] text-stone-200 border border-red-900/30 rounded-sm rounded-tr-none shadow-[0_2px_10px_rgba(0,0,0,0.3)]'
+                            : 'bg-[#1c1917] text-stone-300 border border-stone-800 rounded-sm rounded-tl-none shadow-[0_2px_10px_rgba(0,0,0,0.3)]'
                         }`}
                 >
                     {/* Render InfoCard if present, otherwise plain text */}
@@ -205,33 +206,40 @@ export const Chat = () => {
     }, [filteredMessages.length, useVirtualScroll, activeChannel]);
 
     return (
-        <div className="flex flex-col h-full bg-stone-900 font-serif">
+        <div className="flex flex-col h-full bg-[#1c1917] font-cinzel border-l-4 border-stone-800 shadow-2xl relative overflow-hidden">
+            {/* Background Texture Overlay */}
+            <div className="absolute inset-0 pointer-events-none opacity-10 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] z-0"></div>
 
             {/* Channel Tabs */}
-            <div className="flex border-b border-stone-800 bg-stone-950">
+            <div className="flex border-b border-stone-800 bg-[#0c0a09] relative z-10">
                 <button
                     onClick={() => setActiveChannel('CHAT')}
-                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${activeChannel === 'CHAT' ? 'bg-stone-900 text-stone-200 border-b-2 border-red-700' : 'text-stone-600 hover:bg-stone-900'}`}
+                    className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-all ${activeChannel === 'CHAT' 
+                        ? 'bg-[#1c1917] text-amber-500 border-b-2 border-amber-600 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.5)]' 
+                        : 'text-stone-600 hover:text-stone-400 hover:bg-[#151312]'}`}
                 >
-                    💬 聊天 (Chat)
+                    💬 聊天
                 </button>
                 <button
                     onClick={() => setActiveChannel('LOG')}
-                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${activeChannel === 'LOG' ? 'bg-stone-900 text-amber-200 border-b-2 border-amber-700' : 'text-stone-600 hover:bg-stone-900'}`}
+                    className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-all ${activeChannel === 'LOG' 
+                        ? 'bg-[#1c1917] text-amber-200 border-b-2 border-amber-800 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.5)]' 
+                        : 'text-stone-600 hover:text-stone-400 hover:bg-[#151312]'}`}
                 >
-                    📜 记录 (Log)
+                    📜 记录
                 </button>
             </div>
 
             {/* Message List */}
-            <div ref={containerRef} className="flex-1 overflow-hidden">
+            <div ref={containerRef} className="flex-1 overflow-hidden relative z-10 bg-[#1c1917]/90 backdrop-blur-sm">
                 {filteredMessages.length === 0 && (
-                    <div className="text-center text-stone-600 text-sm mt-10 italic opacity-50 p-4">暂无消息...</div>
+                    <div className="flex flex-col items-center justify-center h-full text-stone-700 opacity-50">
+                        <span className="text-4xl mb-2">🕸️</span>
+                        <span className="text-sm italic font-serif">暂无消息...</span>
+                    </div>
                 )}
 
                 {filteredMessages.length > 0 && useVirtualScroll ? (
-                    // 虚拟滚动模式 - 大量消息时使用
-                    // react-window v2 自动响应容器大小，只需要 defaultHeight
                     <List<Record<string, never>>
                         listRef={listApiRef as any}
                         defaultHeight={listHeight}
@@ -242,8 +250,7 @@ export const Chat = () => {
                         className="scrollbar-thin h-full w-full"
                     />
                 ) : (
-                    // 普通滚动模式 - 少量消息时使用
-                    <div className="h-full overflow-y-auto p-4 space-y-3 scrollbar-thin">
+                    <div className="h-full overflow-y-auto p-4 space-y-4 scrollbar-thin">
                         {filteredMessages.map(msg => {
                             const isMe = msg.senderId === user?.id;
                             return (
@@ -264,36 +271,41 @@ export const Chat = () => {
             {activeChannel === 'CHAT' && (
                 <form 
                     onSubmit={handleSend} 
-                    className="p-3 border-t border-stone-700 bg-stone-950 transition-all"
-                    style={{ paddingBottom: keyboardOffset > 0 ? `${keyboardOffset + 12}px` : undefined }}
+                    className="p-4 border-t border-stone-800 bg-[#0c0a09] relative z-20 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]"
+                    style={{ paddingBottom: keyboardOffset > 0 ? `${keyboardOffset + 16}px` : undefined }}
                 >
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] uppercase text-stone-500 font-bold tracking-wider">发送给:</span>
+                    <div className="flex items-center gap-2 mb-3">
+                        <span className="text-[10px] uppercase text-stone-500 font-bold tracking-widest">发送给:</span>
                         {(allowWhispers || user?.isStoryteller) ? (
-                            <select
-                                value={recipientId || ''}
-                                onChange={(e) => setRecipientId(e.target.value || null)}
-                                className={`bg-stone-900 border text-xs rounded px-2 py-1 outline-none transition-colors ${recipientId ? 'border-purple-600 text-purple-300' : 'border-stone-700 text-stone-400'}`}
-                            >
-                                <option value="">📢 所有人 (Public)</option>
-                                {availableRecipients.map(s => (
-                                    <option key={s.userId} value={s.userId!}>
-                                        🕵️ {s.userName} ({s.id + 1}号)
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="relative flex-1">
+                                <select
+                                    value={recipientId || ''}
+                                    onChange={(e) => setRecipientId(e.target.value || null)}
+                                    className={`w-full appearance-none bg-[#1c1917] border text-xs rounded-sm px-3 py-1.5 outline-none transition-colors font-serif ${recipientId ? 'border-purple-900 text-purple-300 shadow-[0_0_10px_rgba(147,51,234,0.1)]' : 'border-stone-700 text-stone-400 hover:border-stone-600'}`}
+                                >
+                                    <option value="">📢 所有人 (Public)</option>
+                                    {availableRecipients.map(s => (
+                                        <option key={s.userId} value={s.userId!}>
+                                            🕵️ {s.userName} ({s.id + 1}号)
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] text-stone-500">▼</div>
+                            </div>
                         ) : (
-                            <div className="text-xs text-red-500 flex items-center gap-1 border border-red-900/30 bg-red-950/20 px-2 py-1 rounded">
-                                <span>⛔</span>
-                                <span>私聊已禁用 (Disabled)</span>
+                            <div className="text-xs text-red-900/80 flex items-center gap-2 border border-red-900/20 bg-red-950/10 px-3 py-1 rounded-sm w-full">
+                                <span>🔒</span>
+                                <span className="font-serif italic">私聊已禁用</span>
                             </div>
                         )}
                     </div>
 
-                    <div className="relative">
+                    <div className="relative group">
                         <input
                             ref={inputRef}
-                            className={`w-full bg-stone-800 text-stone-200 text-sm rounded-sm px-4 py-2 outline-none border focus:ring-1 transition-all pr-10 ${recipientId ? 'border-purple-800 focus:border-purple-600 focus:ring-purple-900' : 'border-stone-700 focus:border-red-700 focus:ring-red-900'}`}
+                            className={`w-full bg-[#1c1917] text-stone-200 text-sm rounded-sm px-4 py-3 outline-none border transition-all pr-12 font-serif placeholder:text-stone-700 ${recipientId 
+                                ? 'border-purple-900/50 focus:border-purple-600 focus:shadow-[0_0_15px_rgba(147,51,234,0.2)]' 
+                                : 'border-stone-800 focus:border-amber-700 focus:shadow-[0_0_15px_rgba(245,158,11,0.1)]'}`}
                             placeholder={recipientId ? "发送悄悄话..." : "发送公开消息..."}
                             value={input}
                             onChange={e => setInput(e.target.value)}
@@ -301,9 +313,11 @@ export const Chat = () => {
                         <button
                             type="submit"
                             disabled={!input.trim()}
-                            className={`absolute right-1 top-1 bottom-1 w-8 h-8 flex items-center justify-center rounded-sm text-white transition-colors disabled:opacity-50 disabled:bg-transparent ${recipientId ? 'bg-purple-800 hover:bg-purple-700' : 'bg-stone-700 hover:bg-red-700'}`}
+                            className={`absolute right-1.5 top-1.5 bottom-1.5 w-9 flex items-center justify-center rounded-sm text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed ${recipientId 
+                                ? 'bg-purple-900 hover:bg-purple-800 border border-purple-700' 
+                                : 'bg-stone-800 hover:bg-amber-900 border border-stone-700 hover:border-amber-700'}`}
                         >
-                            <span className="text-xs">➤</span>
+                            <span className="text-xs transform group-hover:translate-x-0.5 transition-transform">➤</span>
                         </button>
                     </div>
                 </form>

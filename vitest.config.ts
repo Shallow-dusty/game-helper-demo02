@@ -2,14 +2,42 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
+// Allow splitting the suite into smaller chunks to avoid OOM during large runs
+const scope = process.env.VITEST_SCOPE;
+const include = scope === 'src'
+  ? ['src/**/*.{test,spec}.{ts,tsx}']
+  : scope === 'src-logic'
+    ? ['src/**/*.{test,spec}.{ts,tsx}']
+    : scope === 'src-ui'
+      ? ['src/components/**/*.{test,spec}.{ts,tsx}']
+      : scope === 'tests'
+        ? ['tests/**/*.{test,spec}.{ts,tsx}']
+        : ['src/**/*.{test,spec}.{ts,tsx}', 'tests/**/*.{test,spec}.{ts,tsx}'];
+
+const extraExcludes = scope === 'src-logic'
+  ? ['src/components/**/*.{test,spec}.{ts,tsx}']
+  : [];
+
+const threadOptions = scope === 'src-ui'
+  ? { minThreads: 1, maxThreads: 2, execArgv: workerExecArgs }
+  : { singleThread: true, execArgv: workerExecArgs };
+
+const workerExecArgs = ['--max-old-space-size=6144', '--expose-gc'];
+
 export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
-    include: ['src/**/*.{test,spec}.{ts,tsx}', 'tests/**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
+    include,
+    exclude: ['node_modules', 'dist', '.idea', '.git', '.cache', ...extraExcludes],
+    // Use single threaded worker pool to avoid extra process overhead and keep memory stable
+    pool: 'threads',
+    poolOptions: {
+      threads: threadOptions,
+    },
+    reuseWorkers: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

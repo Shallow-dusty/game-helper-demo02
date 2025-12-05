@@ -198,5 +198,60 @@ describe('distributionAnalysis', () => {
             expect(result.length).toBeGreaterThan(0);
             expect(result.some(s => s.includes('恶魔'))).toBe(true);
         });
+
+        it('应该为多余的恶魔提供建议', () => {
+            const seats = [
+                createMockSeat(0, 'washerwoman'),
+                createMockSeat(1, 'librarian'),
+                createMockSeat(2, 'investigator'),
+                createMockSeat(3, 'imp'),
+                createMockSeat(4, 'imp'),
+                createMockSeat(5, 'poisoner'),
+                createMockSeat(6, 'imp')
+            ];
+            
+            const result = suggestDistributionFixes(seats, 'trouble-brewing', 7);
+            
+            expect(result.length).toBeGreaterThan(0);
+        });
+
+        it('应该为重复角色提供建议', () => {
+            const seats = [
+                createMockSeat(0, 'washerwoman'),
+                createMockSeat(1, 'washerwoman'),
+                createMockSeat(2, 'investigator'),
+                createMockSeat(3, 'chef'),
+                createMockSeat(4, 'empath'),
+                createMockSeat(5, 'poisoner'),
+                createMockSeat(6, 'imp')
+            ];
+            
+            const result = suggestDistributionFixes(seats, 'trouble-brewing', 7);
+            
+            expect(result.some(s => s.includes('重复'))).toBe(true);
+        });
+    });
+
+    describe('validateDistribution with special cases', () => {
+        it('应该检测玩家数量过少', () => {
+            const seats = [
+                createMockSeat(0, 'washerwoman'),
+                createMockSeat(1, 'librarian'),
+                createMockSeat(2, 'imp')
+            ];
+            
+            const result = validateDistribution(seats, 'trouble-brewing', 3);
+            
+            expect(result.ruleChecks.some(r => r.rule === 'PLAYER_COUNT' && !r.passed)).toBe(true);
+        });
+
+        it('应该检测玩家数量过多', () => {
+            const seats = Array.from({ length: 20 }, (_, i) => createMockSeat(i, 'washerwoman'));
+            seats[19] = createMockSeat(19, 'imp');
+            
+            const result = validateDistribution(seats, 'trouble-brewing', 20);
+            
+            expect(result.ruleChecks.some(r => r.rule === 'PLAYER_COUNT' && !r.passed)).toBe(true);
+        });
     });
 });

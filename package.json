@@ -9,9 +9,14 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test": "npm run test:run",
+    "test:run": "npm run test:src && npm run test:tests",
+    "test:src": "npm run test:src:logic && npm run test:src:ui",
+    "test:src:logic": "NODE_OPTIONS=\"--max-old-space-size=6144 --expose-gc\" VITEST_SCOPE=src-logic node ./node_modules/vitest/vitest.mjs run --config vitest.config.ts",
+    "test:src:ui": "NODE_OPTIONS=\"--max-old-space-size=6144 --expose-gc\" VITEST_SCOPE=src-ui node ./node_modules/vitest/vitest.mjs run --config vitest.config.ts",
+    "test:tests": "NODE_OPTIONS=\"--max-old-space-size=6144 --expose-gc\" VITEST_SCOPE=tests node ./node_modules/vitest/vitest.mjs run --config vitest.config.ts",
+    "test:watch": "NODE_OPTIONS=\"--max-old-space-size=6144 --expose-gc\" node ./node_modules/vitest/vitest.mjs --config vitest.config.ts",
+    "test:coverage": "NODE_OPTIONS=\"--max-old-space-size=6144 --expose-gc\" node ./node_modules/vitest/vitest.mjs run --coverage --config vitest.config.ts",
     "prepare": "husky"
   },
   "dependencies": {

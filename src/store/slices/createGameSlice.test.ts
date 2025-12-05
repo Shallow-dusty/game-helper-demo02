@@ -20,6 +20,9 @@ vi.mock('../../lib/gameLogic', () => ({
   checkGameOver: vi.fn(), // Add mocked checkGameOver
 }));
 
+// Use hoisted mock to avoid temporal dead zone during module mock evaluation
+const mockRpc = vi.hoisted(() => vi.fn().mockResolvedValue({ data: null, error: null }));
+
 vi.mock('./createConnectionSlice', () => ({
   supabase: {
     from: () => ({
@@ -30,6 +33,7 @@ vi.mock('./createConnectionSlice', () => ({
     channel: () => ({
       on: () => ({ subscribe: () => { /* empty */ } }),
     }),
+    rpc: mockRpc,
   },
 }));
 

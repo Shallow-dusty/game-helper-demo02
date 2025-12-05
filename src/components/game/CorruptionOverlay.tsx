@@ -22,21 +22,25 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
 
   // Stage 3 时淡入低频 Drone 音轨
   useEffect(() => {
+    let fadeTimer: ReturnType<typeof setInterval> | undefined;
+
     if (stage === 3 && prevStageRef.current !== 3) {
       // 进入 Stage 3，启动 Drone
       try {
-        const audio = new Audio('/audio/sfx/drone_low.mp3');
+        const audio = droneAudioRef.current ?? new Audio('/audio/sfx/drone_low.mp3');
+
         audio.loop = true;
         audio.volume = 0;
         droneAudioRef.current = audio;
+
         audio.play().catch(() => { /* ignore autoplay errors */ });
         
         // 淡入效果
         let vol = 0;
-        const fadeIn = setInterval(() => {
+        fadeTimer = setInterval(() => {
           vol = Math.min(vol + 0.02, 0.25);
           if (droneAudioRef.current) droneAudioRef.current.volume = vol;
-          if (vol >= 0.25) clearInterval(fadeIn);
+          if (vol >= 0.25 && fadeTimer) clearInterval(fadeTimer);
         }, 100);
       } catch {
         console.warn('Failed to play drone audio');
@@ -45,11 +49,12 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
       // 离开 Stage 3，淡出 Drone
       const audio = droneAudioRef.current;
       let vol = audio.volume;
-      const fadeOut = setInterval(() => {
+
+      fadeTimer = setInterval(() => {
         vol = Math.max(vol - 0.02, 0);
         audio.volume = vol;
         if (vol <= 0) {
-          clearInterval(fadeOut);
+          if (fadeTimer) clearInterval(fadeTimer);
           audio.pause();
           droneAudioRef.current = null;
         }
@@ -59,12 +64,17 @@ export const CorruptionOverlay: React.FC<CorruptionOverlayProps> = ({ stage }) =
     prevStageRef.current = stage;
     
     return () => {
-      if (droneAudioRef.current) {
-        droneAudioRef.current.pause();
-        droneAudioRef.current = null;
-      }
+      if (fadeTimer) clearInterval(fadeTimer);
     };
   }, [stage]);
+
+  // 组件卸载时清理音频
+  useEffect(() => () => {
+    if (droneAudioRef.current) {
+      droneAudioRef.current.pause();
+      droneAudioRef.current = null;
+    }
+  }, []);
 
   // Stage 2 进入时播放音效
   useEffect(() => {

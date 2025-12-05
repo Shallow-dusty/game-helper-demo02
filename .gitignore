@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Test artifacts
+coverage/
+vitest-files.json
+test-output.txt
+true
+
 # Audio downloads
 downloaded_audio/
 

@@ -13,9 +13,11 @@ export interface LongPressOptions {
   detectMouse?: boolean;
 }
 
+type PressEvent = React.MouseEvent | React.TouchEvent;
+
 export const useLongPress = (
-  onLongPress: (e: unknown) => void,
-  onClick: (e: unknown) => void,
+  onLongPress: (e: PressEvent) => void,
+  onClick: (e: PressEvent) => void,
   options: LongPressOptions | number = {}
 ) => {
   const { delay = 500, disabled = false, detectMouse = true } = 
@@ -27,24 +29,33 @@ export const useLongPress = (
   const touchCountRef = useRef(0);
   const [isPressing, setIsPressing] = useState(false);
 
-  const start = useCallback((e: { evt?: { touches?: TouchList; clientX?: number; clientY?: number } }) => {
+  const start = useCallback((e: PressEvent) => {
     if (disabled) return;
     
     // Track touch count for multi-touch detection
-    if (e.evt?.touches) {
-      touchCountRef.current = e.evt.touches.length;
+    if ('touches' in e) {
+      touchCountRef.current = e.touches.length;
       // Cancel if multiple touches (pinch zoom)
-      if (e.evt.touches.length > 1) {
+      if (e.touches.length > 1) {
         clear(e, false);
         return;
       }
     }
 
     isLongPressRef.current = false;
-    startPosRef.current = { 
-      x: e.evt?.clientX ?? (e.evt?.touches?.[0]?.clientX ?? 0), 
-      y: e.evt?.clientY ?? (e.evt?.touches?.[0]?.clientY ?? 0) 
-    };
+    
+    let clientX = 0;
+    let clientY = 0;
+
+    if ('touches' in e) {
+       clientX = e.touches[0].clientX;
+       clientY = e.touches[0].clientY;
+    } else {
+       clientX = (e as React.MouseEvent).clientX;
+       clientY = (e as React.MouseEvent).clientY;
+    }
+
+    startPosRef.current = { x: clientX, y: clientY };
     
     timerRef.current = setTimeout(() => {
       isLongPressRef.current = true;
@@ -54,7 +65,7 @@ export const useLongPress = (
     setIsPressing(true);
   }, [onLongPress, delay, disabled]);
 
-  const clear = useCallback((e: unknown, shouldClick = false) => {
+  const clear = useCallback((e: PressEvent, shouldClick = false) => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -67,16 +78,25 @@ export const useLongPress = (
     }
   }, [onClick]);
 
-  const move = useCallback((e: { evt?: { touches?: TouchList; clientX?: number; clientY?: number } }) => {
+  const move = useCallback((e: PressEvent) => {
     // If multi-touch detected during move, cancel immediately
-    if (e.evt?.touches && e.evt.touches.length > 1) {
+    if ('touches' in e && e.touches.length > 1) {
       clear(e, false);
       return;
     }
     
     if (startPosRef.current && timerRef.current) {
-      const clientX = e.evt?.clientX ?? (e.evt?.touches?.[0]?.clientX ?? 0);
-      const clientY = e.evt?.clientY ?? (e.evt?.touches?.[0]?.clientY ?? 0);
+      let clientX = 0;
+      let clientY = 0;
+
+      if ('touches' in e) {
+         clientX = e.touches[0].clientX;
+         clientY = e.touches[0].clientY;
+      } else {
+         clientX = (e as React.MouseEvent).clientX;
+         clientY = (e as React.MouseEvent).clientY;
+      }
+
       const dx = Math.abs(clientX - startPosRef.current.x);
       const dy = Math.abs(clientY - startPosRef.current.y);
       
@@ -88,9 +108,9 @@ export const useLongPress = (
   }, [clear]);
 
   // Handle additional touch detection
-  const handleTouchStart = useCallback((e: { evt?: { touches?: TouchList; clientX?: number; clientY?: number } }) => {
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
     // If new touch added during existing gesture, cancel
-    if (e.evt?.touches && e.evt.touches.length > touchCountRef.current && timerRef.current) {
+    if (e.touches.length > touchCountRef.current && timerRef.current) {
       clear(e, false);
       return;
     }
@@ -107,13 +127,13 @@ export const useLongPress = (
 
   const mouseHandlers = detectMouse ? {
     onMouseDown: start,
-    onMouseUp: (e: unknown) => clear(e, true),
-    onMouseLeave: (e: unknown) => clear(e, false),
+    onMouseUp: (e: React.MouseEvent) => clear(e, true),
+    onMouseLeave: (e: React.MouseEvent) => clear(e, false),
   } : {};
 
   return {
     onTouchStart: handleTouchStart,
-    onTouchEnd: (e: unknown) => clear(e, true),
+    onTouchEnd: (e: React.TouchEvent) => clear(e, true),
     onTouchMove: move,
     ...mouseHandlers,
     isPressing

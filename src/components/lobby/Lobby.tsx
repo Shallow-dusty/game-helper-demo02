@@ -4,6 +4,8 @@ import { AUDIO_TRACKS, SOUND_EFFECTS } from '../../constants';
 import { motion } from 'framer-motion';
 import { Skull, Volume2 } from 'lucide-react';
 
+import lobbyBg from '../../assets/page1.jpeg';
+
 export const Lobby: React.FC = () => {
     const login = useStore(state => state.login);
     const spectateGame = useStore(state => state.spectateGame);
@@ -118,11 +120,13 @@ export const Lobby: React.FC = () => {
     };
 
     return (
-
         <div 
             className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(/src/assets/lobby_bg.png)` }}
+            style={{ backgroundImage: `url(${lobbyBg})` }}
         >
+            {/* Dark Overlay for better text readability */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+
             {/* Main Container */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}

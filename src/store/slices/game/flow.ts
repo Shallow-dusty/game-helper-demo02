@@ -105,14 +105,45 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice, 'setPhase' | 'night
     startVote: (nomineeId) => {
         set((state) => {
             if (state.gameState) {
+                const nominee = state.gameState.seats.find(s => s.id === nomineeId);
+                if (!nominee) return;
+
+                // Rule Check 1: Dead players cannot be nominated
+                if (nominee.isDead) {
+                    addSystemMessage(state.gameState, `❌ 无法提名已死亡的玩家 (${nominee.userName})`);
+                    return;
+                }
+
+                // Rule Check 2: Player can only be nominated once per day
+                const currentRound = state.gameState.roundInfo.dayCount;
+                const alreadyNominated = state.gameState.dailyNominations.some(
+                    n => n.nomineeSeatId === nomineeId && n.round === currentRound
+                );
+
+                if (alreadyNominated) {
+                    addSystemMessage(state.gameState, `❌ ${nominee.userName} 今天已经被提名过了`);
+                    return;
+                }
+
+                // Pass Checks
                 state.gameState.voting = {
-                    nominatorSeatId: null,
+                    nominatorSeatId: null, // TODO: Add UI to select nominator
                     nomineeSeatId: nomineeId,
                     clockHandSeatId: nomineeId,
                     votes: [],
                     isOpen: true
                 };
                 state.gameState.phase = 'VOTING';
+
+                // Record Nomination
+                state.gameState.dailyNominations.push({
+                    nominatorSeatId: -1, // Unknown for now
+                    nomineeSeatId: nomineeId,
+                    round: currentRound,
+                    timestamp: Date.now()
+                });
+
+                addSystemMessage(state.gameState, `🗳️ 发起对 ${nominee.userName} 的提名投票`);
             }
         });
         get().sync();

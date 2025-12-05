@@ -201,6 +201,67 @@ export function checkSaintExecution(gameState: GameState, executedSeatId: number
 }
 
 /**
+ * 检测红唇女郎（Scarlet Woman）
+ * 如果恶魔死亡且存活玩家>=5，红唇女郎变为恶魔
+ */
+export function checkScarletWomanChain(gameState: GameState, deadSeatId: number): ChainReactionEvent | null {
+  const deadSeat = gameState.seats[deadSeatId];
+  if (!deadSeat) return null;
+  
+  // 检查死者是否是恶魔
+  const roleId = deadSeat.realRoleId || deadSeat.seenRoleId;
+  if (!roleId || ROLES[roleId]?.team !== 'DEMON') return null;
+
+  // 检查存活人数
+  const aliveCount = gameState.seats.filter(s => !s.isDead).length;
+  if (aliveCount < 5) return null;
+
+  // 寻找红唇女郎
+  const swSeat = gameState.seats.find(s => {
+    const r = s.realRoleId || s.seenRoleId;
+    return r === 'scarlet_woman' && !s.isDead;
+  });
+
+  if (swSeat) {
+    return {
+      type: 'ability_trigger',
+      title: '💋 红唇女郎继承',
+      message: `恶魔已死亡且存活人数>=5，${swSeat.userName}（红唇女郎）应当继承成为新的恶魔。`,
+      affectedSeatIds: [swSeat.id],
+      suggestedAction: 'ignore', // ST手动操作
+      priority: 'high'
+    };
+  }
+
+  return null;
+}
+
+/**
+ * 检测守鸦人（Ravenkeeper）
+ * 如果守鸦人在夜间死亡，提示ST给予信息
+ */
+export function checkRavenkeeperChain(gameState: GameState, deadSeatId: number, isNight: boolean): ChainReactionEvent | null {
+  if (!isNight) return null;
+  
+  const deadSeat = gameState.seats[deadSeatId];
+  if (!deadSeat) return null;
+  
+  const roleId = deadSeat.realRoleId || deadSeat.seenRoleId;
+  if (roleId === 'ravenkeeper') {
+    return {
+      type: 'ability_trigger',
+      title: '🦉 守鸦人发动',
+      message: `${deadSeat.userName}（守鸦人）在夜间死亡，请唤醒他并允许他查验一名玩家的角色。`,
+      affectedSeatIds: [deadSeatId],
+      suggestedAction: 'ignore',
+      priority: 'medium'
+    };
+  }
+
+  return null;
+}
+
+/**
  * 综合检测所有连锁反应
  * 返回所有需要确认的事件列表
  */
@@ -223,12 +284,20 @@ export function detectChainReactions(
     // 检测游戏结束
     const gameEndEvent = checkGameEndCondition(gameState);
     if (gameEndEvent) events.push(gameEndEvent);
+
+    // 检测红唇女郎 (恶魔死亡时)
+    const swEvent = checkScarletWomanChain(gameState, affectedSeatId);
+    if (swEvent) events.push(swEvent);
   }
   
   if (triggerType === 'night_kill') {
     // 检测僧侣保护
     const monkEvent = checkMonkProtection(gameState, affectedSeatId);
     if (monkEvent) events.push(monkEvent);
+
+    // 检测守鸦人
+    const ravenEvent = checkRavenkeeperChain(gameState, affectedSeatId, true);
+    if (ravenEvent) events.push(ravenEvent);
   }
   
   if (triggerType === 'execution') {

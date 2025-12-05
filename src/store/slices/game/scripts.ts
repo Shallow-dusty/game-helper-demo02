@@ -15,19 +15,56 @@ export const createGameScriptsSlice: StoreSlice<Pick<GameSlice, 'setScript' | 'i
 
     importScript: (jsonContent) => {
         try {
-            const script = JSON.parse(jsonContent);
-            if (!script.id || !Array.isArray(script.roles)) {
-                throw new Error("Invalid script format");
+            const data = JSON.parse(jsonContent);
+            let scriptId = `custom_${Date.now()}`;
+            let scriptName = "Custom Script";
+            let roles: string[] = [];
+
+            // Case 1: Array of Role Objects (Official Tool)
+            if (Array.isArray(data)) {
+                const meta = data.find((item: any) => item.id === '_meta');
+                if (meta) {
+                    scriptName = meta.name || scriptName;
+                }
+                roles = data
+                    .filter((item: any) => item.id !== '_meta')
+                    .map((item: any) => typeof item === 'string' ? item : item.id);
+            } 
+            // Case 2: Object with roles array
+            else if (data.roles && Array.isArray(data.roles)) {
+                scriptName = data.name || scriptName;
+                roles = data.roles;
             }
-            
+            // Case 3: Simple Array of Strings
+            else if (Array.isArray(data) && data.every(i => typeof i === 'string')) {
+                roles = data;
+            }
+            else {
+                throw new Error("Unknown script format");
+            }
+
+            if (roles.length === 0) throw new Error("No roles found in script");
+
+            const newScript = {
+                id: scriptId,
+                name: scriptName,
+                roles: roles
+            };
+
             set((state) => {
                 if (state.gameState) {
-                    // Placeholder
+                    if (!state.gameState.customScripts) {
+                        state.gameState.customScripts = {};
+                    }
+                    state.gameState.customScripts[scriptId] = newScript;
+                    state.gameState.currentScriptId = scriptId;
+                    addSystemMessage(state.gameState, `已导入并切换剧本: ${scriptName}`);
                 }
             });
             get().sync();
         } catch (e) {
             console.error("Import script failed", e);
+            // We might want to expose this error to UI, but for now console is fine
         }
     },
 

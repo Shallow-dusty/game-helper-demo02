@@ -171,13 +171,11 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
     const latestVote = voteHistory.length > 0 ? voteHistory[voteHistory.length - 1] : null;
     const currentVotes = latestVote?.votes || [];
     
-    // Track added bodies to avoid duplicates
     const addedVotesRef = useRef<Set<number>>(new Set());
 
     useEffect(() => {
         if (!sceneRef.current) return;
 
-        // Setup Matter JS
         const Engine = Matter.Engine,
               Render = Matter.Render,
               Runner = Matter.Runner,
@@ -197,32 +195,38 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
                 wireframes: false,
                 background: 'transparent',
                 pixelRatio: window.devicePixelRatio,
-                // 启用阴影
-                hasBounds: false,
             }
         });
         renderRef.current = render;
 
-        // Boundaries
-        const ground = Bodies.rectangle(width / 2, height + 30, width, 60, { isStatic: true, render: { visible: false } });
-        const leftWall = Bodies.rectangle(-30, height / 2, 60, height, { isStatic: true, render: { visible: false } });
-        const rightWall = Bodies.rectangle(width + 30, height / 2, 60, height, { isStatic: true, render: { visible: false } });
-        
-        // Funnel/Bowl shape (optional)
-        const leftSlope = Bodies.rectangle(0, height - 50, 200, 20, { 
-            isStatic: true, 
-            angle: Math.PI / 4,
-            render: { fillStyle: '#292524' }
-        });
-        const rightSlope = Bodies.rectangle(width, height - 50, 200, 20, { 
-            isStatic: true, 
-            angle: -Math.PI / 4,
-            render: { fillStyle: '#292524' }
-        });
+        // --- Circular Boundaries ---
+        // Create a set of rectangles arranged in a circle to form a container
+        const cx = width / 2;
+        const cy = height / 2;
+        const radius = Math.min(width, height) * 0.45; // Slightly larger than visual clock
+        const segments = 24;
+        const wallThickness = 50;
+        const walls: Matter.Body[] = [];
 
-        Composite.add(engine.world, [ground, leftWall, rightWall, leftSlope, rightSlope]);
+        for (let i = 0; i < segments; i++) {
+            const angle = (i / segments) * Math.PI * 2;
+            const x = cx + Math.cos(angle) * (radius + wallThickness / 2);
+            const y = cy + Math.sin(angle) * (radius + wallThickness / 2);
+            
+            const wall = Bodies.rectangle(x, y, wallThickness, 100, {
+                isStatic: true,
+                angle: angle + Math.PI / 2,
+                render: { visible: false } // Invisible physics walls
+            });
+            walls.push(wall);
+        }
 
-        // 自定义渲染：添加3D阴影效果 (仅在浏览器环境)
+        // Add a "floor" sensor or just rely on the circle?
+        // The circle should hold them.
+
+        Composite.add(engine.world, walls);
+
+        // Custom Rendering for Chips (Shadows & Highlights)
         if (render.context && typeof Matter.Events?.on === 'function') {
             Matter.Events.on(render, 'afterRender', () => {
                 const ctx = render.context;
@@ -233,36 +237,47 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
                     const pos = body.position;
                     const radius = 15;
                     
-                    // 绘制阴影
+                    // Shadow
                     ctx.save();
                     ctx.beginPath();
-                    ctx.arc(pos.x + 3, pos.y + 3, radius, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                    ctx.arc(pos.x + 2, pos.y + 2, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
                     ctx.fill();
                     ctx.restore();
                     
-                    // 绘制内部高光渐变
+                    // Body (Gradient)
                     ctx.save();
                     const gradient = ctx.createRadialGradient(
-                        pos.x - 4, pos.y - 4, 0,
+                        pos.x - 5, pos.y - 5, 0,
                         pos.x, pos.y, radius
                     );
-                    const baseColor = body.render.fillStyle! || '#f59e0b';
-                    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+                    const baseColor = body.render.fillStyle! as string;
+                    gradient.addColorStop(0, '#ffffff'); // Highlight
                     gradient.addColorStop(0.3, baseColor);
-                    gradient.addColorStop(1, baseColor);
+                    gradient.addColorStop(1, '#000000'); // Shadow edge
                     
                     ctx.beginPath();
-                    ctx.arc(pos.x, pos.y, radius - 1, 0, Math.PI * 2);
+                    ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
                     ctx.fillStyle = gradient;
                     ctx.fill();
+                    
+                    // Border
+                    ctx.strokeStyle = body.render.strokeStyle! as string;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Text (Name) - Simplified
+                    // ctx.fillStyle = '#fff';
+                    // ctx.font = '10px Arial';
+                    // ctx.textAlign = 'center';
+                    // ctx.fillText(body.label.substring(0, 2), pos.x, pos.y + 4);
+
                     ctx.restore();
                 });
             });
         }
 
         Render.run(render);
-        
         const runner = Runner.create();
         runnerRef.current = runner;
         Runner.run(runner, engine);
@@ -276,7 +291,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
         };
     }, [width, height]);
 
-    // Handle new votes
+    // Handle Votes (Chips)
     useEffect(() => {
         if (!engineRef.current || !latestVote) return;
 
@@ -284,42 +299,57 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
         
         if (newVotes.length > 0) {
             newVotes.forEach(seatId => {
+                // ... (existing chip spawning logic)
                 const seat = gameState?.seats.find(s => s.id === seatId);
                 const userName = seat?.userName || `Seat ${seatId}`;
                 
-                // Randomize spawn position slightly
-                const x = (width / 2) + (Math.random() * 40 - 20);
-                const y = -50 - (Math.random() * 50);
+                // Spawn from top edges randomly
+                const angle = -Math.PI / 2 + (Math.random() * 0.5 - 0.25); // Top cone
+                const spawnRadius = Math.min(width, height) * 0.4;
+                const x = (width / 2) + Math.cos(angle) * spawnRadius;
+                const y = (height / 2) + Math.sin(angle) * spawnRadius;
 
                 const chip = Matter.Bodies.circle(x, y, 15, {
-                    restitution: 0.5, // Bounciness
-                    friction: 0.05,
+                    restitution: 0.6,
+                    friction: 0.005,
+                    density: 0.04,
                     render: {
                         fillStyle: seat?.isDead ? '#57534e' : '#f59e0b',
-                        strokeStyle: seat?.isDead ? '#44403c' : '#b45309',
-                        lineWidth: 3,
+                        strokeStyle: seat?.isDead ? '#292524' : '#b45309',
                     },
                     label: userName
                 });
 
+                // Apply initial force towards center
+                Matter.Body.setVelocity(chip, {
+                    x: (width/2 - x) * 0.05 + (Math.random() - 0.5) * 2,
+                    y: (height/2 - y) * 0.05 + (Math.random() - 0.5) * 2
+                });
+
                 Matter.Composite.add(engineRef.current!.world, chip);
                 addedVotesRef.current.add(seatId);
-                
-                // 播放筹码掉落音效
                 playSound('chip_drop');
             });
         }
-        
-        // Reset if new round
-        if (latestVote.votes.length === 0 && addedVotesRef.current.size > 0) {
-             // Check if it's actually a new round or just empty
-             // For now, simple clear if empty
-             // But wait, if we just started, length is 0.
-        }
-        
-    }, [currentVotes, gameState, width, playSound]);
+    }, [currentVotes, gameState, width, height, playSound]);
 
-    // Reset logic when nomination changes
+    // Play Gavel sound on vote conclusion
+    useEffect(() => {
+        if (voteHistory.length > 0) {
+            // Check if the last vote was just added (simple check: mount or update)
+            // Ideally we want to track prev length, but for now playing on length change is okay
+            // provided we don't play on initial load if it's old history.
+            // A better way is to check timestamp or just rely on the fact that this component
+            // is likely always mounted or we accept a sound on rejoin.
+            // For now, let's assume if it's a recent vote (within last 5 seconds)
+            const lastVote = voteHistory[voteHistory.length - 1];
+            if (lastVote && Date.now() - lastVote.timestamp < 5000) {
+                 playSound('gavel');
+            }
+        }
+    }, [voteHistory.length, playSound]);
+
+    // Reset
     useEffect(() => {
         addedVotesRef.current.clear();
         if (engineRef.current) {
@@ -329,23 +359,26 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
         }
     }, [gameState?.voting?.nomineeSeatId]);
 
-    // 计算投票进度和是否超过半数
     const { voteProgress, isOverHalf } = useMemo(() => {
         const totalPlayers = gameState?.seats.filter(s => s.roleId && !s.isDead).length || 1;
         const requiredVotes = Math.ceil(totalPlayers / 2);
         const currentVoteCount = currentVotes.length;
-        const progress = Math.min(currentVoteCount / totalPlayers, 1);
-        const overHalf = currentVoteCount >= requiredVotes;
-        return { voteProgress: progress, isOverHalf: overHalf };
+        return { 
+            voteProgress: Math.min(currentVoteCount / totalPlayers, 1), 
+            isOverHalf: currentVoteCount >= requiredVotes 
+        };
     }, [gameState?.seats, currentVotes.length]);
 
     return (
-        <div className="relative mx-auto border-[3px] border-[#44403c] bg-[#1c1917] rounded-full overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]" style={{ width, height }}>
-            {/* 纹理背景 */}
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-40 pointer-events-none"></div>
-            <div className="absolute inset-0 bg-gradient-to-br from-[#292524] to-[#0c0a09] opacity-90 pointer-events-none"></div>
+        <div className="relative mx-auto rounded-full overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)]" style={{ width, height }}>
+            {/* Background Image (Placeholder) */}
+            <div className="absolute inset-0 bg-[#1c1917]">
+                 {/* Placeholder for clock_face_stone.png */}
+                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-50" />
+                 <div className="absolute inset-0 rounded-full border-[10px] border-[#292524]" />
+            </div>
 
-            {/* 时钟表盘背景 */}
+            {/* Clock Face SVG Overlay */}
             <ClockFace 
                 width={width} 
                 height={height} 
@@ -353,25 +386,14 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
                 isOverHalf={isOverHalf}
             />
             
-            {/* Matter.js 物理区域 */}
-            <div ref={sceneRef} className="absolute inset-0" style={{ zIndex: 1 }} />
+            {/* Physics Canvas */}
+            <div ref={sceneRef} className="absolute inset-0" style={{ zIndex: 10 }} />
             
-            {/* 标题 */}
-            <div className="absolute top-6 left-0 right-0 text-center pointer-events-none" style={{ zIndex: 2 }}>
-                <div className="text-xs text-[#78716c] font-cinzel tracking-[0.3em] uppercase opacity-80">Judgment Zone</div>
-                <div className="text-lg text-[#d6d3d1] font-cinzel font-bold tracking-widest drop-shadow-md mt-1">审判区域</div>
-            </div>
-            
-            {/* 投票计数器 */}
-            <div 
-                className={`absolute bottom-8 left-0 right-0 mx-auto w-fit text-sm font-cinzel font-bold pointer-events-none px-4 py-1.5 rounded-full border transition-all duration-300 ${
-                    isOverHalf 
-                        ? 'text-red-200 bg-red-950/80 border-red-800 shadow-[0_0_15px_rgba(220,38,38,0.4)]' 
-                        : 'text-[#d4af37] bg-[#292524]/80 border-[#57534e] shadow-lg'
-                }`}
-                style={{ zIndex: 2 }}
-            >
-                {currentVotes.length} 票
+            {/* Counter */}
+            <div className={`absolute bottom-10 left-1/2 -translate-x-1/2 z-20 px-4 py-1 rounded-full border ${
+                isOverHalf ? 'bg-red-900/80 border-red-500 text-red-100' : 'bg-black/60 border-stone-600 text-stone-300'
+            } font-cinzel font-bold backdrop-blur-sm transition-colors duration-300`}>
+                {currentVotes.length} VOTES
             </div>
         </div>
     );

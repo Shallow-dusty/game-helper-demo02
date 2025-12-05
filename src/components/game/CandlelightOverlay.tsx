@@ -3,18 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, FlameKindling } from 'lucide-react';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
 
-interface DeadSeatPosition {
-  id: number;
-  x: number;
-  y: number;
-}
+import { GameState } from '../../types';
 
 interface CandlelightOverlayProps {
   width: number;
   height: number;
   isActive?: boolean;
-  /** 死亡座位的位置信息，用于触发环境音效 */
-  deadSeatPositions?: DeadSeatPosition[];
+  isStoryteller?: boolean;
+  gameState?: GameState;
 }
 
 /**
@@ -24,7 +20,7 @@ interface CandlelightOverlayProps {
  * - 光圈边缘羽化，模拟真实光源
  * - 扫过死亡玩家座位时可触发环境音效
  */
-export const CandlelightOverlay: React.FC<CandlelightOverlayProps> = ({ width, height, isActive = true, deadSeatPositions = [] }) => {
+export const CandlelightOverlay: React.FC<CandlelightOverlayProps> = ({ width, height, isActive = true, isStoryteller = false, gameState }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const mousePos = useRef({ x: width / 2, y: height / 2 });
@@ -44,6 +40,51 @@ export const CandlelightOverlay: React.FC<CandlelightOverlayProps> = ({ width, h
   // 死亡座位环境音效池 (低概率触发)
   const AMBIENT_SOUNDS = ['ghost_whisper', 'wind_howl', 'crow_caw'] as const;
   const TRIGGER_PROBABILITY = 0.3; // 30% 触发概率
+
+  // Calculate dead seat positions from GameState
+  const deadSeatPositions = React.useMemo(() => {
+    if (!gameState?.seats) return [];
+    
+    const seatCount = gameState.seats.length;
+    const minDim = Math.min(width, height);
+    // Must match Grimoire layout logic!
+    // Grimoire: baseRadius = minDim * 0.35
+    // But Grimoire uses a transform container. Here we are full screen overlay.
+    // We need to map the "Board Coordinates" to "Screen Coordinates".
+    // This is tricky because Grimoire supports Pan/Zoom.
+    // Ideally, CandlelightOverlay should be INSIDE the transform container in Grimoire.
+    // CHECK: In Grimoire.tsx, CandlelightOverlay is rendered inside the main div, but OUTSIDE the transform container?
+    // Let's check Grimoire.tsx structure.
+    // It is rendered at Z-90, outside the transform container.
+    // This means the "flashlight" is in screen space (good for mouse), 
+    // BUT the "dead seats" are in world space (moving with pan/zoom).
+    // If we want to detect "hover over dead seat", we need the seat positions in SCREEN SPACE.
+    // However, passing current transform to CandlelightOverlay is performance heavy.
+    // ALTERNATIVE: Render CandlelightOverlay INSIDE the transform container?
+    // No, the "darkness" must cover the whole screen, not just the board.
+    // SOLUTION: The flashlight effect is screen-based. The "audio trigger" needs screen coordinates of seats.
+    // For now, let's assume default view (no zoom/pan) for the audio trigger, 
+    // OR just disable the audio trigger feature if it's too complex to sync without passing transform.
+    // Let's try to approximate: The board is usually centered.
+    
+    const baseRadius = minDim * 0.35;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    return gameState.seats
+      .filter(s => s.isDead)
+      .map((s, i) => {
+         // We need the original index to calculate angle correctly
+         const originalIndex = gameState.seats.findIndex(seat => seat.id === s.id);
+         const angleDeg = (originalIndex * (360 / seatCount)) - 90;
+         const angleRad = angleDeg * Math.PI / 180;
+         return {
+           id: s.id,
+           x: centerX + baseRadius * Math.cos(angleRad),
+           y: centerY + baseRadius * Math.sin(angleRad)
+         };
+      });
+  }, [gameState, width, height]);
 
   // 检测烛光是否经过死亡座位
   const checkDeadSeatProximity = useCallback((candleX: number, candleY: number) => {

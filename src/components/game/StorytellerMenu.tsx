@@ -25,10 +25,17 @@ interface StorytellerMenuProps {
     currentScriptId: string;
 }
 
+import { useStore } from '../../store';
+import { getSmartInfo } from '../../lib/SmartInfo';
+import { Lightbulb, AlertTriangle } from 'lucide-react';
+
 export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose, actions, currentScriptId }) => {
     const selectedRole = seat.seenRoleId ? ROLES[seat.seenRoleId] : null;
     const roleTeamIcon = selectedRole?.team === 'DEMON' ? '👿' : selectedRole?.team === 'MINION' ? '🧪' : '⚜️';
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+    
+    const gameState = useStore(state => state.gameState);
+    const smartInfo = gameState ? getSmartInfo(seat.id, gameState) : null;
 
     return (
         <>
@@ -37,10 +44,10 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                 onClick={onClose}
             >
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="w-full max-w-md p-4"
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="w-full max-w-md p-4 max-h-[90vh] overflow-y-auto" // Added max-h and overflow
                     onClick={(e) => e.stopPropagation()}
                 >
                     <Card className="border-stone-800 bg-[#1c1917] shadow-2xl overflow-hidden text-stone-100 relative">
@@ -78,6 +85,28 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                         </CardHeader>
 
                     <CardContent className="p-0 relative z-10">
+                        {/* Smart Info Card */}
+                        {smartInfo && (
+                            <div className="mx-4 mt-4 p-3 bg-indigo-950/30 border border-indigo-500/30 rounded-md flex items-start gap-3 shadow-inner">
+                                <div className={`p-2 rounded-full ${smartInfo.isTrue ? 'bg-indigo-500/20 text-indigo-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                    {smartInfo.isTrue ? <Lightbulb className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-indigo-300 uppercase tracking-wider mb-1">
+                                        系统推演 ({smartInfo.roleId})
+                                    </div>
+                                    <div className="text-sm text-stone-200 font-serif leading-relaxed">
+                                        {smartInfo.info}
+                                    </div>
+                                    {!smartInfo.isTrue && (
+                                        <div className="text-[10px] text-amber-500 mt-1 italic">
+                                            ⚠️ 检测到中毒/醉酒，建议提供伪造信息
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="p-4 grid grid-cols-2 gap-3">
                             {/* Alive/Dead Toggle */}
                             <Button

@@ -37,6 +37,14 @@ const mockStoreState = {
             volume: 1,
         },
     },
+    audioSettings: {
+        mode: 'online' as const,
+        categories: {
+            ambience: true,
+            ui: true,
+            cues: true,
+        },
+    },
 };
 
 vi.mock('../store', () => ({

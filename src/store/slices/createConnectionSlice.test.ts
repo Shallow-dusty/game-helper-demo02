@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
@@ -36,10 +36,17 @@ describe('createConnectionSlice', () => {
   let store: any;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     store = createStore(
       immer((set, get) => createConnectionSlice(set as any, get as any, {} as any))
     );
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
 

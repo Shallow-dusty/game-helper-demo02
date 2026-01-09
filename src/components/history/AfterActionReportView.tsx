@@ -75,7 +75,7 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
         logging: false,
         windowWidth: contentRef.current.scrollWidth,
         windowHeight: contentRef.current.scrollHeight,
-      } as any);
+      } as Parameters<typeof html2canvas>[1]);
       
       // 创建下载链接
       const dataUrl = canvas.toDataURL('image/png');

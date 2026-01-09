@@ -51,7 +51,7 @@ export const AI_CONFIG: Record<AiProvider, { model: string; name: string; note?:
 
 // 导出配置供组件使用，动态添加 apiKey 字段
 export const getAiConfig = (): Record<AiProvider, { model: string; name: string; note?: string; apiKey?: string }> => {
-    const config: Record<AiProvider, { model: string; name: string; note?: string; apiKey?: string }> = {} as any;
+    const config = { ...AI_CONFIG } as Record<AiProvider, { model: string; name: string; note?: string; apiKey?: string }>;
 
     // 从环境变量读取 API Keys
     const deepseekKey = import.meta.env.VITE_DEEPSEEK_KEY;

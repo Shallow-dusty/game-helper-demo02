@@ -1229,7 +1229,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({ width, height, readOnly = fa
               <div className="mt-8 flex justify-end gap-4">
                 <Button
                   variant="ghost"
-                  onClick={() => { assignRole(roleSelectSeat, null as any); setRoleSelectSeat(null); }}
+                  onClick={() => { assignRole(roleSelectSeat, null); setRoleSelectSeat(null); }}
                   className="text-stone-500 hover:text-red-400"
                 >
                   CLEAR ROLE

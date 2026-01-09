@@ -41,7 +41,7 @@ export interface GameSlice {
     forwardMessage: (messageId: string, targetRecipientId: string | null) => void;
     setScript: (scriptId: string) => void;
     setPhase: (phase: GamePhase) => void;
-    assignRole: (seatId: number, roleId: string) => void;
+    assignRole: (seatId: number, roleId: string | null) => void;
     toggleDead: (seatId: number) => void;
     toggleAbilityUsed: (seatId: number) => void;
     toggleStatus: (seatId: number, status: SeatStatus) => void;

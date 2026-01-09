@@ -1,5 +1,5 @@
 import { StoreSlice, GameSlice } from '../../types';
-import { supabase } from '../createConnectionSlice';
+import { supabase, ConnectionSlice } from '../createConnectionSlice';
 import { addSystemMessage } from '../../utils';
 import { getInitialState } from './utils';
 
@@ -32,7 +32,7 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
                     { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `room_code=eq.${code}` },
                     (payload) => {
                         if (payload.new?.data) {
-                            const connection = get() as any;
+                            const connection = get() as ConnectionSlice;
                             if (connection._setIsReceivingUpdate) connection._setIsReceivingUpdate(true);
                             set({ gameState: payload.new.data });
                             if (connection._setIsReceivingUpdate) connection._setIsReceivingUpdate(false);
@@ -48,8 +48,8 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
                         set({ connectionStatus: 'reconnecting' });
                     }
                 });
-            
-             const connection = get() as any;
+
+             const connection = get() as ConnectionSlice;
              if (connection._setRealtimeChannel) connection._setRealtimeChannel(channel);
 
         } catch (error: any) {

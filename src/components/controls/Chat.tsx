@@ -241,7 +241,7 @@ export const Chat = () => {
 
                 {filteredMessages.length > 0 && useVirtualScroll ? (
                     <List<Record<string, never>>
-                        listRef={listApiRef as any}
+                        listRef={listApiRef as React.MutableRefObject<{ scrollToRow: (params: { index: number; align?: string }) => void } | null>}
                         defaultHeight={listHeight}
                         rowCount={filteredMessages.length}
                         rowHeight={rowHeight}

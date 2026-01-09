@@ -20,6 +20,7 @@ import { PlayerNightAction } from '../game/PlayerNightAction';
 import { ScriptEditor } from '../script/ScriptEditor';
 import { VoiceRoomLink } from '../ui/VoiceRoomLink';
 import { getAiConfig } from '../../store/aiConfig';
+import { AiProvider } from '../../store/types';
 
 interface ControlsProps {
     onClose?: () => void;
@@ -141,13 +142,13 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     };
 
     const tabs = [
-        { id: 'game', label: '游戏', icon: <Gamepad2 className="w-4 h-4" /> },
-        { id: 'chat', label: '聊天', icon: <MessageSquare className="w-4 h-4" /> },
+        { id: 'game' as const, label: '游戏', icon: <Gamepad2 className="w-4 h-4" /> },
+        { id: 'chat' as const, label: '聊天', icon: <MessageSquare className="w-4 h-4" /> },
         ...(user.isStoryteller ? [
-            { id: 'ai', label: 'AI助手', icon: <Bot className="w-4 h-4" /> },
-            { id: 'audio', label: '音效', icon: <Music className="w-4 h-4" /> }
+            { id: 'ai' as const, label: 'AI助手', icon: <Bot className="w-4 h-4" /> },
+            { id: 'audio' as const, label: '音效', icon: <Music className="w-4 h-4" /> }
         ] : []),
-        { id: 'notebook', label: '笔记', icon: <Book className="w-4 h-4" /> },
+        { id: 'notebook' as const, label: '笔记', icon: <Book className="w-4 h-4" /> },
     ];
 
     return (
@@ -231,7 +232,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
+                        onClick={() => setActiveTab(tab.id)}
                         className={cn(
                             "flex-1 py-3 px-2 text-xs font-bold uppercase tracking-wider transition-all border-b-2 relative overflow-hidden group flex items-center justify-center gap-2 min-w-[80px]",
                             activeTab === tab.id
@@ -346,7 +347,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                                 <button onClick={clearAiMessages} className="text-xs text-stone-500 hover:text-stone-300">清除历史</button>
                                 <select
                                     value={aiProvider}
-                                    onChange={(e) => setAiProvider(e.target.value as any)}
+                                    onChange={(e) => setAiProvider(e.target.value as AiProvider)}
                                     className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1 focus:outline-none focus:border-stone-600"
                                 >
                                     {Object.entries(getAiConfig()).map(([key, config]) => (

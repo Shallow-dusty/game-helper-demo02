@@ -33,3 +33,4 @@ export * from './game/notes';
 export * from './game/night';
 export * from './game/history';
 export * from './game/seatSwap';
+export * from './game/phaseMachine';

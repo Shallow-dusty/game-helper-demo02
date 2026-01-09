@@ -26,6 +26,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@supabase/supabase-js": "^2.84.0",
     "@types/matter-js": "^0.20.2",
+    "@xstate/react": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",
@@ -40,6 +41,7 @@
     "react-window": "^2.2.3",
     "recharts": "^3.5.0",
     "tailwind-merge": "^3.4.0",
+    "xstate": "^5.25.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

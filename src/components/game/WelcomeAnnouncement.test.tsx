@@ -2,6 +2,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { WelcomeAnnouncement } from './WelcomeAnnouncement';
 
+// Mock useStore
+vi.mock('../../store', () => ({
+    useStore: () => ({
+        setAudioMode: vi.fn(),
+        audioSettings: {
+            mode: 'online'
+        }
+    })
+}));
+
 // Mock localStorage
 const localStorageMock = (() => {
     let store: Record<string, string> = {};
@@ -32,9 +42,16 @@ describe('WelcomeAnnouncement', () => {
 
     it('应该在未曾关闭时显示公告', () => {
         localStorageMock.getItem.mockReturnValue(null);
-        
+
         render(<WelcomeAnnouncement />);
-        
+
+        // First shows audio setup
+        expect(screen.getByText('音频环境设置')).toBeInTheDocument();
+
+        // Click confirm to proceed to welcome
+        const confirmButton = screen.getByText('确认设置');
+        fireEvent.click(confirmButton);
+
         expect(screen.getByText('欢迎使用血染钟楼魔典')).toBeInTheDocument();
     });
 
@@ -48,9 +65,13 @@ describe('WelcomeAnnouncement', () => {
 
     it('应该显示主要功能区域', () => {
         localStorageMock.getItem.mockReturnValue(null);
-        
+
         render(<WelcomeAnnouncement />);
-        
+
+        // Complete audio setup first
+        const confirmButton = screen.getByText('确认设置');
+        fireEvent.click(confirmButton);
+
         expect(screen.getByText('关于魔典')).toBeInTheDocument();
         expect(screen.getByText('主要功能')).toBeInTheDocument();
         expect(screen.getByText('角色分配与管理')).toBeInTheDocument();
@@ -61,9 +82,13 @@ describe('WelcomeAnnouncement', () => {
 
     it('应该显示重要说明', () => {
         localStorageMock.getItem.mockReturnValue(null);
-        
+
         render(<WelcomeAnnouncement />);
-        
+
+        // Complete audio setup first
+        const confirmButton = screen.getByText('确认设置');
+        fireEvent.click(confirmButton);
+
         expect(screen.getByText('重要说明')).toBeInTheDocument();
         expect(screen.getByText('语音通话功能')).toBeInTheDocument();
         expect(screen.getByText('移动端支持')).toBeInTheDocument();
@@ -72,48 +97,64 @@ describe('WelcomeAnnouncement', () => {
 
     it('应该显示快速开始指南', () => {
         localStorageMock.getItem.mockReturnValue(null);
-        
+
         render(<WelcomeAnnouncement />);
-        
+
+        // Complete audio setup first
+        const confirmButton = screen.getByText('确认设置');
+        fireEvent.click(confirmButton);
+
         expect(screen.getByText('快速开始')).toBeInTheDocument();
     });
 
     it('点击进入魔典按钮应该关闭公告', () => {
         localStorageMock.getItem.mockReturnValue(null);
-        
+
         render(<WelcomeAnnouncement />);
-        
-        const button = screen.getByText('进入魔典 →');
+
+        // Complete audio setup first
+        const confirmButton = screen.getByText('确认设置');
+        fireEvent.click(confirmButton);
+
+        const button = screen.getByText('进入魔典');
         fireEvent.click(button);
-        
+
         expect(screen.queryByText('欢迎使用血染钟楼魔典')).not.toBeInTheDocument();
     });
 
     it('勾选不再显示后点击进入应该保存设置到 localStorage', () => {
         localStorageMock.getItem.mockReturnValue(null);
-        
+
         render(<WelcomeAnnouncement />);
-        
+
+        // Complete audio setup first
+        const confirmButton = screen.getByText('确认设置');
+        fireEvent.click(confirmButton);
+
         // 勾选不再显示
         const checkbox = screen.getByRole('checkbox');
         fireEvent.click(checkbox);
-        
+
         // 点击进入
-        const button = screen.getByText('进入魔典 →');
+        const button = screen.getByText('进入魔典');
         fireEvent.click(button);
-        
+
         expect(localStorageMock.setItem).toHaveBeenCalledWith('botc_welcome_dismissed_v1', 'true');
     });
 
     it('不勾选不再显示时不应该保存到 localStorage', () => {
         localStorageMock.getItem.mockReturnValue(null);
-        
+
         render(<WelcomeAnnouncement />);
-        
+
+        // Complete audio setup first
+        const confirmButton = screen.getByText('确认设置');
+        fireEvent.click(confirmButton);
+
         // 直接点击进入，不勾选
-        const button = screen.getByText('进入魔典 →');
+        const button = screen.getByText('进入魔典');
         fireEvent.click(button);
-        
+
         expect(localStorageMock.setItem).not.toHaveBeenCalled();
     });
 });

@@ -68,9 +68,9 @@ export function getTeamFromRoleId(roleId: string): Team {
   ];
 
   if (evilRoles.includes(roleId)) {
-    return roleId === 'imp' || roleId.includes('po') || roleId.includes('vortox')
-      || roleId.includes('vigormortis') || roleId.includes('no_dashii')
-      || roleId.includes('fang_gu') || roleId.includes('zombuul')
+    return roleId === 'imp' || roleId === 'po' || roleId === 'vortox'
+      || roleId === 'vigormortis' || roleId === 'no_dashii'
+      || roleId === 'fang_gu' || roleId === 'zombuul'
       ? 'DEMON'
       : 'MINION';
   }

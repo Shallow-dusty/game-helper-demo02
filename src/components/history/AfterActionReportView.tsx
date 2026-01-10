@@ -51,7 +51,7 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `grimoire-report-${report.gameId}-${Date.now()}.txt`;
+    a.download = `grimoire-report-${report.gameId}-${String(Date.now())}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     showSuccess('战报已下载');
@@ -82,7 +82,7 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
       // 创建下载链接
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.download = `grimoire-report-${report.gameId}-${Date.now()}.png`;
+      link.download = `grimoire-report-${report.gameId}-${String(Date.now())}.png`;
       link.href = dataUrl;
       link.click();
       
@@ -200,10 +200,10 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
                 
                 {/* 统计卡片 */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <StatCard icon={<Clock className="w-5 h-5" />} label="游戏时长" value={`${report.duration}分钟`} />
-                  <StatCard icon={<Users className="w-5 h-5" />} label="玩家人数" value={`${report.playerSummaries.length}`} />
-                  <StatCard icon={<Skull className="w-5 h-5" />} label="死亡人数" value={`${report.statistics.totalDeaths}`} />
-                  <StatCard icon={<Vote className="w-5 h-5" />} label="处决次数" value={`${report.statistics.totalExecutions}`} />
+                  <StatCard icon={<Clock className="w-5 h-5" />} label="游戏时长" value={`${String(report.duration)}分钟`} />
+                  <StatCard icon={<Users className="w-5 h-5" />} label="玩家人数" value={String(report.playerSummaries.length)} />
+                  <StatCard icon={<Skull className="w-5 h-5" />} label="死亡人数" value={String(report.statistics.totalDeaths)} />
+                  <StatCard icon={<Vote className="w-5 h-5" />} label="处决次数" value={String(report.statistics.totalExecutions)} />
                 </div>
                 
                 {/* MVP */}
@@ -280,7 +280,7 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
                             className="text-xs px-2 py-0.5 rounded"
                             style={{ backgroundColor: `${teamColor}33`, color: teamColor }}
                           >
-                            {player.realRole || '未知'}
+                            {player.realRole ?? '未知'}
                           </span>
                           <span className="text-xs text-stone-500">
                             存活 {player.survivalRounds} 轮 • 投票 {player.votesCast} 次

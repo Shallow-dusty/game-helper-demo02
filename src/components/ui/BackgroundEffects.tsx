@@ -19,17 +19,17 @@ export const BackgroundEffects: React.FC = () => {
             {/* 4. Floating Particles - 悬浮尘埃粒子 */}
             <div className="absolute inset-0">
                 {/* 生成一些随机位置的粒子 */}
-                {[...Array(20)].map((_, i) => (
+                {Array.from({ length: 20 }, (_, i) => (
                     <div
                         key={i}
                         className="absolute bg-amber-100/20 rounded-full blur-[1px]"
                         style={{
-                            width: Math.random() * 3 + 1 + 'px',
-                            height: Math.random() * 3 + 1 + 'px',
-                            top: Math.random() * 100 + '%',
-                            left: Math.random() * 100 + '%',
-                            animation: `float ${Math.random() * 10 + 10}s linear infinite`,
-                            animationDelay: `-${Math.random() * 10}s`,
+                            width: `${String(Math.random() * 3 + 1)}px`,
+                            height: `${String(Math.random() * 3 + 1)}px`,
+                            top: `${String(Math.random() * 100)}%`,
+                            left: `${String(Math.random() * 100)}%`,
+                            animation: `float ${String(Math.random() * 10 + 10)}s linear infinite`,
+                            animationDelay: `-${String(Math.random() * 10)}s`,
                             opacity: Math.random() * 0.5 + 0.1,
                         }}
                     />

@@ -16,7 +16,7 @@ export interface AISlice {
 
 export const createAISlice: StoreSlice<AISlice> = (set, get) => ({
     isAiThinking: false,
-    aiProvider: 'deepseek',
+    aiProvider: 'sf_deepseek_v3_2',  // 默认使用 SiliconFlow 的 DeepSeek V3
 
     setAiProvider: (provider) => set({ aiProvider: provider }),
 
@@ -71,10 +71,12 @@ export const createAISlice: StoreSlice<AISlice> = (set, get) => ({
                 const result = await model.generateContent(prompt);
                 responseText = result.response.text();
             }
-            // --- OPENAI COMPATIBLE (DeepSeek, Kimi, SiliconFlow) ---
+            // --- OPENAI COMPATIBLE (DeepSeek, Kimi, GLM, SiliconFlow, HW MaaS) ---
             else {
                 let baseURL = 'https://api.deepseek.com';
                 if (aiProvider === 'kimi') baseURL = 'https://api.moonshot.cn/v1';
+                if (aiProvider === 'glm') baseURL = 'https://open.bigmodel.cn/api/paas/v4';
+                if (aiProvider.startsWith('hw_')) baseURL = 'https://api.modelarts-maas.com/v1';
                 if (aiProvider.startsWith('sf_')) baseURL = 'https://api.siliconflow.cn/v1';
 
                 const openai = new OpenAI({
@@ -87,7 +89,7 @@ export const createAISlice: StoreSlice<AISlice> = (set, get) => ({
                     messages: [
                         { role: "system", content: "你是《血染钟楼》的说书人助手。请简短、专业地回答规则问题。不要废话。" },
                         ...gameState.aiMessages.map(m => ({
-                            role: (m.role || 'user'),
+                            role: (m.role ?? 'user'),
                             content: m.content
                         })),
                         { role: "user", content: prompt }
@@ -95,7 +97,7 @@ export const createAISlice: StoreSlice<AISlice> = (set, get) => ({
                     model: config.model,
                 });
 
-                responseText = completion.choices[0]?.message?.content || '（无回复）';
+                responseText = completion.choices[0].message.content ?? '（无回复）';
             }
 
             // Add AI response
@@ -117,8 +119,9 @@ export const createAISlice: StoreSlice<AISlice> = (set, get) => ({
                 state.isAiThinking = false;
             });
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('AI Error:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
             set((state) => {
                 state.isAiThinking = false;
                 if (state.gameState) {
@@ -127,7 +130,7 @@ export const createAISlice: StoreSlice<AISlice> = (set, get) => ({
                         senderId: 'system',
                         senderName: 'System',
                         recipientId: null,
-                        content: `AI 请求失败: ${error.message}`,
+                        content: `AI 请求失败: ${errorMessage}`,
                         timestamp: Date.now(),
                         type: 'system',
                         role: 'system'

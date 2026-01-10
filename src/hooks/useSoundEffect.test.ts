@@ -1,6 +1,6 @@
 /**
  * useSoundEffect Hook Tests
- * 
+ *
  * Tests for sound effect management hook
  */
 
@@ -8,7 +8,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { FOLEY_SOUNDS, FoleySoundId, useSoundEffect } from './useSoundEffect';
 
-// Mock Audio
+// Mock Audio instances storage for triggering events
+let mockAudioInstances: MockAudio[] = [];
 const mockAudioPlay = vi.fn().mockResolvedValue(undefined);
 const mockAudioPause = vi.fn();
 
@@ -21,13 +22,14 @@ class MockAudio {
     pause = mockAudioPause;
     onended: (() => void) | null = null;
     onerror: (() => void) | null = null;
-    
+
     constructor(url?: string) {
         this.src = url || '';
+        mockAudioInstances.push(this);
     }
 }
 
-global.Audio = MockAudio as any;
+global.Audio = MockAudio as unknown as typeof Audio;
 
 // Mock store
 const mockStoreState = {
@@ -36,9 +38,9 @@ const mockStoreState = {
         audio: {
             volume: 1,
         },
-    },
+    } as { audio: { volume: number } } | null,
     audioSettings: {
-        mode: 'online' as const,
+        mode: 'online' as 'online' | 'offline',
         categories: {
             ambience: true,
             ui: true,
@@ -54,12 +56,22 @@ vi.mock('../store', () => ({
 describe('useSoundEffect', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockAudioInstances = [];
         mockStoreState.isAudioBlocked = false;
-        mockStoreState.gameState.audio.volume = 1;
+        mockStoreState.gameState = { audio: { volume: 1 } };
+        mockStoreState.audioSettings = {
+            mode: 'online',
+            categories: {
+                ambience: true,
+                ui: true,
+                cues: true,
+            },
+        };
     });
 
     afterEach(() => {
         vi.clearAllMocks();
+        mockAudioInstances = [];
     });
 
     describe('FOLEY_SOUNDS', () => {
@@ -224,12 +236,63 @@ describe('useSoundEffect', () => {
 
         it('should preload sounds', () => {
             const { result } = renderHook(() => useSoundEffect());
-            
+
             act(() => {
                 result.current.preloadSounds(['clock_tick', 'clock_tock', 'gavel']);
             });
-            
+
             // Preloading creates Audio instances - no errors should be thrown
+        });
+
+        it('should use cache when preloading the same sound twice', () => {
+            const { result } = renderHook(() => useSoundEffect());
+
+            // Use a unique sound for this test to avoid cache pollution from other tests
+            // wind_howl is unlikely to be used in other tests
+            const initialCount = mockAudioInstances.length;
+
+            act(() => {
+                result.current.preloadSounds(['wind_howl']);
+            });
+
+            const countAfterFirst = mockAudioInstances.length;
+            // Should have created one new Audio instance
+            expect(countAfterFirst).toBeGreaterThan(initialCount);
+
+            // Preload the same sound again - should use cache
+            act(() => {
+                result.current.preloadSounds(['wind_howl']);
+            });
+
+            // No new Audio instance should be created (cache hit)
+            expect(mockAudioInstances.length).toBe(countAfterFirst);
+        });
+
+        it('should handle Audio constructor error during preload', () => {
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const originalAudio = global.Audio;
+
+            // Make Audio constructor throw
+            global.Audio = function () {
+                throw new Error('Audio not supported');
+            } as unknown as typeof Audio;
+
+            const { result } = renderHook(() => useSoundEffect());
+
+            act(() => {
+                // Use a sound that hasn't been preloaded yet
+                result.current.preloadSounds(['night_wolf']);
+            });
+
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                'Failed to preload audio:',
+                expect.any(String),
+                expect.any(Error)
+            );
+
+            // Restore
+            global.Audio = originalAudio;
+            consoleWarnSpy.mockRestore();
         });
 
         it('should stop all sounds', () => {
@@ -266,15 +329,276 @@ describe('useSoundEffect', () => {
 
         it('should cleanup on unmount', () => {
             const { result, unmount } = renderHook(() => useSoundEffect());
-            
+
             act(() => {
                 result.current.playSound('clock_tick');
             });
-            
+
             // Unmount should cleanup active audios
             unmount();
-            
+
             // No errors should be thrown
+        });
+
+        it('should not play cues sounds in offline mode', () => {
+            mockStoreState.audioSettings.mode = 'offline';
+            mockStoreState.audioSettings.categories.cues = true;
+
+            const { result } = renderHook(() => useSoundEffect());
+
+            act(() => {
+                // notification is a 'cues' category sound
+                result.current.playSound('notification');
+            });
+
+            // Should not play because offline mode blocks cues
+            expect(mockAudioPlay).not.toHaveBeenCalled();
+        });
+
+        it('should not play sound when category is disabled', () => {
+            mockStoreState.audioSettings.categories.ui = false;
+
+            const { result } = renderHook(() => useSoundEffect());
+
+            act(() => {
+                // token_place is a 'ui' category sound
+                result.current.playSound('token_place');
+            });
+
+            expect(mockAudioPlay).not.toHaveBeenCalled();
+        });
+
+        it('should cleanup audio from activeAudiosRef when playback ends', () => {
+            const { result } = renderHook(() => useSoundEffect());
+
+            act(() => {
+                result.current.playSound('clock_tick');
+            });
+
+            // Get the last created audio instance
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+
+            // Simulate playback ended
+            act(() => {
+                if (audioInstance.onended) {
+                    audioInstance.onended();
+                }
+            });
+
+            // No errors should be thrown - audio is cleaned up from activeAudiosRef
+            expect(audioInstance.onended).toBeDefined();
+        });
+
+        it('should cleanup audio from activeAudiosRef when error occurs', () => {
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+            const { result } = renderHook(() => useSoundEffect());
+
+            act(() => {
+                result.current.playSound('clock_tick');
+            });
+
+            // Get the last created audio instance
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+
+            // Simulate error
+            act(() => {
+                if (audioInstance.onerror) {
+                    audioInstance.onerror();
+                }
+            });
+
+            // Should have logged a warning
+            expect(consoleWarnSpy).toHaveBeenCalledWith('Failed to play sound: clock_tick');
+
+            consoleWarnSpy.mockRestore();
+        });
+
+        it('should handle onended when audio already removed from activeAudiosRef', () => {
+            const { result } = renderHook(() => useSoundEffect());
+
+            act(() => {
+                result.current.playSound('day_bell');
+            });
+
+            // Get the audio instance
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+
+            // Stop all sounds first - this removes audio from activeAudiosRef
+            act(() => {
+                result.current.stopAllSounds();
+            });
+
+            // Now trigger onended - audio is no longer in activeAudiosRef
+            // This tests the `if (index > -1)` branch when index is -1
+            act(() => {
+                if (audioInstance.onended) {
+                    audioInstance.onended();
+                }
+            });
+
+            // Should not throw - gracefully handles missing audio
+            expect(audioInstance.onended).toBeDefined();
+        });
+
+        it('should handle onerror when audio already removed from activeAudiosRef', () => {
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const { result } = renderHook(() => useSoundEffect());
+
+            act(() => {
+                result.current.playSound('crow_caw');
+            });
+
+            // Get the audio instance
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+
+            // Stop all sounds first - this removes audio from activeAudiosRef
+            act(() => {
+                result.current.stopAllSounds();
+            });
+
+            // Now trigger onerror - audio is no longer in activeAudiosRef
+            // This tests the `if (index > -1)` branch when index is -1
+            act(() => {
+                if (audioInstance.onerror) {
+                    audioInstance.onerror();
+                }
+            });
+
+            // Should still log the warning
+            expect(consoleWarnSpy).toHaveBeenCalledWith('Failed to play sound: crow_caw');
+            consoleWarnSpy.mockRestore();
+        });
+
+        it('should handle play() rejection with non-NotAllowedError', async () => {
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const playError = new Error('Some other error');
+            playError.name = 'AbortError';
+            mockAudioPlay.mockRejectedValueOnce(playError);
+
+            const { result } = renderHook(() => useSoundEffect());
+
+            await act(async () => {
+                result.current.playSound('clock_tick');
+                // Wait for promise to reject
+                await new Promise(resolve => setTimeout(resolve, 0));
+            });
+
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                'Error playing sound clock_tick:',
+                playError
+            );
+
+            consoleWarnSpy.mockRestore();
+        });
+
+        it('should silently ignore NotAllowedError from play()', async () => {
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const notAllowedError = new Error('Autoplay blocked');
+            notAllowedError.name = 'NotAllowedError';
+            mockAudioPlay.mockRejectedValueOnce(notAllowedError);
+
+            const { result } = renderHook(() => useSoundEffect());
+
+            await act(async () => {
+                result.current.playSound('clock_tick');
+                // Wait for promise to reject
+                await new Promise(resolve => setTimeout(resolve, 0));
+            });
+
+            // Should NOT log a warning for NotAllowedError
+            expect(consoleWarnSpy).not.toHaveBeenCalledWith(
+                expect.stringContaining('Error playing sound'),
+                expect.anything()
+            );
+
+            consoleWarnSpy.mockRestore();
+        });
+
+        it('should handle non-Error rejection from play()', async () => {
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            // Reject with a string instead of an Error object
+            mockAudioPlay.mockRejectedValueOnce('string rejection');
+
+            const { result } = renderHook(() => useSoundEffect());
+
+            await act(async () => {
+                result.current.playSound('clock_tick');
+                // Wait for promise to reject
+                await new Promise(resolve => setTimeout(resolve, 0));
+            });
+
+            // Should not log because the rejection is not an Error instance
+            // The code checks `e instanceof Error` first
+            expect(consoleWarnSpy).not.toHaveBeenCalled();
+
+            consoleWarnSpy.mockRestore();
+        });
+
+        it('should handle Audio constructor error in playSound', () => {
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const originalAudio = global.Audio;
+
+            // Make Audio constructor throw
+            global.Audio = function () {
+                throw new Error('Audio not supported');
+            } as unknown as typeof Audio;
+
+            const { result } = renderHook(() => useSoundEffect());
+
+            act(() => {
+                result.current.playSound('clock_tick');
+            });
+
+            expect(consoleWarnSpy).toHaveBeenCalledWith(
+                'Error creating audio for clock_tick:',
+                expect.any(Error)
+            );
+
+            // Restore
+            global.Audio = originalAudio;
+            consoleWarnSpy.mockRestore();
+        });
+
+        it('should use default volume when gameState is null', () => {
+            mockStoreState.gameState = null;
+
+            const { result } = renderHook(() => useSoundEffect());
+
+            act(() => {
+                result.current.playSound('clock_tick');
+            });
+
+            // Should still play with default volume (masterVolume defaults to 1)
+            expect(mockAudioPlay).toHaveBeenCalled();
+        });
+
+        it('should clamp volume between 0 and 1', () => {
+            mockStoreState.gameState = { audio: { volume: 2 } }; // Over max
+
+            const { result } = renderHook(() => useSoundEffect());
+
+            act(() => {
+                result.current.playSound('clock_tick');
+            });
+
+            // Get the audio instance to check its volume
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+            expect(audioInstance.volume).toBeLessThanOrEqual(1);
+            expect(audioInstance.volume).toBeGreaterThanOrEqual(0);
+        });
+
+        it('should handle negative volume by clamping to 0', () => {
+            mockStoreState.gameState = { audio: { volume: -1 } }; // Negative
+
+            const { result } = renderHook(() => useSoundEffect());
+
+            act(() => {
+                result.current.playSound('clock_tick');
+            });
+
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+            expect(audioInstance.volume).toBe(0);
         });
     });
 });

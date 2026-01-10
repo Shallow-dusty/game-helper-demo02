@@ -5,7 +5,7 @@
  * for interaction logging and nomination tracking.
  */
 
-import { supabase } from '../store/slices/createConnectionSlice';
+import { supabase } from '../store/slices/connection';
 
 // ============================================================================
 // Types
@@ -83,7 +83,7 @@ export interface NominationRecord {
  */
 export async function logInteraction(input: InteractionLogInput): Promise<string | null> {
     try {
-        const { data, error } = await supabase.rpc('log_interaction', {
+        const response = await supabase.rpc('log_interaction', {
             p_room_id: input.roomId,
             p_game_day: input.gameDay,
             p_phase: input.phase,
@@ -98,12 +98,12 @@ export async function logInteraction(input: InteractionLogInput): Promise<string
             p_result_details: input.resultDetails ?? null,
         });
 
-        if (error) {
-            console.error('Failed to log interaction:', error);
+        if (response.error) {
+            console.error('Failed to log interaction:', response.error);
             return null;
         }
 
-        return data as string;
+        return response.data as string;
     } catch (err) {
         console.error('Error logging interaction:', err);
         return null;
@@ -220,17 +220,17 @@ export async function getGameInteractions(
     gameDay?: number
 ): Promise<InteractionLog[]> {
     try {
-        const { data, error } = await supabase.rpc('get_game_interactions', {
+        const response = await supabase.rpc('get_game_interactions', {
             p_room_id: roomId,
             p_game_day: gameDay ?? null,
         });
 
-        if (error) {
-            console.error('Failed to get game interactions:', error);
+        if (response.error) {
+            console.error('Failed to get game interactions:', response.error);
             return [];
         }
 
-        return (data as InteractionLog[]) ?? [];
+        return (response.data ?? []) as InteractionLog[];
     } catch (err) {
         console.error('Error getting game interactions:', err);
         return [];
@@ -250,18 +250,18 @@ export async function checkNominationEligibility(
     nominatorSeat: number
 ): Promise<NominationEligibility> {
     try {
-        const { data, error } = await supabase.rpc('check_nomination_eligibility', {
+        const response = await supabase.rpc('check_nomination_eligibility', {
             p_room_id: roomId,
             p_game_day: gameDay,
             p_nominator_seat: nominatorSeat,
         });
 
-        if (error) {
-            console.error('Failed to check nomination eligibility:', error);
+        if (response.error) {
+            console.error('Failed to check nomination eligibility:', response.error);
             return { canNominate: true, reason: null, previousNominee: null };
         }
 
-        return data as NominationEligibility;
+        return response.data as NominationEligibility;
     } catch (err) {
         console.error('Error checking nomination eligibility:', err);
         return { canNominate: true, reason: null, previousNominee: null };
@@ -278,19 +278,19 @@ export async function recordNomination(
     nomineeSeat: number
 ): Promise<NominationResult> {
     try {
-        const { data, error } = await supabase.rpc('record_nomination', {
+        const response = await supabase.rpc('record_nomination', {
             p_room_id: roomId,
             p_game_day: gameDay,
             p_nominator_seat: nominatorSeat,
             p_nominee_seat: nomineeSeat,
         });
 
-        if (error) {
-            console.error('Failed to record nomination:', error);
-            return { success: false, error: error.message, nominationId: null };
+        if (response.error) {
+            console.error('Failed to record nomination:', response.error);
+            return { success: false, error: response.error.message, nominationId: null };
         }
 
-        return data as NominationResult;
+        return response.data as NominationResult;
     } catch (err) {
         console.error('Error recording nomination:', err);
         return { success: false, error: 'Unknown error', nominationId: null };
@@ -309,7 +309,7 @@ export async function updateNominationResult(
     wasExecuted: boolean
 ): Promise<boolean> {
     try {
-        const { data, error } = await supabase.rpc('update_nomination_result', {
+        const response = await supabase.rpc('update_nomination_result', {
             p_room_id: roomId,
             p_game_day: gameDay,
             p_nominee_seat: nomineeSeat,
@@ -318,12 +318,12 @@ export async function updateNominationResult(
             p_was_executed: wasExecuted,
         });
 
-        if (error) {
-            console.error('Failed to update nomination result:', error);
+        if (response.error) {
+            console.error('Failed to update nomination result:', response.error);
             return false;
         }
 
-        return data as boolean;
+        return response.data as boolean;
     } catch (err) {
         console.error('Error updating nomination result:', err);
         return false;
@@ -338,17 +338,17 @@ export async function getNominationHistory(
     gameDay?: number
 ): Promise<NominationRecord[]> {
     try {
-        const { data, error } = await supabase.rpc('get_nomination_history', {
+        const response = await supabase.rpc('get_nomination_history', {
             p_room_id: roomId,
             p_game_day: gameDay ?? null,
         });
 
-        if (error) {
-            console.error('Failed to get nomination history:', error);
+        if (response.error) {
+            console.error('Failed to get nomination history:', response.error);
             return [];
         }
 
-        return (data as NominationRecord[]) ?? [];
+        return (response.data ?? []) as NominationRecord[];
     } catch (err) {
         console.error('Error getting nomination history:', err);
         return [];

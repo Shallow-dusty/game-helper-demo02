@@ -27,6 +27,12 @@ vi.mock('@supabase/supabase-js', () => {
         removeChannel: vi.fn(),
       };
     }),
+    REALTIME_SUBSCRIBE_STATES: {
+      SUBSCRIBED: 'SUBSCRIBED',
+      CLOSED: 'CLOSED',
+      CHANNEL_ERROR: 'CHANNEL_ERROR',
+      TIMED_OUT: 'TIMED_OUT'
+    }
   };
 });
 

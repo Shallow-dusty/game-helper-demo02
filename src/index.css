@@ -1,21 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap");
 
 :root {
-    /* Gothic Palette */
+    /* ===== Gothic Color System ===== */
+    /* Primary Colors */
     --color-bg-dark: #0a0505;
+    --color-bg-darker: #050303;
+    --color-surface: #12121a;
+    --color-card: #1a1a24;
+
+    /* Text Colors */
     --color-text-gold: #c0a060;
     --color-text-gold-dim: #8a7040;
     --color-text-parchment: #e0d0b0;
+    --color-text-muted: #6b7280;
+
+    /* Accent Colors */
+    --color-blood: #991b1b;
+    --color-blood-bright: #dc2626;
+    --color-holy: #fbbf24;
+    --color-evil: #7c3aed;
+
+    /* Overlay Colors */
     --color-overlay-black: rgba(0, 0, 0, 0.7);
     --color-overlay-red: rgba(40, 10, 10, 0.6);
 
-    /* Borders & Accents */
+    /* ===== Borders & Shadows ===== */
     --border-gold: 1px solid rgba(192, 160, 96, 0.3);
+    --border-gold-dim: 1px solid rgba(192, 160, 96, 0.15);
     --border-gold-glow: 0 0 10px rgba(192, 160, 96, 0.2);
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.2);
+    --shadow-glow: 0 0 20px rgba(192, 160, 96, 0.3);
+    --shadow-blood: 0 0 15px rgba(220, 38, 38, 0.4);
 
-    /* Fonts */
+    /* ===== Typography ===== */
     --font-heading: "Cinzel", serif;
     --font-body: "Inter", sans-serif;
+
+    /* ===== Spacing Scale ===== */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+
+    /* ===== Border Radius ===== */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+
+    /* ===== Z-Index Scale ===== */
+    --z-base: 0;
+    --z-card: 10;
+    --z-dropdown: 20;
+    --z-sticky: 25;
+    --z-modal: 30;
+    --z-toast: 40;
+    --z-tooltip: 50;
+    --z-overlay: 100;
 }
 
 * {

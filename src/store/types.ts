@@ -9,6 +9,9 @@ export type AiProvider =
     | 'deepseek'
     | 'gemini'
     | 'kimi'
+    | 'glm'
+    | 'hw_deepseek_v3'      // 华为云 MaaS DeepSeek-V3.2
+    | 'hw_deepseek_r1'      // 华为云 MaaS DeepSeek-R1
     | 'sf_deepseek_v3_2'
     | 'sf_minimax_m2'
     | 'sf_qwen_3_vl'

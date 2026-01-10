@@ -61,11 +61,11 @@ function extractVoteEvents(voteHistory: VoteRecord[], seats: Seat[]): TimelineEv
     const nominator = seats[vote.nominatorSeatId];
     
     return {
-      id: `vote-${index}`,
+      id: `vote-${String(index)}`,
       timestamp: vote.timestamp,
       type: 'vote' as const,
-      title: `第 ${vote.round} 轮投票`,
-      description: `${nominator?.userName || '未知'} 提名 ${nominee?.userName || '未知'}，获得 ${vote.voteCount} 票，${vote.result === 'executed' ? '处决' : vote.result === 'survived' ? '存活' : '取消'}`,
+      title: `第 ${String(vote.round)} 轮投票`,
+      description: `${nominator?.userName ?? '未知'} 提名 ${nominee?.userName ?? '未知'}，获得 ${String(vote.voteCount)} 票，${vote.result === 'executed' ? '处决' : vote.result === 'survived' ? '存活' : '取消'}`,
       involvedSeats: [vote.nominatorSeatId, vote.nomineeSeatId, ...vote.votes],
       metadata: {
         result: vote.result,
@@ -86,7 +86,7 @@ function extractSystemEvents(messages: ChatMessage[]): TimelineEvent[] {
       // 阶段变更
       if (msg.content.includes('游戏阶段变更')) {
         events.push({
-          id: `system-${index}`,
+          id: `system-${String(index)}`,
           timestamp: msg.timestamp,
           type: 'phase_change',
           title: '阶段变更',
@@ -94,11 +94,11 @@ function extractSystemEvents(messages: ChatMessage[]): TimelineEvent[] {
           involvedSeats: []
         });
       }
-      
+
       // 死亡事件
       if (msg.content.includes('死亡') || msg.content.includes('处决')) {
         events.push({
-          id: `death-${index}`,
+          id: `death-${String(index)}`,
           timestamp: msg.timestamp,
           type: 'death',
           title: '玩家死亡',
@@ -106,11 +106,11 @@ function extractSystemEvents(messages: ChatMessage[]): TimelineEvent[] {
           involvedSeats: []
         });
       }
-      
+
       // 游戏结束
       if (msg.content.includes('胜利') || msg.content.includes('游戏结束')) {
         events.push({
-          id: `end-${index}`,
+          id: `end-${String(index)}`,
           timestamp: msg.timestamp,
           type: 'game_end',
           title: '游戏结束',
@@ -128,7 +128,7 @@ function extractSystemEvents(messages: ChatMessage[]): TimelineEvent[] {
  * 计算玩家摘要数据
  */
 function calculatePlayerSummaries(gameState: GameState): PlayerSummary[] {
-  const voteHistory = gameState.voteHistory || [];
+  const voteHistory = gameState.voteHistory;
   
   return gameState.seats.map(seat => {
     const realRoleId = seat.realRoleId;
@@ -164,9 +164,9 @@ function calculatePlayerSummaries(gameState: GameState): PlayerSummary[] {
     return {
       seatId: seat.id,
       name: seat.userName,
-      realRole: realRole?.name || null,
-      seenRole: seenRoleId ? ROLES[seenRoleId]?.name || null : null,
-      team: realRole?.team || null,
+      realRole: realRole?.name ?? null,
+      seenRole: seenRoleId ? ROLES[seenRoleId]?.name ?? null : null,
+      team: realRole?.team ?? null,
       wasMisled: realRoleId !== seenRoleId && !!realRoleId && !!seenRoleId,
       wasTainted: seat.statuses.includes('POISONED') || seat.statuses.includes('DRUNK'),
       survivalRounds,
@@ -185,15 +185,15 @@ export function generateAfterActionReport(gameState: GameState): AfterActionRepo
   const playerSummaries = calculatePlayerSummaries(gameState);
   
   // 合并时间线事件
-  const voteEvents = extractVoteEvents(gameState.voteHistory || [], gameState.seats);
+  const voteEvents = extractVoteEvents(gameState.voteHistory, gameState.seats);
   const systemEvents = extractSystemEvents(gameState.messages);
   const timeline = [...voteEvents, ...systemEvents].sort((a, b) => a.timestamp - b.timestamp);
-  
+
   // 统计数据
   const statistics = {
     totalDeaths: gameState.seats.filter(s => s.isDead).length,
-    totalVotes: gameState.voteHistory?.length || 0,
-    totalExecutions: gameState.voteHistory?.filter(v => v.result === 'executed').length || 0,
+    totalVotes: gameState.voteHistory.length,
+    totalExecutions: gameState.voteHistory.filter(v => v.result === 'executed').length,
     goodSurvivors: gameState.seats.filter(s => {
       const role = s.realRoleId ? ROLES[s.realRoleId] : null;
       return !s.isDead && (role?.team === 'TOWNSFOLK' || role?.team === 'OUTSIDER');
@@ -237,7 +237,7 @@ export function formatReportAsText(report: AfterActionReport): string {
   lines.push('═══════════════════════════════════════');
   lines.push('');
   lines.push(`🎭 剧本: ${report.scriptName}`);
-  lines.push(`⏱️ 时长: 约 ${report.duration} 分钟 (${report.totalRounds} 轮)`);
+  lines.push(`⏱️ 时长: 约 ${String(report.duration)} 分钟 (${String(report.totalRounds)} 轮)`);
   lines.push('');
   lines.push(`🏆 ${report.winner === 'GOOD' ? '善良阵营' : '邪恶阵营'}胜利!`);
   lines.push(`📝 ${report.winReason}`);
@@ -250,20 +250,20 @@ export function formatReportAsText(report: AfterActionReport): string {
     const status = player.isDead ? '☠️' : '✅';
     const mislead = player.wasMisled ? ' [伪装]' : '';
     const tainted = player.wasTainted ? ' [受影响]' : '';
-    lines.push(`${index + 1}. ${status} ${player.name} - ${player.realRole || '未知'}${mislead}${tainted}`);
+    lines.push(`${String(index + 1)}. ${status} ${player.name} - ${player.realRole ?? '未知'}${mislead}${tainted}`);
   });
   
   lines.push('');
   lines.push('───────────────────────────────────────');
   lines.push('📊 统计数据');
   lines.push('───────────────────────────────────────');
-  lines.push(`💀 死亡人数: ${report.statistics.totalDeaths}`);
-  lines.push(`🗳️ 投票次数: ${report.statistics.totalVotes}`);
-  lines.push(`⚖️ 处决人数: ${report.statistics.totalExecutions}`);
+  lines.push(`💀 死亡人数: ${String(report.statistics.totalDeaths)}`);
+  lines.push(`🗳️ 投票次数: ${String(report.statistics.totalVotes)}`);
+  lines.push(`⚖️ 处决人数: ${String(report.statistics.totalExecutions)}`);
   
   if (report.mvp) {
     lines.push('');
-    lines.push(`🌟 MVP: ${report.mvp.name} (${report.mvp.realRole})`);
+    lines.push(`🌟 MVP: ${report.mvp.name} (${report.mvp.realRole ?? '未知'})`);
   }
   
   lines.push('');

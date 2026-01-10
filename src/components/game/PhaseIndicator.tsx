@@ -27,13 +27,13 @@ export const PhaseIndicator: React.FC = () => {
     let subMessage = '';
 
     // Get script name
-    const scriptName = SCRIPTS[gameState.currentScriptId]?.name || 
-                       gameState.customScripts?.[gameState.currentScriptId]?.name || 
+    const scriptName = SCRIPTS[gameState.currentScriptId]?.name ??
+                       gameState.customScripts?.[gameState.currentScriptId]?.name ??
                        '自定义剧本';
 
     // Get alive player count
-    const aliveCount = gameState.seats.filter(s => !s.isDead && (s.userId || s.isVirtual)).length;
-    const totalPlayers = gameState.seats.filter(s => s.userId || s.isVirtual).length;
+    const aliveCount = gameState.seats.filter(s => !s.isDead && (s.userId ?? s.isVirtual)).length;
+    const totalPlayers = gameState.seats.filter(s => s.userId ?? s.isVirtual).length;
 
     if (gameState.gameOver?.isOver) {
         message = gameState.gameOver.winner === 'GOOD' ? '🎉 好人胜利！' : '💀 邪恶胜利！';
@@ -44,44 +44,45 @@ export const PhaseIndicator: React.FC = () => {
         message = isStoryteller ? '🎭 正在分配角色...' : '⏳ 等待说书人分配角色...';
         bgColor = 'bg-amber-900/90';
         icon = '📝';
-        subMessage = `${scriptName} · ${totalPlayers} 人局`;
+        subMessage = `${scriptName} · ${String(totalPlayers)} 人局`;
     } else if (gameState.setupPhase === 'READY') {
         message = '角色已发放';
         bgColor = 'bg-green-900/90';
         icon = '✅';
         subMessage = isStoryteller ? '准备开始游戏' : '可查看规则手册';
-    } else if (gameState.setupPhase === 'STARTED' || gameState.phase !== 'SETUP') {
-        // Game in progress
-        const roundInfo = gameState.roundInfo || { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 1 };
+    } else if (gameState.phase !== 'SETUP') {
+        // Game in progress (setupPhase is 'STARTED' at this point)
+        const roundInfo = gameState.roundInfo;
 
         if (gameState.phase === 'NIGHT') {
-            message = `🌙 第 ${roundInfo.nightCount} 夜`;
+            message = `🌙 第 ${String(roundInfo.nightCount)} 夜`;
             bgColor = 'bg-indigo-900/90';
             icon = '🌙';
             // Show current night action role for ST
             if (isStoryteller && gameState.nightCurrentIndex >= 0 && gameState.nightQueue[gameState.nightCurrentIndex]) {
                 const currentRoleId = gameState.nightQueue[gameState.nightCurrentIndex];
-                subMessage = `当前: ${currentRoleId} · ${aliveCount}/${totalPlayers} 存活`;
+                subMessage = `当前: ${String(currentRoleId)} · ${String(aliveCount)}/${String(totalPlayers)} 存活`;
             } else {
-                subMessage = `${aliveCount}/${totalPlayers} 存活`;
+                subMessage = `${String(aliveCount)}/${String(totalPlayers)} 存活`;
             }
         } else if (gameState.phase === 'DAY') {
-            message = `☀️ 第 ${roundInfo.dayCount} 天`;
+            message = `☀️ 第 ${String(roundInfo.dayCount)} 天`;
             bgColor = 'bg-amber-800/90';
             icon = '☀️';
-            subMessage = `${aliveCount}/${totalPlayers} 存活 · 讨论阶段`;
+            subMessage = `${String(aliveCount)}/${String(totalPlayers)} 存活 · 讨论阶段`;
         } else if (gameState.phase === 'NOMINATION') {
-            message = `⚖️ 第 ${roundInfo.dayCount} 天 · 提名阶段`;
+            message = `⚖️ 第 ${String(roundInfo.dayCount)} 天 · 提名阶段`;
             bgColor = 'bg-emerald-900/90';
             icon = '⚖️';
-            subMessage = `提名次数: ${roundInfo.nominationCount} · ${aliveCount} 人存活`;
-        } else if (gameState.phase === 'VOTING' && gameState.voting && gameState.voting.nomineeSeatId !== null) {
+            subMessage = `提名次数: ${String(roundInfo.nominationCount)} · ${String(aliveCount)} 人存活`;
+        } else if (gameState.voting && gameState.voting.nomineeSeatId !== null) {
+            // phase is 'VOTING' at this point
             const nominee = gameState.seats[gameState.voting.nomineeSeatId];
-            const nomineeName = nominee?.userName || `座位 ${gameState.voting.nomineeSeatId + 1}`;
+            const nomineeName = nominee?.userName ?? `座位 ${String(gameState.voting.nomineeSeatId + 1)}`;
             message = `📊 投票中`;
             bgColor = 'bg-red-900/90';
             icon = '📊';
-            subMessage = `被提名者: ${nomineeName} · 当前 ${gameState.voting.votes.length} 票`;
+            subMessage = `被提名者: ${nomineeName} · 当前 ${String(gameState.voting.votes.length)} 票`;
         }
     }
 
@@ -89,21 +90,21 @@ export const PhaseIndicator: React.FC = () => {
 
     // Connection status display - 使用常量配置
     const getConnectionDisplay = () => {
-        const style = CONNECTION_STYLES[connectionStatus] || CONNECTION_STYLES.disconnected;
-        
+        const style = CONNECTION_STYLES[connectionStatus];
+
         if (connectionStatus === 'disconnected' && isOffline) {
             return { color: 'bg-gray-500', text: '离线模式', animate: '' };
         }
-        
+
         const colorMap: Record<ConnectionStatus, string> = {
             connected: 'bg-green-500',
             connecting: 'bg-yellow-500',
             reconnecting: 'bg-orange-500',
             disconnected: 'bg-red-500',
         };
-        
+
         return {
-            color: colorMap[connectionStatus] || 'bg-red-500',
+            color: colorMap[connectionStatus],
             text: style.text.replace('...', ''),
             animate: style.className.includes('animate') ? 'animate-pulse' : ''
         };

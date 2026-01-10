@@ -1,6 +1,6 @@
 import { StoreSlice, GameSlice } from '../../../types';
 import { addSystemMessage } from '../../../utils';
-import { supabase } from '../../createConnectionSlice';
+import { supabase } from '../../connection';
 import { checkGameOver } from '../../../../lib/gameLogic';
 import {
     logExecution,
@@ -58,7 +58,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 p_room_code: user.roomId,
                 p_seat_id: current,
                 p_user_id: user.id
-            });
+            }) as { data: { success: boolean; error?: string; isHandRaised: boolean } | null; error: Error | null };
 
             if (error) throw error;
             if (data && !data.success) {
@@ -69,7 +69,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
             // Optimistic update
             set((state) => {
                 if (state.gameState?.voting) {
-                    const isRaised = data.isHandRaised;
+                    const isRaised = data?.isHandRaised;
                     if (isRaised) {
                         if (!state.gameState.voting.votes.includes(current)) {
                             state.gameState.voting.votes.push(current);
@@ -80,7 +80,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 }
             });
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Toggle hand error:', error);
         }
     },
@@ -102,7 +102,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                     result = 'executed';
                     if (nomineeSeat) {
                         nomineeSeat.isDead = true;
-                        addSystemMessage(state.gameState, `${nomineeSeat.userName} 被处决了 (票数: ${votes.length})`);
+                        addSystemMessage(state.gameState, `${nomineeSeat.userName} 被处决了 (票数: ${String(votes.length)})`);
 
                         // v2.0: Log execution to database (async, non-blocking)
                         if (user?.roomId && nomineeSeatId !== null) {
@@ -110,7 +110,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                                 user.roomId,
                                 state.gameState.roundInfo.dayCount,
                                 nomineeSeatId,
-                                nomineeSeat.roleId || 'unknown',
+                                nomineeSeat.seenRoleId ?? 'unknown',
                                 votes.length
                             ).catch(console.error);
                         }
@@ -122,7 +122,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                         }
                     }
                 } else {
-                    addSystemMessage(state.gameState, `票数不足 (${votes.length}), 无人被处决`);
+                    addSystemMessage(state.gameState, `票数不足 (${String(votes.length)}), 无人被处决`);
                 }
 
                 // v2.0: Update nomination result in database (async, non-blocking)
@@ -139,8 +139,8 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
 
                 state.gameState.voteHistory.push({
                     round: state.gameState.roundInfo.dayCount,
-                    nominatorSeatId: nominatorSeatId || -1,
-                    nomineeSeatId: nomineeSeatId || -1,
+                    nominatorSeatId: nominatorSeatId ?? -1,
+                    nomineeSeatId: nomineeSeatId ?? -1,
                     votes: votes,
                     voteCount: votes.length,
                     timestamp: Date.now(),

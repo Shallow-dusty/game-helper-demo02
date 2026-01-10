@@ -17,6 +17,7 @@ vi.mock('matter-js', () => ({
     Render: {
       create: () => ({
         canvas: { remove: vi.fn() },
+        context: {},
       }),
       run: vi.fn(),
       stop: vi.fn(),
@@ -37,6 +38,10 @@ vi.mock('matter-js', () => ({
     },
     World: {
       clear: vi.fn(),
+    },
+    Events: {
+      on: vi.fn(),
+      off: vi.fn(),
     },
   },
 }));

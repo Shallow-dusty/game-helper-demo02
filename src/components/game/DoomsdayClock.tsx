@@ -19,7 +19,7 @@ interface DoomsdayClockProps {
 export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) => {
   const gameState = useStore(state => state.gameState);
   const voting = gameState?.voting;
-  const seats = gameState?.seats || [];
+  const seats = gameState?.seats ?? [];
   
   const { playSound, playClockTick, preloadSounds } = useSoundEffect();
   
@@ -29,7 +29,7 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
   }, [preloadSounds]);
   
   // 当前票数
-  const voteCount = voting?.votes.length || 0;
+  const voteCount = voting?.votes.length ?? 0;
   // 存活玩家数（用于计算处决所需票数）
   const aliveCount = seats.filter(s => !s.isDead).length;
   // 处决所需票数（向上取整的一半）
@@ -132,7 +132,7 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
                     style={{
                         top: '50%',
                         left: '50%',
-                        transform: `translate(-50%, -50%) rotate(${angle}deg) translate(0, -90px) rotate(-${angle}deg)`,
+                        transform: `translate(-50%, -50%) rotate(${String(angle)}deg) translate(0, -90px) rotate(-${String(angle)}deg)`,
                     }}
                 >
                     <span className="text-amber-700/80 font-serif font-bold text-sm tracking-widest" style={{ textShadow: '0 1px 2px black' }}>
@@ -277,7 +277,7 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
                 className="px-2 py-1 rounded bg-amber-900/30 border border-amber-700/30 
                            text-xs text-amber-300"
               >
-                {voter?.userName || `座位${seatId + 1}`}
+                {voter?.userName ?? `座位${String(seatId + 1)}`}
               </motion.span>
             );
           })}

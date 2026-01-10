@@ -4,11 +4,10 @@ import { useStore } from './store';
 import { useSandboxStore } from './sandboxStore';
 
 // 加载状态组件 - 立即加载
-import { 
-  LoadingFallback, 
-  GrimoireLoadingFallback, 
-  ControlsLoadingFallback,
-  ModalLoadingFallback 
+import {
+  LoadingFallback,
+  GrimoireLoadingFallback,
+  ControlsLoadingFallback
 } from './components/ui/LoadingFallback';
 
 // 核心组件 - 立即加载 (小型、关键路径)
@@ -46,7 +45,9 @@ const AudioManager = lazy(() => import('./components/controls/AudioManager').the
 
 // Hooks 从独立文件导入 (避免混合静态/动态导入)
 import { useDeathEcho } from './hooks/useDeathEcho';
-import { useGhostlyVision } from './hooks/useGhostlyVision';
+import { useGhostlyVision } from './components/game/GhostlyVisionOverlay';
+import { useUpdateNotification } from './hooks/useUpdateNotification';
+import UpdateNotificationUI from './components/ui/UpdateNotificationUI';
 
 // Constants
 import { SCRIPTS, ROLES, Z_INDEX } from './constants';
@@ -87,6 +88,9 @@ const App = () => {
   // Toast notifications
   const { toasts, removeToast } = useToasts();
 
+  // Update notifications
+  const { updateAvailable, handleRefresh, handleDismiss } = useUpdateNotification();
+
   // Responsive Grimoire Logic
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -119,8 +123,9 @@ const App = () => {
     }
     
     // 检测新死亡的座位
+    const prevDeadSeats = prevDeadSeatsRef.current;
     currentDeadSeats.forEach(seatId => {
-      if (!prevDeadSeatsRef.current!.has(seatId)) {
+      if (!prevDeadSeats.has(seatId)) {
         const seat = gameState.seats.find(s => s.id === seatId);
         if (seat) {
           triggerDeathEcho(seatId, seat.userName);
@@ -215,8 +220,8 @@ const App = () => {
   const appHeight = viewportSize.height > 0 ? viewportSize.height : undefined;
 
   // Corruption Logic - 腐蚀阶段计算 (根据死亡比例)
-  const aliveCount = gameState?.seats.filter(s => !s.isDead && (s.userId || s.isVirtual)).length || 0;
-  const totalPlayers = gameState?.seats.filter(s => s.userId || s.isVirtual).length || 0;
+  const aliveCount = gameState.seats.filter(s => !s.isDead && (s.userId ?? s.isVirtual)).length;
+  const totalPlayers = gameState.seats.filter(s => s.userId ?? s.isVirtual).length;
   const deadCount = totalPlayers - aliveCount;
   
   let corruptionStage: 0 | 1 | 2 | 3 = 0;
@@ -254,6 +259,13 @@ const App = () => {
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
+      {/* Update Notification */}
+      <UpdateNotificationUI
+        isOpen={updateAvailable}
+        onRefresh={handleRefresh}
+        onDismiss={handleDismiss}
+      />
+
       {/* 模态框 - 按需加载 */}
       <Suspense fallback={null}>
         <RoleRevealModal />
@@ -273,7 +285,7 @@ const App = () => {
 
       {/* v2.0 "亡者视界" - 死亡玩家视觉滤镜 */}
       <Suspense fallback={null}>
-        {isCurrentUserDead && !user?.isStoryteller && (
+        {isCurrentUserDead && !user.isStoryteller && (
           <GhostlyVisionOverlay 
             isActive={true} 
             playerName={currentUserSeat?.userName}
@@ -285,9 +297,9 @@ const App = () => {
       </Suspense>
 
       <div className="absolute inset-0 pointer-events-none z-0 bg-cover bg-center transition-all duration-1000"
-           style={{ 
-             backgroundImage: `url(${!user ? '/img/lobby-bg.png' : '/img/grimoire-bg.png'})`,
-             opacity: 1 
+           style={{
+             backgroundImage: 'url(/img/grimoire-bg.png)',
+             opacity: 1
            }}
       >
         <div className="absolute inset-0 bg-black/30"></div>

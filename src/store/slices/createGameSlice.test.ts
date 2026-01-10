@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+ 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createGameSlice } from './createGameSlice';
 import { createStore, StoreApi } from 'zustand';
@@ -23,7 +23,7 @@ vi.mock('../../lib/gameLogic', () => ({
 // Use hoisted mock to avoid temporal dead zone during module mock evaluation
 const mockRpc = vi.hoisted(() => vi.fn().mockResolvedValue({ data: null, error: null }));
 
-vi.mock('./createConnectionSlice', () => ({
+vi.mock('./connection', () => ({
   supabase: {
     from: () => ({
       update: () => ({ eq: () => ({ error: null }) }),

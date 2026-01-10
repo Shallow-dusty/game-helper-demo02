@@ -75,7 +75,7 @@ export class AIChronicler {
     recordGameStart(playerCount: number, scriptName: string): void {
         this.addEvent({
             type: 'game_start',
-            details: `游戏开始：${playerCount}名玩家，剧本「${scriptName}」`,
+            details: `游戏开始：${String(playerCount)}名玩家，剧本「${scriptName}」`,
             metadata: { playerCount, scriptName }
         });
     }
@@ -98,7 +98,7 @@ export class AIChronicler {
         
         this.addEvent({
             type: 'phase_change',
-            details: `进入第${round}轮 ${phaseNames[newPhase] || newPhase}`,
+            details: `进入第${String(round)}轮 ${phaseNames[newPhase] ?? newPhase}`,
             metadata: { phase: newPhase, round }
         });
     }
@@ -111,7 +111,7 @@ export class AIChronicler {
             type: 'nomination',
             actor: nominatorSeatId,
             target: nomineeSeatId,
-            details: `${nominatorName}（${nominatorSeatId}号位）提名了${nomineeName}（${nomineeSeatId}号位）`,
+            details: `${nominatorName}（${String(nominatorSeatId)}号位）提名了${nomineeName}（${String(nomineeSeatId)}号位）`,
             metadata: { nominatorName, nomineeName }
         });
     }
@@ -124,9 +124,9 @@ export class AIChronicler {
             type: 'vote_cast',
             actor: voterSeatId,
             target: targetSeatId,
-            details: isGhostVote 
-                ? `👻 ${voterName}（${voterSeatId}号位）使用了幽灵投票` 
-                : `${voterName}（${voterSeatId}号位）投了赞成票`,
+            details: isGhostVote
+                ? `👻 ${voterName}（${String(voterSeatId)}号位）使用了幽灵投票`
+                : `${voterName}（${String(voterSeatId)}号位）投了赞成票`,
             metadata: { voterName, isGhostVote }
         });
     }
@@ -145,7 +145,7 @@ export class AIChronicler {
             type: 'vote_end',
             target: nomineeSeatId,
             result,
-            details: `${nomineeName}（${nomineeSeatId}号位）获得${voteCount}票（需要${required}票），${resultText}`,
+            details: `${nomineeName}（${String(nomineeSeatId)}号位）获得${String(voteCount)}票（需要${String(required)}票），${resultText}`,
             metadata: { voteCount, required, result }
         });
     }
@@ -157,7 +157,7 @@ export class AIChronicler {
         this.addEvent({
             type: 'execution',
             target: seatId,
-            details: `⚰️ ${playerName}（${seatId}号位）被处决，真实身份是${roleName}`,
+            details: `⚰️ ${playerName}（${String(seatId)}号位）被处决，真实身份是${roleName}`,
             metadata: { roleName }
         });
     }
@@ -169,7 +169,7 @@ export class AIChronicler {
         this.addEvent({
             type: 'death',
             target: seatId,
-            details: `💀 ${playerName}（${seatId}号位）${cause}${roleName ? `，真实身份是${roleName}` : ''}`,
+            details: `💀 ${playerName}（${String(seatId)}号位）${cause}${roleName ? `，真实身份是${roleName}` : ''}`,
             metadata: { cause, roleName }
         });
     }
@@ -178,16 +178,16 @@ export class AIChronicler {
      * 记录能力使用
      */
     recordAbilityUse(actorSeatId: number, ability: string, targetSeatIds?: number[], result?: string): void {
-        const targetText = targetSeatIds?.length 
-            ? `目标：${targetSeatIds.join(', ')}号位` 
+        const targetText = targetSeatIds?.length
+            ? `目标：${targetSeatIds.join(', ')}号位`
             : '';
-            
+
         this.addEvent({
             type: 'ability_use',
             actor: actorSeatId,
             targets: targetSeatIds,
             result,
-            details: `🔮 ${actorSeatId}号位使用了${ability}${targetText ? `，${targetText}` : ''}${result ? `，结果：${result}` : ''}`,
+            details: `🔮 ${String(actorSeatId)}号位使用了${ability}${targetText ? `，${targetText}` : ''}${result ? `，结果：${result}` : ''}`,
             metadata: { ability, result }
         });
     }
@@ -199,7 +199,7 @@ export class AIChronicler {
         this.addEvent({
             type: 'info_reveal',
             target: seatId,
-            details: `📜 ${seatId}号位获得信息：${info}`
+            details: `📜 ${String(seatId)}号位获得信息：${info}`
         });
     }
 
@@ -211,7 +211,7 @@ export class AIChronicler {
             type: 'whisper',
             actor: fromSeatId,
             target: toSeatId,
-            details: `🌫️ ${fromSeatId}号位与${toSeatId}号位进行私聊`
+            details: `🌫️ ${String(fromSeatId)}号位与${String(toSeatId)}号位进行私聊`
         });
     }
 
@@ -232,7 +232,7 @@ export class AIChronicler {
      */
     private addEvent(event: Omit<GameEvent, 'id' | 'timestamp' | 'round' | 'phase'>): void {
         this.events.push({
-            id: `event-${++this.eventIdCounter}`,
+            id: `event-${String(++this.eventIdCounter)}`,
             timestamp: Date.now(),
             round: this.currentRound,
             phase: this.currentPhase,
@@ -253,7 +253,10 @@ export class AIChronicler {
             if (!eventsByRound.has(round)) {
                 eventsByRound.set(round, []);
             }
-            eventsByRound.get(round)!.push(event);
+            const roundEvents = eventsByRound.get(round);
+            if (roundEvents) {
+                roundEvents.push(event);
+            }
         });
         
         // 生成每轮叙事
@@ -292,14 +295,14 @@ export class AIChronicler {
         const parts: string[] = [];
         
         if (deaths.length > 0) {
-            parts.push(`${deaths.length}人死亡`);
+            parts.push(`${String(deaths.length)}人死亡`);
         }
-        
+
         if (votes.length > 0) {
             const executed = votes.filter(v => v.result === 'executed').length;
             const survived = votes.filter(v => v.result === 'survived').length;
-            if (executed > 0) parts.push(`${executed}人被处决`);
-            if (survived > 0) parts.push(`${survived}人幸存`);
+            if (executed > 0) parts.push(`${String(executed)}人被处决`);
+            if (survived > 0) parts.push(`${String(survived)}人幸存`);
         }
         
         return parts.join('，');
@@ -313,11 +316,11 @@ export class AIChronicler {
         const narrative = this.generateNarrative();
         const latestRound = narrative[narrative.length - 1];
         
-        let context = `当前游戏状态：第${this.currentRound}轮 ${this.currentPhase}\n\n`;
-        
+        let context = `当前游戏状态：第${String(this.currentRound)}轮 ${this.currentPhase}\n\n`;
+
         if (latestRound) {
             context += `本轮概述：${latestRound.summary}\n`;
-            context += `紧张程度：${Math.round(latestRound.tension * 100)}%\n\n`;
+            context += `紧张程度：${String(Math.round(latestRound.tension * 100))}%\n\n`;
         }
         
         context += `最近事件：\n`;
@@ -358,12 +361,12 @@ export class AIChronicler {
      */
     syncFromGameState(gameState: GameState): void {
         // 同步投票历史
-        gameState.voteHistory?.forEach((vote, index) => {
-            const eventId = `vote-${index}`;
+        gameState.voteHistory.forEach((vote, index) => {
+            const eventId = `vote-${String(index)}`;
             if (!this.events.find(e => e.id === eventId)) {
                 const nominee = gameState.seats.find(s => s.id === vote.nomineeSeatId);
                 const nominator = gameState.seats.find(s => s.id === vote.nominatorSeatId);
-                
+
                 this.events.push({
                     id: eventId,
                     timestamp: vote.timestamp,
@@ -373,7 +376,7 @@ export class AIChronicler {
                     actor: vote.nominatorSeatId,
                     target: vote.nomineeSeatId,
                     result: vote.result,
-                    details: `${nominator?.userName || '?'} 提名 ${nominee?.userName || '?'}，${vote.voteCount}票，${vote.result}`,
+                    details: `${nominator?.userName ?? '?'} 提名 ${nominee?.userName ?? '?'}，${String(vote.voteCount)}票，${vote.result}`,
                     metadata: { voteCount: vote.voteCount, result: vote.result }
                 });
             }
@@ -382,9 +385,9 @@ export class AIChronicler {
         // 同步死亡信息
         gameState.seats.forEach(seat => {
             if (seat.isDead) {
-                const deathEventId = `death-${seat.id}`;
+                const deathEventId = `death-${String(seat.id)}`;
                 if (!this.events.find(e => e.id === deathEventId)) {
-                    const roleId = seat.realRoleId || seat.seenRoleId;
+                    const roleId = seat.realRoleId ?? seat.seenRoleId;
                     const role = roleId ? ROLES[roleId] : null;
                     this.events.push({
                         id: deathEventId,
@@ -393,8 +396,8 @@ export class AIChronicler {
                         phase: this.currentPhase,
                         type: 'death',
                         target: seat.id,
-                        details: `${seat.userName || '?'}（${seat.id}号位）已死亡${role ? `，身份${role.name}` : ''}`,
-                        metadata: { roleName: role?.name }
+                        details: `${seat.userName}（${String(seat.id)}号位）已死亡${role ? `，身份${role.name}` : ''}`,
+                        metadata: { roleName: role ? role.name : undefined }
                     });
                 }
             }

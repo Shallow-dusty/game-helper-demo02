@@ -11,13 +11,13 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                 const seat = state.gameState.seats.find(s => s.id === seatId);
                 if (seat) {
                     applyRoleAssignment(state.gameState, seat, roleId);
-                    
+
                     // Auto-add reminders
-                    const role = ROLES[roleId];
+                    const role = roleId ? ROLES[roleId] : undefined;
                     if (role?.reminders) {
-                        seat.reminders = role.reminders.map(r => ({
-                            id: Math.random().toString(36).substr(2, 9),
-                            text: r,
+                        seat.reminders = role.reminders.map(text => ({
+                            id: Math.random().toString(36).substring(2, 11),
+                            text,
                             sourceRole: roleId,
                             seatId: seatId
                         }));
@@ -42,6 +42,8 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                              const scarletWoman = state.gameState.seats.find(s => s.realRoleId === 'scarlet_woman' && !s.isDead);
                              if (scarletWoman) {
                                  scarletWoman.realRoleId = 'imp';
+                                 scarletWoman.seenRoleId = 'imp';
+                                 // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility
                                  scarletWoman.roleId = 'imp';
                                  addSystemMessage(state.gameState, `${scarletWoman.userName} 继承了 恶魔 身份`, scarletWoman.userId);
                              }
@@ -93,7 +95,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                 const seat = state.gameState.seats.find(s => s.id === seatId);
                 if (seat) {
                     seat.reminders.push({
-                        id: Math.random().toString(36).substr(2, 9),
+                        id: Math.random().toString(36).substring(2, 11),
                         text,
                         sourceRole: 'manual',
                         seatId,
@@ -134,13 +136,14 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                 state.gameState.seats.forEach(seat => {
                     // Assign to all seats, regardless of userId
                     const roleId = roles[roleIndex];
-                    if (roleId) {
-                        applyRoleAssignment(state.gameState!, seat, roleId);
+                    const gameStateRef = state.gameState;
+                    if (roleId && gameStateRef) {
+                        applyRoleAssignment(gameStateRef, seat, roleId);
                     }
                     roleIndex++;
                 });
 
-                addSystemMessage(state.gameState, `已自动分配角色 (${seatCount}个座位)`);
+                addSystemMessage(state.gameState, `已自动分配角色 (${String(seatCount)}个座位)`);
             }
         });
         get().sync();
@@ -150,9 +153,10 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
         set((state) => {
             if (state.gameState) {
                 state.gameState.seats.forEach(s => {
-                    s.roleId = null;
                     s.realRoleId = null;
                     s.seenRoleId = null;
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility
+                    s.roleId = null;
                     s.reminders = [];
                     s.statuses = [];
                 });
@@ -187,7 +191,6 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
         set((state) => {
             if (state.gameState) {
                 state.gameState.seats.forEach(s => {
-                    s.roleId = null;
                     s.realRoleId = null;
                     s.seenRoleId = null;
                     s.reminders = [];
@@ -195,14 +198,15 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                 });
 
                 const shuffledRoles = [...roleIds].sort(() => Math.random() - 0.5);
-                
+
                 let roleIndex = 0;
                 state.gameState.seats.forEach(seat => {
                     // Assign to all seats, regardless of userId
                     if (roleIndex < shuffledRoles.length) {
                         const roleId = shuffledRoles[roleIndex];
-                        if (roleId) {
-                            applyRoleAssignment(state.gameState!, seat, roleId);
+                        const gameStateRef = state.gameState;
+                        if (roleId && gameStateRef) {
+                            applyRoleAssignment(gameStateRef, seat, roleId);
                         }
                         roleIndex++;
                     }

@@ -34,7 +34,7 @@ export function checkGrandmotherChain(gameState: GameState, deadSeatId: number):
   // 这里我们检查是否有 Grandmother 角色，并且死者与她有关联
   
   const grandmotherSeat = gameState.seats.find(s => {
-    const roleId = s.realRoleId || s.seenRoleId;
+    const roleId = s.realRoleId ?? s.seenRoleId;
     return roleId === 'grandmother' && !s.isDead;
   });
   
@@ -74,7 +74,7 @@ export function checkMoonchildChain(gameState: GameState, deadSeatId: number): C
   
   // 检查是否有 Moonchild 角色选择了这个死者
   const moonchildSeat = gameState.seats.find(s => {
-    const roleId = s.realRoleId || s.seenRoleId;
+    const roleId = s.realRoleId ?? s.seenRoleId;
     if (roleId !== 'moonchild' || s.isDead) return false;
     
     // 检查提醒标记
@@ -144,7 +144,7 @@ export function checkGameEndCondition(gameState: GameState): ChainReactionEvent 
   
   // 检测恶魔是否死亡
   const demonAlive = aliveSeats.some(s => {
-    const roleId = s.realRoleId || s.seenRoleId;
+    const roleId = s.realRoleId ?? s.seenRoleId;
     return roleId && ROLES[roleId]?.team === 'DEMON';
   });
   
@@ -161,11 +161,13 @@ export function checkGameEndCondition(gameState: GameState): ChainReactionEvent 
   }
   
   // 检测存活人数（包含恶魔的情况下，只剩2人时邪恶获胜）
-  if (aliveSeats.length <= 2 && demonAlive) {
+  // 此时 demonAlive 必为 true（否则已在上方返回）
+  if (aliveSeats.length <= 2) {
+    const aliveCount = aliveSeats.length;
     return {
       type: 'game_end',
       title: '💀 游戏结束',
-      message: `仅剩 ${aliveSeats.length} 名玩家存活（含恶魔），邪恶阵营获胜！是否结束游戏？`,
+      message: `仅剩 ${String(aliveCount)} 名玩家存活（含恶魔），邪恶阵营获胜！是否结束游戏？`,
       affectedSeatIds: [],
       suggestedAction: 'end_game',
       priority: 'high',
@@ -183,7 +185,7 @@ export function checkGameEndCondition(gameState: GameState): ChainReactionEvent 
 export function checkSaintExecution(gameState: GameState, executedSeatId: number): ChainReactionEvent | null {
   const executedSeat = gameState.seats[executedSeatId];
   if (!executedSeat) return null;
-  const roleId = executedSeat.realRoleId || executedSeat.seenRoleId;
+  const roleId = executedSeat.realRoleId ?? executedSeat.seenRoleId;
   
   if (roleId === 'saint') {
     return {

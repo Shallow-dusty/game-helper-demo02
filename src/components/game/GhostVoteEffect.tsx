@@ -51,7 +51,7 @@ export const GhostVoteEffect: React.FC<GhostVoteEffectProps> = ({
   // 创建唯一的投票键
   const voteKey = useMemo(() => {
     if (voterSeatId === null || targetSeatId === null) return null;
-    return `${voterSeatId}-${targetSeatId}-${Date.now()}`;
+    return `${String(voterSeatId)}-${String(targetSeatId)}-${String(Date.now())}`;
   }, [voterSeatId, targetSeatId]);
 
   // 检测新的幽灵投票
@@ -97,9 +97,8 @@ export const GhostVoteEffect: React.FC<GhostVoteEffectProps> = ({
 
   return (
     <AnimatePresence>
-      {isActive && (
-        <>
-          {/* 背景暗化效果 */}
+      <>
+        {/* 背景暗化效果 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.3 }}
@@ -373,7 +372,7 @@ export const GhostVoteEffect: React.FC<GhostVoteEffectProps> = ({
             </defs>
             
             <motion.path
-              d={`M ${startX} ${startY} Q ${midX} ${midY} ${endX} ${endY}`}
+              d={`M ${String(startX)} ${String(startY)} Q ${String(midX)} ${String(midY)} ${String(endX)} ${String(endY)}`}
               fill="none"
               stroke="url(#ghostTrailGradient)"
               strokeWidth={3}
@@ -384,8 +383,7 @@ export const GhostVoteEffect: React.FC<GhostVoteEffectProps> = ({
               transition={{ duration: 2, times: [0, 0.6, 1], ease: 'easeInOut' }}
             />
           </svg>
-        </>
-      )}
+      </>
     </AnimatePresence>
   );
 };

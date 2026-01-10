@@ -131,7 +131,7 @@ describe('createGameScriptsSlice', () => {
 
       scriptsSlice.saveCustomScript(customScript);
 
-      expect(mockStore.state.gameState?.customScripts?.['custom1']).toEqual(customScript);
+      expect(mockStore.state.gameState?.customScripts?.custom1).toEqual(customScript);
       expect(mockStore.get().sync).toHaveBeenCalled();
     });
 
@@ -148,7 +148,7 @@ describe('createGameScriptsSlice', () => {
 
       scriptsSlice.saveCustomScript(newScript);
 
-      expect(mockStore.state.gameState?.customScripts?.['custom1']?.name).toBe('New Script');
+      expect(mockStore.state.gameState?.customScripts?.custom1?.name).toBe('New Script');
     });
   });
 
@@ -161,8 +161,8 @@ describe('createGameScriptsSlice', () => {
 
       scriptsSlice.deleteCustomScript('custom1');
 
-      expect(mockStore.state.gameState?.customScripts?.['custom1']).toBeUndefined();
-      expect(mockStore.state.gameState?.customScripts?.['custom2']).toBeDefined();
+      expect(mockStore.state.gameState?.customScripts?.custom1).toBeUndefined();
+      expect(mockStore.state.gameState?.customScripts?.custom2).toBeDefined();
       expect(mockStore.get().sync).toHaveBeenCalled();
     });
 

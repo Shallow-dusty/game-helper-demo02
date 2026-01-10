@@ -1,7 +1,15 @@
 import { StoreSlice, GameSlice } from '../../types';
-import { supabase, ConnectionSlice } from '../createConnectionSlice';
+import { supabase, ConnectionSlice } from '../connection';
 import { addSystemMessage } from '../../utils';
 import { getInitialState } from './utils';
+import { REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
+import type { GameState } from '../../../types';
+
+// Type for RPC responses
+interface RpcResponse {
+    success: boolean;
+    error?: string;
+}
 
 export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joinSeat' | 'leaveSeat' | 'toggleReady' | 'addSeat' | 'removeSeat' | 'addVirtualPlayer' | 'removeVirtualPlayer'>> = (set, get) => ({
     createGame: async (seatCount) => {
@@ -31,29 +39,31 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
                     'postgres_changes',
                     { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `room_code=eq.${code}` },
                     (payload) => {
-                        if (payload.new?.data) {
+                        const newData = payload.new as { data?: GameState } | undefined;
+                        if (newData?.data) {
                             const connection = get() as ConnectionSlice;
-                            if (connection._setIsReceivingUpdate) connection._setIsReceivingUpdate(true);
-                            set({ gameState: payload.new.data });
-                            if (connection._setIsReceivingUpdate) connection._setIsReceivingUpdate(false);
+                            connection._setIsReceivingUpdate(true);
+                            set({ gameState: newData.data });
+                            connection._setIsReceivingUpdate(false);
                         }
                     }
                 )
                 .subscribe((status) => {
-                    if (status === 'SUBSCRIBED') {
+                    if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) {
                         set({ connectionStatus: 'connected', isOffline: false });
-                    } else if (status === 'CLOSED') {
+                    } else if (status === REALTIME_SUBSCRIBE_STATES.CLOSED) {
                         set({ connectionStatus: 'disconnected' });
-                    } else if (status === 'CHANNEL_ERROR') {
+                    } else if (status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR) {
                         set({ connectionStatus: 'reconnecting' });
                     }
                 });
 
              const connection = get() as ConnectionSlice;
-             if (connection._setRealtimeChannel) connection._setRealtimeChannel(channel);
+             connection._setRealtimeChannel(channel);
 
-        } catch (error: any) {
-            console.warn('⚠️ 云端连接失败，切换到离线模式:', error.message);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            console.warn('⚠️ 云端连接失败，切换到离线模式:', errorMessage);
             set({ isOffline: true, connectionStatus: 'disconnected' });
         }
     },
@@ -67,7 +77,7 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
         if (!seat || seat.userId) return;
 
         try {
-            const { data, error } = await supabase.rpc('claim_seat', {
+            const response = await supabase.rpc('claim_seat', {
                 p_room_code: user.roomId,
                 p_seat_id: seatId,
                 p_user_id: user.id,
@@ -75,9 +85,10 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
                 p_client_token: user.id // Using user.id as token for now
             });
 
-            if (error) throw error;
-            if (data && !data.success) {
-                addSystemMessage(gameState, `入座失败: ${data.error}`);
+            if (response.error) throw response.error;
+            const rpcResult = response.data as RpcResponse | null;
+            if (rpcResult && !rpcResult.success) {
+                addSystemMessage(gameState, `入座失败: ${rpcResult.error ?? '未知错误'}`);
                 return;
             }
 
@@ -85,10 +96,11 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
             set((state) => {
                 if (state.user) state.user.isSeated = true;
             });
-            
-        } catch (error: any) {
-            console.error('Join seat error:', error);
-            addSystemMessage(gameState, `入座出错: ${error.message}`);
+
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            console.error('Join seat error:', err);
+            addSystemMessage(gameState, `入座出错: ${errorMessage}`);
         }
     },
 
@@ -100,15 +112,16 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
         if (!seat) return;
 
         try {
-            const { data, error } = await supabase.rpc('leave_seat', {
+            const response = await supabase.rpc('leave_seat', {
                 p_room_code: user.roomId,
                 p_seat_id: seat.id,
                 p_client_token: user.id
             });
 
-            if (error) throw error;
-            if (data && !data.success) {
-                console.error('Leave seat failed:', data.error);
+            if (response.error) throw response.error;
+            const rpcResult = response.data as RpcResponse | null;
+            if (rpcResult && !rpcResult.success) {
+                console.error('Leave seat failed:', rpcResult.error);
                 return;
             }
 
@@ -116,8 +129,8 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
                 if (state.user) state.user.isSeated = false;
             });
 
-        } catch (error: any) {
-            console.error('Leave seat error:', error);
+        } catch (err) {
+            console.error('Leave seat error:', err);
         }
     },
 
@@ -143,7 +156,7 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
                 state.gameState.seats.push({
                     id: newId,
                     userId: null,
-                    userName: `座位 ${newId + 1}`,
+                    userName: `座位 ${String(newId + 1)}`,
                     isDead: false,
                     hasGhostVote: true,
                     roleId: null,
@@ -177,8 +190,8 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
                 const emptySeat = state.gameState.seats.find(s => !s.userId && !s.isVirtual);
                 if (emptySeat) {
                     emptySeat.isVirtual = true;
-                    emptySeat.userName = `虚拟玩家 ${emptySeat.id + 1}`;
-                    emptySeat.userId = `virtual-${Date.now()}`;
+                    emptySeat.userName = `虚拟玩家 ${String(emptySeat.id + 1)}`;
+                    emptySeat.userId = `virtual-${String(Date.now())}`;
                 }
             }
         });
@@ -191,7 +204,7 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
                 const seat = state.gameState.seats.find(s => s.id === seatId);
                 if (seat?.isVirtual) {
                     seat.isVirtual = false;
-                    seat.userName = `座位 ${seat.id + 1}`;
+                    seat.userName = `座位 ${String(seat.id + 1)}`;
                     seat.userId = null;
                 }
             }

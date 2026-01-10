@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+ 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createStore, StoreApi } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { createGameSlice } from '../../src/store/slices/createGameSlice';
-import { createConnectionSlice } from '../../src/store/slices/createConnectionSlice';
+import { createConnectionSlice } from '../../src/store/slices/connection';
 import { createAISlice } from '../../src/store/slices/createAISlice';
 import { createUISlice } from '../../src/store/slices/createUISlice';
 import { AppState } from '../../src/store/types';
@@ -34,8 +34,8 @@ vi.mock('@supabase/supabase-js', () => ({
     })),
 }));
 
-vi.mock('../../src/store/slices/createConnectionSlice', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('../../src/store/slices/createConnectionSlice')>();
+vi.mock('../../src/store/slices/connection', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../src/store/slices/connection')>();
     return {
         ...actual,
         createConnectionSlice: (_set, _get) => ({

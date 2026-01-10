@@ -185,19 +185,19 @@ const StrategyDetailModal: React.FC<{
                             <div className="space-y-2 text-xs text-stone-400">
                                 <div>
                                     <p className="text-amber-400">强力角色（建议{strategy.guidelines.strongRoles.min}-{strategy.guidelines.strongRoles.max}个）</p>
-                                    <p className="text-stone-500">{strategy.guidelines.strongRoles.roles.map(id => ROLES[id]?.name || id).join('、') || '无'}</p>
+                                    <p className="text-stone-500">{strategy.guidelines.strongRoles.roles.map(id => ROLES[id]?.name ?? id).join('、') || '无'}</p>
                                 </div>
                                 <div>
                                     <p className="text-blue-400">中强角色（建议{strategy.guidelines.mediumStrongRoles.min}-{strategy.guidelines.mediumStrongRoles.max}个）</p>
-                                    <p className="text-stone-500">{strategy.guidelines.mediumStrongRoles.roles.map(id => ROLES[id]?.name || id).join('、') || '无'}</p>
+                                    <p className="text-stone-500">{strategy.guidelines.mediumStrongRoles.roles.map(id => ROLES[id]?.name ?? id).join('、') || '无'}</p>
                                 </div>
                                 <div>
                                     <p className="text-stone-400">中等角色（填充用）</p>
-                                    <p className="text-stone-500">{strategy.guidelines.mediumRoles.roles.map(id => ROLES[id]?.name || id).join('、') || '无'}</p>
+                                    <p className="text-stone-500">{strategy.guidelines.mediumRoles.roles.map(id => ROLES[id]?.name ?? id).join('、') || '无'}</p>
                                 </div>
                                 <div className="pt-2 border-t border-stone-700">
-                                    <p>推荐爪牙: {strategy.guidelines.recommendedMinions.map(id => ROLES[id]?.name || id).join('、')}</p>
-                                    <p>推荐局外人: {strategy.guidelines.recommendedOutsiders.map(id => ROLES[id]?.name || id).join('、')}</p>
+                                    <p>推荐爪牙: {strategy.guidelines.recommendedMinions.map(id => ROLES[id]?.name ?? id).join('、')}</p>
+                                    <p>推荐局外人: {strategy.guidelines.recommendedOutsiders.map(id => ROLES[id]?.name ?? id).join('、')}</p>
                                 </div>
                             </div>
                         </div>
@@ -229,26 +229,26 @@ const StrategyDetailModal: React.FC<{
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
                                     <p className="text-blue-400 font-bold text-xs mb-2">镇民 ({generatedRoles.townsfolk.length})</p>
-                                    {generatedRoles.townsfolk.map((role, index) => (
-                                        role ? <p key={role.id || index} className="text-xs text-stone-400">• {role.name || '未知'}</p> : null
+                                    {generatedRoles.townsfolk.map((role) => (
+                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
                                     ))}
                                 </div>
                                 <div>
                                     <p className="text-yellow-400 font-bold text-xs mb-2">外来者 ({generatedRoles.outsider.length})</p>
-                                    {generatedRoles.outsider.map((role, index) => (
-                                        role ? <p key={role.id || index} className="text-xs text-stone-400">• {role.name || '未知'}</p> : null
+                                    {generatedRoles.outsider.map((role) => (
+                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
                                     ))}
                                 </div>
                                 <div>
                                     <p className="text-orange-400 font-bold text-xs mb-2">爪牙 ({generatedRoles.minion.length})</p>
-                                    {generatedRoles.minion.map((role, index) => (
-                                        role ? <p key={role.id || index} className="text-xs text-stone-400">• {role.name || '未知'}</p> : null
+                                    {generatedRoles.minion.map((role) => (
+                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
                                     ))}
                                 </div>
                                 <div>
                                     <p className="text-red-400 font-bold text-xs mb-2">恶魔 ({generatedRoles.demon.length})</p>
-                                    {generatedRoles.demon.map((role, index) => (
-                                        role ? <p key={role.id || index} className="text-xs text-stone-400">• {role.name || '未知'}</p> : null
+                                    {generatedRoles.demon.map((role) => (
+                                        <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
                                     ))}
                                 </div>
                             </div>
@@ -288,8 +288,8 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
     const composition = getStandardComposition(safePlayerCount);
 
     // Get current script from store
-    const currentScriptId = useStore(state => state.gameState?.currentScriptId) || 'tb';
-    const currentScript = SCRIPTS[currentScriptId] || SCRIPTS.tb;
+    const currentScriptId = useStore(state => state.gameState?.currentScriptId) ?? 'tb';
+    const currentScript = SCRIPTS[currentScriptId] ?? SCRIPTS.tb;
 
     // 生成具体角色配置
     const generateRoles = (strategy: CompositionStrategy) => {
@@ -348,7 +348,8 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
             // 如果还不够，从剩余镇民中随机选择
             const remainingTownsfolk = shuffleArray(townsfolkRoles.filter(id => !selectedTownsfolkIds.includes(id)));
             while (selectedTownsfolkIds.length < composition.townsfolk && remainingTownsfolk.length > 0) {
-                selectedTownsfolkIds.push(remainingTownsfolk.shift()!);
+                const nextRole = remainingTownsfolk.shift();
+                if (nextRole) selectedTownsfolkIds.push(nextRole);
             }
 
             const selectedTownsfolk = selectedTownsfolkIds.map(id => ROLES[id]).filter(Boolean) as RoleDef[];
@@ -415,7 +416,7 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
                             📜 板子配置建议 (Script Guide)
                         </h3>
                         <p className="text-xs text-[#654321] mt-1 font-serif italic">
-                            当前人数: {safePlayerCount}人 | 标准配比: {composition?.townsfolk || 0}镇民+{composition?.outsider || 0}外来者+{composition?.minion || 0}爪牙+{composition?.demon || 0}恶魔
+                            当前人数: {safePlayerCount}人 | 标准配比: {composition?.townsfolk ?? 0}镇民+{composition?.outsider ?? 0}外来者+{composition?.minion ?? 0}爪牙+{composition?.demon ?? 0}恶魔
                         </p>
                     </div>
                     <button 
@@ -436,15 +437,15 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-serif">
                             <div>
                                 <p className="text-[#b91c1c] font-bold mb-1 uppercase tracking-wider">强力角色</p>
-                                <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.strong.map(id => ROLES[id]?.name || id).join('、')}</p>
+                                <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.strong.map(id => ROLES[id]?.name ?? id).join('、')}</p>
                             </div>
                             <div>
                                 <p className="text-[#1d4ed8] font-bold mb-1 uppercase tracking-wider">中强角色</p>
-                                <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.mediumStrong.map(id => ROLES[id]?.name || id).join('、')}</p>
+                                <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.mediumStrong.map(id => ROLES[id]?.name ?? id).join('、')}</p>
                             </div>
                             <div>
                                 <p className="text-[#4a3728] font-bold mb-1 uppercase tracking-wider">中等角色</p>
-                                <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.medium.map(id => ROLES[id]?.name || id).join('、')}</p>
+                                <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.medium.map(id => ROLES[id]?.name ?? id).join('、')}</p>
                             </div>
                         </div>
                     </div>

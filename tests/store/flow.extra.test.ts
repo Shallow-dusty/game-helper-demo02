@@ -5,7 +5,7 @@ import type { GameState, Seat, User } from '../../src/types';
 import { PHASE_LABELS } from '../../src/constants';
 
 // Mock supabase
-vi.mock('../../src/store/slices/createConnectionSlice', () => ({
+vi.mock('../../src/store/slices/connection', () => ({
   supabase: {
     from: vi.fn(() => ({
       insert: vi.fn().mockResolvedValue({ error: null }),

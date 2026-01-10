@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { ChatMessage } from '../../types';
+import { ChatMessage, VoteRecord, Seat } from '../../types';
 import { VotingChart } from '../game/VotingChart';
 
 // Initialize Supabase client locally for this component
@@ -8,16 +8,28 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+interface HistoryPlayer {
+    name: string;
+    isDead?: boolean;
+    team?: string;
+    role?: string;
+}
+
+interface HistoryState {
+    voteHistory?: VoteRecord[];
+    seats?: Seat[];
+}
+
 interface HistoryRecord {
     id: number;
     room_code: string;
     winner: 'GOOD' | 'EVIL';
     reason: string;
     script_name: string;
-    players: any[];
+    players: HistoryPlayer[];
     messages: ChatMessage[];
     created_at: string;
-    state?: any;
+    state?: HistoryState;
 }
 
 interface HistoryViewerProps {
@@ -68,7 +80,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                 .limit(20);
 
             if (error) throw error;
-            setRecords(data || []);
+            setRecords(data);
         } catch (err) {
             console.error("Error fetching history:", err);
         } finally {
@@ -165,7 +177,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <span className={`text-xs ${p.team === 'DEMON' ? 'text-red-500' : p.team === 'MINION' ? 'text-orange-500' : 'text-blue-400'}`}>
-                                                                    {p.role || 'Unknown'}
+                                                                    {p.role ?? 'Unknown'}
                                                                 </span>
                                                             </div>
                                                         </div>

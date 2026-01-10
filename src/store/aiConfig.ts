@@ -16,6 +16,22 @@ export const AI_CONFIG: Record<AiProvider, { model: string; name: string; note?:
         name: 'Kimi (Official)',
         note: '❌ 官方API不支持浏览器直连(CORS)，请使用SiliconFlow版Kimi'
     },
+    glm: {
+        model: 'glm-4.7',
+        name: '🧠 GLM 4.7 (Official)',
+        note: '✅ 智谱官方API，稳定可用'
+    },
+    // 华为云 MaaS Models - 需要 VITE_HW_MAAS_KEY
+    hw_deepseek_v3: {
+        model: 'deepseek-v3.2',
+        name: '🔥 DeepSeek V3.2 (华为云)',
+        note: '✅ 华为云 MaaS，国内直连稳定'
+    },
+    hw_deepseek_r1: {
+        model: 'DeepSeek-R1',
+        name: '🧠 DeepSeek R1 (华为云)',
+        note: '✅ 华为云 MaaS，推理增强模型'
+    },
     // SiliconFlow Models - 需要 VITE_SILICONFLOW_KEY
     sf_deepseek_v3_2: {
         model: 'deepseek-ai/DeepSeek-V3.2-Exp',
@@ -57,6 +73,8 @@ export const getAiConfig = (): Record<AiProvider, { model: string; name: string;
     const deepseekKey = import.meta.env.VITE_DEEPSEEK_KEY;
     const geminiKey = import.meta.env.VITE_GEMINI_KEY;
     const kimiKey = import.meta.env.VITE_KIMI_KEY;
+    const glmKey = import.meta.env.VITE_GLM_KEY;
+    const hwMaasKey = import.meta.env.VITE_HW_MAAS_KEY;
     const siliconflowKey = import.meta.env.VITE_SILICONFLOW_KEY;
 
     // 为每个 provider 添加 apiKey 字段
@@ -70,6 +88,10 @@ export const getAiConfig = (): Record<AiProvider, { model: string; name: string;
             apiKey = geminiKey;
         } else if (provider === 'kimi') {
             apiKey = kimiKey;
+        } else if (provider === 'glm') {
+            apiKey = glmKey;
+        } else if (provider.startsWith('hw_')) {
+            apiKey = hwMaasKey;
         } else if (provider.startsWith('sf_')) {
             apiKey = siliconflowKey;
         }

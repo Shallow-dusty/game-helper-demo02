@@ -186,7 +186,7 @@ const CompactRoleDisplay: React.FC<CompactRoleDisplayProps> = ({ role, seat, gam
             >
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full border border-stone-600 flex items-center justify-center bg-stone-950 shadow-inner" style={{ borderColor: TEAM_COLORS[role.team] }}>
-                        <span className="text-2xl">{role.icon || (role.team === 'DEMON' ? '👿' : role.team === 'MINION' ? '🧪' : '⚜️')}</span>
+                        <span className="text-2xl">{role.icon ?? (role.team === 'DEMON' ? '👿' : role.team === 'MINION' ? '🧪' : '⚜️')}</span>
                     </div>
                     <div>
                         <div className="font-bold font-cinzel text-stone-200 flex items-center gap-2">
@@ -241,7 +241,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
     if (!user || !gameState) return null;
 
     const currentSeat = gameState.seats.find(s => s.userId === user.id);
-    const role = currentSeat?.roleId ? ROLES[currentSeat.roleId] : null;
+    const role = currentSeat?.seenRoleId ? ROLES[currentSeat.seenRoleId] : null;
 
     return (
         <div className="space-y-3">
@@ -271,7 +271,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                     </div>
                     
                     {/* 当前是你的回合 - 始终显示按钮 */}
-                    {currentSeat?.roleId === gameState.nightQueue[gameState.nightCurrentIndex] && (
+                    {currentSeat?.seenRoleId === gameState.nightQueue[gameState.nightCurrentIndex] && (
                         <button
                             onClick={onShowNightAction}
                             className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold shadow-lg animate-pulse border border-indigo-400 flex items-center justify-center gap-2"
@@ -281,9 +281,9 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                     )}
 
                     {/* 即使不是当前回合，但有夜间技能的角色也可以查看 */}
-                    {currentSeat?.roleId &&
-                        ROLES[currentSeat.roleId]?.nightAction &&
-                        currentSeat.roleId !== gameState.nightQueue[gameState.nightCurrentIndex] && (
+                    {currentSeat?.seenRoleId &&
+                        ROLES[currentSeat.seenRoleId]?.nightAction &&
+                        currentSeat.seenRoleId !== gameState.nightQueue[gameState.nightCurrentIndex] && (
                             <button
                                 onClick={onShowNightAction}
                                 className="mt-2 w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded text-sm border border-stone-600"
@@ -308,10 +308,10 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                     {currentSeat ? (
                         <>
                             <VoteButton
-                                isRaised={currentSeat.isHandRaised || false}
-                                isLocked={currentSeat.voteLocked || false}
-                                isDead={currentSeat.isDead || false}
-                                hasGhostVote={currentSeat.hasGhostVote ?? true}
+                                isRaised={currentSeat.isHandRaised}
+                                isLocked={currentSeat.voteLocked ?? false}
+                                isDead={currentSeat.isDead}
+                                hasGhostVote={currentSeat.hasGhostVote}
                                 onToggle={toggleHand}
                             />
                             <div className="text-center text-xs text-stone-500 font-serif">

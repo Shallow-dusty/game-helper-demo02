@@ -12,7 +12,7 @@ export const getInitialState = (roomId: string, seatCount: number, currentScript
     seats: Array.from({ length: seatCount }, (_, i) => ({
         id: i,
         userId: null,
-        userName: `座位 ${i + 1}`,
+        userName: `座位 ${String(i + 1)}`,
         isDead: false,
         hasGhostVote: true,
         roleId: null,
@@ -59,10 +59,11 @@ export const getInitialState = (roomId: string, seatCount: number, currentScript
 export const fallbackTownsfolk = ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller', 'undertaker', 'monk', 'ravenkeeper'];
 
 export const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: string | null) => {
-    if (!seat) return;
+    if (!seat) return; // Guard against undefined seat
 
     seat.realRoleId = roleId;
     seat.seenRoleId = roleId;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility until v0.8.0
     seat.roleId = roleId;
     seat.hasUsedAbility = false;
     seat.statuses = [];
@@ -84,8 +85,9 @@ export const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: st
     const pickTownsfolk = (): string | null => {
         const availableTownsfolk = script?.roles
             .map(id => ROLES[id])
-            .filter(r => r?.team === 'TOWNSFOLK' && r?.id && !usedRoles.has(r.id))
-            .map(r => r!.id) || [];
+            .filter(r => r?.team === 'TOWNSFOLK' && r.id && !usedRoles.has(r.id))
+            .map(r => r?.id)
+            .filter((id): id is string => id !== undefined) ?? [];
         
         // 如果剧本中没有可用的，尝试从备用列表中选择
         const fallbackAvailable = fallbackTownsfolk.filter(id => !usedRoles.has(id));
@@ -103,22 +105,26 @@ export const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: st
     if (roleId === 'drunk') {
         const fakeRole = pickTownsfolk();
         seat.seenRoleId = fakeRole ?? null;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility until v0.8.0
         seat.roleId = fakeRole ?? null;
     }
 
     if (roleId === 'lunatic') {
         const demons = script?.roles
             .map(id => ROLES[id])
-            .filter(r => r?.team === 'DEMON' && r?.id)
-            .map(r => r!.id) || [];
+            .filter(r => r?.team === 'DEMON' && r.id)
+            .map(r => r?.id)
+            .filter((id): id is string => id !== undefined) ?? [];
         const fakeDemon = demons.length > 0 ? demons[0] : 'imp';
         seat.seenRoleId = fakeDemon ?? null;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility until v0.8.0
         seat.roleId = fakeDemon ?? null;
     }
 
     if (roleId === 'marionette') {
         const fakeRole = pickTownsfolk();
         seat.seenRoleId = fakeRole ?? null;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility until v0.8.0
         seat.roleId = fakeRole ?? null;
     }
 };

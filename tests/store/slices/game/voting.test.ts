@@ -12,7 +12,7 @@ import type { GameState, Seat } from '../../../../src/types';
 import { checkGameOver } from '../../../../src/lib/gameLogic';
 
 // Mock supabase
-vi.mock('../../../../src/store/slices/createConnectionSlice', () => ({
+vi.mock('../../../../src/store/slices/connection', () => ({
   supabase: {
     rpc: vi.fn()
   }
@@ -294,9 +294,8 @@ describe('createVotingSlice', () => {
       const history = mockStore.state.gameState?.voteHistory?.[0];
       expect(history?.result).toBe('executed');
       expect(history?.votes).toEqual([0, 2, 3]);
-      // nominatorSeatId: when it's 0, code uses `nominatorSeatId || -1` which evaluates to -1
-      // since 0 is falsy in JavaScript
-      expect(history?.nominatorSeatId).toBe(-1);
+      // nominatorSeatId: when it's 0, code correctly preserves 0 using nullish coalescing (??)
+      expect(history?.nominatorSeatId).toBe(0);
       expect(history?.nomineeSeatId).toBe(1);
     });
 

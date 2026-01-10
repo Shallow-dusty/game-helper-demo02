@@ -35,8 +35,8 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'warn',
       '@typescript-eslint/no-non-null-asserted-optional-chain': 'warn',
 
-      // 条件判断优化建议
-      '@typescript-eslint/no-unnecessary-condition': 'warn',
+      // 条件判断优化建议（关闭：防御性编程常触发误报）
+      '@typescript-eslint/no-unnecessary-condition': 'off',
 
       // React 相关规则调整
       '@typescript-eslint/no-misused-promises': ['error', {
@@ -47,12 +47,12 @@ export default tseslint.config(
 
       // 代码风格
       '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
-      '@typescript-eslint/prefer-nullish-coalescing': 'warn',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',  // 关闭：|| 和 ?? 各有适用场景
       '@typescript-eslint/prefer-optional-chain': 'error',
 
       // 其他规则
       '@typescript-eslint/no-confusing-void-expression': 'off',
-      '@typescript-eslint/restrict-template-expressions': 'warn',
+      '@typescript-eslint/restrict-template-expressions': 'off',  // 关闭：模板字符串类型过严
       '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
       '@typescript-eslint/ban-ts-comment': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', {
@@ -95,15 +95,27 @@ export default tseslint.config(
   },
   // 测试文件规则（最后应用，优先级最高）
   {
-    files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
+    files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}', 'tests/**/*.{ts,tsx}'],
     rules: {
       // 测试文件中放宽所有类型相关规则
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/consistent-type-definitions': 'off',  // 允许使用type
       '@typescript-eslint/require-await': 'off',  // 测试async函数可能不await
+      '@typescript-eslint/no-empty-function': 'off',  // 测试中允许空函数 mock
+      '@typescript-eslint/no-non-null-assertion': 'off',  // 测试中允许非空断言
+      '@typescript-eslint/await-thenable': 'off',  // 测试中mock函数可能不返回Promise
+      '@typescript-eslint/unbound-method': 'off',  // 测试中允许分离方法引用
+      '@typescript-eslint/only-throw-error': 'off',  // 测试中允许throw字符串
+      '@typescript-eslint/no-floating-promises': 'off',  // 测试中允许未处理Promise
+      '@typescript-eslint/no-unused-vars': 'off',  // 测试中允许未使用变量（预留的mock等）
+      '@typescript-eslint/no-deprecated': 'off',  // 测试中允许使用deprecated字段
+      '@typescript-eslint/ban-ts-comment': 'off',  // 测试中允许@ts-ignore
+      '@typescript-eslint/use-unknown-in-catch-callback-variable': 'off',  // 测试中catch可用any
     },
   },
   {
@@ -115,6 +127,11 @@ export default tseslint.config(
       '*.cjs',
       'supabase/**',
       'scripts/**',
+      'backend/**',
+      'coverage/**',
+      'public/**',
+      'postcss.config.js',
+      'tailwind.config.ts',
     ],
   }
 );

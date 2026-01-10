@@ -12,6 +12,7 @@ import { Chat } from './Chat';
 import { StorytellerNotebook } from '../game/StorytellerNotebook';
 import { PlayerNotebook } from '../game/PlayerNotebook';
 import { ControlsAudioTab } from './ControlsAudioTab';
+import { ControlsAITab } from './ControlsAITab';
 import { GameHistoryView } from '../history/GameHistoryView';
 import { RoleReferencePanel } from './RoleReferencePanel';
 import { ScriptCompositionGuide } from '../script/ScriptCompositionGuide';
@@ -19,8 +20,6 @@ import { NightActionPanel } from '../game/NightActionPanel';
 import { PlayerNightAction } from '../game/PlayerNightAction';
 import { ScriptEditor } from '../script/ScriptEditor';
 import { VoiceRoomLink } from '../ui/VoiceRoomLink';
-import { getAiConfig } from '../../store/aiConfig';
-import { AiProvider } from '../../store/types';
 
 interface ControlsProps {
     onClose?: () => void;
@@ -29,16 +28,8 @@ interface ControlsProps {
 export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const user = useStore(state => state.user);
     const gameState = useStore(state => state.gameState);
-    const askAi = useStore(state => state.askAi);
-    const isAiThinking = useStore(state => state.isAiThinking);
     const leaveGame = useStore(state => state.leaveGame);
     const isOffline = useStore(state => state.isOffline);
-
-    // AI Provider settings
-    const aiProvider = useStore(state => state.aiProvider);
-    const setAiProvider = useStore(state => state.setAiProvider);
-    const clearAiMessages = useStore(state => state.clearAiMessages);
-    const deleteAiMessage = useStore(state => state.deleteAiMessage);
 
     const [activeTab, setActiveTab] = useState<'game' | 'chat' | 'ai' | 'notebook' | 'audio'>(() => {
         const saved = localStorage.getItem('grimoire_active_tab');
@@ -48,8 +39,6 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     useEffect(() => {
         localStorage.setItem('grimoire_active_tab', activeTab);
     }, [activeTab]);
-
-    const [aiPrompt, setAiPrompt] = useState('');
     const [showHistory, setShowHistory] = useState(false);
     const [showNightAction, setShowNightAction] = useState(false);
     const [showRoleReference, setShowRoleReference] = useState(false);
@@ -106,11 +95,11 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
         if (gameState.phase !== 'NIGHT') return;
 
         const currentSeat = gameState.seats.find(s => s.userId === user.id);
-        if (!currentSeat?.roleId) return;
+        if (!currentSeat?.seenRoleId) return;
 
         const currentNightRole = gameState.nightQueue[gameState.nightCurrentIndex];
-        if (currentNightRole === currentSeat.roleId) {
-            const role = ROLES[currentSeat.roleId];
+        if (currentNightRole === currentSeat.seenRoleId) {
+            const role = ROLES[currentSeat.seenRoleId];
             if (role?.nightAction) {
                 setShowNightAction(true);
                 if (gameState.vibrationEnabled) {
@@ -121,7 +110,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 try {
                     const wakeSound = new Audio('/audio/sfx/wake.mp3');
                     wakeSound.volume = 0.3;
-                    wakeSound.play().catch(e => console.warn('Audio blocked:', e));
+                    wakeSound.play().catch((e: unknown) => console.warn('Audio blocked:', e));
                 } catch {
                     // Ignore audio errors
                 }
@@ -132,14 +121,6 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     if (!user || !gameState) return null;
 
     const currentSeat = gameState.seats.find(s => s.userId === user.id);
-
-    const handleAiSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!aiPrompt.trim()) return;
-        const prompt = aiPrompt;
-        setAiPrompt('');
-        void askAi(prompt);
-    };
 
     const tabs = [
         { id: 'game' as const, label: '游戏', icon: <Gamepad2 className="w-4 h-4" /> },
@@ -154,7 +135,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     return (
         <div
             className="glass-panel border-l border-stone-800 flex flex-col h-full shadow-2xl font-serif relative transition-none"
-            style={{ width: isMobile ? '100%' : `${width}px` }}
+            style={{ width: isMobile ? '100%' : `${String(width)}px` }}
         >
             {/* Drag Handle (Desktop Only) */}
             {!isMobile && (
@@ -193,7 +174,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             </div>
 
             {/* GAME OVER BANNER */}
-            {gameState.gameOver?.isOver && (
+            {gameState.gameOver.isOver && (
                 <div className={cn(
                     "p-4 text-center border-b-4 animate-in slide-in-from-top duration-500",
                     gameState.gameOver.winner === 'GOOD' ? 'bg-blue-900/90 border-blue-500' : 'bg-red-900/90 border-red-500'
@@ -294,72 +275,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 )}
 
                 {/* Tab: AI */}
-                {activeTab === 'ai' && (
-                    <div className="h-full flex flex-col p-4">
-                        <div className="flex-1 overflow-y-auto space-y-4 mb-4 scrollbar-thin scrollbar-thumb-stone-800">
-                            {gameState.aiMessages.length === 0 && (
-                                <div className="text-center text-stone-500 py-8 flex flex-col items-center gap-3">
-                                    <Bot className="w-12 h-12 opacity-50" />
-                                    <p className="text-sm font-cinzel">AI 助手已就绪</p>
-                                    <p className="text-xs text-stone-600">询问规则、建议或背景故事。</p>
-                                </div>
-                            )}
-                            {gameState.aiMessages.map(msg => (
-                                <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                                    <div className={cn(
-                                        "max-w-[85%] p-3 rounded-lg text-sm whitespace-pre-wrap shadow-sm",
-                                        msg.role === 'user' ? 'bg-stone-800 text-stone-200' :
-                                            msg.role === 'system' ? 'bg-red-900/30 text-red-300 border border-red-800/30' :
-                                                'bg-amber-900/30 text-amber-100 border border-amber-800/30'
-                                    )}>
-                                        {msg.content}
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-[10px] text-stone-600">{new Date(msg.timestamp).toLocaleTimeString()}</span>
-                                        {user.isStoryteller && msg.role !== 'user' && (
-                                            <button onClick={() => deleteAiMessage(msg.id)} className="text-[10px] text-red-900 hover:text-red-500">删除</button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                            {isAiThinking && (
-                                <div className="flex items-start">
-                                    <div className="bg-amber-900/30 text-amber-100 p-3 rounded-lg text-sm border border-amber-800/30 animate-pulse flex items-center gap-2">
-                                        <Bot className="w-4 h-4" /> 思考中...
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        <form onSubmit={handleAiSubmit} className="flex gap-2">
-                            <input
-                                type="text"
-                                value={aiPrompt}
-                                onChange={(e) => setAiPrompt(e.target.value)}
-                                placeholder="询问魔典..."
-                                className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-base text-stone-300 focus:border-amber-600 focus:outline-none placeholder:text-stone-700"
-                            />
-                            <Button type="submit" disabled={!aiPrompt.trim() || isAiThinking} size="sm">
-                                发送
-                            </Button>
-                        </form>
-                        {user.isStoryteller && (
-                            <div className="mt-2 flex justify-between items-center">
-                                <button onClick={clearAiMessages} className="text-xs text-stone-500 hover:text-stone-300">清除历史</button>
-                                <select
-                                    value={aiProvider}
-                                    onChange={(e) => setAiProvider(e.target.value as AiProvider)}
-                                    className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1 focus:outline-none focus:border-stone-600"
-                                >
-                                    {Object.entries(getAiConfig()).map(([key, config]) => (
-                                        <option key={key} value={key}>
-                                            {config.apiKey ? '✓' : '✗'} {config.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-                    </div>
-                )}
+                {activeTab === 'ai' && <ControlsAITab />}
 
                 {/* Tab: Notebook */}
                 {activeTab === 'notebook' && (
@@ -383,12 +299,12 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 <RoleReferencePanel
                     isOpen={showRoleReference}
                     onClose={() => setShowRoleReference(false)}
-                    playerRoleId={currentSeat?.roleId || null}
-                    scriptRoles={SCRIPTS[gameState.currentScriptId]?.roles.map(id => ROLES[id]).filter((r): r is import('../../types').RoleDef => !!r) || []}
+                    playerRoleId={currentSeat?.seenRoleId ?? null}
+                    scriptRoles={SCRIPTS[gameState.currentScriptId]?.roles.map(id => ROLES[id]).filter((r): r is import('../../types').RoleDef => !!r) ?? []}
                 />,
                 document.body
             )}
-            {showCompositionGuide && gameState?.seats && createPortal(
+            {showCompositionGuide && createPortal(
                 <ScriptCompositionGuide
                     onClose={() => setShowCompositionGuide(false)}
                     playerCount={gameState.seats.length || 7}
@@ -415,9 +331,9 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 />,
                 document.body
             )}
-            {showNightAction && !user.isStoryteller && currentSeat?.roleId && createPortal(
+            {showNightAction && !user.isStoryteller && currentSeat?.seenRoleId && createPortal(
                 <PlayerNightAction
-                    roleId={currentSeat.roleId}
+                    roleId={currentSeat.seenRoleId}
                     onComplete={() => setShowNightAction(false)}
                 />,
                 document.body

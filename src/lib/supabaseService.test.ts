@@ -22,7 +22,7 @@ import {
 // Mock supabase
 const mockRpc = vi.fn();
 
-vi.mock('../store/slices/createConnectionSlice', () => ({
+vi.mock('../store/slices/connection', () => ({
     supabase: {
         rpc: (...args: unknown[]) => mockRpc(...args),
     },

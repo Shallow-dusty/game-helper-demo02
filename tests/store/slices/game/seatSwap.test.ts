@@ -185,7 +185,7 @@ describe('createGameSeatSwapSlice', () => {
       const seat = mockStore.state.gameState?.seats?.[0];
       expect(seat?.userId).toBe(null);
       expect(seat?.userName).toBe('座位 1');
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
+       
       expect(seat?.roleId).toBe(null);
       expect(mockStore.get().sync).toHaveBeenCalled();
     });

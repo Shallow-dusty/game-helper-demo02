@@ -9,6 +9,8 @@ interface ImportMetaEnv {
     readonly VITE_DEEPSEEK_KEY?: string
     readonly VITE_GEMINI_KEY?: string
     readonly VITE_KIMI_KEY?: string
+    readonly VITE_GLM_KEY?: string
+    readonly VITE_HW_MAAS_KEY?: string
     readonly VITE_SILICONFLOW_KEY?: string
     readonly VITE_ADMIN_PASSWORD?: string
 }

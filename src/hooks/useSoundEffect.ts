@@ -1,6 +1,5 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { useStore } from '../store';
-import { AudioSettings } from '../store/types';
 
 /**
  * 操作音效定义
@@ -52,7 +51,7 @@ function preloadAudio(url: string): HTMLAudioElement | null {
   if (!url) return null;
   
   if (audioCache.has(url)) {
-    return audioCache.get(url) || null;
+    return audioCache.get(url) ?? null;
   }
   
   try {
@@ -105,9 +104,8 @@ export function useSoundEffect() {
    */
   const playSound = useCallback((soundId: FoleySoundId, options?: { volume?: number }) => {
     if (isAudioBlocked) return;
-    
+
     const soundDef = FOLEY_SOUNDS[soundId];
-    if (!soundDef?.url) return;
 
     // --- Audio Privacy Check ---
     const category = soundDef.category;
@@ -146,9 +144,9 @@ export function useSoundEffect() {
         }
       };
       
-      audio.play().catch((e) => {
+      audio.play().catch((e: unknown) => {
         // 忽略自动播放限制错误
-        if (e.name !== 'NotAllowedError') {
+        if (e instanceof Error && e.name !== 'NotAllowedError') {
           console.warn(`Error playing sound ${soundId}:`, e);
         }
       });
@@ -163,9 +161,7 @@ export function useSoundEffect() {
   const preloadSounds = useCallback((soundIds: FoleySoundId[]) => {
     soundIds.forEach(id => {
       const soundDef = FOLEY_SOUNDS[id];
-      if (soundDef?.url) {
-        preloadAudio(soundDef.url);
-      }
+      preloadAudio(soundDef.url);
     });
   }, []);
 

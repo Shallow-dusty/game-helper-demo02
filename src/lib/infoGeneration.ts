@@ -30,7 +30,7 @@ function getAliveNeighbors(seats: Seat[], seatId: number, includeDeadNeighbors =
     const idx = (seatId - i + seatCount) % seatCount;
     const seat = seats[idx];
     if (seat && (includeDeadNeighbors || !seat.isDead)) {
-      leftNeighbor = seat ?? null;
+      leftNeighbor = seat;
       break;
     }
   }
@@ -41,7 +41,7 @@ function getAliveNeighbors(seats: Seat[], seatId: number, includeDeadNeighbors =
     const idx = (seatId + i) % seatCount;
     const seat = seats[idx];
     if (seat && (includeDeadNeighbors || !seat.isDead)) {
-      rightNeighbor = seat ?? null;
+      rightNeighbor = seat;
       break;
     }
   }
@@ -53,7 +53,7 @@ function getAliveNeighbors(seats: Seat[], seatId: number, includeDeadNeighbors =
  * 判断玩家是否为邪恶阵营
  */
 function isEvilPlayer(seat: Seat): boolean {
-  const roleId = seat.realRoleId || seat.seenRoleId;
+  const roleId = seat.realRoleId ?? seat.seenRoleId;
   if (!roleId) return false;
   const role = ROLES[roleId];
   return role?.team === 'DEMON' || role?.team === 'MINION';
@@ -63,7 +63,7 @@ function isEvilPlayer(seat: Seat): boolean {
  * 判断玩家是否为恶魔
  */
 function isDemon(seat: Seat): boolean {
-  const roleId = seat.realRoleId || seat.seenRoleId;
+  const roleId = seat.realRoleId ?? seat.seenRoleId;
   if (!roleId) return false;
   const role = ROLES[roleId];
   return role?.team === 'DEMON';
@@ -105,12 +105,12 @@ export function generateEmpathInfo(gameState: GameState, empathSeatId: number): 
   if (leftNeighbor && isEvilPlayer(leftNeighbor)) evilCount++;
   if (rightNeighbor && isEvilPlayer(rightNeighbor)) evilCount++;
 
-  const realInfo = `${evilCount}`;
+  const realInfo = String(evilCount);
   const tainted = isTainted(empathSeat);
-  
+
   // 生成伪造信息
   const alternatives = ['0', '1', '2'].filter(n => n !== realInfo);
-  const fakeInfo = alternatives[Math.floor(Math.random() * alternatives.length)] || '0';
+  const fakeInfo = alternatives[Math.floor(Math.random() * alternatives.length)] ?? '0';
 
   return {
     roleId: 'empath',
@@ -147,12 +147,12 @@ export function generateChefInfo(gameState: GameState, chefSeatId: number): Info
     }
   }
 
-  const realInfo = `${pairCount}`;
+  const realInfo = String(pairCount);
   const tainted = isTainted(chefSeat);
-  
+
   // 生成伪造信息（0-3 范围内的其他数字）
   const possibleValues = ['0', '1', '2', '3'].filter(n => n !== realInfo);
-  const fakeInfo = possibleValues[Math.floor(Math.random() * possibleValues.length)] || '0';
+  const fakeInfo = possibleValues[Math.floor(Math.random() * possibleValues.length)] ?? '0';
 
   return {
     roleId: 'chef',
@@ -222,7 +222,7 @@ export function generateWasherwomanInfo(gameState: GameState, washerwomanSeatId:
   
   // 找到所有镇民
   const townsfolk = gameState.seats.filter(s => {
-    const roleId = s.realRoleId || s.seenRoleId;
+    const roleId = s.realRoleId ?? s.seenRoleId;
     if (!roleId) return false;
     const role = ROLES[roleId];
     return role?.team === 'TOWNSFOLK' && s.id !== washerwomanSeatId;
@@ -244,8 +244,8 @@ export function generateWasherwomanInfo(gameState: GameState, washerwomanSeatId:
   if (!targetTownsfolk) {
     return createErrorResult('washerwoman', '洗衣妇', washerwomanSeatId, '无法选择目标');
   }
-  const targetRoleId = targetTownsfolk.realRoleId || targetTownsfolk.seenRoleId || '';
-  const targetRoleName = ROLES[targetRoleId]?.name || '未知';
+  const targetRoleId = targetTownsfolk.realRoleId ?? targetTownsfolk.seenRoleId ?? '';
+  const targetRoleName = ROLES[targetRoleId]?.name ?? '未知';
   
   // 选择另一个非目标玩家
   const otherPlayers = gameState.seats.filter(s => 
@@ -255,12 +255,12 @@ export function generateWasherwomanInfo(gameState: GameState, washerwomanSeatId:
     ? (otherPlayers[Math.floor(Math.random() * otherPlayers.length)] ?? targetTownsfolk)
     : targetTownsfolk;
 
-  const realInfo = `${targetTownsfolk.userName}(${targetTownsfolk.id + 1}号) 或 ${decoy.userName}(${decoy.id + 1}号) 中有一人是 ${targetRoleName}`;
-  
+  const realInfo = `${targetTownsfolk.userName}(${String(targetTownsfolk.id + 1)}号) 或 ${decoy.userName}(${String(decoy.id + 1)}号) 中有一人是 ${targetRoleName}`;
+
   // 伪造信息：指向错误的镇民类型
   const fakeRoleNames = ['洗衣妇', '图书管理员', '调查员', '厨师', '共情者', '占卜师'];
   const fakeRole = fakeRoleNames[Math.floor(Math.random() * fakeRoleNames.length)] ?? '厨师';
-  const fakeInfo = `${decoy.userName}(${decoy.id + 1}号) 或 ${targetTownsfolk.userName}(${targetTownsfolk.id + 1}号) 中有一人是 ${fakeRole}`;
+  const fakeInfo = `${decoy.userName}(${String(decoy.id + 1)}号) 或 ${targetTownsfolk.userName}(${String(targetTownsfolk.id + 1)}号) 中有一人是 ${fakeRole}`;
 
   return {
     roleId: 'washerwoman',
@@ -294,8 +294,8 @@ export function generateUndertakerInfo(
   
   const tainted = isTainted(utSeat);
   
-  const realRoleId = executedSeat.realRoleId || executedSeat.seenRoleId || '';
-  const realRoleName = ROLES[realRoleId]?.name || '未知';
+  const realRoleId = executedSeat.realRoleId ?? executedSeat.seenRoleId ?? '';
+  const realRoleName = ROLES[realRoleId]?.name ?? '未知';
   
   const realInfo = `被处决者是 ${realRoleName}`;
   
@@ -303,7 +303,7 @@ export function generateUndertakerInfo(
   const allRoleNames = Object.values(ROLES)
     .filter(r => r.name !== realRoleName)
     .map(r => r.name);
-  const fakeRole = allRoleNames[Math.floor(Math.random() * allRoleNames.length)] || '村民';
+  const fakeRole = allRoleNames[Math.floor(Math.random() * allRoleNames.length)] ?? '村民';
   const fakeInfo = `被处决者是 ${fakeRole}`;
 
   return {
@@ -340,8 +340,8 @@ export function generateInfoForRole(
       return generateChefInfo(gameState, seatId);
     
     case 'fortune_teller':
-      if (additionalParams?.target1SeatId !== undefined && 
-          additionalParams?.target2SeatId !== undefined) {
+      if (additionalParams?.target1SeatId !== undefined &&
+          additionalParams.target2SeatId !== undefined) {
         return generateFortuneTellerInfo(
           gameState, 
           seatId, 
@@ -385,7 +385,7 @@ export function generateInvestigatorInfo(gameState: GameState, investigatorSeatI
   
   // 找到所有爪牙
   const minions = gameState.seats.filter(s => {
-    const roleId = s.realRoleId || s.seenRoleId;
+    const roleId = s.realRoleId ?? s.seenRoleId;
     if (!roleId) return false;
     const role = ROLES[roleId];
     return role?.team === 'MINION' && s.id !== investigatorSeatId;
@@ -407,8 +407,8 @@ export function generateInvestigatorInfo(gameState: GameState, investigatorSeatI
   if (!targetMinion) {
     return createErrorResult('investigator', '调查员', investigatorSeatId, '无法选择目标');
   }
-  const targetRoleId = targetMinion.realRoleId || targetMinion.seenRoleId || '';
-  const targetRoleName = ROLES[targetRoleId]?.name || '未知爪牙';
+  const targetRoleId = targetMinion.realRoleId ?? targetMinion.seenRoleId ?? '';
+  const targetRoleName = ROLES[targetRoleId]?.name ?? '未知爪牙';
   
   // 选择另一个非目标玩家
   const otherPlayers = gameState.seats.filter(s => 
@@ -418,12 +418,12 @@ export function generateInvestigatorInfo(gameState: GameState, investigatorSeatI
     ? (otherPlayers[Math.floor(Math.random() * otherPlayers.length)] ?? targetMinion)
     : targetMinion;
 
-  const realInfo = `${targetMinion.userName}(${targetMinion.id + 1}号) 或 ${decoy.userName}(${decoy.id + 1}号) 中有一人是 ${targetRoleName}`;
-  
+  const realInfo = `${targetMinion.userName}(${String(targetMinion.id + 1)}号) 或 ${decoy.userName}(${String(decoy.id + 1)}号) 中有一人是 ${targetRoleName}`;
+
   // 伪造信息
   const fakeMinionNames = ['投毒者', '间谍', '男爵', '猩红女郎'];
   const fakeRole = fakeMinionNames[Math.floor(Math.random() * fakeMinionNames.length)] ?? '投毒者';
-  const fakeInfo = `${decoy.userName}(${decoy.id + 1}号) 或 ${targetMinion.userName}(${targetMinion.id + 1}号) 中有一人是 ${fakeRole}`;
+  const fakeInfo = `${decoy.userName}(${String(decoy.id + 1)}号) 或 ${targetMinion.userName}(${String(targetMinion.id + 1)}号) 中有一人是 ${fakeRole}`;
 
   return {
     roleId: 'investigator',
@@ -449,7 +449,7 @@ export function generateLibrarianInfo(gameState: GameState, librarianSeatId: num
   
   // 找到所有外来者
   const outsiders = gameState.seats.filter(s => {
-    const roleId = s.realRoleId || s.seenRoleId;
+    const roleId = s.realRoleId ?? s.seenRoleId;
     if (!roleId) return false;
     const role = ROLES[roleId];
     return role?.team === 'OUTSIDER' && s.id !== librarianSeatId;
@@ -479,8 +479,8 @@ export function generateLibrarianInfo(gameState: GameState, librarianSeatId: num
   if (!targetOutsider) {
     return createErrorResult('librarian', '图书管理员', librarianSeatId, '无法选择目标');
   }
-  const targetRoleId = targetOutsider.realRoleId || targetOutsider.seenRoleId || '';
-  const targetRoleName = ROLES[targetRoleId]?.name || '未知外来者';
+  const targetRoleId = targetOutsider.realRoleId ?? targetOutsider.seenRoleId ?? '';
+  const targetRoleName = ROLES[targetRoleId]?.name ?? '未知外来者';
   
   // 选择另一个非目标玩家
   const otherPlayers = gameState.seats.filter(s => 
@@ -490,12 +490,12 @@ export function generateLibrarianInfo(gameState: GameState, librarianSeatId: num
     ? (otherPlayers[Math.floor(Math.random() * otherPlayers.length)] ?? targetOutsider)
     : targetOutsider;
 
-  const realInfo = `${targetOutsider.userName}(${targetOutsider.id + 1}号) 或 ${decoy.userName}(${decoy.id + 1}号) 中有一人是 ${targetRoleName}`;
-  
+  const realInfo = `${targetOutsider.userName}(${String(targetOutsider.id + 1)}号) 或 ${decoy.userName}(${String(decoy.id + 1)}号) 中有一人是 ${targetRoleName}`;
+
   // 伪造信息
   const fakeOutsiderNames = ['酒鬼', '隐士', '圣徒', '男爵'];
   const fakeRole = fakeOutsiderNames[Math.floor(Math.random() * fakeOutsiderNames.length)] ?? '酒鬼';
-  const fakeInfo = `${decoy.userName}(${decoy.id + 1}号) 或 ${targetOutsider.userName}(${targetOutsider.id + 1}号) 中有一人是 ${fakeRole}`;
+  const fakeInfo = `${decoy.userName}(${String(decoy.id + 1)}号) 或 ${targetOutsider.userName}(${String(targetOutsider.id + 1)}号) 中有一人是 ${fakeRole}`;
 
   return {
     roleId: 'librarian',
@@ -522,7 +522,7 @@ export function getInfoRolesForNight(gameState: GameState, isFirstNight: boolean
   const targetRoles = isFirstNight ? firstNightInfoRoles : otherNightInfoRoles;
   
   for (const seat of gameState.seats) {
-    const roleId = seat.realRoleId || seat.seenRoleId;
+    const roleId = seat.realRoleId ?? seat.seenRoleId;
     if (roleId && targetRoles.includes(roleId) && !seat.isDead) {
       const role = ROLES[roleId];
       if (role) {

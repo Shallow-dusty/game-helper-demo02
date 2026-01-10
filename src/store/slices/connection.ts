@@ -5,8 +5,8 @@
  */
 import { StoreSlice, ConnectionStatus } from '../types';
 import { User, GameState } from '../../types';
-import { createClient } from '@supabase/supabase-js';
-import { addSystemMessage, splitGameState, mergeGameState } from '../utils';
+import { createClient, RealtimeChannel, REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
+import { addSystemMessage, splitGameState, mergeGameState, type SecretState } from '../utils';
 
 // --- SUPABASE CONFIG ---
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -19,8 +19,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Global variables for subscription (kept here for now, but encapsulated)
-let realtimeChannel: any = null;
-let secretChannel: any = null;
+let realtimeChannel: RealtimeChannel | null = null;
+let secretChannel: RealtimeChannel | null = null;
 let isReceivingUpdate = false;
 
 // Helper to get toast functions (lazy load)
@@ -47,8 +47,8 @@ export interface ConnectionSlice {
     
     // Internal helper to set receiving update flag
     _setIsReceivingUpdate: (val: boolean) => void;
-    _setRealtimeChannel: (channel: any) => void;
-    _getRealtimeChannel: () => any;
+    _setRealtimeChannel: (channel: RealtimeChannel | null) => void;
+    _getRealtimeChannel: () => RealtimeChannel | null;
 }
 
 export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
@@ -95,13 +95,6 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 return;
             }
 
-            if (!data) {
-                void getToastFunctions().then(({ showError }) => showError("房间不存在或已关闭！"));
-                set({ connectionStatus: 'disconnected' });
-                localStorage.removeItem('grimoire_last_room');
-                return;
-            }
-
             const gameState = data.data as GameState;
 
             // 2. Subscribe
@@ -112,19 +105,20 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                     'postgres_changes',
                     { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `room_code=eq.${roomCode}` },
                     (payload) => {
-                        if (payload.new?.data) {
+                        const newData = (payload.new as { data?: GameState } | undefined)?.data;
+                        if (newData) {
                             isReceivingUpdate = true;
-                            set({ gameState: payload.new.data });
+                            set({ gameState: newData });
                             isReceivingUpdate = false;
                         }
                     }
                 )
                 .subscribe((status) => {
-                    if (status === 'SUBSCRIBED') {
+                    if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) {
                         set({ connectionStatus: 'connected', isOffline: false });
-                    } else if (status === 'CLOSED') {
+                    } else if (status === REALTIME_SUBSCRIBE_STATES.CLOSED) {
                         set({ connectionStatus: 'disconnected' });
-                    } else if (status === 'CHANNEL_ERROR') {
+                    } else if (status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR) {
                         set({ connectionStatus: 'reconnecting' });
                     }
                 });
@@ -139,7 +133,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             // 3. Subscribe to Secrets (if Storyteller)
             if (user.isStoryteller) {
                 if (secretChannel) void supabase.removeChannel(secretChannel);
-                
+
                 // Fetch initial secret state
                 const { data: secretData } = await supabase
                     .from('game_secrets')
@@ -148,8 +142,11 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                     .single();
 
                 if (secretData?.data) {
-                    const merged = mergeGameState(get().gameState!, secretData.data);
-                    set({ gameState: merged });
+                    const currentState = get().gameState;
+                    if (currentState) {
+                        const merged = mergeGameState(currentState, secretData.data as SecretState);
+                        set({ gameState: merged });
+                    }
                 }
 
                 const sChannel = supabase.channel(`room-secrets:${roomCode}`)
@@ -157,15 +154,18 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                         'postgres_changes',
                         { event: 'UPDATE', schema: 'public', table: 'game_secrets', filter: `room_code=eq.${roomCode}` },
                         (payload) => {
-                            if (payload.new?.data) {
+                            const newSecretData = (payload.new as { data?: SecretState } | undefined)?.data;
+                            if (newSecretData) {
                                 isReceivingUpdate = true;
-                                const currentPublic = get().gameState!;
+                                const currentPublic = get().gameState;
                                 // We need to be careful not to overwrite local optimistic updates if possible,
                                 // but for now, simple merge is safer.
-                                // However, since we receive public and secret updates separately, 
+                                // However, since we receive public and secret updates separately,
                                 // we should merge the new secret data into the CURRENT state.
-                                const merged = mergeGameState(currentPublic, payload.new.data);
-                                set({ gameState: merged });
+                                if (currentPublic) {
+                                    const merged = mergeGameState(currentPublic, newSecretData);
+                                    set({ gameState: merged });
+                                }
                                 isReceivingUpdate = false;
                             }
                         }
@@ -183,11 +183,12 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 }
             }, 100);
 
-        } catch (error: any) {
+        } catch (error) {
             console.error("Join Game Error:", error);
             set({ connectionStatus: 'disconnected' });
             localStorage.removeItem('grimoire_last_room');
-            void getToastFunctions().then(({ showError }) => showError?.(`加入房间失败: ${error.message}`));
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            void getToastFunctions().then(({ showError }) => showError(`加入房间失败: ${errorMessage}`));
         }
     },
 
@@ -201,7 +202,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 .eq('room_code', roomCode)
                 .single();
 
-            if (error || !data) {
+            if (error) {
                 void getToastFunctions().then(({ showError }) => showError("房间不存在或已关闭！"));
                 set({ connectionStatus: 'disconnected' });
                 return;
@@ -216,19 +217,20 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                     'postgres_changes',
                     { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `room_code=eq.${roomCode}` },
                     (payload) => {
-                        if (payload.new?.data) {
+                        const newData = (payload.new as { data?: GameState } | undefined)?.data;
+                        if (newData) {
                             isReceivingUpdate = true;
-                            set({ gameState: payload.new.data });
+                            set({ gameState: newData });
                             isReceivingUpdate = false;
                         }
                     }
                 )
                 .subscribe((status) => {
-                    if (status === 'SUBSCRIBED') {
+                    if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) {
                         set({ connectionStatus: 'connected', isOffline: false });
-                    } else if (status === 'CLOSED') {
+                    } else if (status === REALTIME_SUBSCRIBE_STATES.CLOSED) {
                         set({ connectionStatus: 'disconnected' });
-                    } else if (status === 'CHANNEL_ERROR') {
+                    } else if (status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR) {
                         set({ connectionStatus: 'reconnecting' });
                     }
                 });
@@ -239,7 +241,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 gameState: gameState,
                 connectionStatus: 'connected',
                 user: {
-                    id: 'observer-' + Date.now(),
+                    id: `observer-${String(Date.now())}`,
                     name: 'Observer',
                     isStoryteller: false,
                     roomId: roomCode,
@@ -248,10 +250,11 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 }
             });
 
-        } catch (error: any) {
+        } catch (error) {
             console.error("Spectate Game Error:", error);
             set({ connectionStatus: 'disconnected' });
-            void getToastFunctions().then(({ showError }) => showError?.(`连接失败: ${error.message}`));
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            void getToastFunctions().then(({ showError }) => showError(`连接失败: ${errorMessage}`));
         }
     },
 
@@ -263,7 +266,8 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             const seat = state.seats.find(s => s.userId === user.id);
             if (seat) {
                 seat.userId = null;
-                seat.userName = `座位 ${seat.id + 1}`;
+                seat.userName = `座位 ${String(seat.id + 1)}`;
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility
                 seat.roleId = null;
                 seat.realRoleId = null;
                 seat.seenRoleId = null;
@@ -354,7 +358,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 return;
             }
 
-            if (data?.data) {
+            if (data.data) {
                 isReceivingUpdate = true;
                 let newState = data.data as GameState;
 
@@ -365,9 +369,9 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                         .select('data')
                         .eq('room_code', gameState.roomId)
                         .single();
-                    
+
                     if (secretData?.data) {
-                        newState = mergeGameState(newState, secretData.data);
+                        newState = mergeGameState(newState, secretData.data as SecretState);
                     }
                 }
 

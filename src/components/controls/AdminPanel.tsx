@@ -6,11 +6,11 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // 简单的管理员密码验证（生产环境应使用更安全的方式）
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'grimoire_admin_2024';
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD ?? 'grimoire_admin_2024';
 
 interface RoomInfo {
     room_code: string;
-    state: any;
+    state: unknown;
     updated_at: string;
     created_at: string;
 }
@@ -46,10 +46,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                 .order('updated_at', { ascending: false });
 
             if (error) throw error;
-            setRooms(data || []);
-        } catch (err: any) {
+            setRooms(data);
+        } catch (err: unknown) {
             console.error('Failed to fetch rooms:', err);
-            setError('获取房间列表失败: ' + err.message);
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            setError('获取房间列表失败: ' + errorMessage);
         } finally {
             setLoading(false);
         }
@@ -67,9 +68,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
             if (error) throw error;
 
             setRooms(prev => prev.filter(r => r.room_code !== roomCode));
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Failed to close room:', err);
-            setError('关闭房间失败: ' + err.message);
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            setError('关闭房间失败: ' + errorMessage);
         }
     };
 
@@ -77,19 +79,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
         return new Date(dateStr).toLocaleString('zh-CN');
     };
 
-    const getPlayerCount = (state: any) => {
+    const getPlayerCount = (state: unknown): number => {
         try {
-            const parsed = typeof state === 'string' ? JSON.parse(state) : state;
-            return parsed?.seats?.filter((s: any) => s.userId || s.isVirtual)?.length || 0;
+            const parsed = typeof state === 'string' ? JSON.parse(state) as unknown : state;
+            if (parsed !== null && typeof parsed === 'object' && 'seats' in parsed && Array.isArray(parsed.seats)) {
+                return parsed.seats.filter((s: unknown) => {
+                    if (s !== null && typeof s === 'object') {
+                        const seat = s as Record<string, unknown>;
+                        return seat.userId ?? seat.isVirtual;
+                    }
+                    return false;
+                }).length;
+            }
+            return 0;
         } catch {
             return 0;
         }
     };
 
-    const getPhase = (state: any) => {
+    const getPhase = (state: unknown): string => {
         try {
-            const parsed = typeof state === 'string' ? JSON.parse(state) : state;
-            return parsed?.phase || 'UNKNOWN';
+            const parsed = typeof state === 'string' ? JSON.parse(state) as unknown : state;
+            if (parsed !== null && typeof parsed === 'object' && 'phase' in parsed) {
+                const phase = (parsed as Record<string, unknown>).phase;
+                return typeof phase === 'string' ? phase : 'UNKNOWN';
+            }
+            return 'UNKNOWN';
         } catch {
             return 'UNKNOWN';
         }

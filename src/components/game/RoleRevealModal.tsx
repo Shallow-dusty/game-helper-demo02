@@ -24,7 +24,7 @@ export const RoleRevealModal: React.FC = () => {
     const { role } = useMemo(() => {
         const seat = seats?.find(s => s.userId === user?.id);
         // 使用 seenRoleId 以支持酒鬼/疯子等机制
-        const rId = seat?.seenRoleId || seat?.roleId;
+        const rId = seat?.seenRoleId ?? seat?.roleId;
         const r = rId ? ROLES[rId] : null;
         return { role: r };
     }, [seats, user?.id]);
@@ -78,6 +78,7 @@ export const RoleRevealModal: React.FC = () => {
         if (role && !isRoleRevealOpen) {
             // 条件1: rolesRevealed 刚从 false 变为 true（新游戏开始）
             // 条件2: 从未看过这个角色（新用户/角色变更）
+             
             const shouldTrigger = wasRolesRevealedJustEnabled || lastSeenRoleId !== role.id;
             
             if (shouldTrigger && !isVisible && !isExiting && countdown === null) {
@@ -100,7 +101,7 @@ export const RoleRevealModal: React.FC = () => {
         if (countdown === null) return;
 
         if (countdown > 0) {
-            const timer = setTimeout(() => setCountdown(c => c! - 1), 1000);
+            const timer = setTimeout(() => setCountdown(c => (c ?? 0) - 1), 1000);
             return () => clearTimeout(timer);
         } else {
             // 倒计时结束 (0)，显示"GAME START"，然后显示卡片
@@ -158,8 +159,7 @@ export const RoleRevealModal: React.FC = () => {
 
     return (
         <AnimatePresence>
-            {isVisible && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none">
+            <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none">
                     {/* 背景遮罩 */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -249,7 +249,7 @@ export const RoleRevealModal: React.FC = () => {
                                             className="w-24 h-24 rounded-full border-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] flex items-center justify-center text-5xl bg-[#1c1917] relative"
                                             style={{ borderColor: teamColor, color: teamColor }}
                                         >
-                                            {role.icon || '❓'}
+                                            {role.icon ?? '❓'}
                                         </div>
                                     </div>
                                 </div>
@@ -290,7 +290,6 @@ export const RoleRevealModal: React.FC = () => {
                         </motion.div>
                     </motion.div>
                 </div>
-            )}
         </AnimatePresence>
     );
 };

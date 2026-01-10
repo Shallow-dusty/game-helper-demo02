@@ -24,37 +24,35 @@ export const NightActionManager: React.FC = () => {
     if (pendingRequests.length === 0) return null;
 
     const handleResolve = (request: NightActionRequest) => {
-        const result = resultInputs[request.id] || '';
+        const result = resultInputs[request.id] ?? '';
         if (!result.trim()) {
             // 使用默认回复
             const role = ROLES[request.roleId];
-            resolveNightAction(request.id, `${role?.name || request.roleId} 能力已执行`);
+            resolveNightAction(request.id, `${role?.name ?? request.roleId} 能力已执行`);
         } else {
             resolveNightAction(request.id, result);
         }
         setResultInputs(prev => {
-            const next = { ...prev };
-            delete next[request.id];
+            const { [request.id]: _, ...next } = prev;
+            void _;
             return next;
         });
         setExpandedRequest(null);
     };
 
     const getTargetDescription = (request: NightActionRequest): string => {
-        if (!gameState) return '';
-
-        if (request.payload?.seatId !== undefined) {
+        if (request.payload.seatId !== undefined) {
             const target = gameState.seats.find(s => s.id === request.payload.seatId);
-            return target?.userName || `座位 ${request.payload.seatId + 1}`;
+            return target?.userName ?? `座位 ${String(request.payload.seatId + 1)}`;
         }
-        if (request.payload?.seatIds) {
+        if (request.payload.seatIds) {
             return request.payload.seatIds
-                .map((id: number) => gameState.seats.find(s => s.id === id)?.userName || `座位 ${id + 1}`)
+                .map((id: number) => gameState.seats.find(s => s.id === id)?.userName ?? `座位 ${String(id + 1)}`)
                 .join(', ');
         }
-        if (request.payload?.choice !== undefined) {
+        if (request.payload.choice !== undefined) {
             const role = ROLES[request.roleId];
-            return role?.nightAction?.options?.[request.payload.choice] || `选项 ${request.payload.choice + 1}`;
+            return role?.nightAction?.options?.[request.payload.choice] ?? `选项 ${String(request.payload.choice + 1)}`;
         }
         return '已确认';
     };
@@ -92,7 +90,7 @@ export const NightActionManager: React.FC = () => {
                     const seat = gameState.seats.find(s => s.id === request.seatId);
                     const role = ROLES[request.roleId];
                     const isExpanded = expandedRequest === request.id;
-                    const roleQuickReplies = quickReplies[request.roleId] || quickReplies.default || [];
+                    const roleQuickReplies = quickReplies[request.roleId] ?? quickReplies.default;
 
                     // 检测是否是假角色（酒鬼/疯子）：真实角色与显示角色不同
                     const realRoleId = seat?.realRoleId;
@@ -112,13 +110,13 @@ export const NightActionManager: React.FC = () => {
                                 onClick={() => setExpandedRequest(isExpanded ? null : request.id)}
                             >
                                 <div className="flex items-center gap-3">
-                                    <span className="text-2xl">{role?.icon || '❓'}</span>
+                                    <span className="text-2xl">{role?.icon ?? '❓'}</span>
                                     <div>
                                         <div className="font-bold text-stone-200 flex items-center gap-2">
-                                            {seat?.userName} ({role?.name || request.roleId})
+                                            {seat?.userName} ({role?.name ?? request.roleId})
                                             {/* 酒鬼/疯子标记 */}
                                             {isFakeRole && (
-                                                <span className="text-xs bg-amber-900/50 text-amber-300 px-1.5 py-0.5 rounded border border-amber-700" title={`真实角色: ${realRole?.name}`}>
+                                                <span className="text-xs bg-amber-900/50 text-amber-300 px-1.5 py-0.5 rounded border border-amber-700" title={`真实角色: ${realRole?.name ?? '未知'}`}>
                                                     🍷 {realRole?.name === 'drunk' ? '酒鬼' : '伪装'}
                                                 </span>
                                             )}
@@ -165,7 +163,7 @@ export const NightActionManager: React.FC = () => {
 
                                     {/* 输入框 */}
                                     <textarea
-                                        value={resultInputs[request.id] || ''}
+                                        value={resultInputs[request.id] ?? ''}
                                         onChange={(e) => setResultInputs(prev => ({
                                             ...prev,
                                             [request.id]: e.target.value

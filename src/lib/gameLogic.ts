@@ -44,8 +44,8 @@ export const addSystemMessage = (gameState: GameState, content: string, recipien
  */
 export const buildNightQueue = (seats: Seat[], isFirstNight: boolean): string[] => {
     const availableRoles = seats
-        .filter(s => s.seenRoleId && !s.isDead)
-        .map(s => s.seenRoleId!);
+        .filter((s): s is Seat & { seenRoleId: string } => s.seenRoleId != null && !s.isDead)
+        .map(s => s.seenRoleId);
 
     const order = isFirstNight ? NIGHT_ORDER_FIRST : NIGHT_ORDER_OTHER;
 
@@ -94,8 +94,8 @@ export const getStandardComposition = (playerCount: number): {
         15: { townsfolk: 9, outsider: 2, minion: 3, demon: 1 }
     };
     // 如果人数超出范围，默认使用7人规则
-    const rule = rules[playerCount] || rules[7];
-    return rule ?? rules[7]!;
+    const rule = rules[playerCount] ?? rules[7];
+    return rule ?? { townsfolk: 5, outsider: 0, minion: 1, demon: 1 };
 };
 
 /**
@@ -152,6 +152,7 @@ export const generateRoleAssignment = (scriptId: string, playerCount: number): s
  * @param roleId 角色ID
  */
 export const applyRoleToSeat = (seat: Seat, roleId: string | null): void => {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- 保持向后兼容性，直到 v0.8.0 移除
     seat.roleId = roleId;
     seat.realRoleId = roleId;
     seat.seenRoleId = roleId;
@@ -199,7 +200,7 @@ export const handlePhaseChange = (
 ): void => {
     if (prevPhase === newPhase) return;
 
-    addSystemMessage(gameState, `阶段变更为: ${PHASE_LABELS[newPhase]}`);
+    addSystemMessage(gameState, `阶段变更为: ${PHASE_LABELS[newPhase] ?? '未知阶段'}`);
 
     if (newPhase === 'NIGHT') {
         gameState.roundInfo.nightCount++;
@@ -242,7 +243,7 @@ export const createVotingState = (
  */
 export const checkGoodWin = (seats: Seat[]): boolean => {
     const demons = seats.filter(s => {
-        const role = ROLES[s.realRoleId || s.seenRoleId || ''];
+        const role = ROLES[s.realRoleId ?? s.seenRoleId ?? ''];
         return role?.team === 'DEMON';
     });
     return demons.every(d => d.isDead);

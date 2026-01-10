@@ -27,7 +27,7 @@ const createMockStore = () => {
     sync: vi.fn()
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const set = vi.fn((fn: any) => {
     if (typeof fn === 'function') {
       fn(state);

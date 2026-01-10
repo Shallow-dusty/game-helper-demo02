@@ -28,11 +28,11 @@ export const FloatingVoteButton: React.FC = () => {
         !isModalOpen;
 
     // 死亡且无幽灵票时禁用
-    const isDead = currentSeat?.isDead || false;
+    const isDead = currentSeat?.isDead ?? false;
     const hasGhostVote = currentSeat?.hasGhostVote ?? true;
     const isGhostVoteUsed = isDead && !hasGhostVote;
-    const isLocked = currentSeat?.voteLocked || false;
-    const isRaised = currentSeat?.isHandRaised || false;
+    const isLocked = currentSeat?.voteLocked ?? false;
+    const isRaised = currentSeat?.isHandRaised ?? false;
     const isDisabled = isLoading || isLocked || isGhostVoteUsed;
 
     const handleClick = useCallback(() => {
@@ -43,7 +43,7 @@ export const FloatingVoteButton: React.FC = () => {
     }, [isDisabled, toggleHand, currentSeat]);
 
     // 早期返回必须在所有 hooks 之后
-    if (!shouldShow || !currentSeat) return null;
+    if (!shouldShow) return null;
 
     // 获取按钮样式
     const getButtonStyle = () => {
@@ -96,9 +96,9 @@ export const FloatingVoteButton: React.FC = () => {
             <span className="text-xl">{content.icon}</span>
             <span className="font-cinzel tracking-wider">{content.text}</span>
             {/* 受审者信息 */}
-            {gameState?.voting?.nomineeSeatId !== undefined && (
+            {gameState.voting?.nomineeSeatId !== undefined && (
                 <span className="text-xs opacity-70 ml-1">
-                    → {gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName || '?'}
+                    → {gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName ?? '?'}
                 </span>
             )}
         </button>

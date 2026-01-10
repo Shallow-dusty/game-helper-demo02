@@ -10,7 +10,7 @@ export const WaitingArea: React.FC = () => {
     if (!gameState || !user) return null;
 
     // 检查 seats 数组是否有效
-    if (!gameState.seats || !Array.isArray(gameState.seats) || gameState.seats.length === 0) {
+    if (gameState.seats.length === 0) {
         console.warn('WaitingArea: seats 数组无效', gameState.seats);
         return null;
     }
@@ -50,14 +50,14 @@ export const WaitingArea: React.FC = () => {
                         onClick={() => setIsMinimized(false)}
                         className={`
                             flex items-center gap-2 px-4 py-2 rounded-full shadow-lg border backdrop-blur-md transition-all hover:scale-105
-                            ${currentSeat?.isReady
+                            ${currentSeat.isReady
                                 ? 'bg-green-900/80 text-green-100 border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.3)]'
                                 : 'bg-stone-800/90 text-stone-300 border-stone-600'}
                         `}
                     >
-                        <span className="text-lg">{currentSeat?.isReady ? '✓' : '⏳'}</span>
+                        <span className="text-lg">{currentSeat.isReady ? '✓' : '⏳'}</span>
                         <span className="font-cinzel font-bold text-sm">
-                            {currentSeat?.isReady ? '已准备 (Ready)' : '点击准备 (Not Ready)'}
+                            {currentSeat.isReady ? '已准备 (Ready)' : '点击准备 (Not Ready)'}
                         </span>
                         <span className="ml-1 text-xs opacity-60">↗</span>
                     </button>
@@ -81,26 +81,26 @@ export const WaitingArea: React.FC = () => {
                         {gameState.roomId}
                     </h1>
                     <div className="text-xl text-stone-300 font-cinzel mb-6">
-                        {currentSeat?.userName}
+                        {currentSeat.userName}
                     </div>
 
                     <button
                         onClick={() => {
                             toggleReady();
                             // 如果当前是未准备状态，点击后变为准备，则自动最小化
-                            if (!currentSeat?.isReady) {
+                            if (!currentSeat.isReady) {
                                 setIsMinimized(true);
                             }
                         }}
                         className={`
                             w-full py-4 rounded-xl text-xl font-bold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]
                             flex items-center justify-center gap-3 shadow-lg mb-4
-                            ${currentSeat?.isReady
+                            ${currentSeat.isReady
                                 ? 'bg-green-900/80 text-green-100 border border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.2)]'
                                 : 'bg-stone-800 text-stone-400 border border-stone-600 hover:bg-stone-700 hover:text-stone-200'}
                         `}
                     >
-                        {currentSeat?.isReady ? (
+                        {currentSeat.isReady ? (
                             <>
                                 <span className="text-2xl">✓</span>
                                 <span>已准备 (READY)</span>
@@ -121,7 +121,7 @@ export const WaitingArea: React.FC = () => {
                     </button>
 
                     <p className="mt-6 text-stone-500 font-serif italic text-sm animate-pulse">
-                        {currentSeat?.isReady
+                        {currentSeat.isReady
                             ? "等待说书人开始游戏..."
                             : "请确认您已准备好开始游戏"}
                     </p>
@@ -146,7 +146,7 @@ export const WaitingArea: React.FC = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-6xl w-full overflow-y-auto p-4 max-h-[70vh] scrollbar-thin">
                 {gameState.seats.map(seat => {
-                    const isTaken = !!seat.userId || seat.isVirtual;
+                    const isTaken = Boolean(seat.userId) || Boolean(seat.isVirtual);
                     const isJoining = joiningId === seat.id;
 
                     return (
@@ -175,7 +175,7 @@ export const WaitingArea: React.FC = () => {
 
                             <div className="flex flex-col items-center">
                                 <span className={`font-cinzel font-bold ${isTaken ? 'text-stone-500' : 'text-amber-100'}`}>
-                                    {isTaken ? seat.userName : `座位 ${seat.id + 1}`}
+                                    {isTaken ? seat.userName : `座位 ${String(seat.id + 1)}`}
                                 </span>
                                 <span className="text-[10px] uppercase tracking-widest mt-1 font-bold">
                                     {isJoining

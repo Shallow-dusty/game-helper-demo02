@@ -4,7 +4,7 @@ import { immer } from 'zustand/middleware/immer';
 import { GameState, Seat, User } from '../../../types';
 
 // Mock supabase
-vi.mock('../createConnectionSlice', () => ({
+vi.mock('../connection', () => ({
     supabase: {
         from: vi.fn(() => ({
             insert: vi.fn().mockResolvedValue({ error: null }),

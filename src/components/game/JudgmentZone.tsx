@@ -167,9 +167,9 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
     
     const { gameState } = useStore();
     const { playSound } = useSoundEffect();
-    const voteHistory = gameState?.voteHistory || [];
+    const voteHistory = gameState?.voteHistory ?? [];
     const latestVote = voteHistory.length > 0 ? voteHistory[voteHistory.length - 1] : null;
-    const currentVotes = latestVote?.votes || [];
+    const currentVotes = latestVote?.votes ?? [];
     
     // Track added bodies to avoid duplicates
     const addedVotesRef = useRef<Set<number>>(new Set());
@@ -222,44 +222,41 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
 
         Composite.add(engine.world, [ground, leftWall, rightWall, leftSlope, rightSlope]);
 
-        // 自定义渲染：添加3D阴影效果 (仅在浏览器环境)
-        if (render.context && typeof Matter.Events?.on === 'function') {
-            Matter.Events.on(render, 'afterRender', () => {
-                const ctx = render.context;
-                if (!ctx) return;
-                const bodies = Matter.Composite.allBodies(engine.world);
-                
-                bodies.filter(b => !b.isStatic).forEach(body => {
-                    const pos = body.position;
-                    const radius = 15;
-                    
-                    // 绘制阴影
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(pos.x + 3, pos.y + 3, radius, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-                    ctx.fill();
-                    ctx.restore();
-                    
-                    // 绘制内部高光渐变
-                    ctx.save();
-                    const gradient = ctx.createRadialGradient(
-                        pos.x - 4, pos.y - 4, 0,
-                        pos.x, pos.y, radius
-                    );
-                    const baseColor = body.render.fillStyle! || '#f59e0b';
-                    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-                    gradient.addColorStop(0.3, baseColor);
-                    gradient.addColorStop(1, baseColor);
-                    
-                    ctx.beginPath();
-                    ctx.arc(pos.x, pos.y, radius - 1, 0, Math.PI * 2);
-                    ctx.fillStyle = gradient;
-                    ctx.fill();
-                    ctx.restore();
-                });
+        // 自定义渲染：添加3D阴影效果
+        Matter.Events.on(render, 'afterRender', () => {
+            const ctx = render.context;
+            const bodies = Matter.Composite.allBodies(engine.world);
+
+            bodies.filter(b => !b.isStatic).forEach(body => {
+                const pos = body.position;
+                const radius = 15;
+
+                // 绘制阴影
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(pos.x + 3, pos.y + 3, radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fill();
+                ctx.restore();
+
+                // 绘制内部高光渐变
+                ctx.save();
+                const gradient = ctx.createRadialGradient(
+                    pos.x - 4, pos.y - 4, 0,
+                    pos.x, pos.y, radius
+                );
+                const baseColor = body.render.fillStyle ?? '#f59e0b';
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+                gradient.addColorStop(0.3, baseColor);
+                gradient.addColorStop(1, baseColor);
+
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, radius - 1, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.restore();
             });
-        }
+        });
 
         Render.run(render);
         
@@ -270,7 +267,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
         return () => {
             Render.stop(render);
             Runner.stop(runner);
-            if (render.canvas) render.canvas.remove();
+            render.canvas.remove();
             World.clear(engine.world, false);
             Engine.clear(engine);
         };
@@ -285,7 +282,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
         if (newVotes.length > 0) {
             newVotes.forEach(seatId => {
                 const seat = gameState?.seats.find(s => s.id === seatId);
-                const userName = seat?.userName || `Seat ${seatId}`;
+                const userName = seat?.userName ?? `Seat ${String(seatId)}`;
                 
                 // Randomize spawn position slightly
                 const x = (width / 2) + (Math.random() * 40 - 20);
@@ -302,7 +299,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
                     label: userName
                 });
 
-                Matter.Composite.add(engineRef.current!.world, chip);
+                Matter.Composite.add(engineRef.current.world, chip);
                 addedVotesRef.current.add(seatId);
                 
                 // 播放筹码掉落音效
@@ -331,7 +328,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
 
     // 计算投票进度和是否超过半数
     const { voteProgress, isOverHalf } = useMemo(() => {
-        const totalPlayers = gameState?.seats.filter(s => s.roleId && !s.isDead).length || 1;
+        const totalPlayers = gameState?.seats.filter(s => s.seenRoleId && !s.isDead).length ?? 1;
         const requiredVotes = Math.ceil(totalPlayers / 2);
         const currentVoteCount = currentVotes.length;
         const progress = Math.min(currentVoteCount / totalPlayers, 1);

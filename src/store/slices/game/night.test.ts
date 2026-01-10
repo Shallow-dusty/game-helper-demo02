@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+ 
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 
 // Mock dependencies
-vi.mock('../createConnectionSlice', () => ({
+vi.mock('../connection', () => ({
     supabase: {
         rpc: vi.fn()
     }
@@ -25,7 +25,7 @@ vi.mock('../../../constants', () => ({
     }
 }));
 
-import { supabase } from '../createConnectionSlice';
+import { supabase } from '../connection';
 import { createGameNightSlice } from './night';
 
 describe('createGameNightSlice', () => {
@@ -103,7 +103,7 @@ describe('createGameNightSlice', () => {
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
-            // eslint-disable-next-line @typescript-eslint/await-thenable
+             
             await slice.submitNightAction({
                 roleId: 'washerwoman',
                 payload: { targetSeat: 1 }
@@ -126,7 +126,7 @@ describe('createGameNightSlice', () => {
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
-            // eslint-disable-next-line @typescript-eslint/await-thenable
+             
             await slice.submitNightAction({
                 roleId: 'washerwoman',
                 payload: {}
@@ -144,7 +144,7 @@ describe('createGameNightSlice', () => {
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
-            // eslint-disable-next-line @typescript-eslint/await-thenable
+             
             await slice.submitNightAction({
                 roleId: 'washerwoman',
                 payload: {}
@@ -162,7 +162,7 @@ describe('createGameNightSlice', () => {
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
-            // eslint-disable-next-line @typescript-eslint/await-thenable
+             
             await slice.submitNightAction({
                 roleId: 'washerwoman',
                 payload: {}
@@ -184,7 +184,7 @@ describe('createGameNightSlice', () => {
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
-            // eslint-disable-next-line @typescript-eslint/await-thenable
+             
             await slice.submitNightAction({
                 roleId: 'washerwoman',
                 payload: {}

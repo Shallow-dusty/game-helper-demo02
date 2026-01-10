@@ -110,7 +110,7 @@ export const GhostlyVisionOverlay: React.FC<GhostlyVisionOverlayProps> = ({
             </motion.div>
           </div>
           <div className="text-xs">
-            <p className="text-slate-400 font-cinzel">{playerName || '你'}</p>
+            <p className="text-slate-400 font-cinzel">{playerName ?? '你'}</p>
             <p className="text-slate-500">已成为亡者</p>
           </div>
         </div>
@@ -118,18 +118,18 @@ export const GhostlyVisionOverlay: React.FC<GhostlyVisionOverlayProps> = ({
 
       {/* 浮动幽灵粒子 */}
       <div className="fixed inset-0 pointer-events-none z-[1049] overflow-hidden">
-        {[...Array(8)].map((_, i) => (
+        {Array.from({ length: 8 }, (_, i) => (
           <motion.div
             key={i}
-            initial={{ 
+            initial={{
               opacity: 0,
-              x: `${Math.random() * 100}vw`,
+              x: `${String(Math.random() * 100)}vw`,
               y: '110vh'
             }}
-            animate={{ 
+            animate={{
               opacity: [0, 0.4, 0],
               y: '-10vh',
-              x: `${Math.random() * 100}vw`
+              x: `${String(Math.random() * 100)}vw`
             }}
             transition={{
               duration: 15 + Math.random() * 10,
@@ -139,11 +139,11 @@ export const GhostlyVisionOverlay: React.FC<GhostlyVisionOverlayProps> = ({
             }}
             className="absolute"
           >
-            <Ghost 
-              className="text-slate-600/30" 
-              style={{ 
-                width: `${20 + Math.random() * 30}px`,
-                height: `${20 + Math.random() * 30}px`
+            <Ghost
+              className="text-slate-600/30"
+              style={{
+                width: `${String(20 + Math.random() * 30)}px`,
+                height: `${String(20 + Math.random() * 30)}px`
               }}
             />
           </motion.div>
@@ -152,17 +152,17 @@ export const GhostlyVisionOverlay: React.FC<GhostlyVisionOverlayProps> = ({
 
       {/* 灵尘粒子效果 - 边缘飘浮 */}
       <div className="fixed inset-0 pointer-events-none z-[1047] overflow-hidden">
-        {[...Array(20)].map((_, i) => (
+        {Array.from({ length: 20 }, (_, i) => (
           <div
-            key={`dust-${i}`}
+            key={`dust-${String(i)}`}
             className="spirit-dust"
             style={{
-              left: `${i < 10 ? Math.random() * 15 : 85 + Math.random() * 15}%`,
-              bottom: `${Math.random() * 30}%`,
-              animationDuration: `${8 + Math.random() * 12}s`,
-              animationDelay: `${Math.random() * 10}s`,
-              width: `${3 + Math.random() * 5}px`,
-              height: `${3 + Math.random() * 5}px`,
+              left: `${String(i < 10 ? Math.random() * 15 : 85 + Math.random() * 15)}%`,
+              bottom: `${String(Math.random() * 30)}%`,
+              animationDuration: `${String(8 + Math.random() * 12)}s`,
+              animationDelay: `${String(Math.random() * 10)}s`,
+              width: `${String(3 + Math.random() * 5)}px`,
+              height: `${String(3 + Math.random() * 5)}px`,
             }}
           />
         ))}

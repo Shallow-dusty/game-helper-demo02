@@ -101,15 +101,15 @@ export const analyzeDistribution = (seats: Seat[], playerCount: number): Distrib
     const warnings: string[] = [];
     
     // 1. 角色数量检查
-    // 统计已分配的角色（优先使用 realRoleId，回退到 roleId 以兼容旧数据）
+    // 统计已分配的角色（优先使用 realRoleId，回退到 seenRoleId 以兼容旧数据）
     const assignedRoles = seats
-        .map(s => s.realRoleId || s.roleId)
+        .map(s => s.realRoleId ?? s.seenRoleId)
         .filter((id): id is string => !!id);
         
     const roleCount = assignedRoles.length;
 
     if (roleCount !== playerCount) {
-        warnings.push(`角色数量 (${roleCount}) 与玩家人数 (${playerCount}) 不匹配`);
+        warnings.push(`角色数量 (${String(roleCount)}) 与玩家人数 (${String(playerCount)}) 不匹配`);
     }
 
     // 2. 团队配比检查
@@ -132,18 +132,21 @@ export const analyzeDistribution = (seats: Seat[], playerCount: number): Distrib
 
     const standard = getStandardComposition(playerCount);
     if (standard) {
-        if (composition.demon !== standard.demon) warnings.push(`恶魔数量异常: 当前 ${composition.demon} (建议 ${standard.demon})`);
-        if (composition.minion !== standard.minion) warnings.push(`爪牙数量异常: 当前 ${composition.minion} (建议 ${standard.minion})`);
-        if (composition.outsider !== standard.outsider) warnings.push(`外来者数量异常: 当前 ${composition.outsider} (建议 ${standard.outsider})`);
+        if (composition.demon !== standard.demon) warnings.push(`恶魔数量异常: 当前 ${String(composition.demon)} (建议 ${String(standard.demon)})`);
+        if (composition.minion !== standard.minion) warnings.push(`爪牙数量异常: 当前 ${String(composition.minion)} (建议 ${String(standard.minion)})`);
+        if (composition.outsider !== standard.outsider) warnings.push(`外来者数量异常: 当前 ${String(composition.outsider)} (建议 ${String(standard.outsider)})`);
         // 镇民数量通常是填充位，如果其他都对，镇民不对可能是因为总数不对，已在上面提示
     } else if (playerCount >= 5 && playerCount <= 15) {
         // Should have standard composition but failed to get it? Unlikely with hardcoded map
     } else {
-        warnings.push(`当前人数 (${playerCount}) 超出标准规则建议范围 (5-15人)`);
+        warnings.push(`当前人数 (${String(playerCount)}) 超出标准规则建议范围 (5-15人)`);
     }
 
     // 3. 策略评估
-    const defaultStrategy = STRATEGIES[0]!; // Default to balanced
+    const defaultStrategy = STRATEGIES[0]; // Default to balanced
+    if (!defaultStrategy) {
+        throw new Error('STRATEGIES array is empty');
+    }
     let bestStrategy = defaultStrategy;
 
     // 简单评分逻辑：满足条件得1分，否则0分。
@@ -202,12 +205,12 @@ export const checkRuleCompliance = (seats: Seat[], scriptId: string, playerCount
     const standard = getStandardComposition(playerCount);
     
     // 统计当前分配
-    const roleIds = seats.map(s => s.realRoleId || s.roleId).filter((id): id is string => !!id);
+    const roleIds = seats.map(s => s.realRoleId ?? s.seenRoleId).filter((id): id is string => !!id);
     const composition = { townsfolk: 0, outsider: 0, minion: 0, demon: 0 };
     const duplicateCheck = new Map<string, number>();
     
     roleIds.forEach(id => {
-        duplicateCheck.set(id, (duplicateCheck.get(id) || 0) + 1);
+        duplicateCheck.set(id, (duplicateCheck.get(id) ?? 0) + 1);
         const role = ROLES[id];
         if (role) {
             if (role.team === 'TOWNSFOLK') composition.townsfolk++;
@@ -221,11 +224,11 @@ export const checkRuleCompliance = (seats: Seat[], scriptId: string, playerCount
     checks.push({
         rule: 'DEMON_COUNT',
         passed: composition.demon === 1,
-        message: composition.demon === 0 
-            ? '游戏必须有一个恶魔角色' 
-            : composition.demon === 1 
-                ? '恶魔数量正确 (1个)' 
-                : `恶魔数量异常: ${composition.demon}个 (应为1个)`,
+        message: composition.demon === 0
+            ? '游戏必须有一个恶魔角色'
+            : composition.demon === 1
+                ? '恶魔数量正确 (1个)'
+                : `恶魔数量异常: ${String(composition.demon)}个 (应为1个)`,
         severity: composition.demon === 1 ? 'info' : 'error'
     });
     
@@ -235,28 +238,28 @@ export const checkRuleCompliance = (seats: Seat[], scriptId: string, playerCount
             rule: 'MINION_COUNT',
             passed: composition.minion === standard.minion,
             message: composition.minion === standard.minion
-                ? `爪牙数量正确 (${standard.minion}个)`
-                : `爪牙数量: ${composition.minion}个 (标准: ${standard.minion}个)`,
+                ? `爪牙数量正确 (${String(standard.minion)}个)`
+                : `爪牙数量: ${String(composition.minion)}个 (标准: ${String(standard.minion)}个)`,
             severity: composition.minion === standard.minion ? 'info' : 'warning'
         });
-        
+
         // 规则3: 外来者数量检查
         checks.push({
             rule: 'OUTSIDER_COUNT',
             passed: composition.outsider === standard.outsider,
             message: composition.outsider === standard.outsider
-                ? `外来者数量正确 (${standard.outsider}个)`
-                : `外来者数量: ${composition.outsider}个 (标准: ${standard.outsider}个)`,
+                ? `外来者数量正确 (${String(standard.outsider)}个)`
+                : `外来者数量: ${String(composition.outsider)}个 (标准: ${String(standard.outsider)}个)`,
             severity: composition.outsider === standard.outsider ? 'info' : 'warning'
         });
-        
+
         // 规则4: 镇民数量检查
         checks.push({
             rule: 'TOWNSFOLK_COUNT',
             passed: composition.townsfolk === standard.townsfolk,
             message: composition.townsfolk === standard.townsfolk
-                ? `镇民数量正确 (${standard.townsfolk}个)`
-                : `镇民数量: ${composition.townsfolk}个 (标准: ${standard.townsfolk}个)`,
+                ? `镇民数量正确 (${String(standard.townsfolk)}个)`
+                : `镇民数量: ${String(composition.townsfolk)}个 (标准: ${String(standard.townsfolk)}个)`,
             severity: composition.townsfolk === standard.townsfolk ? 'info' : 'warning'
         });
     }
@@ -268,21 +271,21 @@ export const checkRuleCompliance = (seats: Seat[], scriptId: string, playerCount
         passed: duplicates.length === 0,
         message: duplicates.length === 0
             ? '无重复角色'
-            : `发现重复角色: ${duplicates.map(([id]) => ROLES[id]?.name || id).join(', ')}`,
+            : `发现重复角色: ${duplicates.map(([id]) => ROLES[id]?.name ?? id).join(', ')}`,
         severity: duplicates.length === 0 ? 'info' : 'error'
     });
     
     // 规则6: 所有座位都应分配角色
     // 只检查有玩家或虚拟玩家的座位，如果没有这样的座位则检查所有座位
-    const activeSeats = seats.filter(s => s.userId || s.isVirtual);
+    const activeSeats = seats.filter(s => s.userId ?? s.isVirtual);
     const seatsToCheck = activeSeats.length > 0 ? activeSeats : seats;
-    const unassignedCount = seatsToCheck.filter(s => !(s.realRoleId || s.roleId)).length;
+    const unassignedCount = seatsToCheck.filter(s => !(s.realRoleId ?? s.seenRoleId)).length;
     checks.push({
         rule: 'ALL_ASSIGNED',
         passed: unassignedCount === 0,
         message: unassignedCount === 0
             ? '所有座位已分配角色'
-            : `${unassignedCount}个座位未分配角色`,
+            : `${String(unassignedCount)}个座位未分配角色`,
         severity: unassignedCount === 0 ? 'info' : 'warning'
     });
     
@@ -296,22 +299,23 @@ export const checkRuleCompliance = (seats: Seat[], scriptId: string, playerCount
             passed: invalidRoles.length === 0,
             message: invalidRoles.length === 0
                 ? '所有角色属于当前剧本'
-                : `以下角色不属于当前剧本: ${invalidRoles.map(id => ROLES[id]?.name || id).join(', ')}`,
+                : `以下角色不属于当前剧本: ${invalidRoles.map(id => ROLES[id]?.name ?? id).join(', ')}`,
             severity: invalidRoles.length === 0 ? 'info' : 'warning'
         });
     }
     
     // 规则8: 玩家数量检查
     // 如果没有活跃座位（测试情况），使用传入的 playerCount
-    const activePlayerCount = seats.filter(s => s.userId || s.isVirtual).length || playerCount;
+    const activePlayerLength = seats.filter(s => s.userId ?? s.isVirtual).length;
+    const activePlayerCount = activePlayerLength > 0 ? activePlayerLength : playerCount;
     checks.push({
         rule: 'PLAYER_COUNT',
         passed: activePlayerCount >= 5 && activePlayerCount <= 15,
         message: activePlayerCount >= 5 && activePlayerCount <= 15
-            ? `玩家数量合适 (${activePlayerCount}人)`
+            ? `玩家数量合适 (${String(activePlayerCount)}人)`
             : activePlayerCount < 5
-                ? `玩家数量过少 (${activePlayerCount}人, 最少5人)`
-                : `玩家数量过多 (${activePlayerCount}人, 最多15人)`,
+                ? `玩家数量过少 (${String(activePlayerCount)}人, 最少5人)`
+                : `玩家数量过多 (${String(activePlayerCount)}人, 最多15人)`,
         severity: (activePlayerCount >= 5 && activePlayerCount <= 15) ? 'info' : 'error'
     });
     
@@ -329,7 +333,7 @@ export const checkRuleCompliance = (seats: Seat[], scriptId: string, playerCount
             passed: composition.outsider === expectedOutsiders,
             message: composition.outsider === expectedOutsiders
                 ? `男爵效果: 外来者+2 已正确调整`
-                : `男爵在场时, 外来者应为 ${expectedOutsiders}个 (当前: ${composition.outsider}个)`,
+                : `男爵在场时, 外来者应为 ${String(expectedOutsiders)}个 (当前: ${String(composition.outsider)}个)`,
             severity: composition.outsider === expectedOutsiders ? 'info' : 'warning'
         });
     }
@@ -412,9 +416,9 @@ export const suggestDistributionFixes = (seats: Seat[], scriptId: string, player
                 const match = /爪牙数量:\s*(\d+)/.exec(check.message);
                 const current = match?.[1] ? parseInt(match[1], 10) : 0;
                 if (current < standard.minion) {
-                    suggestions.push(`建议添加爪牙角色至 ${standard.minion} 个`);
+                    suggestions.push(`建议添加爪牙角色至 ${String(standard.minion)} 个`);
                 } else if (current > standard.minion) {
-                    suggestions.push(`建议移除多余的爪牙角色，保留 ${standard.minion} 个`);
+                    suggestions.push(`建议移除多余的爪牙角色，保留 ${String(standard.minion)} 个`);
                 }
             }
             if (check.rule === 'NO_DUPLICATES') {

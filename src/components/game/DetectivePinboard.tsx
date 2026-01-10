@@ -62,7 +62,7 @@ export const DetectivePinboard: React.FC<DetectivePinboardProps> = ({
         const parsed = JSON.parse(saved) as Connection[];
         setConnections(parsed);
       }
-    } catch (e) {
+    } catch {
       console.warn('Failed to load detective pinboard data');
     }
   }, [storageKey]);
@@ -71,7 +71,7 @@ export const DetectivePinboard: React.FC<DetectivePinboardProps> = ({
   useEffect(() => {
     try {
       localStorage.setItem(storageKey, JSON.stringify(connections));
-    } catch (e) {
+    } catch {
       console.warn('Failed to save detective pinboard data');
     }
   }, [connections, storageKey]);
@@ -200,7 +200,7 @@ export const DetectivePinboard: React.FC<DetectivePinboardProps> = ({
 
     if (distance > 30) {
       const newConnection: Connection = {
-        id: `conn_${Date.now()}`,
+        id: `conn_${String(Date.now())}`,
         from: drawStart,
         to: { x: endX, y: endY },
         type: drawType,
@@ -226,20 +226,21 @@ export const DetectivePinboard: React.FC<DetectivePinboardProps> = ({
     let closestConn: Connection | null = null;
     let minDist = 30;
 
-    connections.forEach(conn => {
+    for (const conn of connections) {
       const midX = (conn.from.x + conn.to.x) / 2;
       const midY = (conn.from.y + conn.to.y) / 2;
       const dist = Math.sqrt(Math.pow(x - midX, 2) + Math.pow(y - midY, 2));
-      
+
       if (dist < minDist) {
         minDist = dist;
         closestConn = conn;
       }
-    });
+    }
 
-    if (closestConn) {
+    if (closestConn !== null) {
+      const targetId = closestConn.id;
       setConnections(prev => prev.map(c => {
-        if (c.id === closestConn!.id) {
+        if (c.id === targetId) {
           // 循环切换: 无 -> ? -> ! -> 无
           const markers: (undefined | '?' | '!')[] = [undefined, '?', '!'];
           const currentIdx = markers.indexOf(c.marker);
@@ -254,7 +255,7 @@ export const DetectivePinboard: React.FC<DetectivePinboardProps> = ({
   // 右键删除
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    
+
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
 
@@ -265,22 +266,23 @@ export const DetectivePinboard: React.FC<DetectivePinboardProps> = ({
     let closestConnId: string | null = null;
     let minDist = 20;
 
-    connections.forEach(conn => {
+    for (const conn of connections) {
       // 点到线段的距离
       const dist = pointToLineDistance(
         { x, y },
         conn.from,
         conn.to
       );
-      
+
       if (dist < minDist) {
         minDist = dist;
         closestConnId = conn.id;
       }
-    });
+    }
 
-    if (closestConnId) {
-      setConnections(prev => prev.filter(c => c.id !== closestConnId));
+    if (closestConnId !== null) {
+      const targetId = closestConnId;
+      setConnections(prev => prev.filter(c => c.id !== targetId));
     }
   }, [connections]);
 

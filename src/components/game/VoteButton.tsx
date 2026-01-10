@@ -8,12 +8,12 @@ interface VoteButtonProps {
     onToggle: () => void;
 }
 
-export const VoteButton: React.FC<VoteButtonProps> = ({ 
-    isRaised, 
-    isLocked, 
+export const VoteButton: React.FC<VoteButtonProps> = React.memo(({
+    isRaised,
+    isLocked,
     isDead = false,
     hasGhostVote = true,
-    onToggle 
+    onToggle
 }) => {
     const [isLoading, setIsLoading] = useState(false);
     
@@ -76,7 +76,7 @@ export const VoteButton: React.FC<VoteButtonProps> = ({
             )}
         </div>
     );
-};
+});
 
 
 

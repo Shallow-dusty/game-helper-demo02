@@ -1,13 +1,21 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../../store';
-import { Seat } from '../../types';
+import { ChatMessage, Seat } from '../../types';
 import { InfoCard } from '../ui/InfoCard';
 import * as ReactWindow from 'react-window';
-// @ts-ignore
-const List = ReactWindow.FixedSizeList || ReactWindow.default?.FixedSizeList;
+// @ts-expect-error react-window types may not match at runtime
+const List = (ReactWindow.FixedSizeList ?? (ReactWindow as { default?: { FixedSizeList?: unknown } }).default?.FixedSizeList) as React.ComponentType<{
+    listRef?: React.RefObject<{ scrollToRow: (params: { index: number; align?: string }) => void } | null>;
+    defaultHeight: number;
+    rowCount: number;
+    rowHeight: number;
+    rowComponent: React.ComponentType<{ index: number; style: React.CSSProperties }>;
+    rowProps: Record<string, never>;
+    className?: string;
+}>;
 
 interface MessageItemProps {
-    msg: any;
+    msg: ChatMessage;
     isMe: boolean;
     seats: Seat[];
     style?: React.CSSProperties;
@@ -32,7 +40,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ msg, isMe, seats, style }) =>
 
     // --- CHAT RENDER ---
     const senderSeat = seats.find(s => s.userId === msg.senderId);
-    const displayName = senderSeat ? `[${senderSeat.id + 1}] ${msg.senderName}` : msg.senderName;
+    const displayName = senderSeat ? `[${String(senderSeat.id + 1)}] ${msg.senderName}` : msg.senderName;
 
     return (
         <div style={style} className="px-4 py-2">
@@ -41,7 +49,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ msg, isMe, seats, style }) =>
                     <span className={`text-[10px] font-bold tracking-wider uppercase font-cinzel ${isPrivate ? 'text-purple-400' : 'text-stone-500'}`}>
                         {displayName}
                         {isPrivate && !isMe && " (悄悄话)"}
-                        {isPrivate && isMe && ` ➜ ${seats.find(s => s.userId === msg.recipientId)?.userName || '未知'}`}
+                        {isPrivate && isMe && ` ➜ ${seats.find(s => s.userId === msg.recipientId)?.userName ?? '未知'}`}
                     </span>
                 </div>
                 <div
@@ -68,8 +76,8 @@ const MessageItem: React.FC<MessageItemProps> = ({ msg, isMe, seats, style }) =>
 const VIRTUAL_SCROLL_THRESHOLD = 50;
 
 export const Chat = () => {
-    const messages = useStore(state => state.gameState?.messages || []);
-    const seats = useStore(state => state.gameState?.seats || []);
+    const messages = useStore(state => state.gameState?.messages ?? []);
+    const seats = useStore(state => state.gameState?.seats ?? []);
     const allowWhispers = useStore(state => state.gameState?.allowWhispers ?? true);
     const user = useStore(state => state.user);
     const sendMessage = useStore(state => state.sendMessage);
@@ -241,7 +249,7 @@ export const Chat = () => {
 
                 {filteredMessages.length > 0 && useVirtualScroll ? (
                     <List<Record<string, never>>
-                        listRef={listApiRef as React.MutableRefObject<{ scrollToRow: (params: { index: number; align?: string }) => void } | null>}
+                        listRef={listApiRef as React.RefObject<{ scrollToRow: (params: { index: number; align?: string }) => void } | null>}
                         defaultHeight={listHeight}
                         rowCount={filteredMessages.length}
                         rowHeight={rowHeight}
@@ -272,20 +280,20 @@ export const Chat = () => {
                 <form 
                     onSubmit={handleSend} 
                     className="p-4 border-t border-stone-800 bg-[#0c0a09] relative z-20 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]"
-                    style={{ paddingBottom: keyboardOffset > 0 ? `${keyboardOffset + 16}px` : undefined }}
+                    style={{ paddingBottom: keyboardOffset > 0 ? `${String(keyboardOffset + 16)}px` : undefined }}
                 >
                     <div className="flex items-center gap-2 mb-3">
                         <span className="text-[10px] uppercase text-stone-500 font-bold tracking-widest">发送给:</span>
                         {(allowWhispers || user?.isStoryteller) ? (
                             <div className="relative flex-1">
                                 <select
-                                    value={recipientId || ''}
+                                    value={recipientId ?? ''}
                                     onChange={(e) => setRecipientId(e.target.value || null)}
                                     className={`w-full appearance-none bg-[#1c1917] border text-xs rounded-sm px-3 py-1.5 outline-none transition-colors font-serif ${recipientId ? 'border-purple-900 text-purple-300 shadow-[0_0_10px_rgba(147,51,234,0.1)]' : 'border-stone-700 text-stone-400 hover:border-stone-600'}`}
                                 >
                                     <option value="">📢 所有人 (Public)</option>
                                     {availableRecipients.map(s => (
-                                        <option key={s.userId} value={s.userId!}>
+                                        <option key={s.userId} value={s.userId ?? ''}>
                                             🕵️ {s.userName} ({s.id + 1}号)
                                         </option>
                                     ))}

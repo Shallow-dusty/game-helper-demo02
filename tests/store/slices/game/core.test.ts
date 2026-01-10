@@ -8,8 +8,24 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createGameCoreSlice } from '../../../../src/store/slices/game/core';
 import type { GameState, Seat } from '../../../../src/types';
 
+// Mock @supabase/supabase-js to provide REALTIME_SUBSCRIBE_STATES
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn(() => ({
+    from: vi.fn(),
+    channel: vi.fn(),
+    rpc: vi.fn(),
+    removeChannel: vi.fn()
+  })),
+  REALTIME_SUBSCRIBE_STATES: {
+    SUBSCRIBED: 'SUBSCRIBED',
+    CLOSED: 'CLOSED',
+    CHANNEL_ERROR: 'CHANNEL_ERROR',
+    TIMED_OUT: 'TIMED_OUT'
+  }
+}));
+
 // Mock supabase
-vi.mock('../../../../src/store/slices/createConnectionSlice', () => ({
+vi.mock('../../../../src/store/slices/connection', () => ({
   supabase: {
     from: vi.fn(() => ({
       insert: vi.fn().mockResolvedValue({ error: null }),
@@ -355,6 +371,390 @@ describe('createGameCoreSlice', () => {
       await coreSlice.createGame(7);
 
       // Should return early
+    });
+
+    it('should handle realtime postgres_changes callback with valid data', async () => {
+      // Capture the callbacks
+      let postgresChangesCallback: ((payload: unknown) => void) | null = null;
+      let subscribeCallback: ((status: string) => void) | null = null;
+
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      // Setup mock to capture callbacks
+      const mockChannel = {
+        on: vi.fn().mockImplementation((_event: string, _config: unknown, cb: (payload: unknown) => void) => {
+          postgresChangesCallback = cb;
+          return mockChannel;
+        }),
+        subscribe: vi.fn().mockImplementation((cb: (status: string) => void) => {
+          subscribeCallback = cb;
+          // Immediately call with SUBSCRIBED
+          if (cb) cb('SUBSCRIBED');
+          return { unsubscribe: vi.fn() };
+        })
+      };
+
+      (supabase.channel as ReturnType<typeof vi.fn>).mockReturnValue(mockChannel);
+
+      await coreSlice.createGame(7);
+
+      // Now trigger the postgres_changes callback with valid data
+      expect(postgresChangesCallback).toBeDefined();
+      if (postgresChangesCallback) {
+        const mockPayload = {
+          new: {
+            data: {
+              roomId: 'TEST123',
+              seats: [],
+              messages: [],
+              phase: 'SETUP'
+            }
+          }
+        };
+
+        postgresChangesCallback(mockPayload);
+
+        // Verify the callback processed the data
+        expect(mockStore.state._setIsReceivingUpdate).toHaveBeenCalledWith(true);
+        expect(mockStore.state._setIsReceivingUpdate).toHaveBeenCalledWith(false);
+      }
+    });
+
+    it('should handle realtime postgres_changes callback with no data', async () => {
+      let postgresChangesCallback: ((payload: unknown) => void) | null = null;
+
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      const mockChannel = {
+        on: vi.fn().mockImplementation((_event: string, _config: unknown, cb: (payload: unknown) => void) => {
+          postgresChangesCallback = cb;
+          return mockChannel;
+        }),
+        subscribe: vi.fn().mockImplementation((cb: (status: string) => void) => {
+          if (cb) cb('SUBSCRIBED');
+          return { unsubscribe: vi.fn() };
+        })
+      };
+
+      (supabase.channel as ReturnType<typeof vi.fn>).mockReturnValue(mockChannel);
+
+      await coreSlice.createGame(7);
+
+      expect(postgresChangesCallback).toBeDefined();
+      if (postgresChangesCallback) {
+        // Trigger callback with undefined new data
+        postgresChangesCallback({ new: undefined });
+
+        // _setIsReceivingUpdate should NOT be called when no data
+        expect(mockStore.state._setIsReceivingUpdate).not.toHaveBeenCalled();
+      }
+    });
+
+    it('should handle realtime postgres_changes callback with empty new object', async () => {
+      let postgresChangesCallback: ((payload: unknown) => void) | null = null;
+
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      const mockChannel = {
+        on: vi.fn().mockImplementation((_event: string, _config: unknown, cb: (payload: unknown) => void) => {
+          postgresChangesCallback = cb;
+          return mockChannel;
+        }),
+        subscribe: vi.fn().mockImplementation((cb: (status: string) => void) => {
+          if (cb) cb('SUBSCRIBED');
+          return { unsubscribe: vi.fn() };
+        })
+      };
+
+      (supabase.channel as ReturnType<typeof vi.fn>).mockReturnValue(mockChannel);
+
+      await coreSlice.createGame(7);
+
+      expect(postgresChangesCallback).toBeDefined();
+      if (postgresChangesCallback) {
+        // Trigger callback with new object but no data property
+        postgresChangesCallback({ new: {} });
+
+        // _setIsReceivingUpdate should NOT be called when no data property
+        expect(mockStore.state._setIsReceivingUpdate).not.toHaveBeenCalled();
+      }
+    });
+
+    it('should set connectionStatus to connected when subscription status is SUBSCRIBED', async () => {
+      let subscribeCallback: ((status: string) => void) | null = null;
+
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      const mockChannel = {
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockImplementation((cb: (status: string) => void) => {
+          subscribeCallback = cb;
+          return { unsubscribe: vi.fn() };
+        })
+      };
+
+      (supabase.channel as ReturnType<typeof vi.fn>).mockReturnValue(mockChannel);
+
+      await coreSlice.createGame(7);
+
+      expect(subscribeCallback).toBeDefined();
+      if (subscribeCallback) {
+        subscribeCallback('SUBSCRIBED');
+        expect(mockStore.state.connectionStatus).toBe('connected');
+        expect(mockStore.state.isOffline).toBe(false);
+      }
+    });
+
+    it('should set connectionStatus to disconnected when subscription status is CLOSED', async () => {
+      let subscribeCallback: ((status: string) => void) | null = null;
+
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      const mockChannel = {
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockImplementation((cb: (status: string) => void) => {
+          subscribeCallback = cb;
+          return { unsubscribe: vi.fn() };
+        })
+      };
+
+      (supabase.channel as ReturnType<typeof vi.fn>).mockReturnValue(mockChannel);
+
+      await coreSlice.createGame(7);
+
+      expect(subscribeCallback).toBeDefined();
+      if (subscribeCallback) {
+        subscribeCallback('CLOSED');
+        expect(mockStore.state.connectionStatus).toBe('disconnected');
+      }
+    });
+
+    it('should set connectionStatus to reconnecting when subscription status is CHANNEL_ERROR', async () => {
+      let subscribeCallback: ((status: string) => void) | null = null;
+
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      const mockChannel = {
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockImplementation((cb: (status: string) => void) => {
+          subscribeCallback = cb;
+          return { unsubscribe: vi.fn() };
+        })
+      };
+
+      (supabase.channel as ReturnType<typeof vi.fn>).mockReturnValue(mockChannel);
+
+      await coreSlice.createGame(7);
+
+      expect(subscribeCallback).toBeDefined();
+      if (subscribeCallback) {
+        subscribeCallback('CHANNEL_ERROR');
+        expect(mockStore.state.connectionStatus).toBe('reconnecting');
+      }
+    });
+
+    it('should handle database insert error and switch to offline mode', async () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
+        insert: vi.fn().mockResolvedValue({ error: { message: 'Insert failed' } })
+      });
+
+      await coreSlice.createGame(7);
+
+      expect(mockStore.state.isOffline).toBe(true);
+      expect(mockStore.state.connectionStatus).toBe('disconnected');
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle database insert throwing exception and switch to offline mode', async () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
+        insert: vi.fn().mockRejectedValue(new Error('Network error'))
+      });
+
+      await coreSlice.createGame(7);
+
+      expect(mockStore.state.isOffline).toBe(true);
+      expect(mockStore.state.connectionStatus).toBe('disconnected');
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle non-Error exception and switch to offline mode', async () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
+        insert: vi.fn().mockRejectedValue('String error')
+      });
+
+      await coreSlice.createGame(7);
+
+      expect(mockStore.state.isOffline).toBe(true);
+      expect(mockStore.state.connectionStatus).toBe('disconnected');
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it('should set realtime channel after successful subscription', async () => {
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      // Reset supabase.from to return success
+      (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
+        insert: vi.fn().mockResolvedValue({ error: null })
+      });
+
+      // Create mock channel - subscribe should return the channel itself for chaining
+      const mockChannel: {
+        on: ReturnType<typeof vi.fn>;
+        subscribe: ReturnType<typeof vi.fn>;
+        unsubscribe: ReturnType<typeof vi.fn>;
+      } = {
+        on: vi.fn(),
+        subscribe: vi.fn(),
+        unsubscribe: vi.fn()
+      };
+
+      // Setup chaining: on() returns mockChannel, subscribe() also returns mockChannel
+      mockChannel.on.mockReturnValue(mockChannel);
+      mockChannel.subscribe.mockImplementation((cb: (status: string) => void) => {
+        if (cb) cb('SUBSCRIBED');
+        return mockChannel; // Returns the channel itself, like real Supabase
+      });
+
+      (supabase.channel as ReturnType<typeof vi.fn>).mockReturnValue(mockChannel);
+
+      await coreSlice.createGame(7);
+
+      expect(mockStore.state._setRealtimeChannel).toHaveBeenCalledWith(mockChannel);
+    });
+  });
+
+  describe('joinSeat RPC', () => {
+    it('should successfully join seat when RPC succeeds', async () => {
+      // Setup: user exists, seat is empty
+      mockStore.state.gameState!.seats![0]!.userId = null;
+
+      await coreSlice.joinSeat(0);
+
+      // Should update user.isSeated to true
+      expect(mockStore.state.user?.isSeated).toBe(true);
+    });
+
+    it('should handle RPC error', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      (supabase.rpc as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'));
+
+      mockStore.state.gameState!.seats![0]!.userId = null;
+
+      await coreSlice.joinSeat(0);
+
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle RPC failure response', async () => {
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      (supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        data: { success: false, error: 'Seat already taken' },
+        error: null
+      });
+
+      mockStore.state.gameState!.seats![0]!.userId = null;
+      mockStore.state.user!.isSeated = false;
+
+      await coreSlice.joinSeat(0);
+
+      // Should not update user.isSeated when RPC returns failure
+      expect(mockStore.state.user?.isSeated).toBe(false);
+    });
+
+    it('should handle RPC throwing error', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      (supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Database error' }
+      });
+
+      mockStore.state.gameState!.seats![0]!.userId = null;
+
+      await coreSlice.joinSeat(0);
+
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('leaveSeat RPC', () => {
+    it('should successfully leave seat when RPC succeeds', async () => {
+      // Setup: user is seated
+      mockStore.state.gameState!.seats![0]!.userId = 'user1';
+      mockStore.state.user!.isSeated = true;
+
+      await coreSlice.leaveSeat();
+
+      expect(mockStore.state.user?.isSeated).toBe(false);
+    });
+
+    it('should handle RPC error', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      (supabase.rpc as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Network error'));
+
+      mockStore.state.gameState!.seats![0]!.userId = 'user1';
+      mockStore.state.user!.isSeated = true;
+
+      await coreSlice.leaveSeat();
+
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle RPC failure response', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      (supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        data: { success: false, error: 'Cannot leave' },
+        error: null
+      });
+
+      mockStore.state.gameState!.seats![0]!.userId = 'user1';
+      mockStore.state.user!.isSeated = true;
+
+      await coreSlice.leaveSeat();
+
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle RPC throwing error', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { supabase } = await import('../../../../src/store/slices/connection');
+
+      (supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Database error' }
+      });
+
+      mockStore.state.gameState!.seats![0]!.userId = 'user1';
+      mockStore.state.user!.isSeated = true;
+
+      await coreSlice.leaveSeat();
+
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
     });
   });
 });

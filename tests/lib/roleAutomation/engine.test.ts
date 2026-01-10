@@ -316,7 +316,7 @@ describe('RoleAutomationEngine', () => {
   describe('applyStatusChanges', () => {
     it('should add status to seat', () => {
       // Manually add a pending status change
-      engine['pendingStatusChanges'].push({
+      engine.pendingStatusChanges.push({
         seatId: 0,
         status: 'PROTECTED',
         action: 'add',
@@ -331,7 +331,7 @@ describe('RoleAutomationEngine', () => {
 
     it('should remove status from seat', () => {
       gameState.seats[0].statuses = ['POISONED', 'PROTECTED'];
-      engine['pendingStatusChanges'].push({
+      engine.pendingStatusChanges.push({
         seatId: 0,
         status: 'POISONED',
         action: 'remove',
@@ -345,7 +345,7 @@ describe('RoleAutomationEngine', () => {
     });
 
     it('should clear pending status changes after applying', () => {
-      engine['pendingStatusChanges'].push({
+      engine.pendingStatusChanges.push({
         seatId: 0,
         status: 'PROTECTED',
         action: 'add',
@@ -361,7 +361,7 @@ describe('RoleAutomationEngine', () => {
 
   describe('applyDeaths', () => {
     it('should mark seat as dead', () => {
-      engine['pendingDeaths'].push({
+      engine.pendingDeaths.push({
         seatId: 0,
         cause: 'demon_kill',
         killerRoleId: 'imp',
@@ -376,7 +376,7 @@ describe('RoleAutomationEngine', () => {
     });
 
     it('should not apply prevented deaths', () => {
-      engine['pendingDeaths'].push({
+      engine.pendingDeaths.push({
         seatId: 0,
         cause: 'demon_kill',
         killerRoleId: 'imp',
@@ -392,7 +392,7 @@ describe('RoleAutomationEngine', () => {
     });
 
     it('should clear pending deaths after applying', () => {
-      engine['pendingDeaths'].push({
+      engine.pendingDeaths.push({
         seatId: 0,
         cause: 'demon_kill',
         killerRoleId: 'imp',
@@ -407,7 +407,7 @@ describe('RoleAutomationEngine', () => {
 
   describe('getPendingChainReactions', () => {
     it('should return pending chain reactions', () => {
-      engine['pendingChainReactions'].push({
+      engine.pendingChainReactions.push({
         type: 'imp_transfer',
         description: 'Imp transfer',
         targetSeatId: 1,

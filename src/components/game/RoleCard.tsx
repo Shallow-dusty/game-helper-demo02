@@ -8,30 +8,32 @@ interface RoleCardProps {
     showDetails?: boolean;
 }
 
-const TEAM_COLORS = {
+const TEAM_COLORS: Record<string, string> = {
     TOWNSFOLK: 'blue',
     OUTSIDER: 'green',
     MINION: 'orange',
     DEMON: 'red',
-    TRAVELER: 'purple'
+    TRAVELER: 'purple',
+    FABLED: 'yellow'
 };
 
-const TEAM_NAMES = {
+const TEAM_NAMES: Record<string, string> = {
     TOWNSFOLK: '镇民',
     OUTSIDER: '外来者',
     MINION: '爪牙',
     DEMON: '恶魔',
-    TRAVELER: '旅行者'
+    TRAVELER: '旅行者',
+    FABLED: '传说'
 };
 
-export const RoleCard: React.FC<RoleCardProps> = ({
+export const RoleCard: React.FC<RoleCardProps> = React.memo(({
     role,
     isPlayerRole = false,
     size = 'normal',
     showDetails = false
 }) => {
-    const color = TEAM_COLORS[role.team] || 'stone';
-    const teamName = TEAM_NAMES[role.team] || role.team;
+    const color = TEAM_COLORS[role.team] ?? 'stone';
+    const teamName = TEAM_NAMES[role.team] ?? role.team;
 
     // Size classes
     const sizeClasses = {
@@ -96,7 +98,7 @@ export const RoleCard: React.FC<RoleCardProps> = ({
                     )}
 
                     {/* Night Order */}
-                    {(role.firstNight || role.otherNight) && (
+                    {(role.firstNight === true || role.otherNight === true) && (
                         <div className="flex gap-4 pt-3 border-t border-yellow-500/30">
                             {role.firstNight && (
                                 <div className="text-sm">
@@ -185,7 +187,7 @@ export const RoleCard: React.FC<RoleCardProps> = ({
             )}
 
             {/* Night Order (compact) */}
-            {(role.firstNight || role.otherNight) && (
+            {(role.firstNight === true || role.otherNight === true) && (
                 <div className="flex gap-3 text-xs text-stone-500 pt-2 border-t border-stone-700 mt-auto">
                     {role.firstNight && <span>首夜: 是</span>}
                     {role.otherNight && <span>其他: 是</span>}
@@ -193,7 +195,13 @@ export const RoleCard: React.FC<RoleCardProps> = ({
             )}
         </div>
     );
-};
+}, (prevProps, nextProps) => {
+    // Custom equality check for memoization
+    return prevProps.role.id === nextProps.role.id &&
+        prevProps.isPlayerRole === nextProps.isPlayerRole &&
+        prevProps.size === nextProps.size &&
+        prevProps.showDetails === nextProps.showDetails;
+});
 
 
 

@@ -65,17 +65,19 @@ export function processWasherwoman(
     };
   }
 
-  // 选择一个真实镇民 - 使用非空断言，因为已检查长度
-  const realTarget = townsfolk[Math.floor(Math.random() * townsfolk.length)]!;
+  // 选择一个真实镇民 - 已检查长度大于0
+  const realTarget = townsfolk[Math.floor(Math.random() * townsfolk.length)];
+  if (!realTarget) {
+    return { success: false, suggestions: [], error: '无法选择镇民' };
+  }
   const realRoleId = getRealRoleId(realTarget) ?? 'unknown';
 
   // 选择另一个玩家（可以是任何人，包括邪恶方）
   const others = gameState.seats.filter(s =>
     !s.isDead && s.id !== seatId && s.id !== realTarget.id && s.userId
   );
-  const decoy = others.length > 0
-    ? others[Math.floor(Math.random() * others.length)]!
-    : realTarget;
+  const decoyCandidate = others[Math.floor(Math.random() * others.length)];
+  const decoy = decoyCandidate ?? realTarget;
 
   // 打乱顺序
   const [player1, player2] = Math.random() > 0.5
@@ -91,10 +93,12 @@ export function processWasherwoman(
     const fakeRole = fakeRoles[Math.floor(Math.random() * fakeRoles.length)] ?? 'washerwoman';
     const fakePlayers = gameState.seats.filter(s => !s.isDead && s.id !== seatId && s.userId);
     if (fakePlayers.length >= 2) {
-      const fp1 = fakePlayers[Math.floor(Math.random() * fakePlayers.length)]!;
-      const remainingPlayers = fakePlayers.filter(p => p.id !== fp1.id);
-      const fp2 = remainingPlayers[Math.floor(Math.random() * remainingPlayers.length)]!;
-      suggestedInfo = `${formatSeatName(fp1)} 或 ${formatSeatName(fp2)} 是 ${formatRoleName(fakeRole)}`;
+      const fp1 = fakePlayers[Math.floor(Math.random() * fakePlayers.length)];
+      const remainingPlayers = fakePlayers.filter(p => p.id !== fp1?.id);
+      const fp2 = remainingPlayers[Math.floor(Math.random() * remainingPlayers.length)];
+      if (fp1 && fp2) {
+        suggestedInfo = `${formatSeatName(fp1)} 或 ${formatSeatName(fp2)} 是 ${formatRoleName(fakeRole)}`;
+      }
     }
   }
 
@@ -177,15 +181,17 @@ export function processLibrarian(
   let targetIds: number[] = [];
 
   if (outsiders.length > 0) {
-    const realTarget = outsiders[Math.floor(Math.random() * outsiders.length)]!;
+    const realTarget = outsiders[Math.floor(Math.random() * outsiders.length)];
+    if (!realTarget) {
+      return { success: false, suggestions: [], error: '无法选择外来者' };
+    }
     const realRoleId = getRealRoleId(realTarget) ?? 'unknown';
 
     const others = gameState.seats.filter(s =>
       !s.isDead && s.id !== seatId && s.id !== realTarget.id && s.userId
     );
-    const decoy = others.length > 0
-      ? others[Math.floor(Math.random() * others.length)]!
-      : realTarget;
+    const decoyCandidate = others[Math.floor(Math.random() * others.length)];
+    const decoy = decoyCandidate ?? realTarget;
 
     const [player1, player2] = Math.random() > 0.5
       ? [realTarget, decoy]
@@ -206,10 +212,12 @@ export function processLibrarian(
 
     if (Math.random() > 0.3 && fakePlayers.length >= 2) {
       // 70% 概率给假外来者
-      const fp1 = fakePlayers[Math.floor(Math.random() * fakePlayers.length)]!;
-      const remainingPlayers = fakePlayers.filter(p => p.id !== fp1.id);
-      const fp2 = remainingPlayers[Math.floor(Math.random() * remainingPlayers.length)]!;
-      suggestedInfo = `${formatSeatName(fp1)} 或 ${formatSeatName(fp2)} 是 ${formatRoleName(fakeRole)}`;
+      const fp1 = fakePlayers[Math.floor(Math.random() * fakePlayers.length)];
+      const remainingPlayers = fakePlayers.filter(p => p.id !== fp1?.id);
+      const fp2 = remainingPlayers[Math.floor(Math.random() * remainingPlayers.length)];
+      if (fp1 && fp2) {
+        suggestedInfo = `${formatSeatName(fp1)} 或 ${formatSeatName(fp2)} 是 ${formatRoleName(fakeRole)}`;
+      }
     } else {
       // 30% 概率说没有外来者
       suggestedInfo = '场上没有外来者';
@@ -281,15 +289,17 @@ export function processInvestigator(
   let targetIds: number[] = [];
 
   if (minions.length > 0) {
-    const realTarget = minions[Math.floor(Math.random() * minions.length)]!;
+    const realTarget = minions[Math.floor(Math.random() * minions.length)];
+    if (!realTarget) {
+      return { success: false, suggestions: [], error: '无法选择爪牙' };
+    }
     const realRoleId = getRealRoleId(realTarget) ?? 'unknown';
 
     const others = gameState.seats.filter(s =>
       !s.isDead && s.id !== seatId && s.id !== realTarget.id && s.userId
     );
-    const decoy = others.length > 0
-      ? others[Math.floor(Math.random() * others.length)]!
-      : realTarget;
+    const decoyCandidate = others[Math.floor(Math.random() * others.length)];
+    const decoy = decoyCandidate ?? realTarget;
 
     const [player1, player2] = Math.random() > 0.5
       ? [realTarget, decoy]
@@ -308,10 +318,12 @@ export function processInvestigator(
     const fakePlayers = gameState.seats.filter(s => !s.isDead && s.id !== seatId && s.userId);
 
     if (fakePlayers.length >= 2) {
-      const fp1 = fakePlayers[Math.floor(Math.random() * fakePlayers.length)]!;
-      const remainingPlayers = fakePlayers.filter(p => p.id !== fp1.id);
-      const fp2 = remainingPlayers[Math.floor(Math.random() * remainingPlayers.length)]!;
-      suggestedInfo = `${formatSeatName(fp1)} 或 ${formatSeatName(fp2)} 是 ${formatRoleName(fakeRole)}`;
+      const fp1 = fakePlayers[Math.floor(Math.random() * fakePlayers.length)];
+      const remainingPlayers = fakePlayers.filter(p => p.id !== fp1?.id);
+      const fp2 = remainingPlayers[Math.floor(Math.random() * remainingPlayers.length)];
+      if (fp1 && fp2) {
+        suggestedInfo = `${formatSeatName(fp1)} 或 ${formatSeatName(fp2)} 是 ${formatRoleName(fakeRole)}`;
+      }
     }
   }
 
@@ -354,7 +366,7 @@ export function processChef(
   const realCount = countEvilPairs(gameState);
   const realInfo = realCount === 0
     ? '场上没有邪恶玩家相邻'
-    : `场上有 ${realCount} 对邪恶玩家相邻`;
+    : `场上有 ${String(realCount)} 对邪恶玩家相邻`;
 
   let suggestedInfo = realInfo;
   if (tainted) {
@@ -366,7 +378,7 @@ export function processChef(
 
     suggestedInfo = fakeCount === 0
       ? '场上没有邪恶玩家相邻'
-      : `场上有 ${fakeCount} 对邪恶玩家相邻`;
+      : `场上有 ${String(fakeCount)} 对邪恶玩家相邻`;
   }
 
   return {
@@ -412,7 +424,7 @@ export function processEmpath(
 
   const realInfo = evilCount === 0
     ? '你的邻居中没有邪恶玩家'
-    : `你的邻居中有 ${evilCount} 个邪恶玩家`;
+    : `你的邻居中有 ${String(evilCount)} 个邪恶玩家`;
 
   let suggestedInfo = realInfo;
   if (tainted) {
@@ -423,7 +435,7 @@ export function processEmpath(
 
     suggestedInfo = fakeCount === 0
       ? '你的邻居中没有邪恶玩家'
-      : `你的邻居中有 ${fakeCount} 个邪恶玩家`;
+      : `你的邻居中有 ${String(fakeCount)} 个邪恶玩家`;
   }
 
   return {

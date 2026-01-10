@@ -26,8 +26,8 @@ export const SandboxView: React.FC = () => {
     const updateViewport = () => {
       const vv = window.visualViewport;
       setViewportSize({
-        width: Math.round(vv?.width || window.innerWidth),
-        height: Math.round(vv?.height || window.innerHeight)
+        width: Math.round(vv?.width ?? window.innerWidth),
+        height: Math.round(vv?.height ?? window.innerHeight)
       });
     };
 
@@ -90,15 +90,15 @@ export const SandboxView: React.FC = () => {
     ? null
     : SCRIPTS[gameState.currentScriptId];
   const currentScript: RoleDef[] = gameState.currentScriptId === 'custom'
-    ? Object.values(gameState.customRoles || {})
-    : (scriptDef?.roles || []).map(roleId => ROLES[roleId]).filter((r): r is RoleDef => !!r);
+    ? Object.values(gameState.customRoles)
+    : (scriptDef?.roles ?? []).map(roleId => ROLES[roleId]).filter((r): r is RoleDef => !!r);
 
   return (
     <div
       className="flex flex-col w-screen bg-stone-950 overflow-hidden relative font-serif"
       style={{
-        minHeight: appHeight ? `${appHeight}px` : '100vh',
-        height: appHeight ? `${appHeight}px` : '100vh'
+        minHeight: appHeight ? `${String(appHeight)}px` : '100vh',
+        height: appHeight ? `${String(appHeight)}px` : '100vh'
       }}
     >
       {/* Toast Notifications */}
@@ -233,9 +233,9 @@ const SandboxPhaseIndicator: React.FC = () => {
   };
 
   return (
-    <div className={`${phaseColors[gameState.phase] || 'bg-stone-800 text-stone-300'} px-4 py-2 flex items-center justify-between`}>
+    <div className={`${phaseColors[gameState.phase] ?? 'bg-stone-800 text-stone-300'} px-4 py-2 flex items-center justify-between`}>
       <span className="font-cinzel font-bold text-sm">
-        {PHASE_LABELS[gameState.phase] || gameState.phase}
+        {PHASE_LABELS[gameState.phase] ?? gameState.phase}
       </span>
       
       {/* Quick phase switcher for sandbox */}
@@ -293,12 +293,12 @@ const SandboxGrimoire: React.FC<{ width: number; height: number }> = ({ width, h
                     ? 'bg-stone-800/80 border-stone-600 opacity-60' 
                     : 'bg-stone-700/80 border-stone-500 hover:border-emerald-500'
                 }`}
-                style={{ 
-                  left: `calc(50% + ${x}px)`, 
-                  top: `calc(50% + ${y}px)` 
+                style={{
+                  left: `calc(50% + ${String(x)}px)`,
+                  top: `calc(50% + ${String(y)}px)`
                 }}
                 onClick={() => toggleDead(seat.id)}
-                title={`${seat.userName}${seat.roleId ? ` - ${ROLES[seat.roleId]?.name || seat.roleId}` : ''}\n点击切换死亡状态`}
+                title={`${seat.userName}${seat.roleId ? ` - ${ROLES[seat.roleId]?.name ?? seat.roleId}` : ''}\n点击切换死亡状态`}
               >
                 <span className="text-stone-300 font-bold text-xs">{index + 1}</span>
                 {seat.roleId && ROLES[seat.roleId] && (
@@ -345,7 +345,7 @@ const SandboxControls: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   if (!gameState) return null;
 
   const scriptDef = SCRIPTS[gameState.currentScriptId];
-  const scriptRoles = (scriptDef?.roles.map(id => ROLES[id]) || []).filter((r): r is typeof ROLES[string] => !!r);
+  const scriptRoles = (scriptDef?.roles.map(id => ROLES[id]) ?? []).filter((r): r is typeof ROLES[string] => !!r);
 
   return (
     <div className="h-full flex flex-col bg-stone-950 border-l border-stone-800">

@@ -25,14 +25,14 @@ export function isProtected(seat: Seat): boolean {
  * 获取真实角色ID（考虑酒鬼等情况）
  */
 export function getRealRoleId(seat: Seat): string | null {
-  return seat.realRoleId || seat.roleId;
+  return seat.realRoleId ?? seat.roleId;
 }
 
 /**
  * 获取显示角色ID（玩家看到的）
  */
 export function getSeenRoleId(seat: Seat): string | null {
-  return seat.seenRoleId || seat.roleId;
+  return seat.seenRoleId ?? seat.roleId;
 }
 
 /**
@@ -103,8 +103,8 @@ export function getNeighbors(seatId: number, seats: Seat[]): [Seat | null, Seat 
   const nextId = (seatId + 1) % totalSeats;
 
   return [
-    seats.find(s => s.id === prevId) || null,
-    seats.find(s => s.id === nextId) || null
+    seats.find(s => s.id === prevId) ?? null,
+    seats.find(s => s.id === nextId) ?? null
   ];
 }
 
@@ -169,7 +169,7 @@ export function findDemon(gameState: GameState): Seat | null {
   return gameState.seats.find(s => {
     const roleId = getRealRoleId(s);
     return roleId && getTeamFromRoleId(roleId) === 'DEMON' && !s.isDead;
-  }) || null;
+  }) ?? null;
 }
 
 /**
@@ -225,7 +225,7 @@ export function getRandomSeatByTeam(
  * 生成唯一ID
  */
 export function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return `${String(Date.now())}-${Math.random().toString(36).substring(2, 11)}`;
 }
 
 /**
@@ -263,7 +263,7 @@ export function clearNightStatuses(seats: Seat[]): Seat[] {
  * 格式化座位显示名
  */
 export function formatSeatName(seat: Seat): string {
-  return `${seat.id + 1}号 ${seat.userName}`;
+  return `${String(seat.id + 1)}号 ${seat.userName}`;
 }
 
 /**
@@ -298,7 +298,7 @@ export function formatRoleName(roleId: string): string {
     // 恶魔
     imp: '小恶魔'
   };
-  return roleNames[roleId] || roleId;
+  return roleNames[roleId] ?? roleId;
 }
 
 /**

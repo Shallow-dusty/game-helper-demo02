@@ -26,10 +26,10 @@ export const WhisperingFog: React.FC<WhisperingFogProps> = ({
   tokenPositions,
   containerRect
 }) => {
-  const messages = useStore(state => state.gameState?.messages || []);
-  const seats = useStore(state => state.gameState?.seats || []);
+  const messages = useStore(state => state.gameState?.messages ?? []);
+  const seats = useStore(state => state.gameState?.seats ?? []);
   const user = useStore(state => state.user);
-  const isStoryteller = user?.isStoryteller || false;
+  const isStoryteller = user?.isStoryteller ?? false;
 
   const svgRef = useRef<SVGSVGElement>(null);
   
@@ -191,7 +191,7 @@ export const WhisperingFog: React.FC<WhisperingFogProps> = ({
           const controlX = midX - (dy / distance) * offsetAmount;
           const controlY = midY + (dx / distance) * offsetAmount;
           
-          const pathD = `M ${fromPos.x} ${fromPos.y} Q ${controlX} ${controlY} ${toPos.x} ${toPos.y}`;
+          const pathD = `M ${String(fromPos.x)} ${String(fromPos.y)} Q ${String(controlX)} ${String(controlY)} ${String(toPos.x)} ${String(toPos.y)}`;
           
           // 计算新鲜度（越新越亮, 10秒超时）
           const age = Date.now() - connection.timestamp;

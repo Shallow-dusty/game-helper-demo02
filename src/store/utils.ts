@@ -94,7 +94,7 @@ export const filterGameStateForUser = (gameState: GameState, currentUserId: stri
 
 export const addSystemMessage = (gameState: GameState, content: string, recipientId: string | null = null) => {
     gameState.messages.push({
-        id: Math.random().toString(36).substr(2, 9),
+        id: Math.random().toString(36).substring(2, 11),
         senderId: 'system',
         senderName: '系统',
         recipientId,
@@ -107,7 +107,7 @@ export const addSystemMessage = (gameState: GameState, content: string, recipien
 
 // --- SECURITY UTILITIES ---
 
-interface SecretState {
+export interface SecretState {
     seats?: Partial<Seat>[];
     storytellerNotes?: StorytellerNote[];
 }
@@ -147,7 +147,7 @@ export const splitGameState = (fullState: GameState): { publicState: GameState, 
 /**
  * 将公开状态和秘密状态合并为完整状态
  */
-export const mergeGameState = (publicState: GameState, secretState: SecretState): GameState => {
+export const mergeGameState = (publicState: GameState, secretState: SecretState | null | undefined): GameState => {
     if (!secretState) return publicState;
 
     const mergedState = JSON.parse(JSON.stringify(publicState)) as GameState;

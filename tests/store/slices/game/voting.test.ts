@@ -8,6 +8,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createVotingSlice } from '../../../../src/store/slices/game/flow/voting';
 import type { GameState, Seat } from '../../../../src/types';
 
+// Import mocked modules
+import { checkGameOver } from '../../../../src/lib/gameLogic';
+
 // Mock supabase
 vi.mock('../../../../src/store/slices/createConnectionSlice', () => ({
   supabase: {
@@ -188,7 +191,7 @@ describe('createVotingSlice', () => {
       mockStore.state.user = null;
 
       // toggleHand is async but we don't need to await in tests since it returns early
-      void votingSlice.toggleHand();
+      votingSlice.toggleHand();
 
       // Should return early
       expect(mockStore.state.gameState?.voting?.votes).toEqual([]);
@@ -197,7 +200,7 @@ describe('createVotingSlice', () => {
     it('should not do anything if no voting state', () => {
       mockStore.state.gameState!.voting = null;
 
-      void votingSlice.toggleHand();
+      votingSlice.toggleHand();
 
       // Should return early
     });
@@ -206,7 +209,7 @@ describe('createVotingSlice', () => {
       // user1 owns seat 0, but clockHand is pointing to seat 1
       mockStore.state.gameState!.voting!.clockHandSeatId = 1;
 
-      void votingSlice.toggleHand();
+      votingSlice.toggleHand();
 
       expect(mockStore.state.gameState?.voting?.votes).toEqual([]);
     });
@@ -214,7 +217,7 @@ describe('createVotingSlice', () => {
     it('should not do anything if clockHandSeatId is null', () => {
       mockStore.state.gameState!.voting!.clockHandSeatId = null;
 
-      void votingSlice.toggleHand();
+      votingSlice.toggleHand();
 
       expect(mockStore.state.gameState?.voting?.votes).toEqual([]);
     });
@@ -304,6 +307,116 @@ describe('createVotingSlice', () => {
 
       // Should not crash
       expect(mockStore.state.gameState?.voting).toBe(null);
+    });
+  });
+
+  describe('closeVote with game over', () => {
+    beforeEach(() => {
+      mockStore.state.gameState!.voting = {
+        nominatorSeatId: 0,
+        nomineeSeatId: 1,
+        clockHandSeatId: 4,
+        votes: [0, 2, 3],  // 3 votes to execute
+        isOpen: true
+      };
+      // Set nominee as demon so game can end
+      mockStore.state.gameState!.seats![1]!.realRoleId = 'imp';
+    });
+
+    it('should trigger game over when demon is executed', () => {
+      vi.mocked(checkGameOver).mockReturnValue({
+        winner: 'GOOD',
+        reason: '恶魔被处决'
+      });
+
+      votingSlice.closeVote();
+
+      expect(mockStore.state.gameState?.gameOver).toBeDefined();
+      expect(mockStore.state.gameState?.gameOver?.winner).toBe('GOOD');
+    });
+
+    it('should add game over message', () => {
+      vi.mocked(checkGameOver).mockReturnValue({
+        winner: 'GOOD',
+        reason: '恶魔被处决'
+      });
+
+      votingSlice.closeVote();
+
+      const gameOverMsg = mockStore.state.gameState?.messages?.find(m =>
+        m.type === 'system' && m.content.includes('游戏结束')
+      );
+      expect(gameOverMsg).toBeDefined();
+      expect(gameOverMsg?.content).toContain('好人');
+    });
+
+    it('should show evil wins correctly', () => {
+      vi.mocked(checkGameOver).mockReturnValue({
+        winner: 'EVIL',
+        reason: '圣徒被处决'
+      });
+
+      votingSlice.closeVote();
+
+      const gameOverMsg = mockStore.state.gameState?.messages?.find(m =>
+        m.type === 'system' && m.content.includes('游戏结束')
+      );
+      expect(gameOverMsg?.content).toContain('邪恶');
+    });
+
+    it('should not set game over when game continues', () => {
+      vi.mocked(checkGameOver).mockReturnValue(null);
+
+      votingSlice.closeVote();
+
+      expect(mockStore.state.gameState?.gameOver).toBeUndefined();
+    });
+  });
+
+  describe('closeVote edge cases', () => {
+    it('should handle no user gracefully', () => {
+      mockStore.state.user = null;
+      mockStore.state.gameState!.voting = {
+        nominatorSeatId: 0,
+        nomineeSeatId: 1,
+        clockHandSeatId: 4,
+        votes: [0, 2, 3],
+        isOpen: true
+      };
+
+      votingSlice.closeVote();
+
+      // Should still close vote, just not log to database
+      expect(mockStore.state.gameState?.voting).toBe(null);
+    });
+
+    it('should record survived result with insufficient votes', () => {
+      mockStore.state.gameState!.voting = {
+        nominatorSeatId: 0,
+        nomineeSeatId: 1,
+        clockHandSeatId: 4,
+        votes: [0],  // Only 1 vote
+        isOpen: true
+      };
+
+      votingSlice.closeVote();
+
+      expect(mockStore.state.gameState?.voteHistory?.[0]?.result).toBe('survived');
+    });
+
+    it('should handle null nomineeSeatId gracefully', () => {
+      mockStore.state.gameState!.voting = {
+        nominatorSeatId: 0,
+        nomineeSeatId: null as unknown as number,
+        clockHandSeatId: 4,
+        votes: [0, 2, 3],
+        isOpen: true
+      };
+
+      votingSlice.closeVote();
+
+      // Should not crash and record -1
+      expect(mockStore.state.gameState?.voteHistory?.[0]?.nomineeSeatId).toBe(-1);
     });
   });
 });

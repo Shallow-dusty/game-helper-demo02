@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
+import { shallow } from 'zustand/shallow';
 import { SCRIPTS, ROLES } from '../../constants';
 import { NightActionManager } from '../game/NightActionManager';
 import { DistributionConfirmationModal } from '../modals/DistributionConfirmationModal';
@@ -15,19 +16,53 @@ interface ControlsSTSectionProps {
     onShowScriptEditor: () => void;
 }
 
+// 优化选择器 - 细粒度订阅
+const useSTSectionState = () => useStore(
+    state => ({
+        seats: state.gameState?.seats ?? [],
+        phase: state.gameState?.phase ?? 'SETUP',
+        currentScriptId: state.gameState?.currentScriptId ?? 'tb',
+        customScripts: state.gameState?.customScripts ?? {},
+        nightQueue: state.gameState?.nightQueue ?? [],
+        nightCurrentIndex: state.gameState?.nightCurrentIndex ?? 0,
+        voting: state.gameState?.voting,
+        vibrationEnabled: state.gameState?.vibrationEnabled ?? false,
+        candlelightEnabled: state.gameState?.candlelightEnabled ?? false,
+        hasGameState: !!state.gameState,
+    }),
+    shallow
+);
+
+const useSTSectionActions = () => useStore(
+    state => ({
+        setPhase: state.setPhase,
+        setScript: state.setScript,
+        toggleCandlelight: state.toggleCandlelight,
+        nextClockHand: state.nextClockHand,
+        closeVote: state.closeVote,
+    }),
+    shallow
+);
+
 export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
     onShowCompositionGuide,
     onShowNightAction,
     onShowHistory,
     onShowScriptEditor
 }) => {
-    const gameState = useStore(state => state.gameState);
-    const setPhase = useStore(state => state.setPhase);
-    const setScript = useStore(state => state.setScript);
-    const toggleCandlelight = useStore(state => state.toggleCandlelight);
-
-    const nextClockHand = useStore(state => state.nextClockHand);
-    const closeVote = useStore(state => state.closeVote);
+    const {
+        seats,
+        phase,
+        currentScriptId,
+        customScripts,
+        nightQueue,
+        nightCurrentIndex,
+        voting,
+        vibrationEnabled,
+        candlelightEnabled,
+        hasGameState,
+    } = useSTSectionState();
+    const { setPhase, setScript, toggleCandlelight, nextClockHand, closeVote } = useSTSectionActions();
 
     // Confirmation Modal State
     const [showDistributeConfirm, setShowDistributeConfirm] = useState(false);
@@ -49,21 +84,21 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
     };
 
     const handleDistributeClick = () => {
-        if (!gameState) return;
-        
-        const hasEmptyRoles = gameState.seats.some(s => !s.roleId);
+        if (!hasGameState) return;
+
+        const hasEmptyRoles = seats.some(s => !s.roleId);
         if (hasEmptyRoles) {
             alert("有座位未分配角色！请先分配角色再发放。");
             return;
         }
 
         // Run analysis
-        const result = analyzeDistribution(gameState.seats, gameState.seats.length);
+        const result = analyzeDistribution(seats, seats.length);
         setDistributionAnalysis(result);
         setShowDistributeConfirm(true);
     };
 
-    if (!gameState) return null;
+    if (!hasGameState) return null;
 
     return (
         <div className="space-y-6">
@@ -104,7 +139,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     </div>
                 </div>
                 <select
-                    value={gameState.currentScriptId}
+                    value={currentScriptId}
                     onChange={(e) => setScript(e.target.value)}
                     className="w-full bg-stone-950 border border-stone-700 rounded text-sm text-stone-300 p-2"
                 >
@@ -113,9 +148,9 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                             <option key={script.id} value={script.id}>{script.name}</option>
                         ))}
                     </optgroup>
-                    {Object.keys(gameState.customScripts || {}).length > 0 && (
+                    {Object.keys(customScripts || {}).length > 0 && (
                         <optgroup label="自定义剧本">
-                            {Object.values(gameState.customScripts).map(script => (
+                            {Object.values(customScripts).map(script => (
                                 <option key={script.id} value={script.id}>{script.name}</option>
                             ))}
                         </optgroup>
@@ -205,12 +240,12 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                 </button>
                 <div className={`space-y-2 px-3 pb-3 ${collapsedSections.game ? 'hidden' : ''}`}>
                      {/* Phase Switch Button */}
-                     {gameState.phase === 'SETUP' || gameState.phase === 'DAY' ? (
+                     {phase === 'SETUP' || phase === 'DAY' ? (
                         <button
                             onClick={() => useStore.getState().startGame()}
                             className="w-full bg-indigo-900 hover:bg-indigo-800 text-indigo-100 py-3 px-3 rounded text-sm border border-indigo-700 transition-colors flex items-center justify-center gap-2 font-bold shadow-lg"
                         >
-                            <span>🌙</span> {gameState.phase === 'SETUP' ? '开始游戏 (进入夜晚)' : '进入夜晚'}
+                            <span>🌙</span> {phase === 'SETUP' ? '开始游戏 (进入夜晚)' : '进入夜晚'}
                         </button>
                     ) : (
                         <button
@@ -230,13 +265,13 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                         </button>
                         <button
                             onClick={() => useStore.getState().toggleVibration()}
-                            className={`py-2 px-3 rounded text-xs border transition-colors flex items-center justify-center gap-1 ${gameState.vibrationEnabled
+                            className={`py-2 px-3 rounded text-xs border transition-colors flex items-center justify-center gap-1 ${vibrationEnabled
                                 ? 'bg-green-900/50 border-green-700 text-green-300 hover:bg-green-800/50'
                                 : 'bg-stone-800 border-stone-600 text-stone-400 hover:bg-stone-700'
                                 }`}
                         >
-                            <span>{gameState.vibrationEnabled ? '📳' : '🔇'}</span>
-                            {gameState.vibrationEnabled ? '振动: 开' : '振动: 关'}
+                            <span>{vibrationEnabled ? '📳' : '🔇'}</span>
+                            {vibrationEnabled ? '振动: 开' : '振动: 关'}
                         </button>
                     </div>
 
@@ -244,24 +279,24 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     <button
                         onClick={() => toggleCandlelight?.()}
                         className={`w-full py-2 px-3 rounded text-xs border transition-all flex items-center justify-center gap-2 ${
-                            gameState.candlelightEnabled
+                            candlelightEnabled
                                 ? 'bg-amber-900/60 border-amber-600/50 text-amber-300 hover:bg-amber-800/60 shadow-[0_0_10px_rgba(251,191,36,0.2)]'
                                 : 'bg-stone-800 border-stone-600 text-stone-400 hover:bg-stone-700'
                         }`}
-                        title={gameState.candlelightEnabled ? '关闭烛光模式' : '开启烛光模式 - 夜晚时玩家视野受限'}
+                        title={candlelightEnabled ? '关闭烛光模式' : '开启烛光模式 - 夜晚时玩家视野受限'}
                     >
-                        {gameState.candlelightEnabled ? (
+                        {candlelightEnabled ? (
                             <Flame className="w-4 h-4" />
                         ) : (
                             <FlameKindling className="w-4 h-4" />
                         )}
-                        <span>{gameState.candlelightEnabled ? '🕯️ 烛光模式: 开' : '🕯️ 烛光模式: 关'}</span>
+                        <span>{candlelightEnabled ? '🕯️ 烛光模式: 开' : '🕯️ 烛光模式: 关'}</span>
                     </button>
                 </div>
             </div>
 
             {/* Smart Info Panel - 智能信息生成 */}
-            {gameState.phase === 'NIGHT' && (
+            {phase === 'NIGHT' && (
                 <SmartInfoPanel
                     isExpanded={!collapsedSections.smartInfo}
                     onToggle={() => toggleSection('smartInfo')}
@@ -269,8 +304,8 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
             )}
 
             {/* Night Queue Manager */}
-            {gameState.phase === 'NIGHT' && (() => {
-                const currentRoleId = gameState.nightCurrentIndex >= 0 ? gameState.nightQueue[gameState.nightCurrentIndex] : undefined;
+            {phase === 'NIGHT' && (() => {
+                const currentRoleId = nightCurrentIndex >= 0 ? nightQueue[nightCurrentIndex] : undefined;
                 const currentRole = currentRoleId ? ROLES[currentRoleId] : undefined;
                 const nightNext = useStore.getState().nightNext;
                 const nightPrev = useStore.getState().nightPrev;
@@ -279,20 +314,20 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     <div className="bg-black/30 p-3 rounded border border-indigo-900/50 shadow-lg">
                         <div className="text-xs text-indigo-400/70 mb-2 flex justify-between uppercase tracking-wider">
                             <span>夜间行动顺序</span>
-                            <span>{gameState.nightCurrentIndex + 1} / {gameState.nightQueue.length}</span>
+                            <span>{nightCurrentIndex + 1} / {nightQueue.length}</span>
                         </div>
                         <div className="flex items-center justify-between mb-3 bg-indigo-950/30 p-2 rounded border border-indigo-900/30">
                             <button onClick={nightPrev} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&lt;</button>
                             <span className={`font-serif text-lg font-bold ${currentRoleId ? 'text-indigo-200' : 'text-stone-600'}`}>
-                                {currentRole?.name || (gameState.nightCurrentIndex >= 0 ? '天亮' : '入夜')}
+                                {currentRole?.name || (nightCurrentIndex >= 0 ? '天亮' : '入夜')}
                             </span>
                             <button onClick={nightNext} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&gt;</button>
                         </div>
                         <div className="text-[10px] text-stone-500 flex flex-wrap gap-1.5">
-                            {gameState.nightQueue.map((rid, idx) => (
+                            {nightQueue.map((rid, idx) => (
                                 <span
                                     key={idx}
-                                    className={`px-1.5 py-0.5 rounded transition-all border ${idx === gameState.nightCurrentIndex ? 'bg-indigo-900 text-indigo-100 border-indigo-500 shadow-[0_0_10px_#4f46e5]' : idx < gameState.nightCurrentIndex ? 'text-stone-700 border-transparent decoration-stone-700 line-through' : 'bg-stone-800 text-stone-500 border-stone-700'}`}
+                                    className={`px-1.5 py-0.5 rounded transition-all border ${idx === nightCurrentIndex ? 'bg-indigo-900 text-indigo-100 border-indigo-500 shadow-[0_0_10px_#4f46e5]' : idx < nightCurrentIndex ? 'text-stone-700 border-transparent decoration-stone-700 line-through' : 'bg-stone-800 text-stone-500 border-stone-700'}`}
                                 >
                                     {ROLES[rid]?.name}
                                 </span>
@@ -325,12 +360,12 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
             })()}
 
             {/* Voting Controls */}
-            {gameState.voting?.isOpen && (
+            {voting?.isOpen && (
                 <div className="bg-amber-950/20 border border-amber-800/50 p-4 rounded shadow-[0_0_20px_rgba(180,83,9,0.1)] animate-fade-in">
                     <div className="text-xs text-amber-600 mb-3 font-bold uppercase tracking-widest text-center">投票进行中</div>
                     <div className="text-sm mb-4 flex justify-between items-center border-b border-amber-900/30 pb-2">
                         <span className="text-stone-400">被提名者</span>
-                        <span className="font-bold text-amber-100 text-lg font-cinzel">{gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName}</span>
+                        <span className="font-bold text-amber-100 text-lg font-cinzel">{seats.find(s => s.id === voting?.nomineeSeatId)?.userName}</span>
                     </div>
                     <button
                         onClick={nextClockHand}
@@ -359,9 +394,9 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
 
             {/* Rule Compliance Panel */}
             <RuleCompliancePanel
-                seats={gameState.seats}
-                scriptId={gameState.currentScriptId}
-                playerCount={gameState.seats.filter(s => s.userId || s.isVirtual).length}
+                seats={seats}
+                scriptId={currentScriptId}
+                playerCount={seats.filter(s => s.userId || s.isVirtual).length}
                 isOpen={showRuleCompliance}
                 onClose={() => setShowRuleCompliance(false)}
             />

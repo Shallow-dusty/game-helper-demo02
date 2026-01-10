@@ -1,12 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../../store';
+import { shallow } from 'zustand/shallow';
 import { Grimoire } from './Grimoire';
 import { Confetti } from './Confetti';
 
+// 优化选择器 - 细粒度订阅，避免不必要的重渲染
+const useTownSquareState = () => useStore(
+    state => ({
+        gameOver: state.gameState?.gameOver,
+        hasGameState: !!state.gameState,
+    }),
+    shallow
+);
+
 export const TownSquare = () => {
     const spectateGame = useStore(state => state.spectateGame);
-    const gameState = useStore(state => state.gameState);
     const connectionStatus = useStore(state => state.connectionStatus);
+    const { gameOver, hasGameState } = useTownSquareState();
 
     const [roomCode, setRoomCode] = useState<string | null>(null);
     const [inputCode, setInputCode] = useState('');
@@ -72,7 +82,7 @@ export const TownSquare = () => {
         );
     }
 
-    if (!gameState) {
+    if (!hasGameState) {
         return (
             <div className="min-h-screen bg-stone-950 flex items-center justify-center text-stone-400">
                 <div className="text-center">
@@ -92,8 +102,8 @@ export const TownSquare = () => {
         <div className="w-screen h-screen bg-stone-950 overflow-hidden relative">
             {/* Victory Confetti */}
             <Confetti
-                active={!!gameState?.gameOver?.winner}
-                colors={gameState?.gameOver?.winner === 'GOOD'
+                active={!!gameOver?.winner}
+                colors={gameOver?.winner === 'GOOD'
                     ? ['#3b82f6', '#fbbf24', '#60a5fa', '#f59e0b', '#ffffff']
                     : ['#ef4444', '#a855f7', '#dc2626', '#7c3aed', '#000000']
                 }

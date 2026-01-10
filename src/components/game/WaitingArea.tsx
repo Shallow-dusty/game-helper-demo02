@@ -1,17 +1,33 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
+import { shallow } from 'zustand/shallow';
+
+// 优化选择器 - 细粒度订阅
+const useWaitingAreaState = () => useStore(
+    state => ({
+        seats: state.gameState?.seats ?? [],
+        roomId: state.gameState?.roomId ?? '',
+        setupPhase: state.gameState?.setupPhase,
+        rolesRevealed: state.gameState?.rolesRevealed ?? false,
+        hasGameState: !!state.gameState,
+    }),
+    shallow
+);
 
 export const WaitingArea: React.FC = () => {
-    const gameState = useStore(state => state.gameState);
+    const { seats, roomId, setupPhase, rolesRevealed, hasGameState } = useWaitingAreaState();
     const user = useStore(state => state.user);
     const joinSeat = useStore(state => state.joinSeat);
+    const leaveSeat = useStore(state => state.leaveSeat);
+    const toggleReady = useStore(state => state.toggleReady);
     const [joiningId, setJoiningId] = useState<number | null>(null);
+    const [isMinimized, setIsMinimized] = useState(false);
 
-    if (!gameState || !user) return null;
+    if (!hasGameState || !user) return null;
 
     // 检查 seats 数组是否有效
-    if (gameState.seats.length === 0) {
-        console.warn('WaitingArea: seats 数组无效', gameState.seats);
+    if (seats.length === 0) {
+        console.warn('WaitingArea: seats 数组无效', seats);
         return null;
     }
 
@@ -19,7 +35,7 @@ export const WaitingArea: React.FC = () => {
     if (user.isStoryteller) return null;
 
     // Check if user is already seated
-    const currentSeat = gameState.seats.find(s => s.userId === user.id);
+    const currentSeat = seats.find(s => s.userId === user.id);
     const isSeated = !!currentSeat;
 
     const handleJoinSeat = (seatId: number) => {
@@ -31,15 +47,10 @@ export const WaitingArea: React.FC = () => {
         });
     };
 
-    const leaveSeat = useStore(state => state.leaveSeat);
-    const toggleReady = useStore(state => state.toggleReady);
-
-    const [isMinimized, setIsMinimized] = useState(false);
-
     // If seated, show Ready interface
     if (isSeated) {
         // Hide if game has started or roles are revealed
-        if (gameState.setupPhase === 'STARTED' || gameState.rolesRevealed) {
+        if (setupPhase === 'STARTED' || rolesRevealed) {
             return null;
         }
 
@@ -78,7 +89,7 @@ export const WaitingArea: React.FC = () => {
                     </button>
 
                     <h1 className="text-3xl font-cinzel text-amber-500 mb-2 tracking-widest drop-shadow-lg">
-                        {gameState.roomId}
+                        {roomId}
                     </h1>
                     <div className="text-xl text-stone-300 font-cinzel mb-6">
                         {currentSeat.userName}
@@ -134,10 +145,10 @@ export const WaitingArea: React.FC = () => {
         <div className="absolute inset-0 z-40 bg-stone-950/95 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
             <div className="text-center mb-10">
                 <h1 className="text-4xl md:text-5xl font-cinzel text-amber-500 mb-2 tracking-widest drop-shadow-lg">
-                    {gameState.roomId}
+                    {roomId}
                 </h1>
                 <p className="text-stone-400 font-serif italic">请选择您的座位 (Choose your seat)</p>
-                {gameState.setupPhase === 'STARTED' && (
+                {setupPhase === 'STARTED' && (
                     <div className="mt-2 px-4 py-1 bg-amber-900/30 border border-amber-700/50 rounded-full inline-block">
                         <p className="text-amber-400 text-xs font-bold animate-pulse">⚠️ 游戏进行中 - 请选择空位加入</p>
                     </div>
@@ -145,7 +156,7 @@ export const WaitingArea: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-6xl w-full overflow-y-auto p-4 max-h-[70vh] scrollbar-thin">
-                {gameState.seats.map(seat => {
+                {seats.map(seat => {
                     const isTaken = Boolean(seat.userId) || Boolean(seat.isVirtual);
                     const isJoining = joiningId === seat.id;
 

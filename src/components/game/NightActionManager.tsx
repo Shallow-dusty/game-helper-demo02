@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
+import { shallow } from 'zustand/shallow';
 import { ROLES } from '../../constants';
 import { NightActionRequest } from '../../types';
+
+// 优化选择器 - 细粒度订阅
+const useNightActionManagerState = () => useStore(
+    state => ({
+        seats: state.gameState?.seats ?? [],
+        isStoryteller: state.user?.isStoryteller ?? false,
+        hasGameState: !!state.gameState,
+    }),
+    shallow
+);
 
 /**
  * ST 端的夜间行动管理面板
  * 显示待处理的玩家夜间行动请求，ST 可以输入结果并回复
  */
 export const NightActionManager: React.FC = () => {
-    const gameState = useStore(state => state.gameState);
-    const user = useStore(state => state.user);
+    const { seats, isStoryteller, hasGameState } = useNightActionManagerState();
     const resolveNightAction = useStore(state => state.resolveNightAction);
     const getPendingNightActions = useStore(state => state.getPendingNightActions);
 
@@ -17,7 +27,7 @@ export const NightActionManager: React.FC = () => {
     const [resultInputs, setResultInputs] = useState<Record<string, string>>({});
 
     // 只有说书人能看到
-    if (!user?.isStoryteller || !gameState) return null;
+    if (!isStoryteller || !hasGameState) return null;
 
     const pendingRequests = getPendingNightActions();
 
@@ -42,12 +52,12 @@ export const NightActionManager: React.FC = () => {
 
     const getTargetDescription = (request: NightActionRequest): string => {
         if (request.payload.seatId !== undefined) {
-            const target = gameState.seats.find(s => s.id === request.payload.seatId);
+            const target = seats.find(s => s.id === request.payload.seatId);
             return target?.userName ?? `座位 ${String(request.payload.seatId + 1)}`;
         }
         if (request.payload.seatIds) {
             return request.payload.seatIds
-                .map((id: number) => gameState.seats.find(s => s.id === id)?.userName ?? `座位 ${String(id + 1)}`)
+                .map((id: number) => seats.find(s => s.id === id)?.userName ?? `座位 ${String(id + 1)}`)
                 .join(', ');
         }
         if (request.payload.choice !== undefined) {
@@ -87,7 +97,7 @@ export const NightActionManager: React.FC = () => {
 
             <div className="space-y-2 max-h-80 overflow-y-auto">
                 {pendingRequests.map(request => {
-                    const seat = gameState.seats.find(s => s.id === request.seatId);
+                    const seat = seats.find(s => s.id === request.seatId);
                     const role = ROLES[request.roleId];
                     const isExpanded = expandedRequest === request.id;
                     const roleQuickReplies = quickReplies[request.roleId] ?? quickReplies.default;

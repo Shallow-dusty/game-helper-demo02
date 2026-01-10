@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
+import { shallow } from 'zustand/shallow';
 import { RoleDef, Seat, GamePhase } from '../../types';
 import { ROLES, TEAM_COLORS } from '../../constants';
 import { VoteButton } from '../game/VoteButton';
@@ -229,18 +230,31 @@ interface ControlsPlayerSectionProps {
     onShowNightAction: () => void;
 }
 
+// 优化选择器 - 细粒度订阅
+const usePlayerSectionState = () => useStore(
+    state => ({
+        seats: state.gameState?.seats ?? [],
+        phase: state.gameState?.phase ?? 'SETUP',
+        voting: state.gameState?.voting,
+        nightQueue: state.gameState?.nightQueue ?? [],
+        nightCurrentIndex: state.gameState?.nightCurrentIndex ?? 0,
+        hasGameState: !!state.gameState,
+    }),
+    shallow
+);
+
 export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
     onShowHistory,
     onShowNightAction
 }) => {
     const user = useStore(state => state.user);
-    const gameState = useStore(state => state.gameState);
+    const { seats, phase, voting, nightQueue, nightCurrentIndex, hasGameState } = usePlayerSectionState();
     const toggleHand = useStore(state => state.toggleHand);
     const leaveSeat = useStore(state => state.leaveSeat);
 
-    if (!user || !gameState) return null;
+    if (!user || !hasGameState) return null;
 
-    const currentSeat = gameState.seats.find(s => s.userId === user.id);
+    const currentSeat = seats.find(s => s.userId === user.id);
     const role = currentSeat?.seenRoleId ? ROLES[currentSeat.seenRoleId] : null;
 
     return (
@@ -251,7 +265,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                     <CompactRoleDisplay
                         role={role}
                         seat={currentSeat}
-                        gamePhase={gameState.phase}
+                        gamePhase={phase}
                     />
                     <button
                         onClick={() => useStore.getState().openRoleReveal()}
@@ -263,15 +277,15 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
             )}
 
             {/* Night Phase UI */}
-            {gameState.phase === 'NIGHT' && (
+            {phase === 'NIGHT' && (
                 <div className="p-4 bg-indigo-950/30 rounded border border-indigo-900/50 text-center shadow-lg backdrop-blur-sm">
                     <div className="flex items-center justify-center gap-2 mb-2">
                         <span className="text-xl">🌙</span>
                         <h3 className="text-indigo-200 font-bold font-cinzel tracking-widest">夜幕降临</h3>
                     </div>
-                    
+
                     {/* 当前是你的回合 - 始终显示按钮 */}
-                    {currentSeat?.seenRoleId === gameState.nightQueue[gameState.nightCurrentIndex] && (
+                    {currentSeat?.seenRoleId === nightQueue[nightCurrentIndex] && (
                         <button
                             onClick={onShowNightAction}
                             className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold shadow-lg animate-pulse border border-indigo-400 flex items-center justify-center gap-2"
@@ -283,7 +297,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                     {/* 即使不是当前回合，但有夜间技能的角色也可以查看 */}
                     {currentSeat?.seenRoleId &&
                         ROLES[currentSeat.seenRoleId]?.nightAction &&
-                        currentSeat.seenRoleId !== gameState.nightQueue[gameState.nightCurrentIndex] && (
+                        currentSeat.seenRoleId !== nightQueue[nightCurrentIndex] && (
                             <button
                                 onClick={onShowNightAction}
                                 className="mt-2 w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded text-sm border border-stone-600"
@@ -295,13 +309,13 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
             )}
 
             {/* Voting UI */}
-            {gameState.voting?.isOpen && (
+            {voting?.isOpen && (
                 <div className="p-3 bg-amber-950/20 rounded border border-amber-800/30 shadow-sm space-y-3">
                     <div className="flex items-center justify-between border-b border-amber-900/20 pb-2">
                         <div className="flex items-center gap-2">
                             <span className="text-amber-600 font-bold">⚖ 审判</span>
                             <span className="text-stone-500 text-xs">受审者:</span>
-                            <span className="text-amber-100 font-bold">{gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName}</span>
+                            <span className="text-amber-100 font-bold">{seats.find(s => s.id === voting?.nomineeSeatId)?.userName}</span>
                         </div>
                     </div>
 
@@ -317,7 +331,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                             <div className="text-center text-xs text-stone-500 font-serif">
                                 {currentSeat.voteLocked
                                     ? '说书人已锁定你的投票'
-                                    : gameState.voting.clockHandSeatId === currentSeat.id
+                                    : voting.clockHandSeatId === currentSeat.id
                                         ? '⏳ 正在结算...'
                                         : '点击按钮举手/放下'}
                             </div>

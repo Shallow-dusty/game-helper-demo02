@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../../store';
+import { shallow } from 'zustand/shallow';
 import { ChatMessage, Seat } from '../../types';
 import { InfoCard } from '../ui/InfoCard';
 import * as ReactWindow from 'react-window';
@@ -75,10 +76,18 @@ const MessageItem: React.FC<MessageItemProps> = ({ msg, isMe, seats, style }) =>
 // 虚拟滚动消息列表阈值 - 超过此数量启用虚拟滚动
 const VIRTUAL_SCROLL_THRESHOLD = 50;
 
+// 优化选择器 - 细粒度订阅
+const useChatState = () => useStore(
+    state => ({
+        messages: state.gameState?.messages ?? [],
+        seats: state.gameState?.seats ?? [],
+        allowWhispers: state.gameState?.allowWhispers ?? true,
+    }),
+    shallow
+);
+
 export const Chat = () => {
-    const messages = useStore(state => state.gameState?.messages ?? []);
-    const seats = useStore(state => state.gameState?.seats ?? []);
-    const allowWhispers = useStore(state => state.gameState?.allowWhispers ?? true);
+    const { messages, seats, allowWhispers } = useChatState();
     const user = useStore(state => state.user);
     const sendMessage = useStore(state => state.sendMessage);
 

@@ -42,8 +42,6 @@ export default defineConfig(({ mode }) => {
             ],
             // 画布渲染
             'canvas': ['react-konva', 'konva'],
-            // 图表
-            'charts': ['recharts'],
             // 物理引擎
             'physics': ['matter-js'],
             // AI 服务
@@ -51,6 +49,11 @@ export default defineConfig(({ mode }) => {
             // 后端服务
             'backend': ['@supabase/supabase-js'],
           },
+        },
+        // 增强 tree-shaking
+        treeshake: {
+          moduleSideEffects: false,
+          propertyReadSideEffects: false,
         },
       },
       // 压缩优化 - 使用 esbuild (更快)

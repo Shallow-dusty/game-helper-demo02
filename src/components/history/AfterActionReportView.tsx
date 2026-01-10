@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import html2canvas from 'html2canvas';
 import { useStore } from '../../store';
 import { generateAfterActionReport, formatReportAsText, type TimelineEvent } from '../../lib/reportGenerator';
 import { TEAM_COLORS } from '../../constants';
@@ -61,13 +60,16 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
   // 截图导出功能
   const handleCaptureImage = async () => {
     if (!contentRef.current) return;
-    
+
     setIsCapturing(true);
-    
+
     try {
+      // 动态导入 html2canvas（减少初始bundle大小）
+      const html2canvas = (await import('html2canvas')).default;
+
       // 等待一帧让 UI 更新
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const canvas = await html2canvas(contentRef.current, {
         backgroundColor: '#1c1917', // stone-900
         scale: 2, // 高清导出

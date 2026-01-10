@@ -20,16 +20,38 @@ import { NightActionPanel } from '../game/NightActionPanel';
 import { PlayerNightAction } from '../game/PlayerNightAction';
 import { ScriptEditor } from '../script/ScriptEditor';
 import { VoiceRoomLink } from '../ui/VoiceRoomLink';
+import { shallow } from 'zustand/shallow';
 
 interface ControlsProps {
     onClose?: () => void;
 }
 
+// 优化的选择器
+const useControlsState = () => useStore(
+    state => ({
+        user: state.user,
+        phase: state.gameState?.phase,
+        currentScriptId: state.gameState?.currentScriptId,
+        roomId: state.gameState?.roomId,
+        isOffline: state.isOffline,
+    }),
+    shallow
+);
+
+const useControlsActions = () => useStore(
+    state => ({
+        leaveGame: state.leaveGame,
+        setModalOpen: state.setModalOpen,
+    }),
+    shallow
+);
+
 export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
-    const user = useStore(state => state.user);
+    const { user, phase, currentScriptId, roomId, isOffline } = useControlsState();
+    const { leaveGame, setModalOpen } = useControlsActions();
+
+    // 仅在需要完整 gameState 时才订阅（传递给子组件）
     const gameState = useStore(state => state.gameState);
-    const leaveGame = useStore(state => state.leaveGame);
-    const isOffline = useStore(state => state.isOffline);
 
     const [activeTab, setActiveTab] = useState<'game' | 'chat' | 'ai' | 'notebook' | 'audio'>(() => {
         const saved = localStorage.getItem('grimoire_active_tab');
@@ -59,7 +81,6 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     }, []);
 
     // Sync modal state to global store for Z-index coordination
-    const setModalOpen = useStore(state => state.setModalOpen);
     useEffect(() => {
         const isAnyModalOpen = showHistory || showNightAction || showRoleReference || showCompositionGuide || showScriptEditor;
         setModalOpen(isAnyModalOpen);

@@ -6,7 +6,7 @@
  * 支持说书人编辑、玩家交互、触摸缩放
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { Stage, Layer, Circle, Text, Group, Rect, RegularPolygon } from 'react-konva';
 import { useStore } from '../../store';
 import { PHASE_LABELS, JINX_DEFINITIONS } from '../../constants';
@@ -20,6 +20,7 @@ import { Lock, Unlock } from 'lucide-react';
 import { CandlelightOverlay } from './CandlelightOverlay';
 import SeatNode from './SeatNode';
 import RoleSelectorModal from './RoleSelectorModal';
+import { useGrimoireState, useGameActions, useUser } from '../../hooks/useGameStateSelectors';
 
 interface GrimoireProps {
   width: number;
@@ -51,10 +52,26 @@ export const Grimoire: React.FC<GrimoireProps> = ({
   gameState: propsGameState,
   isStorytellerView = false
 }) => {
-  const storeGameState = useStore(state => state.gameState);
-  const storeUser = useStore(state => state.user);
+  // 使用优化的选择器 - 只订阅需要的属性
+  const grimoireState = useGrimoireState();
+  const storeUser = useUser();
+  const gameActions = useGameActions();
 
-  const gameState = propsGameState ?? storeGameState;
+  // 合并 props 和 store 状态
+  const gameState = useMemo(() => {
+    if (propsGameState) return propsGameState;
+    if (!grimoireState.seats) return null;
+    return {
+      seats: grimoireState.seats,
+      phase: grimoireState.phase,
+      voting: grimoireState.voting,
+      setupPhase: grimoireState.setupPhase,
+      rolesRevealed: grimoireState.rolesRevealed,
+      candlelightEnabled: grimoireState.candlelightEnabled,
+      currentScriptId: grimoireState.currentScriptId,
+    };
+  }, [propsGameState, grimoireState]);
+
   const user = propsGameState
     ? {
         id: 'spectator',
@@ -65,19 +82,21 @@ export const Grimoire: React.FC<GrimoireProps> = ({
       }
     : storeUser;
 
-  // Store actions
-  const joinSeat = useStore(state => state.joinSeat);
-  const toggleDead = useStore(state => state.toggleDead);
-  const toggleAbilityUsed = useStore(state => state.toggleAbilityUsed);
-  const toggleStatus = useStore(state => state.toggleStatus);
-  const startVote = useStore(state => state.startVote);
-  const assignRole = useStore(state => state.assignRole);
-  const addReminder = useStore(state => state.addReminder);
-  const removeReminder = useStore(state => state.removeReminder);
-  const forceLeaveSeat = useStore(state => state.forceLeaveSeat);
-  const removeVirtualPlayer = useStore(state => state.removeVirtualPlayer);
-  const swapSeats = useStore(state => state.swapSeats);
-  const requestSeatSwap = useStore(state => state.requestSeatSwap);
+  // Store actions - 使用优化的选择器
+  const {
+    joinSeat,
+    toggleDead,
+    toggleAbilityUsed,
+    toggleStatus,
+    startVote,
+    assignRole,
+    addReminder,
+    removeReminder,
+    forceLeaveSeat,
+    removeVirtualPlayer,
+    swapSeats,
+    requestSeatSwap,
+  } = gameActions;
 
   // Component state
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; seatId: number } | null>(null);

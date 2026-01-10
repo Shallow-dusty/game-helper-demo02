@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { useStore } from './store';
 import { useSandboxStore } from './sandboxStore';
+import { shallow } from 'zustand/shallow';
 
 // 加载状态组件 - 立即加载
 import {
@@ -63,24 +64,63 @@ const getViewportMetrics = () => {
   };
 };
 
+// 优化的 App 状态选择器
+const useAppState = () => useStore(
+  state => ({
+    user: state.user,
+    hasGameState: !!state.gameState,
+    gamePhase: state.gameState?.phase,
+    gameRoomId: state.gameState?.roomId,
+  }),
+  shallow
+);
+
+const useAppUIState = () => useStore(
+  state => ({
+    isAudioBlocked: state.isAudioBlocked,
+    roleReferenceMode: state.roleReferenceMode,
+    isRolePanelOpen: state.isRolePanelOpen,
+    isSidebarExpanded: state.isSidebarExpanded,
+    isTruthRevealOpen: state.isTruthRevealOpen,
+    isReportOpen: state.isReportOpen,
+  }),
+  shallow
+);
+
+const useAppActions = () => useStore(
+  state => ({
+    toggleAudioPlay: state.toggleAudioPlay,
+    openRolePanel: state.openRolePanel,
+    closeRolePanel: state.closeRolePanel,
+    toggleSidebar: state.toggleSidebar,
+    closeTruthReveal: state.closeTruthReveal,
+    closeReport: state.closeReport,
+  }),
+  shallow
+);
+
 const App = () => {
-  const user = useStore(state => state.user);
+  // 使用优化的选择器
+  const { user, hasGameState, gamePhase, gameRoomId } = useAppState();
+  const {
+    isAudioBlocked,
+    roleReferenceMode,
+    isRolePanelOpen,
+    isSidebarExpanded,
+    isTruthRevealOpen,
+    isReportOpen,
+  } = useAppUIState();
+  const {
+    toggleAudioPlay,
+    openRolePanel,
+    closeRolePanel,
+    toggleSidebar,
+    closeTruthReveal,
+    closeReport,
+  } = useAppActions();
+
+  // 仅在需要完整 gameState 时才订阅
   const gameState = useStore(state => state.gameState);
-
-  const isAudioBlocked = useStore(state => state.isAudioBlocked);
-  const toggleAudioPlay = useStore(state => state.toggleAudioPlay);
-  const roleReferenceMode = useStore(state => state.roleReferenceMode);
-  const isRolePanelOpen = useStore(state => state.isRolePanelOpen);
-  const isSidebarExpanded = useStore(state => state.isSidebarExpanded);
-  const openRolePanel = useStore(state => state.openRolePanel);
-  const closeRolePanel = useStore(state => state.closeRolePanel);
-  const toggleSidebar = useStore(state => state.toggleSidebar);
-
-  // Truth Reveal & Report modals
-  const isTruthRevealOpen = useStore(state => state.isTruthRevealOpen);
-  const closeTruthReveal = useStore(state => state.closeTruthReveal);
-  const isReportOpen = useStore(state => state.isReportOpen);
-  const closeReport = useStore(state => state.closeReport);
 
   // Sandbox mode
   const isSandboxActive = useSandboxStore(state => state.isActive);

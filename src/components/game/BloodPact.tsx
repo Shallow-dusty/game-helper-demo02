@@ -241,8 +241,8 @@ export const BloodPact: React.FC<BloodPactProps> = ({
     }, [minionSeatIds, seatPositions]);
 
     const demonPosition = useMemo(() => {
-        if (!demonSeatId) return null;
-        return seatPositions.find(s => s.id === demonSeatId) || null;
+        if (demonSeatId === undefined || demonSeatId === null) return null;
+        return seatPositions.find(s => s.id === demonSeatId) ?? null;
     }, [demonSeatId, seatPositions]);
 
     useEffect(() => {

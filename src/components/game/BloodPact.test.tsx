@@ -113,12 +113,32 @@ describe('BloodPact', () => {
   });
 
   it('renders demon totem when demonSeatId is provided', () => {
-    // Note: Use demonSeatId > 0 because component has bug: `!demonSeatId` fails for 0
     const { container } = render(
       <BloodPact
         isActive={true}
         minionSeatIds={[]}
         demonSeatId={3}
+        seatPositions={defaultSeatPositions}
+      />
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    // Should have SVG elements for the rune circle in demon totem
+    const svgElements = container.querySelectorAll('svg');
+    expect(svgElements.length).toBeGreaterThan(0);
+  });
+
+  it('renders demon totem when demonSeatId is 0 (edge case)', () => {
+    // Regression test: demonSeatId=0 should render demon totem
+    // Previously `!demonSeatId` would return true for 0
+    const { container } = render(
+      <BloodPact
+        isActive={true}
+        minionSeatIds={[]}
+        demonSeatId={0}
         seatPositions={defaultSeatPositions}
       />
     );
@@ -351,7 +371,6 @@ describe('FlameParticle sub-component', () => {
 });
 
 describe('DemonTotem sub-component', () => {
-  // Use seat ID > 0 because component has bug: `!demonSeatId` fails for 0
   const defaultSeatPositions = [{ id: 1, x: 100, y: 100 }];
 
   beforeEach(() => {

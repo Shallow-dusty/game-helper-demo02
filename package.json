@@ -18,6 +18,10 @@
     "test:tests": "NODE_OPTIONS=\"--max-old-space-size=6144 --expose-gc\" VITEST_SCOPE=tests node ./node_modules/vitest/vitest.mjs run --config vitest.config.ts",
     "test:watch": "NODE_OPTIONS=\"--max-old-space-size=6144 --expose-gc\" node ./node_modules/vitest/vitest.mjs --config vitest.config.ts",
     "test:coverage": "NODE_OPTIONS=\"--max-old-space-size=6144 --expose-gc\" node ./node_modules/vitest/vitest.mjs run --coverage --config vitest.config.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
     "prepare": "husky"
   },
   "dependencies": {
@@ -43,10 +47,14 @@
     "recharts": "^3.5.0",
     "tailwind-merge": "^3.4.0",
     "xstate": "^5.25.0",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "i18next": "^24.2.3",
+    "i18next-browser-languagedetector": "^8.0.4",
+    "react-i18next": "^15.4.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
@@ -62,6 +70,7 @@
     "husky": "^9.1.7",
     "jsdom": "^27.2.0",
     "lint-staged": "^16.2.7",
+    "playwright": "^1.57.0",
     "postcss": "^8.5.6",
     "rollup": "^4.53.3",
     "sharp": "^0.34.5",

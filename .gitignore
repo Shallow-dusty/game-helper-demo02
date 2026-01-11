@@ -18,6 +18,11 @@ vitest-files.json
 test-output.txt
 true
 
+# Playwright
+playwright-report/
+playwright/.cache/
+test-results/
+
 # Audio downloads
 downloaded_audio/
 

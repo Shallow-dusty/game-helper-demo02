@@ -1,6 +1,6 @@
 # 测试指南 | Testing Guide
 
-> **测试框架**: Vitest + Testing Library | **覆盖率**: 80%+ | **测试数量**: 1659+
+> **测试框架**: Vitest + Testing Library + Playwright | **覆盖率**: 85%+ | **测试数量**: 2150+
 
 本文档介绍 Grimoire Web 的测试策略、运行方法和最佳实践。
 
@@ -10,11 +10,12 @@
 
 | 指标 | 数值 |
 |------|------|
-| 测试文件 | 101 |
-| 测试用例 | 1659 |
-| 行覆盖率 | 80.23% |
-| 分支覆盖率 | 69.37% |
-| 函数覆盖率 | 81.82% |
+| 单元/集成测试文件 | 105 |
+| E2E 测试文件 | 3 |
+| 测试用例 | 2150+ |
+| 行覆盖率 | 85.41% |
+| 分支覆盖率 | 76.01% |
+| 函数覆盖率 | 87.9% |
 
 ---
 
@@ -376,8 +377,67 @@ npx vitest run --testNamePattern="specific test name"
 
 ---
 
+## 🎭 E2E 测试 (Playwright)
+
+### 运行 E2E 测试
+
+```bash
+# 运行所有 E2E 测试
+npm run test:e2e
+
+# 使用 UI 模式调试
+npm run test:e2e:ui
+
+# 调试模式
+npm run test:e2e:debug
+
+# 查看测试报告
+npm run test:e2e:report
+
+# 运行特定浏览器
+npx playwright test --project=chromium
+```
+
+### E2E 测试文件结构
+
+```
+e2e/
+├── home.spec.ts          # 首页测试
+├── sandbox.spec.ts       # 沙盒模式测试
+└── accessibility.spec.ts # 可访问性测试
+```
+
+### E2E 测试示例
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.describe('首页', () => {
+  test('应该显示创建房间按钮', async ({ page }) => {
+    await page.goto('/');
+    const createButton = page.getByRole('button', { name: /创建|新建/i });
+    await expect(createButton).toBeVisible();
+  });
+});
+```
+
+### 浏览器配置
+
+项目配置了以下浏览器测试：
+
+| 浏览器 | 用途 |
+|--------|------|
+| Chromium | 桌面端 Chrome |
+| Firefox | 桌面端 Firefox |
+| WebKit | 桌面端 Safari |
+| Pixel 5 | 移动端 Android |
+| iPhone 12 | 移动端 iOS |
+
+---
+
 ## 📚 相关资源
 
 - [Vitest 文档](https://vitest.dev/)
 - [Testing Library 文档](https://testing-library.com/)
+- [Playwright 文档](https://playwright.dev/)
 - [React Testing Best Practices](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)

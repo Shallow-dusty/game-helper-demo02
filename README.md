@@ -228,8 +228,17 @@ npm run dev
 
 ## 📚 文档资源
 
-- [说书人完整手册](./STORYTELLER_MANUAL.md) - 详尽的功能说明和最佳实践
+### 用户文档
 - [魔典使用指南](./USER_GUIDE.md) - 玩家和说书人快速上手教程
+- [说书人完整手册](./STORYTELLER_MANUAL.md) - 详尽的功能说明和最佳实践
+
+### 开发文档
+- [项目架构](./docs/ARCHITECTURE.md) - 技术架构、目录结构、数据流
+- [部署指南](./docs/DEPLOYMENT.md) - Cloudflare Pages + Supabase 部署
+- [测试指南](./docs/TESTING.md) - 测试策略、运行方法、覆盖率
+- [贡献指南](./docs/CONTRIBUTING.md) - 代码规范、PR 流程
+
+### 其他
 - [更新日志](./CHANGELOG.md) - 版本历史记录
 
 ---
@@ -238,13 +247,7 @@ npm run dev
 
 欢迎提交 Issue 和 Pull Request！
 
-### 开发流程
-
-1. Fork 本仓库
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 创建 Pull Request
+详细的贡献流程请参阅 [贡献指南](./docs/CONTRIBUTING.md)。
 
 ---
 

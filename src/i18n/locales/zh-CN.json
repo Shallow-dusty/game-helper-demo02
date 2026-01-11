@@ -1,0 +1,175 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "error": "发生错误",
+    "confirm": "确认",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "close": "关闭",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "submit": "提交",
+    "reset": "重置",
+    "search": "搜索",
+    "settings": "设置",
+    "help": "帮助",
+    "copy": "复制",
+    "copied": "已复制",
+    "yes": "是",
+    "no": "否"
+  },
+  "app": {
+    "title": "血染钟楼魔典",
+    "subtitle": "Grimoire Web",
+    "description": "《染钟楼谜团》线上说书人助手"
+  },
+  "home": {
+    "createRoom": "创建房间",
+    "joinRoom": "加入房间",
+    "roomCode": "房间号",
+    "enterRoomCode": "输入房间号",
+    "sandbox": "沙盒模式",
+    "sandboxDesc": "离线练习模式，无需网络"
+  },
+  "game": {
+    "phase": {
+      "setup": "准备阶段",
+      "day": "白天",
+      "night": "夜晚",
+      "vote": "投票阶段",
+      "end": "游戏结束"
+    },
+    "role": {
+      "townsfolk": "镇民",
+      "outsider": "外来者",
+      "minion": "爪牙",
+      "demon": "恶魔",
+      "traveler": "旅行者"
+    },
+    "status": {
+      "alive": "存活",
+      "dead": "死亡",
+      "poisoned": "中毒",
+      "drunk": "醉酒",
+      "protected": "被保护"
+    },
+    "actions": {
+      "nominate": "提名",
+      "vote": "投票",
+      "execute": "处决",
+      "kill": "击杀",
+      "protect": "保护",
+      "poison": "下毒"
+    }
+  },
+  "grimoire": {
+    "title": "魔典",
+    "editMode": "编辑模式",
+    "viewMode": "浏览模式",
+    "lockToggle": "点击切换模式",
+    "privacyMode": "防窥模式",
+    "loading": "正在加载魔典..."
+  },
+  "controls": {
+    "title": "控制面板",
+    "phaseControl": "阶段控制",
+    "nightOrder": "夜间顺序",
+    "executeNight": "执行夜间动作",
+    "aiAssistant": "AI 助手",
+    "notebook": "笔记本",
+    "roleBook": "角色手册"
+  },
+  "seat": {
+    "empty": "空座位",
+    "virtual": "虚拟玩家",
+    "joinSeat": "加入座位",
+    "leaveSeat": "离开座位",
+    "swapRequest": "请求交换座位",
+    "assignRole": "分配角色",
+    "toggleDeath": "切换死亡状态",
+    "ghostVote": "幽灵投票"
+  },
+  "voting": {
+    "title": "投票",
+    "nominator": "提名者",
+    "nominee": "被提名者",
+    "votesNeeded": "需要票数",
+    "currentVotes": "当前票数",
+    "raiseHand": "举手",
+    "lowerHand": "放下手",
+    "startVote": "开始投票",
+    "endVote": "结束投票",
+    "execute": "执行处决"
+  },
+  "chat": {
+    "title": "聊天",
+    "publicChat": "公共聊天",
+    "privateChat": "私聊",
+    "sendMessage": "发送消息",
+    "placeholder": "输入消息...",
+    "whisper": "悄悄话"
+  },
+  "roleBook": {
+    "title": "角色手册",
+    "search": "搜索角色...",
+    "ability": "能力",
+    "firstNight": "首夜",
+    "otherNight": "其他夜晚",
+    "examples": "示例",
+    "tips": "提示"
+  },
+  "scripts": {
+    "troubleBrewing": "暗流涌动",
+    "badMoonRising": "噩月升起",
+    "sectsAndViolets": "教派与紫罗兰",
+    "custom": "自定义剧本"
+  },
+  "connection": {
+    "connecting": "连接中...",
+    "connected": "已连接",
+    "reconnecting": "重新连接中...",
+    "disconnected": "已断开连接",
+    "error": "连接错误"
+  },
+  "storyteller": {
+    "title": "说书人",
+    "menu": "说书人菜单",
+    "assignRoles": "分配角色",
+    "autoAssign": "自动分配",
+    "manualAssign": "手动分配",
+    "startGame": "开始游戏",
+    "endGame": "结束游戏",
+    "resetGame": "重置游戏"
+  },
+  "player": {
+    "title": "玩家",
+    "yourRole": "你的角色",
+    "yourAbility": "你的能力",
+    "useAbility": "使用技能",
+    "abilityUsed": "技能已使用"
+  },
+  "nightAction": {
+    "title": "夜间行动",
+    "selectTarget": "选择目标",
+    "confirm": "确认行动",
+    "skip": "跳过",
+    "waiting": "等待其他玩家..."
+  },
+  "errors": {
+    "networkError": "网络错误，请稍后重试",
+    "roomNotFound": "房间不存在",
+    "roomFull": "房间已满",
+    "seatOccupied": "座位已被占用",
+    "notAuthorized": "没有权限",
+    "invalidAction": "无效操作"
+  },
+  "success": {
+    "roomCreated": "房间创建成功",
+    "joined": "成功加入",
+    "roleAssigned": "角色已分配",
+    "actionCompleted": "操作完成"
+  }
+}

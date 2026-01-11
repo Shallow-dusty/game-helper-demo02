@@ -1,0 +1,175 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "reset": "Reset",
+    "search": "Search",
+    "settings": "Settings",
+    "help": "Help",
+    "copy": "Copy",
+    "copied": "Copied",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "app": {
+    "title": "Blood on the Clocktower Grimoire",
+    "subtitle": "Grimoire Web",
+    "description": "Online Storyteller Assistant"
+  },
+  "home": {
+    "createRoom": "Create Room",
+    "joinRoom": "Join Room",
+    "roomCode": "Room Code",
+    "enterRoomCode": "Enter room code",
+    "sandbox": "Sandbox Mode",
+    "sandboxDesc": "Offline practice mode, no network required"
+  },
+  "game": {
+    "phase": {
+      "setup": "Setup",
+      "day": "Day",
+      "night": "Night",
+      "vote": "Voting",
+      "end": "Game Over"
+    },
+    "role": {
+      "townsfolk": "Townsfolk",
+      "outsider": "Outsider",
+      "minion": "Minion",
+      "demon": "Demon",
+      "traveler": "Traveler"
+    },
+    "status": {
+      "alive": "Alive",
+      "dead": "Dead",
+      "poisoned": "Poisoned",
+      "drunk": "Drunk",
+      "protected": "Protected"
+    },
+    "actions": {
+      "nominate": "Nominate",
+      "vote": "Vote",
+      "execute": "Execute",
+      "kill": "Kill",
+      "protect": "Protect",
+      "poison": "Poison"
+    }
+  },
+  "grimoire": {
+    "title": "Grimoire",
+    "editMode": "Edit Mode",
+    "viewMode": "View Mode",
+    "lockToggle": "Click to toggle mode",
+    "privacyMode": "Privacy Mode",
+    "loading": "Loading grimoire..."
+  },
+  "controls": {
+    "title": "Control Panel",
+    "phaseControl": "Phase Control",
+    "nightOrder": "Night Order",
+    "executeNight": "Execute Night Actions",
+    "aiAssistant": "AI Assistant",
+    "notebook": "Notebook",
+    "roleBook": "Role Book"
+  },
+  "seat": {
+    "empty": "Empty Seat",
+    "virtual": "Virtual Player",
+    "joinSeat": "Join Seat",
+    "leaveSeat": "Leave Seat",
+    "swapRequest": "Request Seat Swap",
+    "assignRole": "Assign Role",
+    "toggleDeath": "Toggle Death Status",
+    "ghostVote": "Ghost Vote"
+  },
+  "voting": {
+    "title": "Voting",
+    "nominator": "Nominator",
+    "nominee": "Nominee",
+    "votesNeeded": "Votes Needed",
+    "currentVotes": "Current Votes",
+    "raiseHand": "Raise Hand",
+    "lowerHand": "Lower Hand",
+    "startVote": "Start Vote",
+    "endVote": "End Vote",
+    "execute": "Execute"
+  },
+  "chat": {
+    "title": "Chat",
+    "publicChat": "Public Chat",
+    "privateChat": "Private Chat",
+    "sendMessage": "Send Message",
+    "placeholder": "Type a message...",
+    "whisper": "Whisper"
+  },
+  "roleBook": {
+    "title": "Role Book",
+    "search": "Search roles...",
+    "ability": "Ability",
+    "firstNight": "First Night",
+    "otherNight": "Other Nights",
+    "examples": "Examples",
+    "tips": "Tips"
+  },
+  "scripts": {
+    "troubleBrewing": "Trouble Brewing",
+    "badMoonRising": "Bad Moon Rising",
+    "sectsAndViolets": "Sects & Violets",
+    "custom": "Custom Script"
+  },
+  "connection": {
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "reconnecting": "Reconnecting...",
+    "disconnected": "Disconnected",
+    "error": "Connection Error"
+  },
+  "storyteller": {
+    "title": "Storyteller",
+    "menu": "Storyteller Menu",
+    "assignRoles": "Assign Roles",
+    "autoAssign": "Auto Assign",
+    "manualAssign": "Manual Assign",
+    "startGame": "Start Game",
+    "endGame": "End Game",
+    "resetGame": "Reset Game"
+  },
+  "player": {
+    "title": "Player",
+    "yourRole": "Your Role",
+    "yourAbility": "Your Ability",
+    "useAbility": "Use Ability",
+    "abilityUsed": "Ability Used"
+  },
+  "nightAction": {
+    "title": "Night Action",
+    "selectTarget": "Select Target",
+    "confirm": "Confirm Action",
+    "skip": "Skip",
+    "waiting": "Waiting for other players..."
+  },
+  "errors": {
+    "networkError": "Network error, please try again",
+    "roomNotFound": "Room not found",
+    "roomFull": "Room is full",
+    "seatOccupied": "Seat is occupied",
+    "notAuthorized": "Not authorized",
+    "invalidAction": "Invalid action"
+  },
+  "success": {
+    "roomCreated": "Room created successfully",
+    "joined": "Joined successfully",
+    "roleAssigned": "Role assigned",
+    "actionCompleted": "Action completed"
+  }
+}

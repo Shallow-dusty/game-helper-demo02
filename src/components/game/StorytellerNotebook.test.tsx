@@ -8,6 +8,28 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { StorytellerNotebook } from './StorytellerNotebook';
 
+// Mock i18n
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'game.storytellerNotebook.title': '说书人笔记 (Notebook)',
+        'game.storytellerNotebook.systemLog': 'SYSTEM LOG',
+        'game.storytellerNotebook.note': 'NOTE',
+        'game.storytellerNotebook.floating': 'FLOATING',
+        'game.storytellerNotebook.pinNote': '悬浮笔记',
+        'game.storytellerNotebook.unpinNote': '收回笔记',
+        'game.storytellerNotebook.noNotes': '暂无笔记...',
+        'game.storytellerNotebook.placeholder': '写点什么...',
+        'game.storytellerNotebook.addNotePlaceholder': '添加新笔记... (Enter)',
+        'game.storytellerNotebook.add': '添加',
+        'common.delete': 'Delete',
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
+
 // Mock store
 const mockAddNote = vi.fn();
 const mockUpdateNote = vi.fn();
@@ -87,7 +109,7 @@ describe('StorytellerNotebook', () => {
   it('should render the notebook title', () => {
     render(<StorytellerNotebook />);
 
-    expect(screen.getByText(/说书人笔记/)).toBeInTheDocument();
+    expect(screen.getByText('说书人笔记 (Notebook)')).toBeInTheDocument();
     expect(screen.getByText('📓')).toBeInTheDocument();
   });
 
@@ -113,13 +135,13 @@ describe('StorytellerNotebook', () => {
   it('should render input field for new note', () => {
     render(<StorytellerNotebook />);
 
-    expect(screen.getByPlaceholderText(/添加新笔记/)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('添加新笔记... (Enter)')).toBeInTheDocument();
   });
 
   it('should add a new note when add button is clicked', () => {
     render(<StorytellerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
+    const input = screen.getByPlaceholderText('添加新笔记... (Enter)');
     const addButton = screen.getByText('添加');
 
     fireEvent.change(input, { target: { value: 'New test note' } });
@@ -131,7 +153,7 @@ describe('StorytellerNotebook', () => {
   it('should add note on Enter key press', () => {
     render(<StorytellerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
+    const input = screen.getByPlaceholderText('添加新笔记... (Enter)');
 
     fireEvent.change(input, { target: { value: 'Enter key note' } });
     fireEvent.keyDown(input, { key: 'Enter' });
@@ -151,7 +173,7 @@ describe('StorytellerNotebook', () => {
   it('should not add whitespace-only note', () => {
     render(<StorytellerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
+    const input = screen.getByPlaceholderText('添加新笔记... (Enter)');
     const addButton = screen.getByText('添加');
 
     fireEvent.change(input, { target: { value: '   ' } });
@@ -163,7 +185,7 @@ describe('StorytellerNotebook', () => {
   it('should clear input after adding note', () => {
     render(<StorytellerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
+    const input = screen.getByPlaceholderText('添加新笔记... (Enter)');
     const addButton = screen.getByText('添加');
 
     fireEvent.change(input, { target: { value: 'Test' } });
@@ -184,7 +206,7 @@ describe('StorytellerNotebook', () => {
   it('should delete note when delete button is clicked', () => {
     render(<StorytellerNotebook />);
 
-    const deleteButtons = screen.getAllByTitle('删除');
+    const deleteButtons = screen.getAllByTitle('Delete');
     fireEvent.click(deleteButtons[0]);
 
     expect(mockDeleteNote).toHaveBeenCalledWith('note1');
@@ -193,7 +215,7 @@ describe('StorytellerNotebook', () => {
   it('should toggle floating when pin button is clicked', () => {
     render(<StorytellerNotebook />);
 
-    const pinButtons = screen.getAllByTitle(/悬浮笔记|收回笔记/);
+    const pinButtons = screen.getAllByTitle('悬浮笔记');
     fireEvent.click(pinButtons[0]);
 
     expect(mockToggleNoteFloating).toHaveBeenCalledWith('note1');
@@ -236,7 +258,7 @@ describe('StorytellerNotebook', () => {
   it('should enable add button when input has content', () => {
     render(<StorytellerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
+    const input = screen.getByPlaceholderText('添加新笔记... (Enter)');
     const addButton = screen.getByText('添加');
 
     fireEvent.change(input, { target: { value: 'Test' } });

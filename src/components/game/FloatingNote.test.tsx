@@ -69,7 +69,7 @@ describe('FloatingNote', () => {
       });
       render(<FloatingNote {...props} />);
 
-      expect(screen.getByText('笔记')).toBeInTheDocument();
+      expect(screen.getByText('game.floatingNote.note')).toBeInTheDocument();
     });
 
     it('displays "系统日志" label for auto notes', () => {
@@ -78,7 +78,7 @@ describe('FloatingNote', () => {
       });
       render(<FloatingNote {...props} />);
 
-      expect(screen.getByText('系统日志')).toBeInTheDocument();
+      expect(screen.getByText('game.floatingNote.systemLog')).toBeInTheDocument();
     });
 
     it('renders with multiline content preserved', () => {
@@ -245,7 +245,7 @@ describe('FloatingNote', () => {
       const { container } = render(<FloatingNote {...props} />);
 
       // Find the button container (has stopPropagation)
-      const closeButton = screen.getByTitle('收起 (取消悬浮)');
+      const closeButton = screen.getByTitle('game.floatingNote.minimize');
 
       fireEvent.mouseDown(closeButton, { clientX: 100, clientY: 100 });
       fireEvent.mouseMove(window, { clientX: 200, clientY: 200 });
@@ -374,7 +374,7 @@ describe('FloatingNote', () => {
       const props = createBaseProps();
       const { container } = render(<FloatingNote {...props} />);
 
-      const paletteButton = screen.getByTitle('更改颜色');
+      const paletteButton = screen.getByTitle('game.floatingNote.changeColor');
       fireEvent.click(paletteButton);
 
       // Color picker should now be visible - it has 6 color buttons
@@ -386,7 +386,7 @@ describe('FloatingNote', () => {
       const props = createBaseProps();
       const { container } = render(<FloatingNote {...props} />);
 
-      const paletteButton = screen.getByTitle('更改颜色');
+      const paletteButton = screen.getByTitle('game.floatingNote.changeColor');
 
       // Open
       fireEvent.click(paletteButton);
@@ -405,7 +405,7 @@ describe('FloatingNote', () => {
       });
       const { container } = render(<FloatingNote {...props} />);
 
-      const paletteButton = screen.getByTitle('更改颜色');
+      const paletteButton = screen.getByTitle('game.floatingNote.changeColor');
       fireEvent.click(paletteButton);
 
       // Color picker should not be visible when collapsed
@@ -419,7 +419,7 @@ describe('FloatingNote', () => {
       const { container } = render(<FloatingNote {...props} />);
 
       // Open color picker
-      const paletteButton = screen.getByTitle('更改颜色');
+      const paletteButton = screen.getByTitle('game.floatingNote.changeColor');
       fireEvent.click(paletteButton);
 
       // Click the first color button (gray)
@@ -434,7 +434,7 @@ describe('FloatingNote', () => {
       const { container } = render(<FloatingNote {...props} />);
 
       // Open color picker
-      const paletteButton = screen.getByTitle('更改颜色');
+      const paletteButton = screen.getByTitle('game.floatingNote.changeColor');
       fireEvent.click(paletteButton);
 
       // Click a color
@@ -453,7 +453,7 @@ describe('FloatingNote', () => {
       const { container } = render(<FloatingNote {...props} />);
 
       // Open color picker
-      const paletteButton = screen.getByTitle('更改颜色');
+      const paletteButton = screen.getByTitle('game.floatingNote.changeColor');
       fireEvent.click(paletteButton);
 
       // Find the red color button (second in list) - it should have ring classes
@@ -524,7 +524,7 @@ describe('FloatingNote', () => {
       const props = createBaseProps({ onClose });
       render(<FloatingNote {...props} />);
 
-      const closeButton = screen.getByTitle('收起 (取消悬浮)');
+      const closeButton = screen.getByTitle('game.floatingNote.minimize');
       fireEvent.click(closeButton);
 
       expect(onClose).toHaveBeenCalledWith('note1');
@@ -534,7 +534,7 @@ describe('FloatingNote', () => {
       const props = createBaseProps();
       render(<FloatingNote {...props} />);
 
-      const closeButton = screen.getByTitle('收起 (取消悬浮)');
+      const closeButton = screen.getByTitle('game.floatingNote.minimize');
       expect(closeButton).toBeInTheDocument();
     });
 
@@ -542,7 +542,7 @@ describe('FloatingNote', () => {
       const props = createBaseProps();
       render(<FloatingNote {...props} />);
 
-      const closeButton = screen.getByTitle('收起 (取消悬浮)');
+      const closeButton = screen.getByTitle('game.floatingNote.minimize');
       expect(closeButton.className).toContain('text-red-500');
     });
   });
@@ -613,9 +613,9 @@ describe('FloatingNote', () => {
       render(<FloatingNote {...props} />);
 
       // Color picker button
-      expect(screen.getByTitle('更改颜色')).toBeInTheDocument();
+      expect(screen.getByTitle('game.floatingNote.changeColor')).toBeInTheDocument();
       // Close button
-      expect(screen.getByTitle('收起 (取消悬浮)')).toBeInTheDocument();
+      expect(screen.getByTitle('game.floatingNote.minimize')).toBeInTheDocument();
       // Collapse button exists (even without title)
       const buttons = screen.getAllByRole('button');
       expect(buttons.length).toBeGreaterThanOrEqual(3);
@@ -636,11 +636,11 @@ describe('FloatingNote', () => {
       const { container } = render(<FloatingNote {...props} />);
 
       // Test onClose
-      fireEvent.click(screen.getByTitle('收起 (取消悬浮)'));
+      fireEvent.click(screen.getByTitle('game.floatingNote.minimize'));
       expect(onClose).toHaveBeenCalledWith(customId);
 
       // Test onColorChange
-      fireEvent.click(screen.getByTitle('更改颜色'));
+      fireEvent.click(screen.getByTitle('game.floatingNote.changeColor'));
       const colorButtons = container.querySelectorAll('.w-5.h-5.rounded-full');
       fireEvent.click(colorButtons[0]!);
       expect(onColorChange).toHaveBeenCalledWith(customId, 'gray');

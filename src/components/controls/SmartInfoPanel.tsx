@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateInfoForRole, getInfoRolesForNight, InfoGenerationResult } from '../../lib/infoGeneration';
@@ -27,10 +28,11 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
   isExpanded = false,
   onToggle
 }) => {
+  const { t } = useTranslation();
   const gameState = useStore(state => state.gameState);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [generatedResults, setGeneratedResults] = useState<Map<number, InfoGenerationResult>>(new Map());
-  
+
   // 占卜师目标选择状态
   const [fortuneTellerTargets, setFortuneTellerTargets] = useState<Map<number, { target1: number | null; target2: number | null }>>(new Map());
 
@@ -121,10 +123,10 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
       >
         <div className="flex items-center gap-2">
           <Brain className="w-4 h-4 text-indigo-400" />
-          <span className="text-sm font-bold text-indigo-300">智能信息生成</span>
+          <span className="text-sm font-bold text-indigo-300">{t('controls.smartInfo.title')}</span>
           {infoRoles.length > 0 && (
             <span className="text-[10px] bg-indigo-900 px-1.5 py-0.5 rounded text-indigo-200">
-              {infoRoles.length} 角色
+              {t('controls.smartInfo.roleCount', { count: infoRoles.length })}
             </span>
           )}
         </div>
@@ -148,7 +150,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
               {/* 无信息角色提示 */}
               {infoRoles.length === 0 ? (
                 <div className="text-center py-4 text-stone-500">
-                  <p className="text-sm">本夜无需处理的信息角色</p>
+                  <p className="text-sm">{t('controls.smartInfo.noInfoRoles')}</p>
                 </div>
               ) : (
                 <>
@@ -158,7 +160,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                     className="w-full flex items-center justify-center gap-2 py-2 bg-indigo-900/50 hover:bg-indigo-800/50 rounded text-sm text-indigo-200 transition-colors"
                   >
                     <Sparkles className="w-4 h-4" />
-                    一键生成所有信息
+                    {t('controls.smartInfo.generateAll')}
                   </button>
 
                   {/* 角色信息列表 */}
@@ -185,7 +187,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                               <span className="text-lg">{ROLES[roleId]?.icon ?? '❓'}</span>
                               <div>
                                 <p className="text-sm font-bold text-stone-200">
-                                  {seat?.userName ?? `座位 ${String(seatId + 1)}`}
+                                  {seat?.userName ?? `${t('controls.smartInfo.seat')} ${String(seatId + 1)}`}
                                 </p>
                                 <p className="text-xs text-stone-500">{roleName}</p>
                               </div>
@@ -194,14 +196,14 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                               {isTainted && (
                                 <span className="text-[10px] bg-purple-900 px-1.5 py-0.5 rounded text-purple-200 flex items-center gap-1">
                                   <AlertTriangle className="w-3 h-3" />
-                                  中毒/醉酒
+                                  {t('controls.smartInfo.tainted')}
                                 </span>
                               )}
                               {!needsParams && (
                                 <button
                                   onClick={() => generateInfo(seatId, roleId)}
                                   className="p-1.5 rounded bg-stone-700 hover:bg-stone-600 transition-colors"
-                                  title="重新生成"
+                                  title={t('controls.smartInfo.regenerate')}
                                 >
                                   <RefreshCw className="w-3.5 h-3.5 text-stone-400" />
                                 </button>
@@ -214,7 +216,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                             <div className="mb-3 p-2 bg-stone-900/50 rounded border border-stone-700/50">
                               <div className="flex items-center gap-1 mb-2 text-xs text-stone-400">
                                 <Target className="w-3 h-3" />
-                                <span>选择查验目标</span>
+                                <span>{t('controls.smartInfo.selectTargets')}</span>
                               </div>
                               <div className="grid grid-cols-2 gap-2">
                                 <select
@@ -222,9 +224,9 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                                   onChange={(e) => updateFortuneTellerTarget(seatId, 1, e.target.value ? Number(e.target.value) : null)}
                                   className="bg-stone-800 border border-stone-600 rounded text-xs text-stone-300 p-1.5"
                                 >
-                                  <option value="">目标 1</option>
+                                  <option value="">{t('controls.smartInfo.target')} 1</option>
                                   {alivePlayers.filter(p => p.id !== seatId && p.id !== ftTargets?.target2).map(p => (
-                                    <option key={p.id} value={p.id}>{String(p.id + 1)}号 {p.userName}</option>
+                                    <option key={p.id} value={p.id}>{String(p.id + 1)}{t('controls.smartInfo.number')} {p.userName}</option>
                                   ))}
                                 </select>
                                 <select
@@ -232,9 +234,9 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                                   onChange={(e) => updateFortuneTellerTarget(seatId, 2, e.target.value ? Number(e.target.value) : null)}
                                   className="bg-stone-800 border border-stone-600 rounded text-xs text-stone-300 p-1.5"
                                 >
-                                  <option value="">目标 2</option>
+                                  <option value="">{t('controls.smartInfo.target')} 2</option>
                                   {alivePlayers.filter(p => p.id !== seatId && p.id !== ftTargets?.target1).map(p => (
-                                    <option key={p.id} value={p.id}>{String(p.id + 1)}号 {p.userName}</option>
+                                    <option key={p.id} value={p.id}>{String(p.id + 1)}{t('controls.smartInfo.number')} {p.userName}</option>
                                   ))}
                                 </select>
                               </div>
@@ -254,7 +256,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                                     : 'bg-stone-700 text-stone-500 cursor-not-allowed'
                                 }`}
                               >
-                                生成查验结果
+                                {t('controls.smartInfo.generateResult')}
                               </button>
                             </div>
                           )}
@@ -264,7 +266,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                             <div className="space-y-2">
                               {/* 建议信息 */}
                               <div className="flex items-start gap-2">
-                                <span className="text-[10px] text-stone-500 mt-1 shrink-0">建议:</span>
+                                <span className="text-[10px] text-stone-500 mt-1 shrink-0">{t('controls.smartInfo.suggested')}:</span>
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
                                     <p className={`text-sm ${isTainted ? 'text-purple-300' : 'text-emerald-300'}`}>
@@ -273,7 +275,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                                     <button
                                       onClick={() => void copyToClipboard(result.suggestedInfo, `${String(seatId)}-suggested`)}
                                       className="p-1 rounded hover:bg-stone-700 transition-colors"
-                                      title="复制"
+                                      title={t('common.copy')}
                                     >
                                       {copiedId === `${String(seatId)}-suggested` ? (
                                         <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -288,7 +290,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                               {/* 真实信息（仅在中毒时显示） */}
                               {isTainted && (
                                 <div className="flex items-start gap-2">
-                                  <span className="text-[10px] text-stone-500 mt-1 shrink-0">真实:</span>
+                                  <span className="text-[10px] text-stone-500 mt-1 shrink-0">{t('controls.smartInfo.real')}:</span>
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2">
                                       <p className="text-sm text-stone-400 line-through">
@@ -297,7 +299,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                                       <button
                                         onClick={() => void copyToClipboard(result.realInfo, `${String(seatId)}-real`)}
                                         className="p-1 rounded hover:bg-stone-700 transition-colors"
-                                        title="复制"
+                                        title={t('common.copy')}
                                       >
                                         {copiedId === `${String(seatId)}-real` ? (
                                           <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -315,11 +317,11 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                               onClick={() => generateInfo(seatId, roleId)}
                               className="w-full py-2 text-xs text-stone-500 hover:text-stone-400 border border-dashed border-stone-700 rounded hover:border-stone-600 transition-colors"
                             >
-                              点击生成信息
+                              {t('controls.smartInfo.clickToGenerate')}
                             </button>
                           ) : roleId !== 'fortune_teller' && (
                             <p className="text-xs text-stone-500 text-center py-2">
-                              请先选择目标后生成
+                              {t('controls.smartInfo.selectTargetsFirst')}
                             </p>
                           )}
                         </div>
@@ -331,7 +333,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
 
               {/* 帮助提示 */}
               <div className="text-[10px] text-stone-600 bg-stone-800/50 p-2 rounded">
-                💡 提示：占卜师需要选择两个查验目标。中毒/醉酒状态的玩家会收到伪造信息。
+                💡 {t('controls.smartInfo.helpText')}
               </div>
             </div>
           </motion.div>

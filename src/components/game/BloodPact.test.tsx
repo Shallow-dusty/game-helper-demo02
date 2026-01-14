@@ -68,8 +68,7 @@ describe('BloodPact', () => {
     });
 
     // Should render the title
-    expect(screen.getByText('血契已立')).toBeInTheDocument();
-    expect(screen.getByText('The Blood Pact is Sealed')).toBeInTheDocument();
+    expect(screen.getByText('game.bloodPact.title')).toBeInTheDocument();
   });
 
   it('plays ghost_whisper sound when activated', () => {
@@ -106,7 +105,7 @@ describe('BloodPact', () => {
 
     // At this point, the component should be in reveal phase and timer set
     // We verify component rendered without error
-    expect(screen.getByText('血契已立')).toBeInTheDocument();
+    expect(screen.getByText('game.bloodPact.title')).toBeInTheDocument();
 
     // Callback not called yet (timer is 4 seconds)
     expect(onCompleteMock).not.toHaveBeenCalled();
@@ -184,7 +183,7 @@ describe('BloodPact', () => {
     });
 
     // Should still render without crashing
-    expect(screen.getByText('血契已立')).toBeInTheDocument();
+    expect(screen.getByText('game.bloodPact.title')).toBeInTheDocument();
     // No fire emojis for minions
     expect(container.textContent).not.toContain('🔥');
   });
@@ -203,7 +202,7 @@ describe('BloodPact', () => {
     });
 
     // Should still render the ceremony without crashing
-    expect(screen.getByText('血契已立')).toBeInTheDocument();
+    expect(screen.getByText('game.bloodPact.title')).toBeInTheDocument();
   });
 
   it('resets phase when isActive becomes false', () => {
@@ -219,7 +218,7 @@ describe('BloodPact', () => {
     act(() => {
       vi.advanceTimersByTime(100);
     });
-    expect(screen.getByText('血契已立')).toBeInTheDocument();
+    expect(screen.getByText('game.bloodPact.title')).toBeInTheDocument();
 
     // Deactivate
     rerender(
@@ -235,7 +234,7 @@ describe('BloodPact', () => {
     });
 
     // Should no longer show content
-    expect(screen.queryByText('血契已立')).not.toBeInTheDocument();
+    expect(screen.queryByText('game.bloodPact.title')).not.toBeInTheDocument();
   });
 
   it('uses default containerSize when not provided', () => {

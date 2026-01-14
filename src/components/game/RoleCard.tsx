@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleDef } from '../../types';
 
 interface RoleCardProps {
@@ -17,23 +18,15 @@ const TEAM_COLORS: Record<string, string> = {
     FABLED: 'yellow'
 };
 
-const TEAM_NAMES: Record<string, string> = {
-    TOWNSFOLK: '镇民',
-    OUTSIDER: '外来者',
-    MINION: '爪牙',
-    DEMON: '恶魔',
-    TRAVELER: '旅行者',
-    FABLED: '传说'
-};
-
 export const RoleCard: React.FC<RoleCardProps> = React.memo(({
     role,
     isPlayerRole = false,
     size = 'normal',
     showDetails = false
 }) => {
+    const { t } = useTranslation();
     const color = TEAM_COLORS[role.team] ?? 'stone';
-    const teamName = TEAM_NAMES[role.team] ?? role.team;
+    const teamName = t(`game.roleCard.teams.${role.team}`, { defaultValue: role.team });
 
     // Size classes
     const sizeClasses = {
@@ -53,7 +46,7 @@ export const RoleCard: React.FC<RoleCardProps> = React.memo(({
             <div className={`relative ${sizeClasses.large} rounded-xl border-4 border-yellow-500 bg-gradient-to-br from-stone-950 to-stone-900 shadow-2xl animate-pulse-glow animate-float`}>
                 {/* Hero Badge */}
                 <div className="absolute -top-3 -right-3 bg-yellow-500 text-stone-950 px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                    你的角色
+                    {t('game.roleCard.yourRole')}
                 </div>
 
                 {/* Role Icon/Name */}
@@ -78,7 +71,7 @@ export const RoleCard: React.FC<RoleCardProps> = React.memo(({
                 {/* Ability */}
                 <div className="space-y-3">
                     <div>
-                        <h4 className="text-sm uppercase tracking-wider text-yellow-500/60 mb-2">角色能力</h4>
+                        <h4 className="text-sm uppercase tracking-wider text-yellow-500/60 mb-2">{t('game.roleCard.ability')}</h4>
                         <p className="text-lg text-stone-200 leading-relaxed font-medium">
                             {role.ability}
                         </p>
@@ -102,14 +95,14 @@ export const RoleCard: React.FC<RoleCardProps> = React.memo(({
                         <div className="flex gap-4 pt-3 border-t border-yellow-500/30">
                             {role.firstNight && (
                                 <div className="text-sm">
-                                    <span className="text-yellow-500/70">首夜: </span>
-                                    <span className="text-stone-300">是</span>
+                                    <span className="text-yellow-500/70">{t('game.roleCard.firstNight')}: </span>
+                                    <span className="text-stone-300">{t('common.yes')}</span>
                                 </div>
                             )}
                             {role.otherNight && (
                                 <div className="text-sm">
-                                    <span className="text-yellow-500/70">其他夜晚: </span>
-                                    <span className="text-stone-300">是</span>
+                                    <span className="text-yellow-500/70">{t('game.roleCard.otherNight')}: </span>
+                                    <span className="text-stone-300">{t('common.yes')}</span>
                                 </div>
                             )}
                         </div>
@@ -189,8 +182,8 @@ export const RoleCard: React.FC<RoleCardProps> = React.memo(({
             {/* Night Order (compact) */}
             {(role.firstNight === true || role.otherNight === true) && (
                 <div className="flex gap-3 text-xs text-stone-500 pt-2 border-t border-stone-700 mt-auto">
-                    {role.firstNight && <span>首夜: 是</span>}
-                    {role.otherNight && <span>其他: 是</span>}
+                    {role.firstNight && <span>{t('game.roleCard.firstNight')}: {t('common.yes')}</span>}
+                    {role.otherNight && <span>{t('game.roleCard.other')}: {t('common.yes')}</span>}
                 </div>
             )}
         </div>

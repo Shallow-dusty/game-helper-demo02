@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { useSandboxStore } from '../../sandboxStore';
 import { AdminPanel } from '../controls/AdminPanel';
@@ -9,6 +10,7 @@ import { motion } from 'framer-motion';
 import { Flame, Key, RotateCcw, X, FlaskConical, Crown } from 'lucide-react';
 
 export const RoomSelection = () => {
+  const { t } = useTranslation();
   const user = useStore(state => state.user);
   const createGame = useStore(state => state.createGame);
   const joinGame = useStore(state => state.joinGame);
@@ -58,9 +60,9 @@ export const RoomSelection = () => {
     
     // 清除之前的错误
     setJoinError('');
-    
+
     if (roomCode.length !== 4) {
-      setJoinError('请输入4位房间号');
+      setJoinError(t('lobby.enterRoomCode4'));
       return;
     }
     
@@ -107,11 +109,11 @@ export const RoomSelection = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-12"
         >
-          <h2 className="text-stone-500 font-cinzel text-sm tracking-[0.3em] uppercase mb-3">欢迎, {user?.name}</h2>
+          <h2 className="text-stone-500 font-cinzel text-sm tracking-[0.3em] uppercase mb-3">{t('lobby.welcome')}, {user?.name}</h2>
           <h1 className="text-5xl md:text-6xl font-bold text-stone-200 font-cinzel text-shadow-glow mb-4">
-            选择你的命运
+            {t('lobby.chooseDestiny')}
           </h1>
-          <p className="text-stone-600 italic font-serif text-lg">小镇正在等待你的抉择...</p>
+          <p className="text-stone-600 italic font-serif text-lg">{t('lobby.townWaiting')}</p>
         </motion.div>
 
         {/* Resume Game Alert */}
@@ -128,8 +130,8 @@ export const RoomSelection = () => {
                     <RotateCcw className="w-6 h-6 text-amber-500" />
                   </div>
                   <div>
-                    <p className="text-amber-200 font-bold font-cinzel text-lg">恢复上一局游戏</p>
-                    <p className="text-amber-400/60 text-sm font-mono tracking-wider">房间号: {lastRoomCode}</p>
+                    <p className="text-amber-200 font-bold font-cinzel text-lg">{t('lobby.resumeGame')}</p>
+                    <p className="text-amber-400/60 text-sm font-mono tracking-wider">{t('lobby.roomCode')}: {lastRoomCode}</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -139,7 +141,7 @@ export const RoomSelection = () => {
                     variant="gold"
                     className="font-bold tracking-wider"
                   >
-                    {isRejoining ? '连接中...' : '恢复'}
+                    {isRejoining ? t('lobby.connecting') : t('lobby.resume')}
                   </Button>
                   <Button
                     onClick={clearLastRoom}
@@ -172,14 +174,14 @@ export const RoomSelection = () => {
                   <div className="absolute inset-0 bg-red-900/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <Flame className="w-12 h-12 text-stone-500 group-hover:text-red-500 transition-colors duration-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.6)] relative z-10" />
                 </div>
-                <CardTitle className="text-3xl text-stone-200 font-cinzel tracking-wide group-hover:text-red-400 transition-colors">创建房间</CardTitle>
-                <CardDescription className="font-serif italic text-stone-500">开始一场新的仪式，召唤镇民。</CardDescription>
+                <CardTitle className="text-3xl text-stone-200 font-cinzel tracking-wide group-hover:text-red-400 transition-colors">{t('lobby.createRoomTitle')}</CardTitle>
+                <CardDescription className="font-serif italic text-stone-500">{t('lobby.startRitual')}</CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-8 relative z-10">
                 <div className="bg-stone-950/30 p-6 rounded-lg border border-stone-800/50 space-y-4 group-hover:border-red-900/30 transition-colors">
                   <div className="flex justify-between items-center text-stone-300 font-bold font-cinzel">
-                    <span className="text-sm tracking-wider">玩家人数</span>
+                    <span className="text-sm tracking-wider">{t('lobby.playerCount')}</span>
                     <span className="text-3xl text-red-600 font-black drop-shadow-sm">{seatCount}</span>
                   </div>
                   <input
@@ -191,9 +193,9 @@ export const RoomSelection = () => {
                     className="w-full h-2 bg-stone-800 rounded-lg appearance-none cursor-pointer accent-red-800 hover:accent-red-700 transition-colors"
                   />
                   <div className="flex justify-between text-[10px] text-stone-600 font-cinzel tracking-widest uppercase">
-                    <span>小型 (5)</span>
-                    <span>标准 (12)</span>
-                    <span>大型 (20)</span>
+                    <span>{t('lobby.small')} (5)</span>
+                    <span>{t('lobby.standard')} (12)</span>
+                    <span>{t('lobby.large')} (20)</span>
                   </div>
                 </div>
 
@@ -201,7 +203,7 @@ export const RoomSelection = () => {
                   onClick={handleCreate}
                   className="w-full h-14 text-lg font-cinzel tracking-[0.2em] bg-gradient-to-r from-red-950 to-red-900 hover:from-red-900 hover:to-red-800 border-red-900/50 shadow-lg group/btn relative overflow-hidden transition-all hover:shadow-red-900/20"
                 >
-                  <span className="relative z-10">创建仪式</span>
+                  <span className="relative z-10">{t('lobby.createRitualBtn')}</span>
                   <div className="absolute inset-0 bg-red-600/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
                 </Button>
               </CardContent>
@@ -222,8 +224,8 @@ export const RoomSelection = () => {
                   <div className="absolute inset-0 bg-blue-900/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <Key className="w-12 h-12 text-stone-500 group-hover:text-blue-500 transition-colors duration-500 drop-shadow-[0_0_8px_rgba(37,99,235,0.6)] relative z-10" />
                 </div>
-                <CardTitle className="text-3xl text-stone-200 font-cinzel tracking-wide group-hover:text-blue-400 transition-colors">加入房间</CardTitle>
-                <CardDescription className="font-serif italic text-stone-500">输入代码加入现有的城镇。</CardDescription>
+                <CardTitle className="text-3xl text-stone-200 font-cinzel tracking-wide group-hover:text-blue-400 transition-colors">{t('lobby.joinRoomTitle')}</CardTitle>
+                <CardDescription className="font-serif italic text-stone-500">{t('lobby.enterCode')}</CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-8 relative z-10">
@@ -255,7 +257,7 @@ export const RoomSelection = () => {
                     className={`w-full h-14 text-lg font-cinzel tracking-[0.2em] shadow-lg group/btn relative overflow-hidden transition-all duration-300 ${roomCode.length === 4 && !isJoining ? 'bg-blue-600 hover:bg-blue-500 border-blue-400 shadow-blue-900/50 scale-[1.02]' : 'bg-gradient-to-r from-blue-950 to-blue-900 hover:from-blue-900 hover:to-blue-800 border-blue-900/50'}`}
                   >
                     <span className="relative z-10">
-                      {isJoining ? '连接中...' : roomCode.length === 4 ? '立即进入' : '进入城镇'}
+                      {isJoining ? t('lobby.connecting') : roomCode.length === 4 ? t('lobby.enterNow') : t('lobby.enterTown')}
                     </span>
                     <div className="absolute inset-0 bg-blue-600/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
                   </Button>
@@ -285,10 +287,10 @@ export const RoomSelection = () => {
               <div className="flex items-center justify-between cursor-pointer" onClick={() => setShowSandboxOptions(!showSandboxOptions)}>
                 <div className="flex items-center gap-3">
                   <FlaskConical className="w-5 h-5 text-stone-500" />
-                  <span className="text-stone-400 font-cinzel tracking-wider">更多选项 (沙盒 & 离线)</span>
+                  <span className="text-stone-400 font-cinzel tracking-wider">{t('lobby.moreOptions')}</span>
                 </div>
                 <Button variant="ghost" size="sm" className="text-stone-600">
-                  {showSandboxOptions ? '收起' : '展开'}
+                  {showSandboxOptions ? t('lobby.collapse') : t('lobby.expand')}
                 </Button>
               </div>
 
@@ -304,8 +306,8 @@ export const RoomSelection = () => {
                       onClick={() => startSandbox(12)}
                       className="h-auto py-4 flex flex-col gap-2 bg-stone-900/50 border-stone-800 hover:border-stone-600"
                     >
-                      <span className="flex items-center gap-2 text-stone-300 font-bold"><Crown className="w-4 h-4" /> 沙盒模式</span>
-                      <span className="text-[10px] text-stone-500">单人模拟 • 自由测试</span>
+                      <span className="flex items-center gap-2 text-stone-300 font-bold"><Crown className="w-4 h-4" /> {t('lobby.sandboxMode')}</span>
+                      <span className="text-[10px] text-stone-500">{t('lobby.singleSimulation')}</span>
                     </Button>
                     <Button
                       variant="secondary"
@@ -314,16 +316,16 @@ export const RoomSelection = () => {
                       title="离线模式暂不可用，此功能正在开发中"
                       className="h-auto py-4 flex flex-col gap-2 bg-stone-900/30 border-stone-800 opacity-50 cursor-not-allowed"
                     >
-                      <span className="flex items-center gap-2 text-stone-400 font-bold"><RotateCcw className="w-4 h-4" /> 离线模式</span>
-                      <span className="text-[10px] text-stone-600">即将推出</span>
+                      <span className="flex items-center gap-2 text-stone-400 font-bold"><RotateCcw className="w-4 h-4" /> {t('lobby.offlineMode')}</span>
+                      <span className="text-[10px] text-stone-600">{t('lobby.comingSoon')}</span>
                     </Button>
                   </div>
 
                   <div className="mt-6 flex flex-wrap justify-center md:justify-start gap-4 text-[10px] text-stone-600 font-cinzel tracking-wider uppercase border-t border-stone-800/30 pt-4">
-                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> 离线可用</span>
-                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> 单人游玩</span>
-                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> 完整功能</span>
-                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> 无需存档</span>
+                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> {t('lobby.offlineAvailable')}</span>
+                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> {t('lobby.singlePlayer')}</span>
+                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> {t('lobby.fullFeatures')}</span>
+                    <span className="flex items-center gap-1"><span className="text-emerald-700">✓</span> {t('lobby.noSave')}</span>
                   </div>
                 </motion.div>
               )}
@@ -336,7 +338,7 @@ export const RoomSelection = () => {
           onClick={leaveGame}
           className="mt-12 mx-auto flex text-stone-600 hover:text-stone-400 text-xs font-cinzel tracking-[0.2em] hover:bg-transparent hover:underline underline-offset-4"
         >
-          ← 返回登录
+          ← {t('lobby.backToLogin')}
         </Button>
 
         {/* Admin Button */}

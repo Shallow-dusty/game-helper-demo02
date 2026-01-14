@@ -128,13 +128,13 @@ function extractSystemEvents(messages: ChatMessage[]): TimelineEvent[] {
  * 计算玩家摘要数据
  */
 function calculatePlayerSummaries(gameState: GameState): PlayerSummary[] {
-  const voteHistory = gameState.voteHistory;
-  
+  const voteHistory = gameState.voteHistory || [];
+
   return gameState.seats.map(seat => {
     const realRoleId = seat.realRoleId;
     const seenRoleId = seat.seenRoleId;
     const realRole = realRoleId ? ROLES[realRoleId] : null;
-    
+
     // 计算投票数据
     const votesCast = voteHistory.filter(v => v.votes.includes(seat.id)).length;
     const votesReceived = voteHistory.filter(v => v.nomineeSeatId === seat.id).reduce((sum, v) => sum + v.voteCount, 0);

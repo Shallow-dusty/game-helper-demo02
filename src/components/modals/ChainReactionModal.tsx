@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChainReactionEvent } from '../../lib/chainReaction';
 import { useStore } from '../../store';
 import { X, AlertTriangle, Shield, Skull, Trophy, Zap } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * ChainReactionModal - 连锁反应确认对话框
@@ -43,6 +44,7 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
   onDismiss,
   onClose
 }) => {
+  const { t } = useTranslation()
   const seats = useStore(state => state.gameState?.seats || []);
 
   if (events.length === 0) return null;
@@ -76,10 +78,10 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-5 h-5 text-amber-400" />
               <h2 className="text-lg font-bold text-stone-100">
-                ⚡ 连锁反应检测
+                {t('game.chainReaction.title')}
               </h2>
               <span className="text-xs bg-stone-700 px-2 py-0.5 rounded text-stone-300">
-                {events.length} 个事件
+                {events.length} {t('game.chainReaction.events')}
               </span>
             </div>
             <button
@@ -110,7 +112,7 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
                       <h3 className="font-bold text-stone-100">{event.title}</h3>
                     </div>
                     <span className={`text-[10px] px-2 py-0.5 rounded ${priorityBadgeColors[event.priority]}`}>
-                      {event.priority === 'high' ? '高优先' : event.priority === 'medium' ? '中优先' : '低优先'}
+                      {event.priority === 'high' ? t('game.chainReaction.highPriority') : event.priority === 'medium' ? t('game.chainReaction.mediumPriority') : t('game.chainReaction.lowPriority')}
                     </span>
                   </div>
 
@@ -122,7 +124,7 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
                   {/* Affected Players */}
                   {event.affectedSeatIds.length > 0 && (
                     <div className="mb-4">
-                      <p className="text-xs text-stone-500 mb-2">影响的玩家：</p>
+                      <p className="text-xs text-stone-500 mb-2">{t('game.chainReaction.affectedPlayers')}</p>
                       <div className="flex flex-wrap gap-2">
                         {event.affectedSeatIds.map(seatId => {
                           const seat = seats[seatId];
@@ -134,7 +136,7 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
                               <span className="w-5 h-5 rounded-full bg-stone-700 flex items-center justify-center text-[10px] font-bold">
                                 {seatId + 1}
                               </span>
-                              <span className="text-stone-300">{seat?.userName || `座位 ${seatId + 1}`}</span>
+                              <span className="text-stone-300">{seat?.userName || `${t('game.chainReaction.seatNumber')} ${seatId + 1}`}</span>
                             </span>
                           );
                         })}
@@ -151,13 +153,13 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
                           className="flex-1 bg-red-900 hover:bg-red-800 text-red-100 py-2 px-4 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
                         >
                           <Skull className="w-4 h-4" />
-                          标记死亡
+                          {t('game.chainReaction.markDeath')}
                         </button>
                         <button
                           onClick={() => onDismiss(event)}
                           className="flex-1 bg-stone-700 hover:bg-stone-600 text-stone-300 py-2 px-4 rounded text-sm transition-colors"
                         >
-                          跳过
+                          {t('game.chainReaction.skipAction')}
                         </button>
                       </>
                     )}
@@ -169,13 +171,13 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
                           className="flex-1 bg-emerald-900 hover:bg-emerald-800 text-emerald-100 py-2 px-4 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
                         >
                           <Shield className="w-4 h-4" />
-                          取消击杀
+                          {t('game.chainReaction.cancelKill')}
                         </button>
                         <button
                           onClick={() => onDismiss(event)}
                           className="flex-1 bg-red-900/50 hover:bg-red-800/50 text-red-200 py-2 px-4 rounded text-sm transition-colors"
                         >
-                          仍然击杀
+                          {t('game.chainReaction.stillKill')}
                         </button>
                       </>
                     )}
@@ -187,13 +189,13 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
                           className="flex-1 bg-amber-900 hover:bg-amber-800 text-amber-100 py-2 px-4 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
                         >
                           <Trophy className="w-4 h-4" />
-                          结束游戏
+                          {t('game.chainReaction.endGame')}
                         </button>
                         <button
                           onClick={() => onDismiss(event)}
                           className="flex-1 bg-stone-700 hover:bg-stone-600 text-stone-300 py-2 px-4 rounded text-sm transition-colors"
                         >
-                          继续游戏
+                          {t('game.chainReaction.continueGame')}
                         </button>
                       </>
                     )}
@@ -203,7 +205,7 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
                         onClick={() => onDismiss(event)}
                         className="flex-1 bg-stone-700 hover:bg-stone-600 text-stone-300 py-2 px-4 rounded text-sm transition-colors"
                       >
-                        已知悉
+                        {t('game.chainReaction.acknowledged')}
                       </button>
                     )}
                   </div>
@@ -215,7 +217,7 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
           {/* Footer */}
           <div className="p-4 border-t border-stone-700 bg-stone-800/30">
             <p className="text-xs text-stone-500 text-center">
-              💡 提示：高优先级事件应优先处理，处理顺序可能影响游戏结果
+              {t('game.chainReaction.tip')}
             </p>
           </div>
         </motion.div>

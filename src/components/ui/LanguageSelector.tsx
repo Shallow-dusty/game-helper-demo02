@@ -31,7 +31,7 @@ export function LanguageSelector() {
       {supportedLanguages.map((lang) => (
         <button
           key={lang.code}
-          onClick={() => handleChange(lang.code as 'zh-CN' | 'en')}
+          onClick={() => handleChange(lang.code)}
           className={`
             px-2 py-1 rounded text-sm transition-all
             ${currentLang === lang.code || currentLang.startsWith(lang.code.split('-')[0])

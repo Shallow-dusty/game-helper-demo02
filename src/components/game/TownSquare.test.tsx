@@ -47,8 +47,8 @@ describe('TownSquare', () => {
     });
 
     render(<TownSquare />);
-    expect(screen.getByText('Town Square')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter Room Code')).toBeInTheDocument();
+    expect(screen.getByText('game.townSquare.title')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('game.townSquare.enterRoomCode')).toBeInTheDocument();
   });
 
   it('renders join button', () => {
@@ -62,7 +62,7 @@ describe('TownSquare', () => {
     });
 
     render(<TownSquare />);
-    expect(screen.getByText('VIEW TOWN SQUARE')).toBeInTheDocument();
+    expect(screen.getByText('game.townSquare.viewButton')).toBeInTheDocument();
   });
 
   it('calls spectateGame when form submitted with code', () => {
@@ -76,8 +76,8 @@ describe('TownSquare', () => {
     });
 
     render(<TownSquare />);
-    
-    const input = screen.getByPlaceholderText('Enter Room Code');
+
+    const input = screen.getByPlaceholderText('game.townSquare.enterRoomCode');
     fireEvent.change(input, { target: { value: '1234' } });
     
     const form = input.closest('form')!;

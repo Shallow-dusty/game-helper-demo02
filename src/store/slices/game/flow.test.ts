@@ -91,9 +91,9 @@ describe('createGameFlowSlice', () => {
                 candlelightEnabled: false,
                 roundInfo: { nightCount: 0, dayCount: 0, totalRounds: 0 },
                 seats: [
-                    { id: 0, userId: 'user1', userName: '玩家1', roleId: 'washerwoman', isDead: false },
-                    { id: 1, userId: 'user2', userName: '玩家2', roleId: 'imp', isDead: false },
-                    { id: 2, userId: 'user3', userName: '玩家3', roleId: 'empath', isDead: false }
+                    { id: 0, userId: 'user1', userName: '玩家1', roleId: 'washerwoman', realRoleId: 'washerwoman', isDead: false },
+                    { id: 1, userId: 'user2', userName: '玩家2', roleId: 'imp', realRoleId: 'imp', isDead: false },
+                    { id: 2, userId: 'user3', userName: '玩家3', roleId: 'empath', realRoleId: 'empath', isDead: false }
                 ],
                 nightQueue: [],
                 nightCurrentIndex: -1,

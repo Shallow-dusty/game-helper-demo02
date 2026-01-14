@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface Point {
   x: number;
@@ -42,6 +43,7 @@ export const DetectivePinboard: React.FC<DetectivePinboardProps> = ({
   enabled = true,
   roomId = 'default'
 }) => {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -316,15 +318,15 @@ export const DetectivePinboard: React.FC<DetectivePinboardProps> = ({
         className="absolute bottom-4 left-4 bg-stone-900/80 backdrop-blur-sm rounded-lg px-3 py-2 text-xs text-stone-400 pointer-events-auto"
       >
         <div className="flex items-center gap-4">
-          <span><kbd className="px-1 bg-stone-700 rounded">Alt</kbd>+拖拽 = <span className="text-red-400">怀疑</span></span>
-          <span><kbd className="px-1 bg-stone-700 rounded">Shift</kbd>+拖拽 = <span className="text-green-400">信任</span></span>
-          <span>双击 = 标记</span>
-          <span>右键 = 删除</span>
-          <button 
+          <span><kbd className="px-1 bg-stone-700 rounded">Alt</kbd>+{t('game.detective.dragSuspect')}</span>
+          <span><kbd className="px-1 bg-stone-700 rounded">Shift</kbd>+{t('game.detective.dragTrust')}</span>
+          <span>{t('game.detective.doubleClick')}</span>
+          <span>{t('game.detective.rightClick')}</span>
+          <button
             onClick={clearAll}
             className="ml-2 px-2 py-0.5 bg-stone-700 hover:bg-stone-600 rounded text-stone-300"
           >
-            清除
+            {t('game.detective.clear')}
           </button>
         </div>
       </motion.div>

@@ -200,7 +200,7 @@ describe('RoleRevealModal', () => {
     act(() => {
       vi.advanceTimersByTime(1000);
     });
-    expect(screen.getAllByText('GAME START')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('game.roleReveal.gameStart')[0]).toBeInTheDocument();
   });
 
   it('shows role card after countdown completes', () => {
@@ -222,8 +222,8 @@ describe('RoleRevealModal', () => {
     advanceThroughCountdown();
 
     // Should show the card cover
-    expect(screen.getByText('你的身份')).toBeInTheDocument();
-    expect(screen.getByText('点击翻开命运之书')).toBeInTheDocument();
+    expect(screen.getByText('game.roleReveal.yourIdentity')).toBeInTheDocument();
+    expect(screen.getByText('game.roleReveal.clickToOpen')).toBeInTheDocument();
   });
 
   it('flips card when clicked', () => {
@@ -245,7 +245,7 @@ describe('RoleRevealModal', () => {
     advanceThroughCountdown();
 
     // Find and click the card container (it has cursor-pointer class)
-    const cardContainer = screen.getByText('你的身份').closest('.cursor-pointer');
+    const cardContainer = screen.getByText('game.roleReveal.yourIdentity').closest('.cursor-pointer');
     expect(cardContainer).toBeInTheDocument();
 
     if (cardContainer) {
@@ -256,7 +256,7 @@ describe('RoleRevealModal', () => {
     expect(screen.getByText('洗衣妇')).toBeInTheDocument();
     expect(screen.getByText('TOWNSFOLK')).toBeInTheDocument();
     expect(screen.getByText('开局时，你能得知一名镇民和一位玩家。')).toBeInTheDocument();
-    expect(screen.getByText('我已知晓')).toBeInTheDocument();
+    expect(screen.getByText('game.roleReveal.acknowledged')).toBeInTheDocument();
   });
 
   it('uses seenRoleId when available (for drunk/lunatic)', () => {
@@ -277,7 +277,7 @@ describe('RoleRevealModal', () => {
     // Advance through full countdown
     advanceThroughCountdown();
 
-    const cardContainer = screen.getByText('你的身份').closest('.cursor-pointer');
+    const cardContainer = screen.getByText('game.roleReveal.yourIdentity').closest('.cursor-pointer');
     if (cardContainer) {
       fireEvent.click(cardContainer);
     }
@@ -305,13 +305,13 @@ describe('RoleRevealModal', () => {
     advanceThroughCountdown();
 
     // Flip the card
-    const cardContainer = screen.getByText('你的身份').closest('.cursor-pointer');
+    const cardContainer = screen.getByText('game.roleReveal.yourIdentity').closest('.cursor-pointer');
     if (cardContainer) {
       fireEvent.click(cardContainer);
     }
 
     // Click confirm button
-    fireEvent.click(screen.getByText('我已知晓'));
+    fireEvent.click(screen.getByText('game.roleReveal.acknowledged'));
 
     // Should save to localStorage
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
@@ -399,7 +399,7 @@ describe('RoleRevealModal', () => {
     advanceThroughCountdown();
 
     // Flip the card
-    const cardContainer = screen.getByText('你的身份').closest('.cursor-pointer');
+    const cardContainer = screen.getByText('game.roleReveal.yourIdentity').closest('.cursor-pointer');
     if (cardContainer) {
       fireEvent.click(cardContainer);
     }
@@ -475,13 +475,13 @@ describe('RoleRevealModal', () => {
     advanceThroughCountdown();
 
     // Flip the card
-    const cardContainer = screen.getByText('你的身份').closest('.cursor-pointer');
+    const cardContainer = screen.getByText('game.roleReveal.yourIdentity').closest('.cursor-pointer');
     if (cardContainer) {
       fireEvent.click(cardContainer);
     }
 
     // The confirm button should exist
-    const confirmButton = screen.getByText('我已知晓').closest('button');
+    const confirmButton = screen.getByText('game.roleReveal.acknowledged').closest('button');
     expect(confirmButton).toBeInTheDocument();
 
     if (confirmButton) {
@@ -535,7 +535,7 @@ describe('RoleRevealModal', () => {
     advanceThroughCountdown();
 
     // Flip the card
-    const cardContainer = screen.getByText('你的身份').closest('.cursor-pointer');
+    const cardContainer = screen.getByText('game.roleReveal.yourIdentity').closest('.cursor-pointer');
     if (cardContainer) {
       fireEvent.click(cardContainer);
     }
@@ -565,7 +565,7 @@ describe('RoleRevealModal', () => {
     advanceThroughCountdown();
 
     // Flip the card
-    const cardContainer = screen.getByText('你的身份').closest('.cursor-pointer');
+    const cardContainer = screen.getByText('game.roleReveal.yourIdentity').closest('.cursor-pointer');
     if (cardContainer) {
       fireEvent.click(cardContainer);
     }
@@ -593,7 +593,7 @@ describe('RoleRevealModal', () => {
     advanceThroughCountdown();
 
     // Get card container and flip
-    const cardContainer = screen.getByText('你的身份').closest('.cursor-pointer');
+    const cardContainer = screen.getByText('game.roleReveal.yourIdentity').closest('.cursor-pointer');
     expect(cardContainer).toBeInTheDocument();
 
     if (cardContainer) {

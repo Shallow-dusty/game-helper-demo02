@@ -11,6 +11,11 @@ export const createPhaseSlice: StoreSlice<Pick<GameSlice, 'setPhase'>> = (set, g
                 state.gameState.phase = phase;
                 addSystemMessage(state.gameState, `游戏阶段变更为: ${PHASE_LABELS[phase]}`);
 
+                // Bug#5 fix: Clear voting state when leaving VOTING phase
+                if (oldPhase === 'VOTING' && phase !== 'VOTING') {
+                    state.gameState.voting = null;
+                }
+
                 if (phase === 'NIGHT' && oldPhase !== 'NIGHT') {
                     state.gameState.roundInfo.nightCount++;
                     state.gameState.roundInfo.totalRounds++;

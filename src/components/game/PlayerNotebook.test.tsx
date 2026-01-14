@@ -8,6 +8,23 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PlayerNotebook } from './PlayerNotebook';
 
+// Mock i18n
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'player.notebook.title': 'Player Notebook',
+        'player.notebook.placeholder': 'Record your deductions...',
+        'player.notebook.addPlaceholder': 'Add new note... (Enter)',
+        'player.notebook.addButton': 'Add',
+        'player.notebook.deleteNote': 'Delete Note',
+        'player.notebook.emptyState': 'No notes... (Stored locally only)',
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
+
 describe('PlayerNotebook', () => {
   let mockLocalStorage: Record<string, string>;
 
@@ -28,8 +45,8 @@ describe('PlayerNotebook', () => {
     render(<PlayerNotebook />);
 
     expect(screen.getByText('📓')).toBeInTheDocument();
-    expect(screen.getByText(/玩家笔记/)).toBeInTheDocument();
-    expect(screen.getByText(/暂无笔记/)).toBeInTheDocument();
+    expect(screen.getByText('Player Notebook')).toBeInTheDocument();
+    expect(screen.getByText('No notes... (Stored locally only)')).toBeInTheDocument();
   });
 
   it('should load notes from localStorage on mount', () => {
@@ -51,26 +68,26 @@ describe('PlayerNotebook', () => {
     render(<PlayerNotebook />);
 
     expect(console.error).toHaveBeenCalled();
-    expect(screen.getByText(/暂无笔记/)).toBeInTheDocument();
+    expect(screen.getByText('No notes... (Stored locally only)')).toBeInTheDocument();
   });
 
   it('should add a new note', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
-    const addButton = screen.getByText('添加');
+    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const addButton = screen.getByText('Add');
 
     fireEvent.change(input, { target: { value: 'New test note' } });
     fireEvent.click(addButton);
 
     expect(screen.getByDisplayValue('New test note')).toBeInTheDocument();
-    expect(screen.queryByText(/暂无笔记/)).not.toBeInTheDocument();
+    expect(screen.queryByText('No notes... (Stored locally only)')).not.toBeInTheDocument();
   });
 
   it('should add note on Enter key press', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
+    const input = screen.getByPlaceholderText('Add new note... (Enter)');
 
     fireEvent.change(input, { target: { value: 'Enter key note' } });
     fireEvent.keyDown(input, { key: 'Enter' });
@@ -81,22 +98,22 @@ describe('PlayerNotebook', () => {
   it('should not add empty note', () => {
     render(<PlayerNotebook />);
 
-    const addButton = screen.getByText('添加');
+    const addButton = screen.getByText('Add');
     fireEvent.click(addButton);
 
-    expect(screen.getByText(/暂无笔记/)).toBeInTheDocument();
+    expect(screen.getByText('No notes... (Stored locally only)')).toBeInTheDocument();
   });
 
   it('should not add whitespace-only note', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
-    const addButton = screen.getByText('添加');
+    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const addButton = screen.getByText('Add');
 
     fireEvent.change(input, { target: { value: '   ' } });
     fireEvent.click(addButton);
 
-    expect(screen.getByText(/暂无笔记/)).toBeInTheDocument();
+    expect(screen.getByText('No notes... (Stored locally only)')).toBeInTheDocument();
   });
 
   it('should delete a note', () => {
@@ -109,11 +126,11 @@ describe('PlayerNotebook', () => {
 
     expect(screen.getByDisplayValue('Note to delete')).toBeInTheDocument();
 
-    const deleteButton = screen.getByTitle('删除笔记');
+    const deleteButton = screen.getByTitle('Delete Note');
     fireEvent.click(deleteButton);
 
     expect(screen.queryByDisplayValue('Note to delete')).not.toBeInTheDocument();
-    expect(screen.getByText(/暂无笔记/)).toBeInTheDocument();
+    expect(screen.getByText('No notes... (Stored locally only)')).toBeInTheDocument();
   });
 
   it('should update a note', () => {
@@ -133,8 +150,8 @@ describe('PlayerNotebook', () => {
   it('should save notes to localStorage when notes change', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
-    const addButton = screen.getByText('添加');
+    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const addButton = screen.getByText('Add');
 
     fireEvent.change(input, { target: { value: 'Saved note' } });
     fireEvent.click(addButton);
@@ -148,8 +165,8 @@ describe('PlayerNotebook', () => {
   it('should clear input after adding note', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
-    const addButton = screen.getByText('添加');
+    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const addButton = screen.getByText('Add');
 
     fireEvent.change(input, { target: { value: 'Test note' } });
     fireEvent.click(addButton);
@@ -160,15 +177,15 @@ describe('PlayerNotebook', () => {
   it('should disable add button when input is empty', () => {
     render(<PlayerNotebook />);
 
-    const addButton = screen.getByText('添加');
+    const addButton = screen.getByText('Add');
     expect(addButton).toBeDisabled();
   });
 
   it('should enable add button when input has content', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
-    const addButton = screen.getByText('添加');
+    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const addButton = screen.getByText('Add');
 
     fireEvent.change(input, { target: { value: 'Test' } });
     expect(addButton).not.toBeDisabled();
@@ -190,21 +207,21 @@ describe('PlayerNotebook', () => {
   it('should handle non-Enter key press without adding note', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
+    const input = screen.getByPlaceholderText('Add new note... (Enter)');
 
     fireEvent.change(input, { target: { value: 'Test note' } });
     fireEvent.keyDown(input, { key: 'Escape' });
 
     // Note should not be added, input should still have the value
     expect(screen.queryByDisplayValue('Test note')).toBe(input);
-    expect(screen.getByText(/暂无笔记/)).toBeInTheDocument();
+    expect(screen.getByText('No notes... (Stored locally only)')).toBeInTheDocument();
   });
 
   it('should render multiple notes in correct order (newest first)', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText(/添加新笔记/);
-    const addButton = screen.getByText('添加');
+    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const addButton = screen.getByText('Add');
 
     // Add first note
     fireEvent.change(input, { target: { value: 'First note' } });

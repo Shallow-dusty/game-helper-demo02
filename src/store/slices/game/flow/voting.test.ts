@@ -403,7 +403,7 @@ describe('createVotingSlice', () => {
 
             slice.closeVote();
 
-            expect(checkGameOver).toHaveBeenCalledWith(mockState.gameState.seats);
+            expect(checkGameOver).toHaveBeenCalledWith(mockState.gameState.seats, 1);
             expect(mockState.gameState.gameOver).toEqual({
                 isOver: true,
                 winner: 'GOOD',

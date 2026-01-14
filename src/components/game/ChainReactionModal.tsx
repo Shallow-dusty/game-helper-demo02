@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Zap, Shield, Skull, Trophy, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import type { ChainReactionEvent } from '../../lib/chainReaction';
+import { useTranslation } from 'react-i18next';
 
 interface ChainReactionModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
   onSkip,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const currentEvent = events[0];
   
   if (!isOpen || !currentEvent) return null;
@@ -61,13 +63,13 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
   const getActionLabel = () => {
     switch (currentEvent.suggestedAction) {
       case 'mark_dead':
-        return '标记死亡';
+        return t('game.chainReaction.actions.markDead');
       case 'cancel_kill':
-        return '取消击杀';
+        return t('game.chainReaction.actions.cancelKill');
       case 'end_game':
-        return '结束游戏';
+        return t('game.chainReaction.actions.endGame');
       default:
-        return '确认';
+        return t('game.chainReaction.actions.confirm');
     }
   };
 
@@ -100,7 +102,7 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
                 </h3>
                 {events.length > 1 && (
                   <p className="text-xs text-stone-500 mt-1">
-                    还有 {events.length - 1} 个事件待处理
+                    {t('game.chainReaction.pendingEvents', { count: events.length - 1 })}
                   </p>
                 )}
               </div>
@@ -121,9 +123,9 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
               {/* 受影响的座位 */}
               {currentEvent.affectedSeatIds.length > 0 && (
                 <div className="mt-3 p-3 bg-stone-900/50 rounded border border-stone-800">
-                  <p className="text-xs text-stone-500 mb-1">受影响的座位</p>
+                  <p className="text-xs text-stone-500 mb-1">{t('game.chainReaction.affectedSeats')}</p>
                   <p className="text-sm text-stone-300">
-                    座位 {currentEvent.affectedSeatIds.map(id => id + 1).join(', ')}
+                    {t('game.chainReaction.seatNumbers', { seats: currentEvent.affectedSeatIds.map(id => id + 1).join(', ') })}
                   </p>
                 </div>
               )}
@@ -136,7 +138,7 @@ export const ChainReactionModal: React.FC<ChainReactionModalProps> = ({
                 className="flex-1"
                 onClick={() => onSkip(currentEvent)}
               >
-                跳过
+                {t('game.chainReaction.skip')}
               </Button>
               <Button
                 variant="default"

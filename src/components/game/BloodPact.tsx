@@ -10,6 +10,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
+import { useTranslation } from 'react-i18next';
 
 interface BloodPactProps {
     isActive: boolean;
@@ -227,9 +228,10 @@ export const BloodPact: React.FC<BloodPactProps> = ({
     demonSeatId,
     seatPositions,
     onComplete,
-     
+
     containerSize: _containerSize = { width: 800, height: 600 },
 }) => {
+    const { t } = useTranslation();
     const { playSound } = useSoundEffect();
     const [phase, setPhase] = useState<'idle' | 'reveal' | 'complete'>('idle');
 
@@ -314,16 +316,16 @@ export const BloodPact: React.FC<BloodPactProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5, duration: 0.8 }}
                 >
-                    <h2 
+                    <h2
                         className="text-3xl font-cinzel text-red-500 tracking-widest"
                         style={{
                             textShadow: '0 0 20px rgba(220, 38, 38, 0.8), 0 0 40px rgba(180, 30, 30, 0.5)',
                         }}
                     >
-                        血契已立
+                        {t('game.bloodPact.title')}
                     </h2>
                     <p className="text-sm text-red-300/70 mt-2 font-serif">
-                        The Blood Pact is Sealed
+                        {t('game.bloodPact.subtitle')}
                     </p>
                 </motion.div>
 

@@ -3,8 +3,10 @@ import { useStore } from '../../store';
 import { AUDIO_TRACKS, SOUND_EFFECTS } from '../../constants';
 import { motion } from 'framer-motion';
 import { Skull, Volume2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const Lobby: React.FC = () => {
+    const { t } = useTranslation();
     const login = useStore(state => state.login);
     const spectateGame = useStore(state => state.spectateGame);
     const [name, setName] = useState('');
@@ -138,7 +140,7 @@ export const Lobby: React.FC = () => {
                         <div 
                             className="absolute top-4 right-4 z-50 cursor-pointer animate-pulse"
                             onClick={handleInteraction}
-                            title="点击开启音效"
+                            title={t('lobby.clickToEnableAudio')}
                         >
                             <Volume2 className="w-6 h-6 text-amber-500/80" />
                         </div>
@@ -158,11 +160,11 @@ export const Lobby: React.FC = () => {
                         </motion.div>
 
                         <h1 className="text-4xl md:text-5xl font-cinzel font-bold text-gold tracking-wider drop-shadow-lg">
-                            魔典 GRIMOIRE
+                            {t('lobby.title')}
                         </h1>
                         <div className="flex items-center justify-center gap-4 opacity-80">
                             <div className="h-[1px] w-12 bg-gradient-to-r from-transparent via-stone-500 to-transparent"></div>
-                            <p className="text-stone-400 font-serif italic tracking-widest text-sm">血染钟楼线上助手</p>
+                            <p className="text-stone-400 font-serif italic tracking-widest text-sm">{t('lobby.subtitle')}</p>
                             <div className="h-[1px] w-12 bg-gradient-to-r from-transparent via-stone-500 to-transparent"></div>
                         </div>
                     </div>
@@ -173,13 +175,13 @@ export const Lobby: React.FC = () => {
                             <>
                                 <div className="space-y-2">
                                     <label className="text-xs font-cinzel text-stone-500 uppercase tracking-widest ml-1">
-                                        你的昵称
+                                        {t('lobby.yourNickname')}
                                     </label>
                                     <input
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        placeholder="请输入昵称..."
+                                        placeholder={t('lobby.enterNickname')}
                                         className="w-full input-gothic rounded px-4 py-3 text-lg"
                                         autoFocus
                                     />
@@ -193,22 +195,22 @@ export const Lobby: React.FC = () => {
                                         {isST && <div className="w-3 h-3 bg-red-500 rounded-[1px]" />}
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className={`font-cinzel text-sm ${isST ? 'text-red-400' : 'text-stone-300'}`}>说书人模式</span>
-                                        <span className="text-xs text-stone-600">主持并管理游戏</span>
+                                        <span className={`font-cinzel text-sm ${isST ? 'text-red-400' : 'text-stone-300'}`}>{t('lobby.storytellerMode')}</span>
+                                        <span className="text-xs text-stone-600">{t('lobby.storytellerDesc')}</span>
                                     </div>
                                 </div>
                             </>
                         ) : (
                             <div className="space-y-2">
                                 <label className="text-xs font-cinzel text-stone-500 uppercase tracking-widest ml-1">
-                                    房间号
+                                    {t('lobby.roomCode')}
                                 </label>
                                 <input
                                     type="text"
                                     maxLength={4}
                                     value={roomCode}
                                     onChange={(e) => setRoomCode(e.target.value)}
-                                    placeholder="8888"
+                                    placeholder={t('lobby.enterRoomCode')}
                                     className={`w-full input-gothic rounded px-4 py-3 text-center text-3xl font-cinzel tracking-[0.5em] transition-all duration-500 ${isRoomCodeValid ? 'border-green-500/50 shadow-[0_0_20px_rgba(34,197,94,0.2)] text-green-400' : ''}`}
                                 />
                             </div>
@@ -219,7 +221,7 @@ export const Lobby: React.FC = () => {
                             disabled={isSpectating ? roomCode.length !== 4 : !name.trim()}
                             className={`w-full btn-gothic py-4 rounded text-lg font-bold shadow-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed ${isRoomCodeValid ? 'animate-shimmer border-green-500/50 text-green-100' : ''}`}
                         >
-                            {isSpectating ? '以观众身份进入' : (isST ? '进入魔典' : '以玩家身份进入')}
+                            {isSpectating ? t('lobby.enterAsSpectator') : (isST ? t('lobby.enterGrimoire') : t('lobby.enterAsPlayer'))}
                         </button>
 
                         <div className="text-center pt-4">
@@ -228,14 +230,14 @@ export const Lobby: React.FC = () => {
                                 onClick={() => setIsSpectating(!isSpectating)}
                                 className="text-stone-600 hover:text-stone-400 text-xs font-cinzel tracking-widest transition-colors"
                             >
-                                {isSpectating ? '返回登录' : '切换到观众模式'}
+                                {isSpectating ? t('lobby.backToLogin') : t('lobby.switchToSpectator')}
                             </button>
                         </div>
                     </form>
 
                     {/* Footer Quote */}
                     <div className="mt-12 opacity-40">
-                        <p className="text-xs font-serif italic text-stone-500">"恶魔就在我们中间..."</p>
+                        <p className="text-xs font-serif italic text-stone-500">{t('lobby.demonAmongUs')}</p>
                     </div>
                 </div>
             </motion.div>

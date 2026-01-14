@@ -7,6 +7,7 @@
  */
 
 import React, { useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FixedSizeList as List } from 'react-window';
 import { Seat } from '../../types';
 import { cn } from '../../lib/utils';
@@ -44,6 +45,7 @@ interface SeatItemProps {
 }
 
 const SeatItem: React.FC<SeatItemProps> = React.memo(({ index, style, data }) => {
+    const { t } = useTranslation();
     const seat = data.seats[index];
     const isCurrentUser = seat.userId === data.currentUserId;
     const roleDef = seat.realRoleId ? ROLES[seat.realRoleId] : null;
@@ -74,7 +76,7 @@ const SeatItem: React.FC<SeatItemProps> = React.memo(({ index, style, data }) =>
                     <div className="text-sm font-semibold text-stone-200 truncate">
                         {seat.userName}
                     </div>
-                    {seat.isDead && <div className="text-xs text-red-500">已死亡</div>}
+                    {seat.isDead && <div className="text-xs text-red-500">{t('game.virtualizedSeatList.dead')}</div>}
                 </div>
 
                 {/* 角色显示（仅 ST 和当前玩家） */}
@@ -87,11 +89,11 @@ const SeatItem: React.FC<SeatItemProps> = React.memo(({ index, style, data }) =>
                 {/* 状态指示器 */}
                 <div className="flex gap-1">
                     {seat.isHandRaised && (
-                        <span title="已举手" className="text-lg">✋</span>
+                        <span title={t('game.virtualizedSeatList.handRaised')} className="text-lg">✋</span>
                     )}
-                    {seat.isDead && <span title="已死亡" className="text-lg">💀</span>}
+                    {seat.isDead && <span title={t('game.virtualizedSeatList.dead')} className="text-lg">💀</span>}
                     {seat.isVirtual && (
-                        <span title="虚拟玩家" className="text-lg">🤖</span>
+                        <span title={t('game.virtualizedSeatList.virtual')} className="text-lg">🤖</span>
                     )}
                 </div>
             </div>
@@ -114,6 +116,7 @@ export const VirtualizedSeatList: React.FC<VirtualizedSeatListProps> = ({
     isStoryteller = false,
     currentUserId = '',
 }) => {
+    const { t } = useTranslation();
     // 列表项数据缓存
     const itemData = useMemo(
         () => ({
@@ -141,7 +144,7 @@ export const VirtualizedSeatList: React.FC<VirtualizedSeatListProps> = ({
                 className="flex items-center justify-center text-stone-500"
                 style={{ width, height }}
             >
-                <p>没有座位</p>
+                <p>{t('game.virtualizedSeatList.noSeats')}</p>
             </div>
         );
     }
@@ -151,9 +154,9 @@ export const VirtualizedSeatList: React.FC<VirtualizedSeatListProps> = ({
             {/* 列表头 */}
             <div className="px-2 py-2 bg-stone-900/50 border-b border-stone-700 sticky top-0 z-10">
                 <div className="flex items-center gap-3 text-xs text-stone-500 font-bold">
-                    <span className="w-8">座位</span>
-                    <span className="flex-1">玩家</span>
-                    <span>状态</span>
+                    <span className="w-8">{t('game.virtualizedSeatList.seat')}</span>
+                    <span className="flex-1">{t('game.virtualizedSeatList.player')}</span>
+                    <span>{t('game.virtualizedSeatList.status')}</span>
                 </div>
             </div>
 
@@ -171,7 +174,7 @@ export const VirtualizedSeatList: React.FC<VirtualizedSeatListProps> = ({
 
             {/* 列表底部信息 */}
             <div className="px-2 py-2 bg-stone-900/30 border-t border-stone-700 text-xs text-stone-600">
-                显示 {Math.min(Math.ceil(height / itemSize), seats.length)} / {seats.length} 座位
+                {t('game.virtualizedSeatList.showing', { visible: Math.min(Math.ceil(height / itemSize), seats.length), total: seats.length })}
             </div>
         </div>
     );

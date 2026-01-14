@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { ROLES, TEAM_COLORS } from '../../constants';
 
 export const RoleRevealModal: React.FC = () => {
+    const { t } = useTranslation();
     const user = useStore(state => state.user);
     // 优化：只订阅需要的字段，减少不必要的重新渲染
     const rolesRevealed = useStore(state => state.gameState?.rolesRevealed);
@@ -145,8 +147,8 @@ export const RoleRevealModal: React.FC = () => {
                         transition={{ duration: 0.4, type: "spring", bounce: 0.5 }}
                         className="text-9xl font-cinzel font-bold text-[#d4af37] drop-shadow-[0_0_50px_rgba(212,175,55,0.6)] relative"
                     >
-                        {countdown > 0 ? countdown : "GAME START"}
-                        <div className="absolute inset-0 text-[#d4af37] blur-lg opacity-50">{countdown > 0 ? countdown : "GAME START"}</div>
+                        {countdown > 0 ? countdown : t('game.roleReveal.gameStart')}
+                        <div className="absolute inset-0 text-[#d4af37] blur-lg opacity-50">{countdown > 0 ? countdown : t('game.roleReveal.gameStart')}</div>
                     </motion.div>
                 </AnimatePresence>
             </div>
@@ -223,10 +225,10 @@ export const RoleRevealModal: React.FC = () => {
                                 </motion.div>
                                 
                                 <h2 className="text-4xl font-cinzel font-bold text-[#d6d3d1] tracking-[0.2em] z-10 text-center px-4 drop-shadow-lg">
-                                    你的身份
+                                    {t('game.roleReveal.yourIdentity')}
                                 </h2>
                                 <div className="w-16 h-1 bg-[#57534e] my-4 z-10 rounded-full opacity-50"></div>
-                                <p className="text-[#a8a29e] font-serif italic z-10 tracking-wide text-sm">点击翻开命运之书</p>
+                                <p className="text-[#a8a29e] font-serif italic z-10 tracking-wide text-sm">{t('game.roleReveal.clickToOpen')}</p>
                             </div>
 
                             {/* 背面 (角色详情) */}
@@ -282,7 +284,7 @@ export const RoleRevealModal: React.FC = () => {
                                         }}
                                         className="mt-6 w-full py-3.5 rounded-sm bg-[#292524] hover:bg-[#44403c] border border-[#57534e] text-[#e7e5e4] font-cinzel font-bold tracking-widest transition-all duration-300 flex items-center justify-center gap-3 group shadow-lg hover:shadow-[#d4af37]/10"
                                     >
-                                        <span>我已知晓</span>
+                                        <span>{t('game.roleReveal.acknowledged')}</span>
                                         <span className="group-hover:translate-x-1 transition-transform">→</span>
                                     </button>
                                 </div>

@@ -102,14 +102,14 @@ describe('RuleCompliancePanel', () => {
   it('should render when isOpen is true', () => {
     render(<RuleCompliancePanel {...defaultProps} />);
 
-    expect(screen.getByText('规则合规性检查')).toBeInTheDocument();
+    expect(screen.getByText('game.ruleCompliance.title')).toBeInTheDocument();
   });
 
   it('should display summary counts', () => {
     render(<RuleCompliancePanel {...defaultProps} />);
 
-    expect(screen.getByText(/2 通过/)).toBeInTheDocument();
-    expect(screen.getByText(/1 错误/)).toBeInTheDocument();
+    expect(screen.getByText('2 game.ruleCompliance.passed')).toBeInTheDocument();
+    expect(screen.getByText('1 game.ruleCompliance.errors')).toBeInTheDocument();
   });
 
   it('should display rule check items', () => {
@@ -160,7 +160,7 @@ describe('RuleCompliancePanel', () => {
   it('should display error message when there are errors', () => {
     render(<RuleCompliancePanel {...defaultProps} />);
 
-    expect(screen.getByText(/请修复错误后再开始游戏/)).toBeInTheDocument();
+    expect(screen.getByText('game.ruleCompliance.hasErrors')).toBeInTheDocument();
   });
 
   it('should display check icons', () => {

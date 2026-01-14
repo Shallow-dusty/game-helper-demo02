@@ -1,6 +1,7 @@
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "../../lib/utils"
+import { useTranslation } from "react-i18next"
 
 /**
  * MidnightChime - 午夜钟声效果
@@ -132,6 +133,7 @@ export const MidnightChime: React.FC<MidnightChimeProps> = ({
     onComplete,
     className
 }) => {
+    const { t } = useTranslation()
     const [phase, setPhase] = React.useState<"idle" | "chiming" | "fading">("idle")
 
     React.useEffect(() => {
@@ -287,10 +289,10 @@ export const MidnightChime: React.FC<MidnightChimeProps> = ({
                         transition={{ delay: 0.5 }}
                     >
                         <p className="text-amber-500/80 font-cinzel text-2xl tracking-widest uppercase">
-                            Midnight
+                            {t('effects.midnightChime.midnight')}
                         </p>
                         <p className="text-stone-400/60 text-sm mt-1 font-serif italic">
-                            The night falls upon the village...
+                            {t('effects.midnightChime.nightFalls')}
                         </p>
                     </motion.div>
                 </motion.div>

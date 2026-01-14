@@ -7,11 +7,11 @@ vi.mock('../../utils', () => ({
 
 vi.mock('../../../constants', () => ({
     ROLES: {
-        washerwoman: { id: 'washerwoman', name: '洗衣妇', type: 'TOWNSFOLK', reminders: ['洗衣妇'] },
-        imp: { id: 'imp', name: '小恶魔', type: 'DEMON', reminders: ['死亡'] },
-        empath: { id: 'empath', name: '共情者', type: 'TOWNSFOLK', reminders: [] },
-        scarlet_woman: { id: 'scarlet_woman', name: '猩红女郎', type: 'MINION', reminders: [] },
-        drunk: { id: 'drunk', name: '酒鬼', type: 'OUTSIDER', reminders: ['酒鬼'] }
+        washerwoman: { id: 'washerwoman', name: '洗衣妇', team: 'TOWNSFOLK', reminders: ['洗衣妇'] },
+        imp: { id: 'imp', name: '小恶魔', team: 'DEMON', reminders: ['死亡'] },
+        empath: { id: 'empath', name: '共情者', team: 'TOWNSFOLK', reminders: [] },
+        scarlet_woman: { id: 'scarlet_woman', name: '猩红女郎', team: 'MINION', reminders: [] },
+        drunk: { id: 'drunk', name: '酒鬼', team: 'OUTSIDER', reminders: ['酒鬼'] }
     }
 }));
 

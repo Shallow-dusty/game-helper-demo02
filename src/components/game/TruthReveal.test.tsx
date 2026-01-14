@@ -44,17 +44,17 @@ describe('TruthReveal', () => {
         vi.clearAllMocks();
     });
 
-    it('关闭状态不渲染主要内容', () => {
+    it('should not render main content when closed', () => {
         const { container } = render(<TruthReveal isOpen={false} onClose={vi.fn()} />);
-        
-        // 关闭时应该返回空或隐藏
+
+        // When closed, should return empty or hidden
         expect(container.textContent).toBe('');
     });
 
-    it('打开状态应该渲染内容', () => {
+    it('should render content when open', () => {
         render(<TruthReveal isOpen={true} onClose={vi.fn()} />);
-        
-        // 应该有一些渲染内容
+
+        // Should have some rendered content
         expect(document.body.textContent?.length).toBeGreaterThan(0);
     });
 });

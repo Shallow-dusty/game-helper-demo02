@@ -1,20 +1,22 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore, ConnectionStatus } from '../../store';
 import { SCRIPTS } from '../../constants';
 
-// 连接状态样式配置
-const CONNECTION_STYLES: Record<ConnectionStatus, { text: string; className: string }> = {
-    connecting: { text: '连接中...', className: 'text-yellow-400 animate-pulse' },
-    connected: { text: '已连接', className: 'text-green-400' },
-    reconnecting: { text: '重连中...', className: 'text-yellow-400 animate-pulse' },
-    disconnected: { text: '已断开', className: 'text-red-400' },
-};
-
 export const PhaseIndicator: React.FC = () => {
+    const { t } = useTranslation();
     const gameState = useStore(state => state.gameState);
     const user = useStore(state => state.user);
     const isOffline = useStore(state => state.isOffline);
     const connectionStatus = useStore(state => state.connectionStatus);
+
+    // 连接状态样式配置
+    const CONNECTION_STYLES: Record<ConnectionStatus, { text: string; className: string }> = {
+        connecting: { text: t('connection.connecting'), className: 'text-yellow-400 animate-pulse' },
+        connected: { text: t('connection.connected'), className: 'text-green-400' },
+        reconnecting: { text: t('connection.reconnecting'), className: 'text-yellow-400 animate-pulse' },
+        disconnected: { text: t('connection.disconnected'), className: 'text-red-400' },
+    };
 
     if (!gameState || !user) return null;
 
@@ -29,60 +31,60 @@ export const PhaseIndicator: React.FC = () => {
     // Get script name
     const scriptName = SCRIPTS[gameState.currentScriptId]?.name ??
                        gameState.customScripts?.[gameState.currentScriptId]?.name ??
-                       '自定义剧本';
+                       t('scripts.custom');
 
     // Get alive player count
     const aliveCount = gameState.seats.filter(s => !s.isDead && (s.userId ?? s.isVirtual)).length;
     const totalPlayers = gameState.seats.filter(s => s.userId ?? s.isVirtual).length;
 
     if (gameState.gameOver?.isOver) {
-        message = gameState.gameOver.winner === 'GOOD' ? '🎉 好人胜利！' : '💀 邪恶胜利！';
+        message = gameState.gameOver.winner === 'GOOD' ? t('phase.goodWin') : t('phase.evilWin');
         bgColor = gameState.gameOver.winner === 'GOOD' ? 'bg-green-900/90' : 'bg-red-900/90';
         icon = gameState.gameOver.winner === 'GOOD' ? '🎉' : '💀';
         subMessage = gameState.gameOver.reason;
     } else if (gameState.setupPhase === 'ASSIGNING') {
-        message = isStoryteller ? '🎭 正在分配角色...' : '⏳ 等待说书人分配角色...';
+        message = isStoryteller ? t('phase.assigning') : t('phase.waitingForST');
         bgColor = 'bg-amber-900/90';
         icon = '📝';
-        subMessage = `${scriptName} · ${String(totalPlayers)} 人局`;
+        subMessage = `${scriptName} · ${String(totalPlayers)} ${t('phase.playerCount')}`;
     } else if (gameState.setupPhase === 'READY') {
-        message = '角色已发放';
+        message = t('phase.rolesAssigned');
         bgColor = 'bg-green-900/90';
         icon = '✅';
-        subMessage = isStoryteller ? '准备开始游戏' : '可查看规则手册';
+        subMessage = isStoryteller ? t('phase.readyToStart') : t('phase.checkRuleBook');
     } else if (gameState.phase !== 'SETUP') {
         // Game in progress (setupPhase is 'STARTED' at this point)
         const roundInfo = gameState.roundInfo;
 
         if (gameState.phase === 'NIGHT') {
-            message = `🌙 第 ${String(roundInfo.nightCount)} 夜`;
+            message = t('phase.night', { count: roundInfo.nightCount });
             bgColor = 'bg-indigo-900/90';
             icon = '🌙';
             // Show current night action role for ST
             if (isStoryteller && gameState.nightCurrentIndex >= 0 && gameState.nightQueue[gameState.nightCurrentIndex]) {
                 const currentRoleId = gameState.nightQueue[gameState.nightCurrentIndex];
-                subMessage = `当前: ${String(currentRoleId)} · ${String(aliveCount)}/${String(totalPlayers)} 存活`;
+                subMessage = `${t('phase.current')}: ${String(currentRoleId)} · ${String(aliveCount)}/${String(totalPlayers)} ${t('phase.alive')}`;
             } else {
-                subMessage = `${String(aliveCount)}/${String(totalPlayers)} 存活`;
+                subMessage = `${String(aliveCount)}/${String(totalPlayers)} ${t('phase.alive')}`;
             }
         } else if (gameState.phase === 'DAY') {
-            message = `☀️ 第 ${String(roundInfo.dayCount)} 天`;
+            message = t('phase.day', { count: roundInfo.dayCount });
             bgColor = 'bg-amber-800/90';
             icon = '☀️';
-            subMessage = `${String(aliveCount)}/${String(totalPlayers)} 存活 · 讨论阶段`;
+            subMessage = `${String(aliveCount)}/${String(totalPlayers)} ${t('phase.alive')} · ${t('phase.discussionPhase')}`;
         } else if (gameState.phase === 'NOMINATION') {
-            message = `⚖️ 第 ${String(roundInfo.dayCount)} 天 · 提名阶段`;
+            message = t('phase.nomination', { count: roundInfo.dayCount });
             bgColor = 'bg-emerald-900/90';
             icon = '⚖️';
-            subMessage = `提名次数: ${String(roundInfo.nominationCount)} · ${String(aliveCount)} 人存活`;
+            subMessage = `${t('phase.nominationCount')}: ${String(roundInfo.nominationCount)} · ${String(aliveCount)} ${t('phase.alive')}`;
         } else if (gameState.voting && gameState.voting.nomineeSeatId !== null) {
             // phase is 'VOTING' at this point
             const nominee = gameState.seats[gameState.voting.nomineeSeatId];
-            const nomineeName = nominee?.userName ?? `座位 ${String(gameState.voting.nomineeSeatId + 1)}`;
-            message = `📊 投票中`;
+            const nomineeName = nominee?.userName ?? `${t('nightAction.panel.seat')} ${String(gameState.voting.nomineeSeatId + 1)}`;
+            message = t('phase.voting');
             bgColor = 'bg-red-900/90';
             icon = '📊';
-            subMessage = `被提名者: ${nomineeName} · 当前 ${String(gameState.voting.votes.length)} 票`;
+            subMessage = `${t('phase.nominee')}: ${nomineeName} · ${t('phase.current')} ${String(gameState.voting.votes.length)} ${t('phase.votes')}`;
         }
     }
 
@@ -93,7 +95,7 @@ export const PhaseIndicator: React.FC = () => {
         const style = CONNECTION_STYLES[connectionStatus];
 
         if (connectionStatus === 'disconnected' && isOffline) {
-            return { color: 'bg-gray-500', text: '离线模式', animate: '' };
+            return { color: 'bg-gray-500', text: t('connection.offline'), animate: '' };
         }
 
         const colorMap: Record<ConnectionStatus, string> = {

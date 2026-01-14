@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { VoteRecord, Seat } from '../../types';
 
@@ -8,6 +9,7 @@ interface VotingChartProps {
 }
 
 export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteHistory, seats: propSeats }) => {
+    const { t } = useTranslation();
     const { gameState } = useStore();
 
     // 使用 props 或从 store 获取数据
@@ -17,7 +19,7 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
     if (voteHistory.length === 0) {
         return (
             <div className="p-4 text-center text-stone-500 text-xs italic">
-                暂无投票记录
+                {t('game.votingChart.noVotes')}
             </div>
         );
     }
@@ -40,18 +42,18 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
     return (
         <div className="bg-stone-900/50 rounded border border-stone-800 p-3 mb-4">
             <h3 className="text-xs font-bold text-stone-400 mb-2 uppercase tracking-wider flex justify-between items-center">
-                <span>最新投票 (Latest Vote)</span>
+                <span>{t('game.votingChart.latestVote')}</span>
                 <span className={`px-1.5 py-0.5 rounded text-[10px] ${isPassed ? 'bg-red-900/30 text-red-400 border border-red-900' : 'bg-stone-800 text-stone-500'}`}>
-                    {isPassed ? '票数足够' : '票数不足'}
+                    {isPassed ? t('game.votingChart.passed') : t('game.votingChart.notPassed')}
                 </span>
             </h3>
 
             <div className="flex items-center gap-2 mb-3 text-sm">
-                <span className="text-stone-500">提名者:</span>
-                <span className="font-bold text-stone-300">{nominator?.userName ?? '未知'}</span>
+                <span className="text-stone-500">{t('game.votingChart.nominator')}:</span>
+                <span className="font-bold text-stone-300">{nominator?.userName ?? t('common.unknown')}</span>
                 <span className="text-stone-600">→</span>
-                <span className="text-stone-500">被提名者:</span>
-                <span className="font-bold text-amber-500">{nominee?.userName ?? '未知'}</span>
+                <span className="text-stone-500">{t('game.votingChart.nominee')}:</span>
+                <span className="font-bold text-amber-500">{nominee?.userName ?? t('common.unknown')}</span>
             </div>
 
             <div className="flex items-center gap-4 mb-2">
@@ -64,7 +66,7 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
                     <div
                         className="absolute top-0 bottom-0 w-0.5 bg-white/50"
                         style={{ left: `${String((requiredVotes / progressBase) * 100)}%` }}
-                        title={`所需票数: ${String(requiredVotes)}`}
+                        title={t('game.votingChart.requiredVotes', { count: requiredVotes })}
                     />
                 </div>
                 <div className="text-xs font-mono">
@@ -79,7 +81,7 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
                     const voter = seats.find(s => s.id === voterId);
                     return (
                         <span key={voterId} className="px-1.5 py-0.5 bg-stone-800 rounded text-[10px] text-stone-400 border border-stone-700">
-                            {voter?.userName ?? `座位${String(voterId + 1)}`}
+                            {voter?.userName ?? t('game.votingChart.seatNumber', { number: voterId + 1 })}
                         </span>
                     );
                 })}

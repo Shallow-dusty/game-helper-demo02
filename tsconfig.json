@@ -29,7 +29,9 @@
     "src/**/*.tsx",
     "tests/**/*.ts",
     "tests/**/*.tsx",
-    "vitest.config.ts"
+    "e2e/**/*.ts",
+    "vitest.config.ts",
+    "playwright.config.ts"
   ],
   "exclude": [
     "node_modules",

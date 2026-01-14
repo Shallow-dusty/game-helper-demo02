@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StorytellerNote } from '../../types';
 
 interface FloatingNoteProps {
@@ -25,6 +26,7 @@ export const FloatingNote: React.FC<FloatingNoteProps> = ({
     onColorChange,
     onToggleCollapse
 }) => {
+    const { t } = useTranslation();
     const [isDragging, setIsDragging] = useState(false);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
     const [showColorPicker, setShowColorPicker] = useState(false);
@@ -89,13 +91,13 @@ export const FloatingNote: React.FC<FloatingNoteProps> = ({
                         <circle cx="9" cy="12" r="1" /><circle cx="9" cy="5" r="1" /><circle cx="9" cy="19" r="1" />
                         <circle cx="15" cy="12" r="1" /><circle cx="15" cy="5" r="1" /><circle cx="15" cy="19" r="1" />
                     </svg>
-                    <span className="truncate max-w-[120px]">{note.type === 'auto' ? '系统日志' : '笔记'}</span>
+                    <span className="truncate max-w-[120px]">{note.type === 'auto' ? t('game.floatingNote.systemLog') : t('game.floatingNote.note')}</span>
                 </div>
                 <div className="flex items-center gap-1" onMouseDown={e => e.stopPropagation()}>
                     <button
                         onClick={() => setShowColorPicker(!showColorPicker)}
                         className="p-1 hover:bg-black/10 rounded"
-                        title="更改颜色"
+                        title={t('game.floatingNote.changeColor')}
                     >
                         {/* Palette */}
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -125,7 +127,7 @@ export const FloatingNote: React.FC<FloatingNoteProps> = ({
                     <button
                         onClick={() => onClose(note.id)}
                         className="p-1 hover:bg-black/10 rounded text-red-500"
-                        title="收起 (取消悬浮)"
+                        title={t('game.floatingNote.minimize')}
                     >
                         {/* X */}
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

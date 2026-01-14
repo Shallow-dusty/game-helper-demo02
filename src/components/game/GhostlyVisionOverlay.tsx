@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Ghost, Eye } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface GhostlyVisionOverlayProps {
   /** 是否启用亡者视界 */
@@ -22,6 +23,8 @@ export const GhostlyVisionOverlay: React.FC<GhostlyVisionOverlayProps> = ({
   isActive,
   playerName
 }) => {
+  const { t } = useTranslation();
+
   if (!isActive) return null;
 
   return (
@@ -79,7 +82,7 @@ export const GhostlyVisionOverlay: React.FC<GhostlyVisionOverlayProps> = ({
       >
         <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/80 backdrop-blur-sm rounded-full border border-slate-700/50 shadow-lg">
           <Ghost className="w-5 h-5 text-slate-400 animate-pulse" />
-          <span className="text-sm font-cinzel text-slate-300">亡者视界</span>
+          <span className="text-sm font-cinzel text-slate-300">{t('game.ghostlyVision.title')}</span>
           <Eye className="w-4 h-4 text-slate-500" />
         </div>
       </motion.div>
@@ -110,8 +113,8 @@ export const GhostlyVisionOverlay: React.FC<GhostlyVisionOverlayProps> = ({
             </motion.div>
           </div>
           <div className="text-xs">
-            <p className="text-slate-400 font-cinzel">{playerName ?? '你'}</p>
-            <p className="text-slate-500">已成为亡者</p>
+            <p className="text-slate-400 font-cinzel">{playerName ?? t('game.ghostlyVision.you')}</p>
+            <p className="text-slate-500">{t('game.ghostlyVision.becameGhost')}</p>
           </div>
         </div>
       </motion.div>

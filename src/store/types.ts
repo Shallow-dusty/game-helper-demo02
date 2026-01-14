@@ -67,7 +67,7 @@ export interface GameSlice {
     nightNext: () => void;
     nightPrev: () => void;
 
-    startVote: (nomineeId: number) => void;
+    startVote: (nomineeId: number, nominatorId?: number) => void;
     nextClockHand: () => void;
     toggleHand: () => void;
     closeVote: () => void;

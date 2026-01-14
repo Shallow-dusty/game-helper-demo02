@@ -125,7 +125,7 @@ describe('PlayerNightAction', () => {
     it('should show dead indicator for dead players', () => {
       render(<PlayerNightAction roleId="washerwoman" onComplete={mockOnComplete} />);
 
-      expect(screen.getByText('已死亡')).toBeInTheDocument();
+      expect(screen.getByText(/已死亡|dead/i)).toBeInTheDocument();
     });
 
     it('should select player on click', () => {
@@ -141,7 +141,7 @@ describe('PlayerNightAction', () => {
     it('should enable submit button when player is selected', () => {
       render(<PlayerNightAction roleId="washerwoman" onComplete={mockOnComplete} />);
 
-      const submitButton = screen.getByText('确认提交');
+      const submitButton = screen.getByText(/确认提交|submit|confirm/i);
       expect(submitButton).toBeDisabled();
 
       const player1Button = screen.getByText('Player 1').closest('button');
@@ -156,7 +156,7 @@ describe('PlayerNightAction', () => {
       const player1Button = screen.getByText('Player 1').closest('button');
       fireEvent.click(player1Button!);
 
-      const submitButton = screen.getByText('确认提交');
+      const submitButton = screen.getByText(/确认提交|submit|confirm/i);
       fireEvent.click(submitButton);
 
       expect(mockSubmitNightAction).toHaveBeenCalledWith({
@@ -215,7 +215,7 @@ describe('PlayerNightAction', () => {
       fireEvent.click(player1Button!);
       fireEvent.click(player2Button!);
 
-      const submitButton = screen.getByText('确认提交');
+      const submitButton = screen.getByText(/确认提交|submit|confirm/i);
       fireEvent.click(submitButton);
 
       expect(mockSubmitNightAction).toHaveBeenCalledWith({
@@ -229,14 +229,14 @@ describe('PlayerNightAction', () => {
     it('should show submit button enabled by default', () => {
       render(<PlayerNightAction roleId="chef" onComplete={mockOnComplete} />);
 
-      const submitButton = screen.getByText('确认提交');
+      const submitButton = screen.getByText(/确认提交|submit|confirm/i);
       expect(submitButton).not.toBeDisabled();
     });
 
     it('should submit with confirmed payload', () => {
       render(<PlayerNightAction roleId="chef" onComplete={mockOnComplete} />);
 
-      const submitButton = screen.getByText('确认提交');
+      const submitButton = screen.getByText(/确认提交|submit|confirm/i);
       fireEvent.click(submitButton);
 
       expect(mockSubmitNightAction).toHaveBeenCalledWith({
@@ -257,7 +257,7 @@ describe('PlayerNightAction', () => {
     it('should not render submit button for binary', () => {
       render(<PlayerNightAction roleId="butler" onComplete={mockOnComplete} />);
 
-      expect(screen.queryByText('确认提交')).not.toBeInTheDocument();
+      expect(screen.queryByText(/确认提交|submit|confirm/i)).not.toBeInTheDocument();
     });
 
     it('should submit on option click', () => {
@@ -278,7 +278,7 @@ describe('PlayerNightAction', () => {
     it('should call onComplete when skip button is clicked', () => {
       render(<PlayerNightAction roleId="washerwoman" onComplete={mockOnComplete} />);
 
-      const skipButton = screen.getByText('跳过');
+      const skipButton = screen.getByText(/跳过|skip/i);
       fireEvent.click(skipButton);
 
       expect(mockOnComplete).toHaveBeenCalled();
@@ -287,7 +287,7 @@ describe('PlayerNightAction', () => {
     it('should call onComplete when X button is clicked', () => {
       render(<PlayerNightAction roleId="washerwoman" onComplete={mockOnComplete} />);
 
-      const closeButton = screen.getByLabelText('关闭');
+      const closeButton = screen.getByLabelText(/关闭|close/i);
       fireEvent.click(closeButton);
 
       expect(mockOnComplete).toHaveBeenCalled();

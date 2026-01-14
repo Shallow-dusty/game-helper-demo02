@@ -1,13 +1,14 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle2, 
-  XCircle, 
-  AlertTriangle, 
-  Info, 
-  Shield, 
-  Users, 
-  Skull, 
+import {
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Info,
+  Shield,
+  Users,
+  Skull,
   Ghost,
   Crown,
   X
@@ -93,7 +94,9 @@ export const RuleCompliancePanel: React.FC<RuleCompliancePanelProps> = ({
   isOpen,
   onClose
 }) => {
-  const ruleChecks = useMemo(() => 
+  const { t } = useTranslation();
+
+  const ruleChecks = useMemo(() =>
     checkRuleCompliance(seats, scriptId, playerCount),
     [seats, scriptId, playerCount]
   );
@@ -128,7 +131,7 @@ export const RuleCompliancePanel: React.FC<RuleCompliancePanelProps> = ({
               <div className="flex items-center justify-between px-5 py-4 border-b border-stone-800/50 bg-gradient-to-r from-stone-900/80 to-transparent">
                 <div className="flex items-center gap-3">
                   <Shield className="w-6 h-6 text-amber-500" />
-                  <h3 className="font-cinzel text-lg text-amber-200">规则合规性检查</h3>
+                  <h3 className="font-cinzel text-lg text-amber-200">{t('game.ruleCompliance.title')}</h3>
                 </div>
                 <button
                   onClick={onClose}
@@ -143,18 +146,18 @@ export const RuleCompliancePanel: React.FC<RuleCompliancePanelProps> = ({
                 <div className="flex items-center gap-4 text-sm">
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                    <span className="text-emerald-400">{summary.passed} 通过</span>
+                    <span className="text-emerald-400">{summary.passed} {t('game.ruleCompliance.passed')}</span>
                   </div>
                   {summary.warnings > 0 && (
                     <div className="flex items-center gap-1.5">
                       <AlertTriangle className="w-4 h-4 text-amber-500" />
-                      <span className="text-amber-400">{summary.warnings} 警告</span>
+                      <span className="text-amber-400">{summary.warnings} {t('game.ruleCompliance.warnings')}</span>
                     </div>
                   )}
                   {summary.errors > 0 && (
                     <div className="flex items-center gap-1.5">
                       <XCircle className="w-4 h-4 text-red-500" />
-                      <span className="text-red-400">{summary.errors} 错误</span>
+                      <span className="text-red-400">{summary.errors} {t('game.ruleCompliance.errors')}</span>
                     </div>
                   )}
                 </div>
@@ -196,11 +199,11 @@ export const RuleCompliancePanel: React.FC<RuleCompliancePanelProps> = ({
               {/* 底部 */}
               <div className="px-5 py-3 border-t border-stone-800/30 bg-stone-900/30">
                 <p className="text-xs text-stone-500 text-center">
-                  {summary.errors === 0 && summary.warnings === 0 
-                    ? '✨ 游戏配置符合所有规则！' 
-                    : summary.errors > 0 
-                      ? '⚠️ 请修复错误后再开始游戏'
-                      : '💡 警告不影响游戏进行，但建议检查'}
+                  {summary.errors === 0 && summary.warnings === 0
+                    ? t('game.ruleCompliance.allPassed')
+                    : summary.errors > 0
+                      ? t('game.ruleCompliance.hasErrors')
+                      : t('game.ruleCompliance.hasWarnings')}
                 </p>
               </div>
             </div>

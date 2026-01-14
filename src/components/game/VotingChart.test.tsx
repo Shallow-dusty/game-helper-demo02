@@ -17,13 +17,13 @@ describe('VotingChart', () => {
 
   it('renders empty message when no vote history', () => {
     render(<VotingChart voteHistory={[]} seats={[]} />);
-    expect(screen.getByText('暂无投票记录')).toBeInTheDocument();
+    expect(screen.getByText('game.votingChart.noVotes')).toBeInTheDocument();
   });
 
   it('renders nothing when vote history has no records', () => {
     vi.mocked(storeModule.useStore).mockReturnValue({ gameState: null });
     render(<VotingChart />);
-    expect(screen.getByText('暂无投票记录')).toBeInTheDocument();
+    expect(screen.getByText('game.votingChart.noVotes')).toBeInTheDocument();
   });
 
   it('renders vote info when history exists', () => {
@@ -45,7 +45,7 @@ describe('VotingChart', () => {
     ];
 
     render(<VotingChart voteHistory={voteHistory} seats={seats as any} />);
-    expect(screen.getByText('最新投票 (Latest Vote)')).toBeInTheDocument();
+    expect(screen.getByText(/game\.votingChart\.latestVote/)).toBeInTheDocument();
   });
 
   it('shows passed status when votes meet threshold', () => {
@@ -68,6 +68,6 @@ describe('VotingChart', () => {
     ];
 
     render(<VotingChart voteHistory={voteHistory} seats={seats as any} />);
-    expect(screen.getByText('票数足够')).toBeInTheDocument();
+    expect(screen.getByText('game.votingChart.passed')).toBeInTheDocument();
   });
 });

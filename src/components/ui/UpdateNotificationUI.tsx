@@ -6,6 +6,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Download } from 'lucide-react';
 import { Button } from './button';
 
@@ -20,6 +21,7 @@ export const UpdateNotificationUI: React.FC<UpdateNotificationUIProps> = ({
   onRefresh,
   onDismiss,
 }) => {
+  const { t } = useTranslation();
   const [isDismissing, setIsDismissing] = useState(false);
 
   if (!isOpen) return null;
@@ -51,17 +53,17 @@ export const UpdateNotificationUI: React.FC<UpdateNotificationUIProps> = ({
           <Download className="w-5 h-5 text-amber-400 flex-shrink-0" />
           <div>
             <h3 className="font-cinzel font-bold text-amber-100 text-sm">
-              新版本可用
+              {t('ui.updateNotification.title')}
             </h3>
             <p className="text-stone-400 text-xs mt-0.5">
-              血染钟楼魔典已更新，立即刷新以获得最新功能
+              {t('ui.updateNotification.message')}
             </p>
           </div>
         </div>
         <button
           onClick={handleDismiss}
           className="text-stone-500 hover:text-stone-300 transition-colors flex-shrink-0 mt-0.5"
-          title="稍后提醒"
+          title={t('ui.updateNotification.remindLater')}
         >
           <X className="w-4 h-4" />
         </button>
@@ -75,7 +77,7 @@ export const UpdateNotificationUI: React.FC<UpdateNotificationUIProps> = ({
           onClick={handleDismiss}
           className="text-stone-400 hover:text-stone-300"
         >
-          稍后
+          {t('ui.updateNotification.later')}
         </Button>
         <Button
           variant="default"
@@ -83,7 +85,7 @@ export const UpdateNotificationUI: React.FC<UpdateNotificationUIProps> = ({
           onClick={handleRefresh}
           className="bg-amber-600 hover:bg-amber-700 text-white"
         >
-          刷新
+          {t('ui.updateNotification.refresh')}
         </Button>
       </div>
 

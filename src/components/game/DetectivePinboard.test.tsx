@@ -76,18 +76,19 @@ describe('DetectivePinboard', () => {
   });
 
   it('should display keyboard shortcuts', () => {
-    render(<DetectivePinboard width={800} height={600} />);
+    const { container } = render(<DetectivePinboard width={800} height={600} />);
 
     expect(screen.getByText('Alt')).toBeInTheDocument();
     expect(screen.getByText('Shift')).toBeInTheDocument();
-    expect(screen.getByText(/怀疑/)).toBeInTheDocument();
-    expect(screen.getByText(/信任/)).toBeInTheDocument();
+    // These texts are split across elements with kbd, so check if they exist in container
+    expect(container.textContent).toContain('game.detective.dragSuspect');
+    expect(container.textContent).toContain('game.detective.dragTrust');
   });
 
   it('should display clear button', () => {
     render(<DetectivePinboard width={800} height={600} />);
 
-    expect(screen.getByText('清除')).toBeInTheDocument();
+    expect(screen.getByText('game.detective.clear')).toBeInTheDocument();
   });
 
   it('should load connections from localStorage', () => {
@@ -138,7 +139,7 @@ describe('DetectivePinboard', () => {
 
     render(<DetectivePinboard width={800} height={600} />);
 
-    const clearButton = screen.getByText('清除');
+    const clearButton = screen.getByText('game.detective.clear');
     fireEvent.click(clearButton);
 
     // Should save empty array

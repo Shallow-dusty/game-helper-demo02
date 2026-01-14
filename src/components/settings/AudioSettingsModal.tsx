@@ -1,7 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store';
-import { X, Volume2, Monitor, User, Shield, Music, MousePointer, Bell } from 'lucide-react';
+import { X, Volume2, Monitor, User, Shield, Music, MousePointer, Bell, Globe } from 'lucide-react';
+import { LanguageSelector } from '../ui/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 interface AudioSettingsModalProps {
     isOpen: boolean;
@@ -9,6 +11,7 @@ interface AudioSettingsModalProps {
 }
 
 export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, onClose }) => {
+    const { t } = useTranslation();
     const { audioSettings, setAudioMode, toggleAudioCategory } = useStore();
 
     if (!isOpen) return null;
@@ -30,7 +33,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                         <div className="flex items-center gap-3">
                             <Volume2 className="w-6 h-6 text-[#d4af37]" />
                             <h2 className="text-xl font-bold text-[#e7e5e4] font-cinzel tracking-wider">
-                                音频设置
+                                {t('audio.settingsTitle')}
                             </h2>
                         </div>
                         <button
@@ -46,7 +49,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                         {/* Mode Selection */}
                         <div className="space-y-4">
                             <h3 className="text-[#a8a29e] text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                                <Shield className="w-4 h-4" /> 隐私模式
+                                <Shield className="w-4 h-4" /> {t('audio.privacyMode')}
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <button
@@ -59,10 +62,10 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                                 >
                                     <User className={`w-8 h-8 ${audioSettings.mode === 'online' ? 'text-[#d4af37]' : 'text-[#78716c]'}`} />
                                     <span className={`font-bold font-cinzel ${audioSettings.mode === 'online' ? 'text-[#e7e5e4]' : 'text-[#78716c]'}`}>
-                                        在线模式
+                                        {t('audio.onlineMode')}
                                     </span>
                                     <span className="text-[10px] text-[#a8a29e] text-center">
-                                        个人设备使用<br/>播放所有音效
+                                        {t('audio.onlineModeDesc')}
                                     </span>
                                 </button>
 
@@ -76,10 +79,10 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                                 >
                                     <Monitor className={`w-8 h-8 ${audioSettings.mode === 'offline' ? 'text-[#d4af37]' : 'text-[#78716c]'}`} />
                                     <span className={`font-bold font-cinzel ${audioSettings.mode === 'offline' ? 'text-[#e7e5e4]' : 'text-[#78716c]'}`}>
-                                        线下/投屏
+                                        {t('audio.offlineMode')}
                                     </span>
                                     <span className="text-[10px] text-[#a8a29e] text-center">
-                                        公共屏幕使用<br/>隐藏秘密音效
+                                        {t('audio.offlineModeDesc')}
                                     </span>
                                 </button>
                             </div>
@@ -90,16 +93,16 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                                     <p className="flex items-start gap-2">
                                         <span className="text-[#d4af37]">⚠️</span>
                                         <span>
-                                            <strong className="text-[#e7e5e4]">注意隐私泄露：</strong>
-                                            此模式会播放包含身份信息的提示音（如夜间行动反馈）。请勿在公共屏幕上使用此模式。
+                                            <strong className="text-[#e7e5e4]">{t('audio.privacyWarning')}</strong>
+                                            {t('audio.privacyWarningDesc')}
                                         </span>
                                     </p>
                                 ) : (
                                     <p className="flex items-start gap-2">
                                         <span className="text-[#4ade80]">✓</span>
                                         <span>
-                                            <strong className="text-[#e7e5e4]">安全投屏：</strong>
-                                            已自动屏蔽所有敏感提示音。适合通过投影仪或直播展示给所有玩家观看。
+                                            <strong className="text-[#e7e5e4]">{t('audio.safeMode')}</strong>
+                                            {t('audio.safeModeDesc')}
                                         </span>
                                     </p>
                                 )}
@@ -109,7 +112,7 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                         {/* Categories */}
                         <div className="space-y-4">
                             <h3 className="text-[#a8a29e] text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                                <Volume2 className="w-4 h-4" /> 音效类别
+                                <Volume2 className="w-4 h-4" /> {t('audio.categories')}
                             </h3>
                             <div className="space-y-2">
                                 {/* Ambience */}
@@ -119,8 +122,8 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                                             <Music className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <p className="text-[#e7e5e4] font-bold text-sm">氛围音效</p>
-                                            <p className="text-[#78716c] text-xs">BGM、钟声、环境音</p>
+                                            <p className="text-[#e7e5e4] font-bold text-sm">{t('audio.ambience')}</p>
+                                            <p className="text-[#78716c] text-xs">{t('audio.ambienceDesc')}</p>
                                         </div>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
@@ -141,8 +144,8 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                                             <MousePointer className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <p className="text-[#e7e5e4] font-bold text-sm">界面音效</p>
-                                            <p className="text-[#78716c] text-xs">点击、拖拽、纸张声</p>
+                                            <p className="text-[#e7e5e4] font-bold text-sm">{t('audio.ui')}</p>
+                                            <p className="text-[#78716c] text-xs">{t('audio.uiDesc')}</p>
                                         </div>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
@@ -168,9 +171,9 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                                         </div>
                                         <div>
                                             <p className={`font-bold text-sm ${audioSettings.mode === 'offline' ? 'text-[#57534e]' : 'text-[#e7e5e4]'}`}>
-                                                提示音效 {audioSettings.mode === 'offline' && '(已禁用)'}
+                                                {audioSettings.mode === 'offline' ? t('audio.cuesDisabled') : t('audio.cues')}
                                             </p>
-                                            <p className="text-[#78716c] text-xs">夜间行动、私聊提示</p>
+                                            <p className="text-[#78716c] text-xs">{t('audio.cuesDesc')}</p>
                                         </div>
                                     </div>
                                     <label className={`relative inline-flex items-center ${audioSettings.mode === 'offline' ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
@@ -183,6 +186,22 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                                         />
                                         <div className="w-11 h-6 bg-[#44403c] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#a8a29e] after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#d4af37] peer-checked:after:bg-white"></div>
                                     </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Language Settings */}
+                        <div className="space-y-4">
+                            <h3 className="text-[#a8a29e] text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                                <Globe className="w-4 h-4" /> {t('audio.language')}
+                            </h3>
+                            <div className="p-4 bg-[#292524]/50 rounded border border-[#44403c]">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-[#e7e5e4] font-bold text-sm">{t('audio.interfaceLanguage')}</p>
+                                        <p className="text-[#78716c] text-xs">{t('audio.selectLanguage')}</p>
+                                    </div>
+                                    <LanguageSelector />
                                 </div>
                             </div>
                         </div>

@@ -58,20 +58,22 @@ describe('ChainReactionModal', () => {
 
   it('renders event message when open with events', () => {
     render(<ChainReactionModal {...baseProps} />);
+    // The component renders the message property which is plain text, not a translation key
     expect(screen.getByText('玩家死亡消息')).toBeInTheDocument();
   });
 
   it('calls onConfirm when confirm button clicked', () => {
     const onConfirm = vi.fn();
     render(<ChainReactionModal {...baseProps} onConfirm={onConfirm} />);
-    fireEvent.click(screen.getByText(/确认|应用/i));
+    // The component renders translation key for button text
+    fireEvent.click(screen.getByText('game.chainReaction.actions.confirm'));
     expect(onConfirm).toHaveBeenCalledWith(mockEvent);
   });
 
   it('calls onSkip when skip button clicked', () => {
     const onSkip = vi.fn();
     render(<ChainReactionModal {...baseProps} onSkip={onSkip} />);
-    fireEvent.click(screen.getByText(/跳过/i));
+    fireEvent.click(screen.getByText('game.chainReaction.skip'));
     expect(onSkip).toHaveBeenCalledWith(mockEvent);
   });
 });

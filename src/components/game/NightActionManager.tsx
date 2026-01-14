@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { shallow } from 'zustand/shallow';
 import { ROLES } from '../../constants';
@@ -19,6 +20,7 @@ const useNightActionManagerState = () => useStore(
  * 显示待处理的玩家夜间行动请求，ST 可以输入结果并回复
  */
 export const NightActionManager: React.FC = () => {
+    const { t } = useTranslation();
     const { seats, isStoryteller, hasGameState } = useNightActionManagerState();
     const resolveNightAction = useStore(state => state.resolveNightAction);
     const getPendingNightActions = useStore(state => state.getPendingNightActions);
@@ -70,17 +72,17 @@ export const NightActionManager: React.FC = () => {
     // 快捷回复模板
     const quickReplies: Record<string, string[]> = {
         // 守夜人类（获取信息）
-        washerwoman: ['你的信息是：___号是___', '无有效信息'],
-        librarian: ['你的信息是：___号是___', '场上没有外来者'],
-        investigator: ['你的信息是：___号可能是___', '无有效信息'],
-        chef: ['场上有 ___ 对邪恶玩家相邻', '场上没有邪恶玩家相邻'],
-        empath: ['你旁边有 ___ 个邪恶玩家', '你旁边没有邪恶玩家'],
-        fortune_teller: ['是', '否'],
-        undertaker: ['昨天处决的是：___', '昨天没有处决'],
+        washerwoman: [t('nightAction.manager.quickReplies.executed'), t('nightAction.manager.quickReplies.noEffect')],
+        librarian: [t('nightAction.manager.quickReplies.executed'), t('nightAction.manager.quickReplies.noEffect')],
+        investigator: [t('nightAction.manager.quickReplies.executed'), t('nightAction.manager.quickReplies.noEffect')],
+        chef: [t('nightAction.manager.quickReplies.executed'), t('nightAction.manager.quickReplies.noEffect')],
+        empath: [t('nightAction.manager.quickReplies.executed'), t('nightAction.manager.quickReplies.noEffect')],
+        fortune_teller: [t('nightAction.manager.quickReplies.executed'), t('nightAction.manager.quickReplies.noEffect')],
+        undertaker: [t('nightAction.manager.quickReplies.executed'), t('nightAction.manager.quickReplies.targetDead')],
         // 保护类
-        monk: ['你保护了 ___', '保护成功'],
+        monk: [t('nightAction.manager.quickReplies.executed'), t('nightAction.manager.quickReplies.noEffect')],
         // 其他
-        default: ['已执行', '无效果', '目标已死亡']
+        default: [t('nightAction.manager.quickReplies.executed'), t('nightAction.manager.quickReplies.noEffect'), t('nightAction.manager.quickReplies.targetDead')]
     };
 
     return (
@@ -88,7 +90,7 @@ export const NightActionManager: React.FC = () => {
             <div className="flex items-center gap-2 mb-3 border-b border-indigo-900/50 pb-2">
                 <span className="text-xl">🌙</span>
                 <h3 className="text-sm font-bold text-indigo-300 uppercase tracking-wider">
-                    待处理夜间行动
+                    {t('nightAction.manager.title')}
                 </h3>
                 <span className="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded-full">
                     {pendingRequests.length}
@@ -127,19 +129,19 @@ export const NightActionManager: React.FC = () => {
                                             {/* 酒鬼/疯子标记 */}
                                             {isFakeRole && (
                                                 <span className="text-xs bg-amber-900/50 text-amber-300 px-1.5 py-0.5 rounded border border-amber-700" title={`真实角色: ${realRole?.name ?? '未知'}`}>
-                                                    🍷 {realRole?.name === 'drunk' ? '酒鬼' : '伪装'}
+                                                    🍷 {realRole?.name === 'drunk' ? t('nightAction.manager.drunkLabel') : t('nightAction.manager.disguiseLabel')}
                                                 </span>
                                             )}
                                         </div>
                                         <div className="text-xs text-stone-500">
-                                            目标: {getTargetDescription(request)}
-                                            {isFakeRole && <span className="ml-2 text-amber-500">(实际: {realRole?.name})</span>}
+                                            {t('nightAction.manager.target')}: {getTargetDescription(request)}
+                                            {isFakeRole && <span className="ml-2 text-amber-500">({t('nightAction.manager.realRole')}: {realRole?.name})</span>}
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className={`text-xs px-2 py-1 rounded ${isFakeRole ? 'text-amber-400 bg-amber-900/40' : 'text-amber-500 bg-amber-900/30'}`}>
-                                        {isFakeRole ? '🍷 假行动' : '待回复'}
+                                        {isFakeRole ? t('nightAction.manager.fakeAction') : t('nightAction.manager.pending')}
                                     </span>
                                     <span className="text-stone-500">{isExpanded ? '▲' : '▼'}</span>
                                 </div>
@@ -151,8 +153,7 @@ export const NightActionManager: React.FC = () => {
                                     {/* 酒鬼提示 */}
                                     {isFakeRole && (
                                         <div className="mb-2 p-2 bg-amber-950/30 border border-amber-800/50 rounded text-xs text-amber-300">
-                                            ⚠️ 此玩家的真实角色是 <strong>{realRole?.name}</strong>，但他以为自己是 {role?.name}。
-                                            他的行动<strong>不会生效</strong>，但你可以选择告诉他虚假信息。
+                                            ⚠️ {t('nightAction.manager.drunkWarning')} <strong>{realRole?.name}</strong>，{t('nightAction.manager.drunkEffect')}
                                         </div>
                                     )}
                                     {/* 快捷回复 */}
@@ -178,7 +179,7 @@ export const NightActionManager: React.FC = () => {
                                             ...prev,
                                             [request.id]: e.target.value
                                         }))}
-                                        placeholder="输入回复给玩家的结果..."
+                                        placeholder={t('nightAction.manager.replyPlaceholder')}
                                         className="w-full bg-stone-800 border border-stone-600 rounded p-2 text-sm text-stone-200 placeholder-stone-500 resize-none focus:outline-none focus:border-indigo-500"
                                         rows={2}
                                     />
@@ -189,7 +190,7 @@ export const NightActionManager: React.FC = () => {
                                             onClick={() => handleResolve(request)}
                                             className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded text-sm transition-colors"
                                         >
-                                            发送回复
+                                            {t('nightAction.manager.sendReply')}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -197,7 +198,7 @@ export const NightActionManager: React.FC = () => {
                                             }}
                                             className="px-3 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded text-sm transition-colors"
                                         >
-                                            跳过
+                                            {t('nightAction.manager.skipAction')}
                                         </button>
                                     </div>
                                 </div>

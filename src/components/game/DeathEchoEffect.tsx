@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skull } from 'lucide-react';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
+import { useTranslation } from 'react-i18next';
 
 interface DeathEchoEffectProps {
   /** 触发死亡效果的座位ID，null表示不触发 */
@@ -35,6 +36,7 @@ export const DeathEchoEffect: React.FC<DeathEchoEffectProps> = ({
   playerName,
   onComplete
 }) => {
+  const { t } = useTranslation();
   const [isActive, setIsActive] = useState(false);
   const [lastDeathId, setLastDeathId] = useState<number | null>(null);
   const { playSound } = useSoundEffect();
@@ -156,7 +158,7 @@ export const DeathEchoEffect: React.FC<DeathEchoEffectProps> = ({
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: [0, 1, 1, 0], y: [20, 0, 0, -20] }}
-              transition={{ 
+              transition={{
                 duration: 2.5,
                 times: [0, 0.2, 0.7, 1],
                 ease: 'easeOut'
@@ -167,7 +169,7 @@ export const DeathEchoEffect: React.FC<DeathEchoEffectProps> = ({
                 {playerName}
               </p>
               <p className="text-sm text-stone-500/80 mt-1 font-serif">
-                已离开人世...
+                {t('game.deathEcho.departed')}
               </p>
             </motion.div>
           )}

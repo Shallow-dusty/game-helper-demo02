@@ -21,13 +21,14 @@ describe('RoleCard', () => {
         render(<RoleCard role={mockRole} />);
         expect(screen.getByText('洗衣妇')).toBeInTheDocument();
         expect(screen.getByText('在游戏开始时，你知道两名玩家中的一名是某个特定的镇民。')).toBeInTheDocument();
-        expect(screen.getByText('镇民')).toBeInTheDocument();
+        // Team name is translated, so check for the translation key
+        expect(screen.getByText('game.roleCard.teams.TOWNSFOLK')).toBeInTheDocument();
     });
 
     it('renders as player role (hero style)', () => {
         render(<RoleCard role={mockRole} isPlayerRole={true} />);
-        expect(screen.getByText('你的角色')).toBeInTheDocument();
-        expect(screen.getByText('角色能力')).toBeInTheDocument();
+        expect(screen.getByText('game.roleCard.yourRole')).toBeInTheDocument();
+        expect(screen.getByText('game.roleCard.ability')).toBeInTheDocument();
     });
 
     it('shows detailed description when showDetails is true', () => {
@@ -42,6 +43,6 @@ describe('RoleCard', () => {
 
     it('renders night order info', () => {
         render(<RoleCard role={mockRole} />);
-        expect(screen.getByText('首夜: 是')).toBeInTheDocument();
+        expect(screen.getByText('game.roleCard.firstNight', { exact: false })).toBeInTheDocument();
     });
 });

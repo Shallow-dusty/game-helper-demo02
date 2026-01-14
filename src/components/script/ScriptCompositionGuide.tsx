@@ -1,8 +1,27 @@
 import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { ROLES, SCRIPTS } from '../../constants';
 import { getStandardComposition } from '../../lib/distributionAnalysis';
 import type { RoleDef } from '../../types';
+
+// 错误边界内容组件
+const ErrorBoundaryContent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="text-center">
+            <span className="text-4xl">⚠️</span>
+            <h3 className="text-lg font-bold text-red-400 mt-2">{t('script.composition.errorLoading')}</h3>
+            <p className="text-stone-400 text-sm mt-2">{t('script.composition.loadFailed')}</p>
+            <button
+                onClick={onClose}
+                className="mt-4 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded"
+            >
+                {t('common.close')}
+            </button>
+        </div>
+    );
+};
 
 // 简单的错误边界组件，用于捕获渲染错误
 class ModalErrorBoundary extends Component<{ children: ReactNode; onClose: () => void }, { hasError: boolean }> {
@@ -24,17 +43,7 @@ class ModalErrorBoundary extends Component<{ children: ReactNode; onClose: () =>
             return (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm" onClick={this.props.onClose}>
                     <div className="bg-stone-900 rounded-lg border border-red-700 p-6 max-w-md" onClick={e => e.stopPropagation()}>
-                        <div className="text-center">
-                            <span className="text-4xl">⚠️</span>
-                            <h3 className="text-lg font-bold text-red-400 mt-2">加载出错</h3>
-                            <p className="text-stone-400 text-sm mt-2">板子参考加载失败，请重试。</p>
-                            <button
-                                onClick={this.props.onClose}
-                                className="mt-4 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded"
-                            >
-                                关闭
-                            </button>
-                        </div>
+                        <ErrorBoundaryContent onClose={this.props.onClose} />
                     </div>
                 </div>
             );
@@ -157,6 +166,8 @@ const StrategyDetailModal: React.FC<{
     onApply: () => void;
     onClose: () => void;
 }> = ({ strategy, generatedRoles, onGenerate, onApply, onClose }) => {
+    const { t } = useTranslation();
+
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4 backdrop-blur-sm" onClick={onClose}>
             <div className="bg-stone-900 rounded-lg border border-amber-700 w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
@@ -181,28 +192,28 @@ const StrategyDetailModal: React.FC<{
                     {/* 配置建议 */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         <div className="bg-stone-950/50 p-4 rounded border border-stone-800">
-                            <h4 className="text-sm font-bold text-stone-300 mb-2">📊 角色强度配置</h4>
+                            <h4 className="text-sm font-bold text-stone-300 mb-2">📊 {t('script.composition.roleConfig')}</h4>
                             <div className="space-y-2 text-xs text-stone-400">
                                 <div>
-                                    <p className="text-amber-400">强力角色（建议{strategy.guidelines.strongRoles.min}-{strategy.guidelines.strongRoles.max}个）</p>
+                                    <p className="text-amber-400">{t('script.composition.strongRoles')}（{t('script.composition.suggestions')}{strategy.guidelines.strongRoles.min}-{strategy.guidelines.strongRoles.max}个）</p>
                                     <p className="text-stone-500">{strategy.guidelines.strongRoles.roles.map(id => ROLES[id]?.name ?? id).join('、') || '无'}</p>
                                 </div>
                                 <div>
-                                    <p className="text-blue-400">中强角色（建议{strategy.guidelines.mediumStrongRoles.min}-{strategy.guidelines.mediumStrongRoles.max}个）</p>
+                                    <p className="text-blue-400">{t('script.composition.mediumStrongRoles')}（{t('script.composition.suggestions')}{strategy.guidelines.mediumStrongRoles.min}-{strategy.guidelines.mediumStrongRoles.max}个）</p>
                                     <p className="text-stone-500">{strategy.guidelines.mediumStrongRoles.roles.map(id => ROLES[id]?.name ?? id).join('、') || '无'}</p>
                                 </div>
                                 <div>
-                                    <p className="text-stone-400">中等角色（填充用）</p>
+                                    <p className="text-stone-400">{t('script.composition.mediumRoles')}（填充用）</p>
                                     <p className="text-stone-500">{strategy.guidelines.mediumRoles.roles.map(id => ROLES[id]?.name ?? id).join('、') || '无'}</p>
                                 </div>
                                 <div className="pt-2 border-t border-stone-700">
-                                    <p>推荐爪牙: {strategy.guidelines.recommendedMinions.map(id => ROLES[id]?.name ?? id).join('、')}</p>
-                                    <p>推荐局外人: {strategy.guidelines.recommendedOutsiders.map(id => ROLES[id]?.name ?? id).join('、')}</p>
+                                    <p>推荐{t('script.composition.minion')}: {strategy.guidelines.recommendedMinions.map(id => ROLES[id]?.name ?? id).join('、')}</p>
+                                    <p>推荐{t('script.composition.outsider')}: {strategy.guidelines.recommendedOutsiders.map(id => ROLES[id]?.name ?? id).join('、')}</p>
                                 </div>
                             </div>
                         </div>
                         <div className="bg-stone-950/50 p-4 rounded border border-stone-800">
-                            <h4 className="text-sm font-bold text-stone-300 mb-2">💡 选取建议</h4>
+                            <h4 className="text-sm font-bold text-stone-300 mb-2">💡 {t('script.composition.suggestions')}</h4>
                             <ul className="space-y-1">
                                 {strategy.guidelines.tips.map((tip, i) => (
                                     <li key={i} className="text-xs text-stone-400 flex items-start gap-1">
@@ -219,34 +230,34 @@ const StrategyDetailModal: React.FC<{
                         onClick={onGenerate}
                         className="w-full py-3 px-4 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded text-sm font-bold transition-colors border border-stone-600 mb-4"
                     >
-                        🎲 生成具体角色配置
+                        🎲 {t('script.composition.generateConfig')}
                     </button>
 
                     {/* 生成的角色列表 */}
                     {generatedRoles && (
                         <div className="bg-amber-950/20 border border-amber-800 rounded p-4 mb-4">
-                            <h4 className="text-sm font-bold text-amber-400 mb-3">🎭 生成的角色配置</h4>
+                            <h4 className="text-sm font-bold text-amber-400 mb-3">🎭 {t('script.composition.generatedConfig')}</h4>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
-                                    <p className="text-blue-400 font-bold text-xs mb-2">镇民 ({generatedRoles.townsfolk.length})</p>
+                                    <p className="text-blue-400 font-bold text-xs mb-2">{t('script.composition.townsfolk')} ({generatedRoles.townsfolk.length})</p>
                                     {generatedRoles.townsfolk.map((role) => (
                                         <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
                                     ))}
                                 </div>
                                 <div>
-                                    <p className="text-yellow-400 font-bold text-xs mb-2">外来者 ({generatedRoles.outsider.length})</p>
+                                    <p className="text-yellow-400 font-bold text-xs mb-2">{t('script.composition.outsider')} ({generatedRoles.outsider.length})</p>
                                     {generatedRoles.outsider.map((role) => (
                                         <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
                                     ))}
                                 </div>
                                 <div>
-                                    <p className="text-orange-400 font-bold text-xs mb-2">爪牙 ({generatedRoles.minion.length})</p>
+                                    <p className="text-orange-400 font-bold text-xs mb-2">{t('script.composition.minion')} ({generatedRoles.minion.length})</p>
                                     {generatedRoles.minion.map((role) => (
                                         <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
                                     ))}
                                 </div>
                                 <div>
-                                    <p className="text-red-400 font-bold text-xs mb-2">恶魔 ({generatedRoles.demon.length})</p>
+                                    <p className="text-red-400 font-bold text-xs mb-2">{t('script.composition.demon')} ({generatedRoles.demon.length})</p>
                                     {generatedRoles.demon.map((role) => (
                                         <p key={role.id} className="text-xs text-stone-400">• {role.name}</p>
                                     ))}
@@ -257,9 +268,7 @@ const StrategyDetailModal: React.FC<{
 
                     {/* 应用按钮 */}
                     <div className="bg-red-950/20 border border-red-800 rounded p-4">
-                        <p className="text-xs text-red-400 mb-3">
-                            ⚠️ 应用此策略将<strong>清除当前所有角色分配</strong>，并根据上方配置重新分配角色。
-                        </p>
+                        <p className="text-xs text-red-400 mb-3" dangerouslySetInnerHTML={{ __html: `⚠️ ${t('script.composition.applyWarning')}` }} />
                         <button
                             onClick={onApply}
                             disabled={!generatedRoles}
@@ -268,7 +277,7 @@ const StrategyDetailModal: React.FC<{
                                 : 'bg-stone-800 text-stone-600 cursor-not-allowed'
                                 }`}
                         >
-                            {generatedRoles ? `✅ 应用 "${strategy.name}" 策略` : '请先生成角色配置'}
+                            {generatedRoles ? `✅ ${t('script.composition.applyStrategy')} "${strategy.name}"` : t('script.composition.pleaseGenerate')}
                         </button>
                     </div>
                 </div>
@@ -278,6 +287,7 @@ const StrategyDetailModal: React.FC<{
 };
 
 const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ onClose, playerCount, onApplyStrategy }) => {
+    const { t } = useTranslation();
     const [selectedStrategy, setSelectedStrategy] = useState<CompositionStrategy | null>(null);
     const [generatedRoles, setGeneratedRoles] = useState<{ townsfolk: RoleDef[], outsider: RoleDef[], minion: RoleDef[], demon: RoleDef[] } | null>(null);
 
@@ -413,14 +423,14 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
                 <div className="p-5 border-b-2 border-[#8b4513]/30 flex justify-between items-center relative z-10 bg-[#e6d2a0]/50">
                     <div>
                         <h3 className="text-2xl font-bold text-[#4a3728] font-cinzel tracking-wider drop-shadow-sm">
-                            📜 板子配置建议 (Script Guide)
+                            📜 {t('script.composition.guide')} (Script Guide)
                         </h3>
                         <p className="text-xs text-[#654321] mt-1 font-serif italic">
-                            当前人数: {safePlayerCount}人 | 标准配比: {composition?.townsfolk ?? 0}镇民+{composition?.outsider ?? 0}外来者+{composition?.minion ?? 0}爪牙+{composition?.demon ?? 0}恶魔
+                            {t('script.composition.currentPlayers')}: {safePlayerCount}{t('script.composition.people')} | {t('script.composition.standardComposition')}: {composition?.townsfolk ?? 0}{t('script.composition.townsfolk')}+{composition?.outsider ?? 0}{t('script.composition.outsider')}+{composition?.minion ?? 0}{t('script.composition.minion')}+{composition?.demon ?? 0}{t('script.composition.demon')}
                         </p>
                     </div>
-                    <button 
-                        onClick={onClose} 
+                    <button
+                        onClick={onClose}
                         className="text-[#8b4513] hover:text-[#4a3728] text-2xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#8b4513]/10 transition-colors"
                     >
                         ✕
@@ -432,26 +442,26 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
                     {/* 角色强度说明 */}
                     <div className="mb-6 p-4 bg-[#fff9e6]/60 rounded border border-[#8b4513]/30 shadow-inner">
                         <h4 className="text-sm font-bold text-[#8b4513] mb-3 font-cinzel border-b border-[#8b4513]/20 pb-1 inline-block">
-                            💡 角色强度参考（暗流涌动）
+                            💡 {t('script.composition.roleStrength')}
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-serif">
                             <div>
-                                <p className="text-[#b91c1c] font-bold mb-1 uppercase tracking-wider">强力角色</p>
+                                <p className="text-[#b91c1c] font-bold mb-1 uppercase tracking-wider">{t('script.composition.strongRoles')}</p>
                                 <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.strong.map(id => ROLES[id]?.name ?? id).join('、')}</p>
                             </div>
                             <div>
-                                <p className="text-[#1d4ed8] font-bold mb-1 uppercase tracking-wider">中强角色</p>
+                                <p className="text-[#1d4ed8] font-bold mb-1 uppercase tracking-wider">{t('script.composition.mediumStrongRoles')}</p>
                                 <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.mediumStrong.map(id => ROLES[id]?.name ?? id).join('、')}</p>
                             </div>
                             <div>
-                                <p className="text-[#4a3728] font-bold mb-1 uppercase tracking-wider">中等角色</p>
+                                <p className="text-[#4a3728] font-bold mb-1 uppercase tracking-wider">{t('script.composition.mediumRoles')}</p>
                                 <p className="text-[#4a3728] leading-relaxed">{ROLE_STRENGTH.medium.map(id => ROLES[id]?.name ?? id).join('、')}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* 策略列表 */}
-                    <h4 className="text-sm font-bold text-[#4a3728] mb-3 font-cinzel">选择一个策略查看详情：</h4>
+                    <h4 className="text-sm font-bold text-[#4a3728] mb-3 font-cinzel">{t('script.composition.selectStrategy')}</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {STRATEGIES.map(strategy => (
                             <div

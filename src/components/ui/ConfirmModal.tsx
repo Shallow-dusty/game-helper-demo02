@@ -1,5 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 interface ConfirmModalProps {
     isOpen: boolean;
@@ -16,12 +17,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     isOpen,
     title,
     message,
-    confirmText = '确认',
-    cancelText = '取消',
+    confirmText,
+    cancelText,
     onConfirm,
     onCancel,
     isDangerous = false
 }) => {
+    const { t } = useTranslation();
+
     if (!isOpen) return null;
 
     return createPortal(
@@ -50,7 +53,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         onClick={onCancel}
                         className="px-4 py-2 rounded text-stone-400 hover:text-stone-200 hover:bg-stone-800 transition-colors text-sm font-bold"
                     >
-                        {cancelText}
+                        {cancelText || t('ui.confirmModal.defaultCancel')}
                     </button>
                     <button
                         onClick={onConfirm}
@@ -60,7 +63,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                             }`}
                     >
                         {isDangerous && <span>🗑️</span>}
-                        {confirmText}
+                        {confirmText || t('ui.confirmModal.defaultConfirm')}
                     </button>
                 </div>
             </div>

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 // import { useStore } from '../../store';
 import { ROLES, TEAM_COLORS } from '../../constants';
 
 export const ScriptReference: React.FC = () => {
+    const { t } = useTranslation();
     // const { gameState } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
@@ -28,12 +30,12 @@ export const ScriptReference: React.FC = () => {
     return (
         <div className="h-full flex flex-col bg-stone-900/50 rounded-lg overflow-hidden border border-stone-800">
             <div className="p-3 border-b border-stone-800 bg-stone-900">
-                <h3 className="text-sm font-bold text-stone-300 mb-2 font-cinzel">板子参考 (Script Reference)</h3>
+                <h3 className="text-sm font-bold text-stone-300 mb-2 font-cinzel">{t('script.reference.scriptReference')}</h3>
 
                 {/* Search */}
                 <input
                     type="text"
-                    placeholder="搜索角色或技能..."
+                    placeholder={t('script.reference.searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full bg-stone-950 border border-stone-700 rounded px-2 py-1 text-xs text-stone-200 focus:outline-none focus:border-stone-500 mb-2"
@@ -45,7 +47,7 @@ export const ScriptReference: React.FC = () => {
                         onClick={() => setSelectedTeam(null)}
                         className={`px-2 py-0.5 text-[10px] rounded border ${!selectedTeam ? 'bg-stone-700 border-stone-500 text-white' : 'bg-stone-900 border-stone-800 text-stone-500'}`}
                     >
-                        全部
+                        {t('script.reference.all')}
                     </button>
                     {['TOWNSFOLK', 'OUTSIDER', 'MINION', 'DEMON'].map(team => (
                         <button
@@ -58,7 +60,10 @@ export const ScriptReference: React.FC = () => {
                                 color: team === selectedTeam ? TEAM_COLORS[team as keyof typeof TEAM_COLORS] : '#78716c'
                             }}
                         >
-                            {team === 'TOWNSFOLK' ? '村民' : team === 'OUTSIDER' ? '外来者' : team === 'MINION' ? '爪牙' : '恶魔'}
+                            {team === 'TOWNSFOLK' ? t('script.composition.townsfolk') :
+                             team === 'OUTSIDER' ? t('script.composition.outsider') :
+                             team === 'MINION' ? t('script.composition.minion') :
+                             t('script.composition.demon')}
                         </button>
                     ))}
                 </div>
@@ -73,7 +78,11 @@ export const ScriptReference: React.FC = () => {
                                 className="text-xs font-bold uppercase tracking-wider mb-2 border-b border-stone-800 pb-1 sticky top-0 bg-stone-900/95 backdrop-blur z-10"
                                 style={{ color: TEAM_COLORS[team as keyof typeof TEAM_COLORS] }}
                             >
-                                {team === 'TOWNSFOLK' ? '村民' : team === 'OUTSIDER' ? '外来者' : team === 'MINION' ? '爪牙' : team === 'DEMON' ? '恶魔' : '旅行者'}
+                                {team === 'TOWNSFOLK' ? t('script.composition.townsfolk') :
+                                 team === 'OUTSIDER' ? t('script.composition.outsider') :
+                                 team === 'MINION' ? t('script.composition.minion') :
+                                 team === 'DEMON' ? t('script.composition.demon') :
+                                 team}
                             </h4>
                             <div className="space-y-2">
                                 {roles.map(role => (

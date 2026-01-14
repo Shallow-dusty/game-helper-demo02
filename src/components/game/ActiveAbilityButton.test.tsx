@@ -66,7 +66,7 @@ describe('ActiveAbilityButton', () => {
   describe('ACTIVE_ABILITY_ROLES', () => {
     it('should contain slayer role config', () => {
       expect(ACTIVE_ABILITY_ROLES.slayer).toBeDefined();
-      expect(ACTIVE_ABILITY_ROLES.slayer.name).toBe('杀手');
+      expect(ACTIVE_ABILITY_ROLES.slayer.name).toBe('game.activeAbility.roles.slayer.name');
       expect(ACTIVE_ABILITY_ROLES.slayer.requiresTarget).toBe(true);
     });
 
@@ -85,32 +85,32 @@ describe('ActiveAbilityButton', () => {
 
   it('renders ability used message when ability is used', () => {
     render(
-      <ActiveAbilityButton 
-        role={slayerRole} 
-        seat={createMockSeat({ hasUsedAbility: true })} 
-        gamePhase="DAY" 
+      <ActiveAbilityButton
+        role={slayerRole}
+        seat={createMockSeat({ hasUsedAbility: true })}
+        gamePhase="DAY"
       />
     );
-    expect(screen.getByText('技能已使用')).toBeInTheDocument();
+    expect(screen.getByText('game.activeAbility.abilityUsed')).toBeInTheDocument();
   });
 
   it('renders activate button for unused ability', () => {
     render(
       <ActiveAbilityButton role={slayerRole} seat={createMockSeat()} gamePhase="DAY" />
     );
-    expect(screen.getByText('发动杀手技能')).toBeInTheDocument();
+    expect(screen.getByText('game.activeAbility.roles.slayer.button')).toBeInTheDocument();
   });
 
   it('shows modal when clicking button for targeted ability', () => {
     render(
       <ActiveAbilityButton role={slayerRole} seat={createMockSeat()} gamePhase="DAY" />
     );
-    
-    const button = screen.getByText('发动杀手技能');
+
+    const button = screen.getByText('game.activeAbility.roles.slayer.button');
     fireEvent.click(button);
-    
+
     // Modal should appear with target input - 使用实际组件的 placeholder 文本
-    expect(screen.getByPlaceholderText('输入目标玩家名称或座位号...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('game.activeAbility.enterTargetPlaceholder')).toBeInTheDocument();
   });
 
   it('sends message for non-targeted ability', () => {
@@ -123,14 +123,14 @@ describe('ActiveAbilityButton', () => {
       otherNight: false,
       reminders: [],
     };
-    
+
     render(
       <ActiveAbilityButton role={virginRole} seat={createMockSeat({ roleId: 'virgin' })} gamePhase="DAY" />
     );
-    
-    const button = screen.getByText('声明处女身份');
+
+    const button = screen.getByText('game.activeAbility.roles.virgin.button');
     fireEvent.click(button);
-    
+
     expect(mockSendMessage).toHaveBeenCalledWith(
       expect.stringContaining('处女'),
       null
@@ -141,8 +141,8 @@ describe('ActiveAbilityButton', () => {
     render(
       <ActiveAbilityButton role={slayerRole} seat={createMockSeat()} gamePhase="NIGHT" />
     );
-    
-    const button = screen.getByText('发动杀手技能').closest('button');
+
+    const button = screen.getByText('game.activeAbility.roles.slayer.button').closest('button');
     expect(button).toBeDisabled();
   });
 });

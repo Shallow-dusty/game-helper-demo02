@@ -5,6 +5,7 @@ import { ROLES, TEAM_COLORS } from '../../constants';
 import type { Seat } from '../../types';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
 import { Confetti } from './Confetti';
+import { useTranslation } from 'react-i18next';
 
 interface TruthRevealProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface TruthRevealProps {
  * - 中毒/醉酒标记高亮闪烁
  */
 export const TruthReveal: React.FC<TruthRevealProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const gameState = useStore(state => state.gameState);
   const seats = gameState?.seats || [];
   const gameOver = gameState?.gameOver;
@@ -119,14 +121,14 @@ export const TruthReveal: React.FC<TruthRevealProps> = ({ isOpen, onClose }) => 
           {/* 标题 */}
           <motion.div
             className={`text-center mb-8 ${phase === 'glitch' ? 'glitch-effect' : ''}`}
-            data-text={winner === 'GOOD' ? '善良阵营胜利' : '邪恶阵营胜利'}
+            data-text={winner === 'GOOD' ? t('game.truthReveal.goodWin') : t('game.truthReveal.evilWin')}
           >
             <h1 className={`
               font-cinzel text-4xl md:text-6xl font-bold tracking-wider
               ${winner === 'GOOD' ? 'text-amber-400' : 'text-red-500'}
               ${phase === 'glitch' ? 'animate-pulse' : ''}
             `}>
-              {winner === 'GOOD' ? '🎉 善良阵营胜利 🎉' : '💀 邪恶阵营胜利 💀'}
+              {winner === 'GOOD' ? t('game.truthReveal.goodWinFull') : t('game.truthReveal.evilWinFull')}
             </h1>
             <p className="text-stone-400 mt-2 text-lg">{gameOver.reason}</p>
           </motion.div>
@@ -139,7 +141,7 @@ export const TruthReveal: React.FC<TruthRevealProps> = ({ isOpen, onClose }) => 
               className="glass-panel rounded-xl p-6"
             >
               <h2 className="font-cinzel text-xl text-amber-400 mb-4 text-center">
-                📜 真相揭示
+                {t('game.truthReveal.title')}
               </h2>
               
               {/* 座位网格 */}
@@ -196,7 +198,7 @@ export const TruthReveal: React.FC<TruthRevealProps> = ({ isOpen, onClose }) => 
                         className="mt-2 px-2 py-1 rounded text-sm font-cinzel text-center"
                         style={{ backgroundColor: `${teamColor}33`, color: teamColor }}
                       >
-                        {displayRole?.name || '未分配'}
+                        {displayRole?.name || t('history.unknownRole')}
                         {displayRole?.icon && <span className="ml-1">{displayRole.icon}</span>}
                       </div>
                       
@@ -207,7 +209,7 @@ export const TruthReveal: React.FC<TruthRevealProps> = ({ isOpen, onClose }) => 
                           animate={{ opacity: 1, scale: 1 }}
                           className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full"
                         >
-                          伪装!
+                          {t('game.truthReveal.disguised')}
                         </motion.div>
                       )}
                       
@@ -216,12 +218,12 @@ export const TruthReveal: React.FC<TruthRevealProps> = ({ isOpen, onClose }) => 
                         <div className="flex gap-1 mt-2 justify-center">
                           {seat.statuses.includes('POISONED') && (
                             <span className="text-xs bg-green-900/50 text-green-400 px-2 py-0.5 rounded animate-pulse">
-                              🧪 中毒
+                              {t('game.truthReveal.poisoned')}
                             </span>
                           )}
                           {seat.statuses.includes('DRUNK') && (
                             <span className="text-xs bg-purple-900/50 text-purple-400 px-2 py-0.5 rounded animate-pulse">
-                              🍺 醉酒
+                              {t('game.truthReveal.drunk')}
                             </span>
                           )}
                         </div>
@@ -247,19 +249,19 @@ export const TruthReveal: React.FC<TruthRevealProps> = ({ isOpen, onClose }) => 
                     <div className="text-2xl font-bold text-amber-400">
                       {misledSeats.length}
                     </div>
-                    <div className="text-xs text-stone-500">被伪装角色</div>
+                    <div className="text-xs text-stone-500">{t('game.truthReveal.disguisedCount')}</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-purple-400">
                       {taintedSeats.length}
                     </div>
-                    <div className="text-xs text-stone-500">受影响玩家</div>
+                    <div className="text-xs text-stone-500">{t('game.truthReveal.affectedCount')}</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-red-400">
                       {seats.filter(s => s.isDead).length}
                     </div>
-                    <div className="text-xs text-stone-500">死亡人数</div>
+                    <div className="text-xs text-stone-500">{t('game.truthReveal.deathCount')}</div>
                   </div>
                 </motion.div>
               )}
@@ -274,7 +276,7 @@ export const TruthReveal: React.FC<TruthRevealProps> = ({ isOpen, onClose }) => 
               transition={{ delay: 1 }}
               className="text-center text-stone-500 mt-6"
             >
-              点击任意位置关闭
+              {t('game.truthReveal.clickToClose')}
             </motion.p>
           )}
         </motion.div>

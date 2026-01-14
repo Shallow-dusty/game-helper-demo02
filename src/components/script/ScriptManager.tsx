@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SCRIPTS, ROLES } from '../../constants';
 import { useStore } from '../../store';
 import { showError, showSuccess } from '../ui/Toast';
@@ -8,6 +9,7 @@ interface ScriptManagerProps {
 }
 
 export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
+    const { t } = useTranslation();
     const gameState = useStore(state => state.gameState);
     const importScript = useStore(state => state.importScript);
     const [jsonInput, setJsonInput] = useState('');
@@ -21,15 +23,15 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
     const handleImport = () => {
         try {
             if (!jsonInput.trim()) {
-                showError('请输入JSON内容');
+                showError(t('script.manager.description'));
                 return;
             }
             importScript(jsonInput);
-            showSuccess('剧本导入成功！');
+            showSuccess(t('success.actionCompleted'));
             setJsonInput('');
             onClose();
         } catch (e) {
-            showError('导入失败，请检查JSON格式');
+            showError(t('errors.invalidAction'));
             console.error(e);
         }
     };
@@ -53,7 +55,7 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
             <div className="bg-stone-900 border border-stone-700 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="p-4 border-b border-stone-700 flex justify-between items-center bg-stone-950 rounded-t-lg">
-                    <h2 className="text-xl font-bold text-amber-500 font-cinzel">剧本管理 (Script Manager)</h2>
+                    <h2 className="text-xl font-bold text-amber-500 font-cinzel">{t('script.manager.title')}</h2>
                     <button onClick={onClose} className="text-stone-400 hover:text-white transition-colors text-2xl leading-none">&times;</button>
                 </div>
 
@@ -63,13 +65,13 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
                         onClick={() => setActiveTab('view')}
                         className={`flex-1 py-3 text-sm font-bold transition-colors ${activeTab === 'view' ? 'bg-stone-800 text-amber-500 border-b-2 border-amber-500' : 'text-stone-500 hover:text-stone-300'}`}
                     >
-                        当前剧本
+                        {t('script.manager.currentScript')}
                     </button>
                     <button
                         onClick={() => setActiveTab('import')}
                         className={`flex-1 py-3 text-sm font-bold transition-colors ${activeTab === 'import' ? 'bg-stone-800 text-amber-500 border-b-2 border-amber-500' : 'text-stone-500 hover:text-stone-300'}`}
                     >
-                        导入剧本
+                        {t('script.manager.importScript')}
                     </button>
                 </div>
 
@@ -98,7 +100,7 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
                                             }}
                                             className="px-3 py-1 bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs rounded border border-stone-600"
                                         >
-                                            导出 JSON
+                                            {t('script.manager.exportJson')}
                                         </button>
                                     </div>
 
@@ -120,7 +122,7 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
                                 </>
                             ) : (
                                 <div className="text-center text-stone-500 py-10">
-                                    未找到当前剧本信息
+                                    {t('script.manager.notFound')}
                                 </div>
                             )}
                         </div>
@@ -129,13 +131,13 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
                     {activeTab === 'import' && (
                         <div className="space-y-4">
                             <div className="p-4 bg-amber-900/10 border border-amber-900/30 rounded text-sm text-amber-200/80">
-                                <p className="font-bold mb-1">说明：</p>
-                                <p>支持导入官方 JSON 格式的剧本文件。你可以从官方脚本工具导出，或者手动编写。</p>
-                                <p className="mt-2 text-xs opacity-70">格式示例: {`[{"id": "role_id"}, {"id": "_meta", "name": "Script Name"}]`}</p>
+                                <p className="font-bold mb-1">{t('script.manager.description')}</p>
+                                <p>{t('script.manager.supportFormat')}</p>
+                                <p className="mt-2 text-xs opacity-70">{t('script.manager.formatExample')}: {`[{"id": "role_id"}, {"id": "_meta", "name": "Script Name"}]`}</p>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="block text-sm font-bold text-stone-400">从文件上传</label>
+                                <label className="block text-sm font-bold text-stone-400">{t('script.manager.uploadFile')}</label>
                                 <input
                                     type="file"
                                     accept=".json"
@@ -155,12 +157,12 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
                                     <div className="w-full border-t border-stone-700"></div>
                                 </div>
                                 <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-stone-900 px-2 text-stone-500">OR</span>
+                                    <span className="bg-stone-900 px-2 text-stone-500">{t('script.manager.or')}</span>
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="block text-sm font-bold text-stone-400">粘贴 JSON 内容</label>
+                                <label className="block text-sm font-bold text-stone-400">{t('script.manager.pasteJson')}</label>
                                 <textarea
                                     value={jsonInput}
                                     onChange={(e) => setJsonInput(e.target.value)}
@@ -174,7 +176,7 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
                                 disabled={!jsonInput.trim()}
                                 className="w-full py-3 bg-amber-700 hover:bg-amber-600 disabled:bg-stone-800 disabled:text-stone-600 text-white font-bold rounded transition-colors"
                             >
-                                确认导入
+                                {t('script.manager.confirmImport')}
                             </button>
                         </div>
                     )}

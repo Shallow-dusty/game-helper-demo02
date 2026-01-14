@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleDef } from '../../types';
 import { RoleCard } from '../game/RoleCard';
 import { Z_INDEX } from '../../constants';
@@ -12,10 +13,10 @@ interface RoleReferenceSidebarProps {
 
 // 阵营配置
 const TEAM_CONFIG = {
-    TOWNSFOLK: { label: '镇民', color: 'blue' },
-    OUTSIDER: { label: '外来者', color: 'green' },
-    MINION: { label: '爪牙', color: 'orange' },
-    DEMON: { label: '恶魔', color: 'red' }
+    TOWNSFOLK: { label: 'controls.roleReference.teamTownsfolk', color: 'blue' },
+    OUTSIDER: { label: 'controls.roleReference.teamOutsider', color: 'green' },
+    MINION: { label: 'controls.roleReference.teamMinion', color: 'orange' },
+    DEMON: { label: 'controls.roleReference.teamDemon', color: 'red' }
 } as const;
 
 type TeamType = keyof typeof TEAM_CONFIG;
@@ -26,6 +27,7 @@ export const RoleReferenceSidebar: React.FC<RoleReferenceSidebarProps> = ({
     playerRoleId,
     scriptRoles
 }) => {
+    const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
     const [collapsedTeams, setCollapsedTeams] = useState<Record<TeamType, boolean>>({
         TOWNSFOLK: false,
@@ -92,7 +94,7 @@ export const RoleReferenceSidebar: React.FC<RoleReferenceSidebarProps> = ({
                     onClick={() => toggleTeamCollapse(team)}
                     className={`w-full flex items-center justify-between text-sm font-bold ${colorClass} mb-2 font-cinzel border-b pb-1 px-1 py-0.5 rounded-t transition-colors`}
                 >
-                    <span>{config.label} ({roles.length})</span>
+                    <span>{t(config.label)} ({roles.length})</span>
                     <span className="text-xs transition-transform duration-200" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
                         ▼
                     </span>
@@ -123,7 +125,7 @@ export const RoleReferenceSidebar: React.FC<RoleReferenceSidebarProps> = ({
                 onClick={onToggle}
                 className={`fixed top-1/2 -translate-y-1/2 bg-amber-900 hover:bg-amber-800 text-amber-200 p-3 rounded-l-lg shadow-lg transition-all ${isExpanded ? 'right-[320px]' : 'right-0'}`}
                 style={{ zIndex: Z_INDEX.sidebar }}
-                title={isExpanded ? '收起规则手册' : '展开规则手册'}
+                title={isExpanded ? t('controls.roleReference.collapseSidebar') : t('controls.roleReference.expandSidebar')}
             >
                 <span className="text-xl">
                     {isExpanded ? '📖▶' : '◀📖'}
@@ -131,7 +133,7 @@ export const RoleReferenceSidebar: React.FC<RoleReferenceSidebarProps> = ({
             </button>
 
             {/* Sidebar Panel */}
-            <div 
+            <div
                 className={`fixed right-0 top-0 h-screen w-[320px] bg-stone-900 border-l border-stone-700 shadow-2xl transform transition-transform duration-300 ${isExpanded ? 'translate-x-0' : 'translate-x-full'} flex flex-col font-serif`}
                 style={{ zIndex: Z_INDEX.sidebar }}
             >
@@ -139,7 +141,7 @@ export const RoleReferenceSidebar: React.FC<RoleReferenceSidebarProps> = ({
                 {/* Header */}
                 <div className="p-4 border-b border-stone-800 bg-stone-950">
                     <h3 className="text-lg font-bold text-amber-400 font-cinzel">
-                        📖 规则手册
+                        📖 {t('controls.roleReference.title')}
                     </h3>
                 </div>
 
@@ -150,7 +152,7 @@ export const RoleReferenceSidebar: React.FC<RoleReferenceSidebarProps> = ({
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="🔍 搜索角色..."
+                            placeholder={t('controls.roleReference.searchRoles')}
                             className="w-full px-3 py-2 pl-8 bg-stone-800 border border-stone-700 rounded text-stone-200 placeholder-stone-500 focus:outline-none focus:border-amber-600 text-sm"
                         />
                         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-500 text-xs">🔍</span>
@@ -183,7 +185,7 @@ export const RoleReferenceSidebar: React.FC<RoleReferenceSidebarProps> = ({
                     {playerRole && (
                         <div className="border-t border-stone-700 pt-3">
                             <p className="text-xs text-stone-500 mb-3 text-center">
-                                所有角色 {searchQuery && `(搜索: "${searchQuery}")`}
+                                {t('controls.roleReference.allRoles')} {searchQuery && t('controls.roleReference.searchingFor', { query: searchQuery })}
                             </p>
                         </div>
                     )}
@@ -200,7 +202,7 @@ export const RoleReferenceSidebar: React.FC<RoleReferenceSidebarProps> = ({
                     {searchQuery && Object.values(filteredRolesByTeam).every(roles => roles.filter(r => r.id !== playerRoleId).length === 0) && (
                         <div className="text-center py-8 text-stone-500">
                             <span className="text-2xl mb-2 block">🔍</span>
-                            <p className="text-sm">没有找到匹配的角色</p>
+                            <p className="text-sm">{t('controls.roleReference.noMatchingRoles')}</p>
                         </div>
                     )}
                 </div>

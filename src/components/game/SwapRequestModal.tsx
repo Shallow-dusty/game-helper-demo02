@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { Z_INDEX } from '../../constants';
 
 export const SwapRequestModal: React.FC = () => {
+    const { t } = useTranslation();
     const user = useStore(state => state.user);
     const gameState = useStore(state => state.gameState);
     const respondToSwapRequest = useStore(state => state.respondToSwapRequest);
@@ -28,16 +30,16 @@ export const SwapRequestModal: React.FC = () => {
         >
             <div className="bg-stone-900 border border-amber-600 rounded-lg p-6 max-w-md w-full shadow-2xl">
                 <h2 className="text-2xl font-bold text-amber-500 mb-4 flex items-center gap-2 font-cinzel">
-                    <span>🔄</span> 换座申请
+                    <span>🔄</span> {t('game.swapRequestModal.title')}
                 </h2>
 
                 <div className="mb-6 p-4 bg-stone-950 rounded border border-stone-700">
                     <p className="text-stone-300 text-lg leading-relaxed">
                         <span className="text-amber-400 font-bold">{request?.fromName}</span>
-                        {' '}想要与你交换座位
+                        {' '}{t('game.swapRequestModal.message')}
                     </p>
                     <p className="text-stone-500 text-sm mt-2">
-                        座位 {(request?.fromSeatId ?? 0) + 1} ↔️ 座位 {(request?.toSeatId ?? 0) + 1}
+                        {t('game.swapRequestModal.seatSwap', { from: (request?.fromSeatId ?? 0) + 1, to: (request?.toSeatId ?? 0) + 1 })}
                     </p>
                 </div>
 
@@ -46,19 +48,19 @@ export const SwapRequestModal: React.FC = () => {
                         onClick={() => request && respondToSwapRequest(request.id, false)}
                         className="flex-1 py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded border border-stone-600 transition-colors font-bold"
                     >
-                        ❌ 拒绝
+                        ❌ {t('game.swapRequestModal.reject')}
                     </button>
                     <button
                         onClick={() => request && respondToSwapRequest(request.id, true)}
                         className="flex-1 py-3 bg-amber-700 hover:bg-amber-600 text-white rounded border border-amber-600 transition-colors font-bold shadow-lg"
                     >
-                        ✅ 同意换座
+                        ✅ {t('game.swapRequestModal.accept')}
                     </button>
                 </div>
 
                 {incomingRequests.length > 1 && (
                     <p className="text-xs text-stone-500 mt-3 text-center">
-                        还有 {incomingRequests.length - 1} 个换座请求
+                        {t('game.swapRequestModal.moreRequests', { count: incomingRequests.length - 1 })}
                     </p>
                 )}
             </div>

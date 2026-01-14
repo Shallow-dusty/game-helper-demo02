@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import './i18n'; // 国际化配置 - 必须在 App 之前导入
 import App from './App';
 
 const rootElement = document.getElementById('root');

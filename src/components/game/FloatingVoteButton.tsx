@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { Z_INDEX } from '../../constants';
 
@@ -7,6 +8,7 @@ import { Z_INDEX } from '../../constants';
  * 仅在投票阶段显示，解决侧边栏遮挡魔典的问题
  */
 export const FloatingVoteButton: React.FC = () => {
+    const { t } = useTranslation();
     const gameState = useStore(state => state.gameState);
     const user = useStore(state => state.user);
     const toggleHand = useStore(state => state.toggleHand);
@@ -65,13 +67,13 @@ export const FloatingVoteButton: React.FC = () => {
 
     // 获取按钮图标和文本
     const getButtonContent = () => {
-        if (isGhostVoteUsed) return { icon: '👻', text: '已用' };
-        if (isLocked) return { icon: '🔒', text: '锁定' };
+        if (isGhostVoteUsed) return { icon: '👻', text: t('game.floatingVote.voteUsed') };
+        if (isLocked) return { icon: '🔒', text: t('game.floatingVote.locked') };
         if (isLoading) return { icon: '⏳', text: '...' };
-        if (isRaised) return { icon: '✋', text: '举手中' };
+        if (isRaised) return { icon: '✋', text: t('game.floatingVote.alreadyVoted') };
         return isDead
-            ? { icon: '👻', text: '幽灵票' }
-            : { icon: '🗳️', text: '投票' };
+            ? { icon: '👻', text: t('game.floatingVote.ghostVote') }
+            : { icon: '🗳️', text: t('game.floatingVote.voteButton') };
     };
 
     const content = getButtonContent();

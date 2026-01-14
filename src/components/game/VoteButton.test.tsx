@@ -14,27 +14,27 @@ describe('VoteButton', () => {
 
   it('renders default state correctly', () => {
     render(<VoteButton isRaised={false} isLocked={false} onToggle={mockOnToggle} />);
-    expect(screen.getByText('举手投票？')).toBeInTheDocument();
+    expect(screen.getByText('game.voteButton.raiseHand')).toBeInTheDocument();
   });
 
   it('renders raised state', () => {
     render(<VoteButton isRaised isLocked={false} onToggle={mockOnToggle} />);
-    expect(screen.getByText('✋ 已举手')).toBeInTheDocument();
+    expect(screen.getByText(/game\.voteButton\.handRaised/)).toBeInTheDocument();
   });
 
   it('renders locked state', () => {
     render(<VoteButton isRaised={false} isLocked onToggle={mockOnToggle} />);
-    expect(screen.getByText('🔒 状态已锁定')).toBeInTheDocument();
+    expect(screen.getByText(/game\.voteButton\.locked/)).toBeInTheDocument();
   });
 
   it('renders dead player ghost vote option', () => {
     render(<VoteButton isRaised={false} isLocked={false} isDead onToggle={mockOnToggle} />);
-    expect(screen.getByText('👻 使用幽灵票？')).toBeInTheDocument();
+    expect(screen.getByText(/game\.voteButton\.useGhostVote/)).toBeInTheDocument();
   });
 
   it('renders ghost vote used state', () => {
     render(<VoteButton isRaised={false} isLocked={false} isDead hasGhostVote={false} onToggle={mockOnToggle} />);
-    expect(screen.getByText('👻 幽灵票已使用')).toBeInTheDocument();
+    expect(screen.getByText('game.voteButton.ghostVoteUsed')).toBeInTheDocument();
   });
 
   it('calls onToggle when clicked', () => {

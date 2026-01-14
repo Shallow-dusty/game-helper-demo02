@@ -6,6 +6,8 @@ import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { Gamepad2, MessageSquare, Bot, Music, Book, GripVertical, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
+import { useTranslation } from 'react-i18next';
 import { ControlsSTSection } from './ControlsSTSection';
 import { ControlsPlayerSection } from './ControlsPlayerSection';
 import { Chat } from './Chat';
@@ -49,6 +51,8 @@ const useControlsActions = () => useStore(
 export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const { user, phase, currentScriptId, roomId, isOffline } = useControlsState();
     const { leaveGame, setModalOpen } = useControlsActions();
+    const { t } = useAppTranslation();
+    const { t: tControls } = useTranslation();
 
     // 仅在需要完整 gameState 时才订阅（传递给子组件）
     const gameState = useStore(state => state.gameState);
@@ -144,13 +148,13 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const currentSeat = gameState.seats.find(s => s.userId === user.id);
 
     const tabs = [
-        { id: 'game' as const, label: '游戏', icon: <Gamepad2 className="w-4 h-4" /> },
-        { id: 'chat' as const, label: '聊天', icon: <MessageSquare className="w-4 h-4" /> },
+        { id: 'game' as const, label: t('common.game'), icon: <Gamepad2 className="w-4 h-4" /> },
+        { id: 'chat' as const, label: t('chat.title'), icon: <MessageSquare className="w-4 h-4" /> },
         ...(user.isStoryteller ? [
-            { id: 'ai' as const, label: 'AI助手', icon: <Bot className="w-4 h-4" /> },
-            { id: 'audio' as const, label: '音效', icon: <Music className="w-4 h-4" /> }
+            { id: 'ai' as const, label: t('controls.aiAssistant'), icon: <Bot className="w-4 h-4" /> },
+            { id: 'audio' as const, label: t('audio.categories'), icon: <Music className="w-4 h-4" /> }
         ] : []),
-        { id: 'notebook' as const, label: '笔记', icon: <Book className="w-4 h-4" /> },
+        { id: 'notebook' as const, label: t('controls.notebook'), icon: <Book className="w-4 h-4" /> },
     ];
 
     return (
@@ -179,9 +183,9 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                             "px-2 py-0.5 rounded border text-xs font-bold uppercase tracking-wider",
                             user.isStoryteller ? 'bg-red-950/30 border-red-800 text-red-400' : 'bg-blue-950/30 border-blue-800 text-blue-400'
                         )}>
-                            {user.isStoryteller ? '说书人' : '村民'}
+                            {user.isStoryteller ? tControls('storyteller.title') : tControls('player.title')}
                         </span>
-                        {currentSeat && <span className="text-stone-500 text-xs">座位 {currentSeat.id + 1}</span>}
+                        {currentSeat && <span className="text-stone-500 text-xs">{tControls('seat.empty')} {currentSeat.id + 1}</span>}
                     </div>
                 </div>
 
@@ -201,7 +205,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     gameState.gameOver.winner === 'GOOD' ? 'bg-blue-900/90 border-blue-500' : 'bg-red-900/90 border-red-500'
                 )}>
                     <h2 className="text-2xl font-bold text-white font-cinzel tracking-widest drop-shadow-md">
-                        {gameState.gameOver.winner === 'GOOD' ? '好人胜利' : '邪恶胜利'}
+                        {gameState.gameOver.winner === 'GOOD' ? tControls('game.truthReveal.goodWin') : tControls('game.truthReveal.evilWin')}
                     </h2>
                     <p className="text-xs text-white/80 mt-1 font-serif italic">{gameState.gameOver.reason}</p>
                 </div>
@@ -210,12 +214,12 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
             {/* Room Code Banner */}
             <div className="bg-stone-900/50 border-b border-stone-800 p-3 flex justify-between items-center px-4">
                 <div className="flex flex-col">
-                    <span className="text-[10px] text-stone-500 uppercase tracking-wider font-cinzel">房间号</span>
+                    <span className="text-[10px] text-stone-500 uppercase tracking-wider font-cinzel">{tControls('lobby.roomCode')}</span>
                     <span className="text-xl font-mono font-bold text-stone-200 tracking-[0.2em]">{gameState.roomId}</span>
                 </div>
                 {isOffline ? (
                     <span className="text-xs font-bold text-red-400 bg-red-950/30 border border-red-900 px-2 py-1 rounded animate-pulse">
-                        离线 / 演示
+                        {tControls('audio.offlineMode')}
                     </span>
                 ) : (
                     <Button
@@ -224,7 +228,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                         onClick={leaveGame}
                         className="text-stone-500 hover:text-red-400 hover:bg-red-950/20 h-8 text-xs uppercase tracking-wider"
                     >
-                        离开
+                        {tControls('seat.leaveSeat')}
                     </Button>
                 )}
             </div>
@@ -263,7 +267,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 {activeTab === 'game' && (
                     <div className="h-full overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-stone-800 scrollbar-track-transparent">
                         <div className="text-center p-4 bg-black/40 rounded border border-stone-800 shadow-inner backdrop-blur-sm">
-                            <div className="text-xs text-stone-500 uppercase tracking-[0.2em] mb-1 font-cinzel">当前阶段</div>
+                            <div className="text-xs text-stone-500 uppercase tracking-[0.2em] mb-1 font-cinzel">{tControls('game.chainReaction.actions.confirm')}</div>
                             <div className="text-3xl font-bold text-amber-600 tracking-widest font-cinzel drop-shadow-md">{PHASE_LABELS[gameState.phase]}</div>
                         </div>
 

@@ -1,9 +1,11 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { AUDIO_TRACKS, SOUND_EFFECTS } from '../../constants';
 
 export const ControlsAudioTab: React.FC = () => {
+    const { t } = useTranslation();
     const gameState = useStore(state => state.gameState);
     const toggleAudioPlay = useStore(state => state.toggleAudioPlay);
     const setAudioVolume = useStore(state => state.setAudioVolume);
@@ -24,7 +26,7 @@ export const ControlsAudioTab: React.FC = () => {
             {/* Background Music Control */}
             <div className="bg-stone-900/50 rounded border border-stone-800 p-4">
                 <h3 className="text-stone-400 text-xs uppercase tracking-wider font-bold mb-4 flex items-center gap-2">
-                    <span>🎵</span> 背景音乐 (BGM)
+                    <span>🎵</span> {t('controls.audioTab.bgmTitle')}
                 </h3>
 
                 <div className="space-y-4">
@@ -42,10 +44,10 @@ export const ControlsAudioTab: React.FC = () => {
                             </button>
                             <div className="flex flex-col">
                                 <span className="text-sm font-bold text-stone-200">
-                                    {AUDIO_TRACKS[audio.trackId || 'silence']?.name || '未知音轨'}
+                                    {AUDIO_TRACKS[audio.trackId || 'silence']?.name || t('controls.audioTab.unknownTrack')}
                                 </span>
                                 <span className="text-xs text-stone-500">
-                                    {audio.isPlaying ? '正在播放' : '已暂停'}
+                                    {audio.isPlaying ? t('controls.audioTab.playing') : t('controls.audioTab.paused')}
                                 </span>
                             </div>
                         </div>
@@ -54,7 +56,7 @@ export const ControlsAudioTab: React.FC = () => {
                     {/* Volume Slider */}
                     <div className="space-y-1">
                         <div className="flex justify-between text-xs text-stone-500">
-                            <span>音量</span>
+                            <span>{t('controls.audioTab.volume')}</span>
                             <span>{Math.round(audio.volume * 100)}%</span>
                         </div>
                         <input
@@ -70,7 +72,7 @@ export const ControlsAudioTab: React.FC = () => {
 
                     {/* Track Selection */}
                     <div className="space-y-2">
-                        <label className="text-xs text-stone-500">选择音轨</label>
+                        <label className="text-xs text-stone-500">{t('controls.audioTab.selectTrack')}</label>
                         <div className="grid grid-cols-1 gap-2">
                             {Object.entries(AUDIO_TRACKS).map(([id, track]) => (
                                 <button
@@ -92,7 +94,7 @@ export const ControlsAudioTab: React.FC = () => {
             {/* Instant Sound Effects */}
             <div className="bg-stone-900/50 rounded border border-stone-800 p-4">
                 <h3 className="text-stone-400 text-xs uppercase tracking-wider font-bold mb-4 flex items-center gap-2">
-                    <span>🔊</span> 即时音效 (SFX)
+                    <span>🔊</span> {t('controls.audioTab.sfxTitle')}
                 </h3>
 
                 <div className="grid grid-cols-2 gap-3">

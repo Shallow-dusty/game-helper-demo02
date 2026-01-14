@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 
 /**
@@ -6,6 +7,7 @@ import { useStore } from '../../store';
  * 在用户首次进入游戏时显示，引导用户点击以启用浏览器音频
  */
 export const AudioEnableOverlay = () => {
+    const { t } = useTranslation();
     const isAudioBlocked = useStore(state => state.isAudioBlocked);
     const setAudioBlocked = useStore(state => state.setAudioBlocked);
     const gameState = useStore(state => state.gameState);
@@ -59,19 +61,19 @@ export const AudioEnableOverlay = () => {
         >
             <div className="max-w-md w-full bg-stone-900 border border-stone-700 rounded-lg p-8 text-center shadow-2xl">
                 <div className="text-6xl mb-6 animate-bounce">🔊</div>
-                <h2 className="text-2xl font-bold text-stone-200 mb-4 font-cinzel">启用音效</h2>
+                <h2 className="text-2xl font-bold text-stone-200 mb-4 font-cinzel">{t('ui.audioEnableOverlay.title')}</h2>
                 <p className="text-stone-400 mb-6">
-                    浏览器已阻止自动播放音频。<br />
-                    点击任意位置以启用游戏音效。
+                    {t('ui.audioEnableOverlay.browserBlocked')}<br />
+                    {t('ui.audioEnableOverlay.clickToEnable')}
                 </p>
                 <button
                     className="px-8 py-3 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg transition-colors shadow-lg"
                     onClick={handleClick}
                 >
-                    点击启用
+                    {t('ui.audioEnableOverlay.buttonText')}
                 </button>
                 <p className="text-xs text-stone-600 mt-4">
-                    你可以随时在设置中调整音量或静音
+                    {t('ui.audioEnableOverlay.adjustLater')}
                 </p>
             </div>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { ROLES, Z_INDEX } from '../../constants';
 
@@ -8,6 +9,7 @@ interface NightActionPanelProps {
 }
 
 export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onComplete }) => {
+    const { t } = useTranslation();
     const gameState = useStore(state => state.gameState);
     const performNightAction = useStore(state => state.performNightAction);
 
@@ -73,7 +75,7 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                     </div>
                     <div>
                         <h3 className="text-2xl font-bold text-purple-100 font-cinzel tracking-wide drop-shadow-md">{role.name}</h3>
-                        <p className="text-xs text-purple-400 font-bold uppercase tracking-[0.2em] mt-1 border-l-2 border-purple-800 pl-2">Night Action</p>
+                        <p className="text-xs text-purple-400 font-bold uppercase tracking-[0.2em] mt-1 border-l-2 border-purple-800 pl-2">{t('nightAction.panel.nightAction')}</p>
                     </div>
                 </div>
 
@@ -107,11 +109,11 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                                             <div className="flex flex-col">
                                                 <span className="font-bold text-base font-cinzel tracking-wide">{seat.userName}</span>
                                                 {seat.isVirtual && (
-                                                    <span className="text-[10px] text-stone-600 uppercase tracking-widest font-serif">虚拟玩家</span>
+                                                    <span className="text-[10px] text-stone-600 uppercase tracking-widest font-serif">{t('nightAction.panel.virtualPlayer')}</span>
                                                 )}
                                             </div>
                                         </div>
-                                        {seat.isDead && <span className="text-[10px] font-bold text-red-500 bg-red-950/20 px-2 py-0.5 rounded-sm border border-red-900/30 font-cinzel">💀 DEAD</span>}
+                                        {seat.isDead && <span className="text-[10px] font-bold text-red-500 bg-red-950/20 px-2 py-0.5 rounded-sm border border-red-900/30 font-cinzel">💀 {t('nightAction.panel.dead')}</span>}
                                     </div>
                                     {isSelected && <div className="absolute inset-0 bg-gradient-to-r from-purple-900/10 to-transparent pointer-events-none"></div>}
                                 </button>
@@ -146,14 +148,14 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                             disabled={!canSubmit}
                             className="flex-1 bg-purple-900 hover:bg-purple-800 disabled:bg-stone-800 disabled:text-stone-600 text-purple-100 font-bold py-3 rounded-sm transition-all shadow-lg disabled:shadow-none border border-purple-700 disabled:border-stone-700 font-cinzel tracking-widest uppercase"
                         >
-                            确认行动
+                            {t('nightAction.panel.confirmSubmit')}
                         </button>
                     )}
                     <button
                         onClick={onComplete}
                         className="px-6 py-3 bg-transparent hover:bg-stone-800 border border-stone-700 text-stone-500 hover:text-stone-300 rounded-sm transition-all font-cinzel tracking-widest uppercase"
                     >
-                        跳过
+                        {t('nightAction.skip')}
                     </button>
                 </div>
             </div>

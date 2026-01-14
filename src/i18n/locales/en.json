@@ -35,34 +35,155 @@
     "sandboxDesc": "Offline practice mode, no network required"
   },
   "game": {
-    "phase": {
-      "setup": "Setup",
-      "day": "Day",
-      "night": "Night",
-      "vote": "Voting",
-      "end": "Game Over"
+    "actionConfirm": {
+      "ignore": "Ignore",
+      "modify": "Modify",
+      "confirm": "Confirm",
+      "modifyPlaceholder": "Enter modified content..."
     },
-    "role": {
+    "activeAbility": {
+      "abilityUsed": "Ability Used",
+      "onlyDuringDay": "Only available during Day",
+      "onlyDuringAnyPhase": "Any Phase",
+      "confirmActivation": "Confirm Activation",
+      "enterTargetPlaceholder": "Enter target player name or seat number...",
+      "skillActivated": "Activate Ability",
+      "target": "Target",
+      "roles": {
+        "slayer": {
+          "name": "Slayer",
+          "button": "Activate Slayer Ability",
+          "description": "Choose a player. If they are the Demon, they die immediately"
+        },
+        "virgin": {
+          "name": "Virgin",
+          "button": "Declare Virgin Identity",
+          "description": "If nominated by a Townsfolk, the nominator dies immediately"
+        },
+        "artist": {
+          "name": "Artist",
+          "button": "Ask ST a Question",
+          "description": "Ask the Storyteller a yes/no question"
+        },
+        "juggler": {
+          "name": "Juggler",
+          "button": "Guess Roles",
+          "description": "On day one, guess up to 5 players' roles"
+        },
+        "gossip": {
+          "name": "Gossip",
+          "button": "Make a Statement",
+          "description": "Publicly make a statement. If true, someone dies tonight"
+        }
+      }
+    },
+    "floatingNote": {
+      "systemLog": "System Log",
+      "note": "Note",
+      "changeColor": "Change Color",
+      "minimize": "Minimize (Cancel Float)"
+    },
+    "floatingVote": {
+      "voteButton": "Vote",
+      "ghostVote": "Ghost Vote",
+      "alreadyVoted": "Voting",
+      "voteUsed": "Used",
+      "locked": "Locked"
+    },
+    "ghostVote": {
+      "lastVote": "Final Vote"
+    },
+    "bloodPact": {
+      "title": "The Blood Pact is Sealed",
+      "subtitle": "Blood Pact Established"
+    },
+    "chainReaction": {
+      "pendingEvents": "{{count}} more event(s) pending",
+      "affectedSeats": "Affected Seats",
+      "seatNumbers": "Seat {{seats}}",
+      "skip": "Skip",
+      "actions": {
+        "markDead": "Mark Dead",
+        "cancelKill": "Cancel Kill",
+        "endGame": "End Game",
+        "confirm": "Confirm"
+      },
+      "title": "Chain Reaction Confirmation",
+      "events": "event(s)",
+      "affectedPlayers": "Affected Players",
+      "seatNumber": "Seat",
+      "markDeath": "Mark Death",
+      "skipAction": "Skip",
+      "cancelKill": "Cancel Kill",
+      "stillKill": "Still Kill",
+      "endGame": "End Game",
+      "continueGame": "Continue Game",
+      "acknowledged": "Acknowledged",
+      "tip": "💡 As Storyteller, you can freely decide whether to apply these suggestions.",
+      "highPriority": "High Priority",
+      "mediumPriority": "Medium Priority",
+      "lowPriority": "Low Priority"
+    },
+    "candlelight": {
+      "enable": "Enable Anti-Peek Mode",
+      "disable": "Disable Anti-Peek Mode",
+      "enabled": "🕯️ Anti-Peek ON",
+      "disabled": "🕯️ Anti-Peek"
+    },
+    "detective": {
+      "dragSuspect": "Drag = Suspect",
+      "dragTrust": "Drag = Trust",
+      "doubleClick": "Double-click = Mark",
+      "rightClick": "Right-click = Delete",
+      "clear": "Clear"
+    },
+    "deathEcho": {
+      "departed": "Has departed this world..."
+    },
+    "doomsdayClock": {
+      "title": "Judgment Zone",
+      "subtitle": "Judgment Zone",
+      "nominee": "Nominee",
+      "executable": "⚠️ Executable",
+      "voteCount": "{{count}} vote(s)"
+    },
+    "ghostlyVision": {
+      "title": "Ghostly Vision",
+      "you": "You",
+      "becameGhost": "Became a ghost"
+    },
+    "truthReveal": {
+      "title": "📜 The Truth Unveiled",
+      "goodWin": "Good Team Wins",
+      "evilWin": "Evil Team Wins",
+      "goodWinFull": "🎉 Good Team Wins �9",
+      "evilWinFull": "💀 Evil Team Wins 💀",
+      "disguised": "Disguised!",
+      "poisoned": "🧪 Poisoned",
+      "drunk": "🍺 Drunk",
+      "disguisedCount": "Disguised Roles",
+      "affectedCount": "Affected Players",
+      "deathCount": "Death Count",
+      "clickToClose": "Click anywhere to close"
+    },
+    "roleReveal": {
+      "yourIdentity": "Your Role",
+      "clickToOpen": "Click to reveal your fate",
+      "acknowledged": "I Understand",
+      "gameStart": "GAME START"
+    },
+    "distributionConfirm": {
+      "title": "Confirm Role Distribution",
+      "situation": "Situation Assessment",
       "townsfolk": "Townsfolk",
       "outsider": "Outsider",
       "minion": "Minion",
       "demon": "Demon",
-      "traveler": "Traveler"
-    },
-    "status": {
-      "alive": "Alive",
-      "dead": "Dead",
-      "poisoned": "Poisoned",
-      "drunk": "Drunk",
-      "protected": "Protected"
-    },
-    "actions": {
-      "nominate": "Nominate",
-      "vote": "Vote",
-      "execute": "Execute",
-      "kill": "Kill",
-      "protect": "Protect",
-      "poison": "Poison"
+      "distributeMessage": "About to distribute roles to",
+      "playerCount": "players.",
+      "afterDistribute": "Players will see their role cards after distribution.",
+      "backToEdit": "Back to Edit",
+      "confirmDistribute": "Confirm Distribution"
     }
   },
   "grimoire": {
@@ -71,16 +192,153 @@
     "viewMode": "View Mode",
     "lockToggle": "Click to toggle mode",
     "privacyMode": "Privacy Mode",
-    "loading": "Loading grimoire..."
+    "loading": "Loading grimoire...",
+    "clickToEdit": "Click to Edit",
+    "clickToView": "Click to View",
+    "enablePrivacy": "Enable Privacy Mode",
+    "disablePrivacy": "Disable Privacy Mode",
+    "reservedForVirtual": "This is a virtual player seat",
+    "swapCancelled": "Seat swap cancelled",
+    "confirmSwap": "Confirm swap seats {{from}} and {{to}}?",
+    "confirmSwapPlayer": "Confirm swap seats with {{player}}?",
+    "loadingGrimoire": "Loading grimoire..."
   },
   "controls": {
-    "title": "Control Panel",
-    "phaseControl": "Phase Control",
-    "nightOrder": "Night Order",
-    "executeNight": "Execute Night Actions",
-    "aiAssistant": "AI Assistant",
-    "notebook": "Notebook",
-    "roleBook": "Role Book"
+    "admin": {
+      "title": "Admin Panel",
+      "subtitle": "View and manage active rooms",
+      "passwordError": "Incorrect password",
+      "fetchError": "Failed to fetch room list",
+      "closeConfirm": "Are you sure you want to close room",
+      "closeError": "Failed to close room",
+      "deleteData": "? This will delete all data for this room."
+    },
+    "st": {
+      "script": "Script",
+      "createScript": "Create",
+      "importScript": "Import",
+      "officialScripts": "Official Scripts",
+      "customScripts": "Custom Scripts",
+      "seatManagement": "Seat Management",
+      "addVirtual": "Add Virtual",
+      "addSeat": "Add Seat",
+      "removeSeat": "Remove Seat",
+      "roleManagement": "Role Management",
+      "autoAssign": "Auto Assign",
+      "distributeRoles": "Distribute Roles",
+      "viewComposition": "View Composition Guide",
+      "ruleCheck": "Rule Check",
+      "gameFlow": "Game Flow",
+      "startGame": "Start Game",
+      "enterNight": "Enter Night",
+      "enterDay": "Dawn",
+      "history": "History",
+      "vibrationOn": "Vibration: ON",
+      "vibrationOff": "Vibration: OFF",
+      "candlelightOn": "🕯️ Candlelight Mode: ON",
+      "candlelightOff": "🕯️ Candlelight Mode: OFF",
+      "candlelightEnableTooltip": "Enable Candlelight Mode - Players have limited vision at night",
+      "candlelightDisableTooltip": "Disable Candlelight Mode",
+      "nightOrder": "Night Action Order",
+      "dawn": "Dawn",
+      "dusk": "Dusk",
+      "executeNightAction": "Execute Night Action",
+      "forceDawn": "Force Dawn",
+      "forceDawnConfirm": "Are you sure you want to force dawn? This will skip the remaining night actions.",
+      "votingInProgress": "Voting in Progress",
+      "nominee": "Nominee",
+      "moveClockHand": "Move Clock Hand",
+      "cancelVote": "Cancel/End Vote",
+      "distributeEmptyRoleError": "Some seats have no assigned roles! Please assign roles before distribution."
+    },
+    "chat": {
+      "whisper": "Whisper",
+      "unknown": "Unknown",
+      "publicChannel": "Public",
+      "logChannel": "System Log",
+      "typeMessage": "Type a message...",
+      "sendButton": "Send",
+      "whispersDisabled": "Whispers are disabled",
+      "selectRecipient": "Select whisper recipient...",
+      "to": "to"
+    },
+    "roleReference": {
+      "title": "Rule Book Grimoire",
+      "searchPlaceholder": "Search roles, abilities...",
+      "matchedResults": "Matches",
+      "matched": "Matched",
+      "simpleMode": "Simple",
+      "detailedMode": "Detailed",
+      "showDetailed": "Show Detailed",
+      "showSimple": "Show Simple",
+      "collapseAll": "Collapse All",
+      "expandAll": "Expand All",
+      "rolesTab": "Role Abilities",
+      "rulesTab": "Game Rules",
+      "yourRole": "Your Role",
+      "teamTownsfolk": "🏘️ Townsfolk",
+      "teamOutsider": "🌿 Outsider",
+      "teamMinion": "👿 Minion",
+      "teamDemon": "👹 Demon",
+      "teamTraveler": "🎒 Traveler",
+      "noRoles": "No roles",
+      "firstNight": "First Night",
+      "otherNight": "Other Nights",
+      "setupReminder": "Setup Reminder",
+      "rulesContent": "Game rules content...",
+      "foundCount": "Found <1>{{count}}</1> role(s)",
+      "noMatch": "No roles matching \"<1>{{query}}</1>\" found",
+      "tryKeywords": "Try searching for role names or ability keywords",
+      "collapseSidebar": "Collapse Rule Book",
+      "expandSidebar": "Expand Rule Book",
+      "searchRoles": "🔍 Search roles...",
+      "allRoles": "All Roles",
+      "searchingFor": "(Searching: \"{{query}}\")",
+      "noMatchingRoles": "No matching roles found"
+    },
+    "smartInfo": {
+      "title": "Smart Info Generation",
+      "noInfo": "No info available",
+      "roleCount": "{{count}} role(s)",
+      "noInfoRoles": "No info roles to process this night",
+      "generateAll": "Generate All Info",
+      "seat": "Seat",
+      "tainted": "Poisoned/Drunk",
+      "regenerate": "Regenerate",
+      "selectTargets": "Select Investigation Targets",
+      "target": "Target",
+      "number": "#",
+      "generateResult": "Generate Investigation Result",
+      "suggested": "Suggested",
+      "real": "Real",
+      "clickToGenerate": "Click to Generate Info",
+      "selectTargetsFirst": "Please select targets first",
+      "helpText": "Tip: Fortune Teller needs to select two investigation targets. Poisoned/drunk players will receive false information."
+    },
+    "ai": {
+      "ready": "AI Assistant Ready",
+      "subtitle": "Ask questions, get game suggestions",
+      "delete": "Delete",
+      "thinking": "Thinking...",
+      "apiKeyWarning": "⚠️ Missing API Key, please configure in",
+      "configFile": ".env.local",
+      "configMessage": "file",
+      "placeholder": "Ask AI Assistant...",
+      "send": "Send",
+      "clearHistory": "Clear History",
+      "officialProvider": "✅ Official (Direct)",
+      "siliconflowProvider": "⚡ SiliconFlow (Fast Relay)",
+      "selectModel": "Select an AI model"
+    },
+    "audioTab": {
+      "bgmTitle": "🎵 Background Music (BGM)",
+      "sfxTitle": "🔊 Sound Effects (SFX)",
+      "unknownTrack": "Unknown Track",
+      "playing": "Playing",
+      "paused": "Paused",
+      "volume": "Volume",
+      "selectTrack": "Select Track"
+    }
   },
   "seat": {
     "empty": "Empty Seat",
@@ -132,7 +390,33 @@
     "connected": "Connected",
     "reconnecting": "Reconnecting...",
     "disconnected": "Disconnected",
-    "error": "Connection Error"
+    "error": "Connection Error",
+    "offline": "Offline Mode",
+    "connectingShort": "Connecting",
+    "reconnectingShort": "Reconnecting",
+    "disconnectedShort": "Disconnected"
+  },
+  "phase": {
+    "goodWin": "Good Wins!",
+    "evilWin": "Evil Wins!",
+    "assigning": "Assigning roles...",
+    "waitingForST": "Waiting for Storyteller to assign roles...",
+    "rolesAssigned": "Roles Assigned",
+    "readyToStart": "Ready to Start Game",
+    "checkRuleBook": "Check Rule Book",
+    "night": "Night {{count}}",
+    "day": "Day {{count}}",
+    "nomination": "Day {{count}} · Nomination Phase",
+    "finalDay": "Final Day",
+    "voting": "Voting",
+    "nominationCount": "Nominations",
+    "alive": "Alive",
+    "discussionPhase": "Discussion Phase",
+    "nominee": "Nominee",
+    "currentVotes": "Current",
+    "votes": "vote(s)",
+    "playerCount": " players",
+    "current": "Current"
   },
   "storyteller": {
     "title": "Storyteller",
@@ -149,14 +433,55 @@
     "yourRole": "Your Role",
     "yourAbility": "Your Ability",
     "useAbility": "Use Ability",
-    "abilityUsed": "Ability Used"
+    "abilityUsed": "Ability Used",
+    "notebook": {
+      "title": "Player Notebook",
+      "placeholder": "Record your deductions...",
+      "addPlaceholder": "Add new note... (Enter)",
+      "addButton": "Add",
+      "deleteNote": "Delete Note",
+      "emptyState": "No notes... (Stored locally only)",
+      "localStorageOnly": "Local storage only"
+    }
   },
   "nightAction": {
     "title": "Night Action",
     "selectTarget": "Select Target",
     "confirm": "Confirm Action",
     "skip": "Skip",
-    "waiting": "Waiting for other players..."
+    "waiting": "Waiting for other players...",
+    "manager": {
+      "title": "Pending Night Actions",
+      "pending": "Pending",
+      "fakeAction": "Fake Action",
+      "target": "Target",
+      "realRole": "Actual",
+      "confirmAction": "Confirm Action",
+      "sendReply": "Send Reply",
+      "skipAction": "Skip",
+      "replyPlaceholder": "Enter result to reply to player...",
+      "drunkWarning": "This player's real role is",
+      "drunkEffect": "Their action will not take effect, but you can choose to give them false information.",
+      "drunkLabel": "Drunk",
+      "disguiseLabel": "Disguised",
+      "quickReplies": {
+        "executed": "Executed",
+        "noEffect": "No Effect",
+        "targetDead": "Target Dead"
+      }
+    },
+    "panel": {
+      "nightAction": "Night Action",
+      "yourTurn": "Your Turn",
+      "confirmSubmit": "Confirm Submit",
+      "virtualPlayer": "Virtual Player",
+      "dead": "Dead",
+      "seat": "Seat"
+    },
+    "player": {
+      "yourTurn": "Your Turn",
+      "close": "Close"
+    }
   },
   "errors": {
     "networkError": "Network error, please try again",
@@ -171,5 +496,382 @@
     "joined": "Joined successfully",
     "roleAssigned": "Role assigned",
     "actionCompleted": "Action completed"
+  },
+  "audio": {
+    "settingsTitle": "Settings",
+    "privacyMode": "Privacy Mode",
+    "onlineMode": "Online Mode",
+    "onlineModeDesc": "Personal device use\nPlay all sound effects",
+    "offlineMode": "Offline/Casting",
+    "offlineModeDesc": "Public screen use\nHide secret sound effects",
+    "privacyWarning": "Privacy Warning:",
+    "privacyWarningDesc": "This mode will play sound effects containing identity information (such as night action feedback). Do not use this mode on public screens.",
+    "safeMode": "Safe Casting:",
+    "safeModeDesc": "All sensitive sound effects are automatically blocked. Suitable for projection or live streaming for all players to watch.",
+    "categories": "Sound Categories",
+    "ambience": "Ambience",
+    "ambienceDesc": "BGM, bells, ambient sounds",
+    "ui": "UI Sound",
+    "uiDesc": "Clicks, drags, paper sounds",
+    "cues": "Cues",
+    "cuesDesc": "Night actions, private chat notifications",
+    "cuesDisabled": "Cues (Disabled)",
+    "language": "Language Settings",
+    "interfaceLanguage": "Interface Language",
+    "selectLanguage": "Select application display language"
+  },
+  "lobby": {
+    "title": "GRIMOIRE",
+    "subtitle": "Blood on the Clocktower Online Assistant",
+    "yourNickname": "Your Nickname",
+    "enterNickname": "Enter your nickname...",
+    "storytellerMode": "Storyteller Mode",
+    "storytellerDesc": "Host and manage the game",
+    "roomCode": "Room Code",
+    "enterRoomCode": "8888",
+    "enterAsSpectator": "Enter as Spectator",
+    "enterGrimoire": "Enter Grimoire",
+    "enterAsPlayer": "Enter as Player",
+    "backToLogin": "Back to Login",
+    "switchToSpectator": "Switch to Spectator Mode",
+    "demonAmongUs": "\"The demon walks among us...\"",
+    "clickToEnableAudio": "Click to enable audio",
+    "welcome": "Welcome",
+    "chooseDestiny": "Choose Your Destiny",
+    "townWaiting": "The town is waiting for your decision...",
+    "resumeGame": "Resume Previous Game",
+    "resume": "Resume",
+    "connecting": "Connecting...",
+    "createRoomTitle": "Create Room",
+    "startRitual": "Start a new ritual and summon the townsfolk.",
+    "playerCount": "Player Count",
+    "small": "Small",
+    "standard": "Standard",
+    "large": "Large",
+    "createRitualBtn": "Create Ritual",
+    "joinRoomTitle": "Join Room",
+    "enterCode": "Enter code to join an existing town.",
+    "enterTown": "Enter Town",
+    "enterNow": "Enter Now",
+    "enterRoomCode4": "Please enter 4-digit room code",
+    "moreOptions": "More Options (Sandbox & Offline)",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "sandboxMode": "Sandbox Mode",
+    "singleSimulation": "Single Player • Free Testing",
+    "offlineMode": "Offline Mode",
+    "comingSoon": "Coming Soon",
+    "offlineAvailable": "Offline Available",
+    "singlePlayer": "Single Player",
+    "fullFeatures": "Full Features",
+    "noSave": "No Save Required",
+    "gameRules": {
+      "title": "Game Rules",
+      "basicFlow": "Basic Flow",
+      "winConditions": "Win Conditions",
+      "deathGhostVote": "Death & Ghost Vote",
+      "flowDescription": "The game alternates between **Day** and **Night** phases.",
+      "nightPhase": "**Night**: All players close their eyes, specific roles wake and use abilities.",
+      "dayPhase": "**Day**: All players wake up and discuss freely.",
+      "nomination": "**Nomination & Voting**: After day discussion, players can nominate suspects for execution.",
+      "execution": "**Execution**: The player with majority votes (and highest) is executed (dies).",
+      "goodWinCondition": "Good Team Win Conditions:",
+      "executeDemon": "Execute the Demon.",
+      "noDemonAlive": "Or, no Demon remains alive.",
+      "evilWinCondition": "Evil Team Win Conditions:",
+      "twoPlayersLeft": "Only 2 players remain alive (including the Demon).",
+      "specialCondition": "Or, achieve special role win conditions (e.g., Imp suicide to Minion).",
+      "deadPlayers": "Dead players:",
+      "loseAbility": "Lose their ability (unless specific roles).",
+      "canStillSpeak": "Can still speak and participate in discussions.",
+      "ghostVote": "Receive **1 Ghost Vote**, usable in any single vote during the game.",
+      "ghostVoteUsed": "Once used, the ghost vote disappears and cannot vote again."
+    }
+  },
+  "ui": {
+    "buttons": {
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete",
+      "edit": "Edit",
+      "close": "Close",
+      "submit": "Submit",
+      "retry": "Retry",
+      "add": "Add",
+      "remove": "Remove",
+      "clear": "Clear"
+    },
+    "toast": {
+      "success": "Success",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Info"
+    },
+    "loading": {
+      "default": "Loading...",
+      "pleaseWait": "Please wait...",
+      "loadingGrimoire": "Loading grimoire...",
+      "loadingControls": "Loading control panel..."
+    },
+    "empty": {
+      "noData": "No data",
+      "noResults": "No results found",
+      "noNotes": "No notes"
+    },
+    "audioEnableOverlay": {
+      "title": "Enable Audio",
+      "browserBlocked": "Browser has blocked audio autoplay.",
+      "clickToEnable": "Click anywhere to enable game audio.",
+      "buttonText": "Click to Enable",
+      "adjustLater": "You can adjust volume or mute at any time in settings"
+    },
+    "errorBoundary": {
+      "title": "An unexpected error occurred. Please try refreshing the page.",
+      "errorDetails": "Error Details (Development)",
+      "actionButtons": "Action Buttons",
+      "retryButton": "🔄 Retry",
+      "refreshButton": "↻ Refresh Page",
+      "helpText": "If the problem persists, please contact the developer or submit an issue"
+    },
+    "confirmModal": {
+      "defaultConfirm": "Confirm",
+      "defaultCancel": "Cancel"
+    },
+    "helpModal": {
+      "title": "❓ Storyteller Operations Guide",
+      "gameFlow": {
+        "title": "🎮 Game Flow Control",
+        "assignRoles": "Assign Roles: Click 'Auto Assign Roles' in game settings or right-click seats in the grimoire to manually assign.",
+        "distributeRoles": "Distribute Roles: Click 'Distribute Roles' to let players see their identities. Click again to hide.",
+        "phaseSwitch": "Phase Switch: Use 'Day', 'Night', 'Nomination' buttons to control game progress.",
+        "nightActions": "Night Actions: During the night phase, wake roles in order according to the 'Night Order' list. Click 'Execute Night Actions' to record actions."
+      },
+      "grimoireOps": {
+        "title": "📖 Grimoire Operations",
+        "rightClickMenu": "Right-click Menu: Right-click player tokens to open the action menu.",
+        "statusManagement": "Status Management: In the right-click menu, you can set poisoned, drunk, protected status, or mark player deaths.",
+        "addMarkers": "Add Markers: Use 'Add Marker' to add visual hints next to tokens (such as 'investigated', 'protected').",
+        "virtualPlayers": "Virtual Players: Click 'Add Virtual Player' to add placeholders for testing or filling empty seats."
+      },
+      "atmosphere": {
+        "title": "🎵 Atmosphere & Tools",
+        "ambientSound": "Ambient Sound: Select and play background music in the 'Ambient Sound' panel to enhance immersion.",
+        "notebook": "Notebook: Switch to the 'Notes' tab to record key information and reasoning during the game.",
+        "aiAssistant": "AI Assistant: Consult AI about rules or judgment questions in the 'Assistant' tab."
+      },
+      "tip": "Tip: As the Storyteller, you are the host and referee of the game. Be fair, but also ensure the game is fun!"
+    },
+    "infoCard": {
+      "roleInfo": "Role Info",
+      "ability": "Ability Hint",
+      "hint": "Game Hint",
+      "custom": "Custom"
+    },
+    "voiceRoomLink": {
+      "title": "🎙️ Voice Room",
+      "edit": "Edit",
+      "add": "Add",
+      "placeholder": "Enter Discord/QQ/Meeting link...",
+      "join": "Join Voice Room",
+      "notSet": "Storyteller has not set up a voice room yet",
+      "clickToAdd": "Click 'Add' to set up voice room link"
+    },
+    "updateNotification": {
+      "title": "New Version Available",
+      "message": "Blood on the Clocktower Grimoire has been updated. Refresh now to get the latest features",
+      "later": "Later",
+      "refresh": "Refresh",
+      "remindLater": "Remind Later"
+    },
+    "statusBadge": {
+      "alive": "Alive",
+      "dead": "Dead",
+      "poisoned": "Poisoned",
+      "protected": "Protected",
+      "nominated": "Nominated",
+      "drunk": "Drunk",
+      "marked": "Marked for Execution",
+      "good": "Good",
+      "evil": "Evil",
+      "neutral": "Neutral",
+      "info": "Info",
+      "warning": "Warning",
+      "success": "Success"
+    },
+    "languageSelector": {
+      "title": "Language Selection"
+    }
+  },
+  "history": {
+    "title": "📜 History Replay",
+    "exitReplay": "Exit Replay",
+    "gameRecords": "📜 Game Records",
+    "loading": "Loading...",
+    "noRecords": "No game records",
+    "goodWin": "Good Wins",
+    "evilWin": "Evil Wins",
+    "undecided": "Undecided",
+    "details": "Details",
+    "votingRecords": "Voting Records",
+    "watchReplay": "🎥 Watch Replay",
+    "playerList": "Player List",
+    "unknownRole": "Unknown",
+    "chatHistory": "Chat History",
+    "votingHistory": "Voting History",
+    "noVotingData": "This record does not contain voting data.",
+    "selectToView": "Please select a game record from the left to view details.",
+    "afterAction": {
+      "title": "After Action Report",
+      "rounds": "rounds",
+      "copyText": "Copy Text",
+      "download": "Download Text",
+      "saveAsImage": "Save as Image",
+      "overview": "📊 Overview",
+      "timeline": "⏱️ Timeline",
+      "players": "👥 Players",
+      "goodWin": "Good Team Wins!",
+      "evilWin": "Evil Team Wins!",
+      "duration": "Duration",
+      "minutes": "minutes",
+      "playerCount": "Player Count",
+      "deathCount": "Death Count",
+      "executionCount": "Executions",
+      "mvp": "MVP",
+      "survivedRounds": "Survived",
+      "noTimelineEvents": "No timeline events",
+      "disguised": "Disguised",
+      "affected": "Affected",
+      "votesCast": "Votes",
+      "times": "times",
+      "copied": "Report copied to clipboard",
+      "downloaded": "Report downloaded",
+      "imageSaved": "Report image saved",
+      "screenshotFailed": "Screenshot failed, please try again"
+    }
+  },
+  "script": {
+    "manager": {
+      "title": "Script Manager",
+      "currentScript": "Current Script",
+      "importScript": "Import Script",
+      "exportJson": "Export JSON",
+      "description": "Description:",
+      "supportFormat": "Supports importing official JSON format script files. You can export from official script tools or write manually.",
+      "formatExample": "Format Example",
+      "uploadFile": "Upload from File",
+      "or": "OR",
+      "pasteJson": "Paste JSON Content",
+      "confirmImport": "Confirm Import",
+      "notFound": "Current script information not found"
+    },
+    "editor": {
+      "title": "Script Editor",
+      "customEditor": "Custom Script Editor",
+      "searchRoles": "Search roles...",
+      "allTeams": "All Teams",
+      "townsfolk": "Townsfolk",
+      "outsider": "Outsider",
+      "minion": "Minion",
+      "demon": "Demon",
+      "scriptName": "Script Name",
+      "enterName": "Enter script name...",
+      "author": "Author",
+      "yourName": "Your name",
+      "description": "Description",
+      "descriptionPlaceholder": "Script description...",
+      "selectedRoles": "Selected Roles",
+      "importJson": "Import JSON",
+      "exportJson": "Export JSON",
+      "cancel": "Cancel",
+      "saveScript": "Save Script",
+      "pleaseEnterName": "Please enter script name",
+      "pleaseSelectRole": "Please select at least one role"
+    },
+    "reference": {
+      "title": "Script Reference",
+      "scriptReference": "Script Reference",
+      "searchPlaceholder": "Search roles or abilities...",
+      "all": "All"
+    },
+    "composition": {
+      "title": "Script Composition Guide",
+      "guide": "Script Composition Guide",
+      "currentPlayers": "Current Players",
+      "people": "players",
+      "standardComposition": "Standard Composition",
+      "townsfolk": "Townsfolk",
+      "outsider": "Outsider",
+      "minion": "Minion",
+      "demon": "Demon",
+      "roleStrength": "Role Strength Reference (Trouble Brewing)",
+      "strongRoles": "Strong Roles",
+      "mediumStrongRoles": "Medium-Strong Roles",
+      "mediumRoles": "Medium Roles",
+      "selectStrategy": "Select a strategy to view details:",
+      "balanced": "Balanced",
+      "evilFavored": "Evil Favored",
+      "goodFavored": "Good Favored",
+      "chaotic": "Chaotic",
+      "beginner": "Beginner",
+      "medium": "Medium",
+      "hard": "Hard",
+      "roleConfig": "Role Strength Configuration",
+      "suggestions": "Selection Suggestions",
+      "generateConfig": "Generate Specific Role Configuration",
+      "generatedConfig": "Generated Role Configuration",
+      "applyWarning": "Applying this strategy will <strong>clear all current role assignments</strong> and reassign roles based on the above configuration.",
+      "applyStrategy": "Apply Strategy",
+      "pleaseGenerate": "Please generate role configuration first",
+      "errorLoading": "Loading Error",
+      "loadFailed": "Script reference failed to load, please try again."
+    }
+  },
+  "sandbox": {
+    "title": "Sandbox Mode",
+    "description": "Offline practice environment",
+    "exitSandbox": "Exit Sandbox",
+    "localPractice": "Local Practice • Data Not Saved",
+    "loading": "Loading sandbox...",
+    "helpText": "Sandbox Mode • Right-click to manage seats • Scroll to zoom",
+    "phaseSetup": "Setup",
+    "phaseDay": "Day",
+    "phaseNomination": "Nomination",
+    "phaseNight": "Night",
+    "quickPhaseSwitch": "Quick Phase Switch",
+    "controlPanel": "Sandbox Control Panel",
+    "scriptSelection": "Script Selection",
+    "quickActions": "Quick Actions",
+    "randomAssign": "Random Assign",
+    "enterNight": "Enter Night",
+    "enterDay": "Enter Day",
+    "resetGame": "Reset Game",
+    "roleAssignment": "Role Assignment",
+    "selectRole": "Select role, then click seat to assign",
+    "selected": "Selected",
+    "clickToAssign": "Click seat to assign",
+    "seatsOverview": "Seats Overview",
+    "clickToToggleDeath": "Click to toggle death status",
+    "assignRole": "Assign Role",
+    "exitSandboxMode": "Exit Sandbox Mode"
+  },
+  "effects": {
+    "bloodDrip": "Blood Drip Effect",
+    "midnightChime": {
+      "midnight": "Midnight",
+      "nightFalls": "The night falls upon the village..."
+    },
+    "ghostParticles": "Ghost Particles"
+  },
+  "modals": {
+    "actionConfirm": {
+      "title": "Confirm Action",
+      "testTitle": "Test Title",
+      "testMessage": "Test Message"
+    }
+  },
+  "notification": {
+    "dead": "You are out",
+    "abilityUsed": "Ability used"
   }
 }

@@ -21,6 +21,7 @@ import { CandlelightOverlay } from './CandlelightOverlay';
 import SeatNode from './SeatNode';
 import RoleSelectorModal from './RoleSelectorModal';
 import { useGrimoireState, useGameActions, useUser } from '../../hooks/useGameStateSelectors';
+import { useTranslation } from 'react-i18next';
 
 interface GrimoireProps {
   width: number;
@@ -52,6 +53,8 @@ export const Grimoire: React.FC<GrimoireProps> = ({
   gameState: propsGameState,
   isStorytellerView = false
 }) => {
+  const { t } = useTranslation();
+
   // 使用优化的选择器 - 只订阅需要的属性
   const grimoireState = useGrimoireState();
   const storeUser = useUser();
@@ -225,7 +228,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
     e.cancelBubble = true;
 
     if (seat.isVirtual && !user.isStoryteller) {
-      showWarning('该座位预留给虚拟玩家。');
+      showWarning(t('game.grimoire.reservedForVirtual'));
       return;
     }
 
@@ -234,9 +237,9 @@ export const Grimoire: React.FC<GrimoireProps> = ({
       if (swapSourceId !== null) {
         if (swapSourceId === seat.id) {
           setSwapSourceId(null);
-          showWarning('交换已取消');
+          showWarning(t('game.grimoire.swapCancelled'));
         } else {
-          if (window.confirm(`确认交换座位 ${String(swapSourceId + 1)} 和 ${String(seat.id + 1)} 吗?`)) {
+          if (window.confirm(t('game.grimoire.confirmSwap', { from: String(swapSourceId + 1), to: String(seat.id + 1) }))) {
             swapSeats(swapSourceId, seat.id);
             setSwapSourceId(null);
           }
@@ -255,7 +258,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
         return;
       }
       if (seat.userId !== user.id) {
-        if (window.confirm(`请求与 ${seat.userName} 交换座位?`)) {
+        if (window.confirm(t('game.grimoire.confirmSwapPlayer', { player: seat.userName }))) {
           requestSeatSwap(seat.id);
         }
         return;
@@ -342,7 +345,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
       <div className="w-full h-full flex items-center justify-center text-stone-400">
         <div className="text-center">
           <div className="text-4xl mb-4 animate-spin">⏳</div>
-          <p>正在加载魔典...</p>
+          <p>{t('game.grimoire.loadingGrimoire')}</p>
         </div>
       </div>
     );
@@ -376,7 +379,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
           <div
             className="relative group cursor-pointer transition-transform hover:scale-105 active:scale-95"
             onClick={() => setIsLocked(!isLocked)}
-            title={isLocked ? "点击切换到编辑模式" : "点击切换到浏览模式"}
+            title={isLocked ? t('game.grimoire.clickToEdit') : t('game.grimoire.clickToView')}
           >
             <div
               className={`
@@ -388,7 +391,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
               `}
             >
               <span className="text-[#4a3728] font-cinzel font-bold text-sm tracking-widest whitespace-nowrap select-none">
-                {isLocked ? "浏览模式 (VIEW)" : "编辑模式 (EDIT)"}
+                {isLocked ? t('game.grimoire.viewMode') : t('game.grimoire.editMode')}
               </span>
             </div>
 
@@ -430,7 +433,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
                     : 'bg-stone-900 border-amber-900/50 text-amber-500'
                 }
               `}
-              title={isPrivacyMode ? "关闭防窥模式" : "开启防窥模式"}
+              title={isPrivacyMode ? t('game.grimoire.disablePrivacy') : t('game.grimoire.enablePrivacy')}
             >
               <span className="text-xl">🕯️</span>
             </button>

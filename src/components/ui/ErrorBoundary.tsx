@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import i18n from '../../i18n';
 
 interface Props {
     children: ReactNode;
@@ -66,14 +67,14 @@ export class ErrorBoundary extends Component<Props, State> {
                                 Something Went Wrong
                             </h1>
                             <p className="text-stone-400 mt-2 text-sm">
-                                出现了一个意外错误。请尝试刷新页面。
+                                {i18n.t('ui.errorBoundary.title')}
                             </p>
                         </div>
 
                         {/* 错误详情（开发环境） */}
                         {process.env.NODE_ENV === 'development' && this.state.error && (
                             <div className="mb-4 p-3 bg-red-950/30 border border-red-900/50 rounded text-xs">
-                                <div className="text-red-400 font-bold mb-1">Error:</div>
+                                <div className="text-red-400 font-bold mb-1">{i18n.t('ui.errorBoundary.errorDetails')}:</div>
                                 <pre className="text-red-300 whitespace-pre-wrap break-words">
                                     {this.state.error.message}
                                 </pre>
@@ -94,19 +95,19 @@ export class ErrorBoundary extends Component<Props, State> {
                                 onClick={this.handleRetry}
                                 className="flex-1 px-4 py-2 bg-amber-900 hover:bg-amber-800 text-amber-200 rounded font-bold transition-colors"
                             >
-                                🔄 重试
+                                {i18n.t('ui.errorBoundary.retryButton')}
                             </button>
                             <button
                                 onClick={this.handleReload}
                                 className="flex-1 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded font-bold transition-colors"
                             >
-                                ↻ 刷新页面
+                                {i18n.t('ui.errorBoundary.refreshButton')}
                             </button>
                         </div>
 
                         {/* 帮助链接 */}
                         <p className="text-center text-stone-600 text-xs mt-4">
-                            如问题持续存在，请联系开发者或提交 Issue
+                            {i18n.t('ui.errorBoundary.helpText')}
                         </p>
                     </div>
                 </div>

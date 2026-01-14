@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { shallow } from 'zustand/shallow';
 
@@ -15,6 +16,7 @@ const useWaitingAreaState = () => useStore(
 );
 
 export const WaitingArea: React.FC = () => {
+    const { t } = useTranslation();
     const { seats, roomId, setupPhase, rolesRevealed, hasGameState } = useWaitingAreaState();
     const user = useStore(state => state.user);
     const joinSeat = useStore(state => state.joinSeat);
@@ -68,7 +70,7 @@ export const WaitingArea: React.FC = () => {
                     >
                         <span className="text-lg">{currentSeat.isReady ? '✓' : '⏳'}</span>
                         <span className="font-cinzel font-bold text-sm">
-                            {currentSeat.isReady ? '已准备 (Ready)' : '点击准备 (Not Ready)'}
+                            {currentSeat.isReady ? t('game.waitingArea.ready') : t('game.waitingArea.clickToReady')}
                         </span>
                         <span className="ml-1 text-xs opacity-60">↗</span>
                     </button>
@@ -83,7 +85,7 @@ export const WaitingArea: React.FC = () => {
                     <button
                         onClick={() => setIsMinimized(true)}
                         className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-stone-500 hover:text-stone-200 hover:bg-stone-800 transition-colors"
-                        title="最小化 (Minimize)"
+                        title={t('game.waitingArea.minimize')}
                     >
                         <span className="text-xl font-bold mb-1">−</span>
                     </button>
@@ -114,12 +116,12 @@ export const WaitingArea: React.FC = () => {
                         {currentSeat.isReady ? (
                             <>
                                 <span className="text-2xl">✓</span>
-                                <span>已准备 (READY)</span>
+                                <span>{t('game.waitingArea.readyStatus')}</span>
                             </>
                         ) : (
                             <>
                                 <span className="text-2xl">⏳</span>
-                                <span>点击准备 (NOT READY)</span>
+                                <span>{t('game.waitingArea.notReadyStatus')}</span>
                             </>
                         )}
                     </button>
@@ -128,13 +130,13 @@ export const WaitingArea: React.FC = () => {
                         onClick={() => void leaveSeat()}
                         className="w-full py-2 rounded-lg text-sm font-bold text-stone-500 hover:text-red-400 hover:bg-red-950/30 border border-transparent hover:border-red-900/50 transition-all"
                     >
-                        离开座位 (Leave Seat)
+                        {t('game.waitingArea.leaveSeat')}
                     </button>
 
                     <p className="mt-6 text-stone-500 font-serif italic text-sm animate-pulse">
                         {currentSeat.isReady
-                            ? "等待说书人开始游戏..."
-                            : "请确认您已准备好开始游戏"}
+                            ? t('game.waitingArea.waitingForStart')
+                            : t('game.waitingArea.pleaseConfirm')}
                     </p>
                 </div>
             </div>
@@ -147,10 +149,10 @@ export const WaitingArea: React.FC = () => {
                 <h1 className="text-4xl md:text-5xl font-cinzel text-amber-500 mb-2 tracking-widest drop-shadow-lg">
                     {roomId}
                 </h1>
-                <p className="text-stone-400 font-serif italic">请选择您的座位 (Choose your seat)</p>
+                <p className="text-stone-400 font-serif italic">{t('game.waitingArea.chooseSeat')}</p>
                 {setupPhase === 'STARTED' && (
                     <div className="mt-2 px-4 py-1 bg-amber-900/30 border border-amber-700/50 rounded-full inline-block">
-                        <p className="text-amber-400 text-xs font-bold animate-pulse">⚠️ 游戏进行中 - 请选择空位加入</p>
+                        <p className="text-amber-400 text-xs font-bold animate-pulse">{t('game.waitingArea.gameInProgress')}</p>
                     </div>
                 )}
             </div>
@@ -186,14 +188,14 @@ export const WaitingArea: React.FC = () => {
 
                             <div className="flex flex-col items-center">
                                 <span className={`font-cinzel font-bold ${isTaken ? 'text-stone-500' : 'text-amber-100'}`}>
-                                    {isTaken ? seat.userName : `座位 ${String(seat.id + 1)}`}
+                                    {isTaken ? seat.userName : t('game.waitingArea.seatNumber', { number: seat.id + 1 })}
                                 </span>
                                 <span className="text-[10px] uppercase tracking-widest mt-1 font-bold">
                                     {isJoining
-                                        ? <span className="text-amber-400">JOINING...</span>
+                                        ? <span className="text-amber-400">{t('game.waitingArea.joining')}</span>
                                         : isTaken
-                                            ? (seat.isVirtual ? 'VIRTUAL' : 'TAKEN')
-                                            : <span className="text-green-500 animate-pulse">OPEN</span>
+                                            ? (seat.isVirtual ? t('game.waitingArea.virtual') : t('game.waitingArea.taken'))
+                                            : <span className="text-green-500 animate-pulse">{t('game.waitingArea.open')}</span>
                                     }
                                 </span>
                             </div>
@@ -209,11 +211,11 @@ export const WaitingArea: React.FC = () => {
             <div className="mt-8 flex gap-4 text-stone-500 text-xs font-mono">
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-amber-900 border border-amber-700"></div>
-                    <span>空闲 (Open)</span>
+                    <span>{t('game.waitingArea.open')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-stone-800 border border-stone-700"></div>
-                    <span>已占用 (Taken)</span>
+                    <span>{t('game.waitingArea.taken')}</span>
                 </div>
             </div>
         </div>

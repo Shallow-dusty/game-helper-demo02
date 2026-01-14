@@ -61,14 +61,14 @@ describe('StorytellerMenu', () => {
 
   it('renders seat number', () => {
     render(
-      <StorytellerMenu 
-        seat={createMockSeat({ id: 2 })} 
-        onClose={mockOnClose} 
+      <StorytellerMenu
+        seat={createMockSeat({ id: 2 })}
+        onClose={mockOnClose}
         actions={mockActions}
         currentScriptId="tb"
       />
     );
-    expect(screen.getByText(/SEAT 3/)).toBeInTheDocument();
+    expect(screen.getByText('game.storytellerMenu.seat')).toBeInTheDocument();
   });
 
   it('calls onClose when backdrop clicked', () => {
@@ -90,101 +90,101 @@ describe('StorytellerMenu', () => {
 
   it('calls toggleDead action when alive/dead button clicked', () => {
     render(
-      <StorytellerMenu 
-        seat={createMockSeat()} 
-        onClose={mockOnClose} 
+      <StorytellerMenu
+        seat={createMockSeat()}
+        onClose={mockOnClose}
         actions={mockActions}
         currentScriptId="tb"
       />
     );
-    
-    const button = screen.getByText('切换存活状态');
+
+    const button = screen.getByText('game.storytellerMenu.toggleAlive');
     fireEvent.click(button);
-    
+
     expect(mockActions.toggleDead).toHaveBeenCalledWith(0);
     expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('calls toggleAbilityUsed action when ability button clicked', () => {
     render(
-      <StorytellerMenu 
-        seat={createMockSeat()} 
-        onClose={mockOnClose} 
+      <StorytellerMenu
+        seat={createMockSeat()}
+        onClose={mockOnClose}
         actions={mockActions}
         currentScriptId="tb"
       />
     );
-    
-    const button = screen.getByText('技能使用');
+
+    const button = screen.getByText('game.storytellerMenu.abilityUsed');
     fireEvent.click(button);
-    
+
     expect(mockActions.toggleAbilityUsed).toHaveBeenCalledWith(0);
     expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('calls setRoleSelectSeat when assign role clicked', () => {
     render(
-      <StorytellerMenu 
-        seat={createMockSeat()} 
-        onClose={mockOnClose} 
+      <StorytellerMenu
+        seat={createMockSeat()}
+        onClose={mockOnClose}
         actions={mockActions}
         currentScriptId="tb"
       />
     );
-    
-    const button = screen.getByText('分配角色');
+
+    const button = screen.getByText('game.storytellerMenu.assignRole');
     fireEvent.click(button);
-    
+
     expect(mockActions.setRoleSelectSeat).toHaveBeenCalledWith(0);
     expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('shows dead status when seat is dead', () => {
     render(
-      <StorytellerMenu 
-        seat={createMockSeat({ isDead: true })} 
-        onClose={mockOnClose} 
+      <StorytellerMenu
+        seat={createMockSeat({ isDead: true })}
+        onClose={mockOnClose}
         actions={mockActions}
         currentScriptId="tb"
       />
     );
-    expect(screen.getByText('当前: 已死亡')).toBeInTheDocument();
+    expect(screen.getByText('game.storytellerMenu.statusDead')).toBeInTheDocument();
   });
 
   it('shows alive status when seat is alive', () => {
     render(
-      <StorytellerMenu 
-        seat={createMockSeat({ isDead: false })} 
-        onClose={mockOnClose} 
+      <StorytellerMenu
+        seat={createMockSeat({ isDead: false })}
+        onClose={mockOnClose}
         actions={mockActions}
         currentScriptId="tb"
       />
     );
-    expect(screen.getByText('当前: 存活')).toBeInTheDocument();
+    expect(screen.getByText('game.storytellerMenu.statusAlive')).toBeInTheDocument();
   });
 
   it('shows ability used status', () => {
     render(
-      <StorytellerMenu 
-        seat={createMockSeat({ hasUsedAbility: true })} 
-        onClose={mockOnClose} 
+      <StorytellerMenu
+        seat={createMockSeat({ hasUsedAbility: true })}
+        onClose={mockOnClose}
         actions={mockActions}
         currentScriptId="tb"
       />
     );
-    expect(screen.getByText('已使用')).toBeInTheDocument();
+    expect(screen.getByText('game.storytellerMenu.abilityStatusUsed')).toBeInTheDocument();
   });
 
   it('shows ability not used status', () => {
     render(
-      <StorytellerMenu 
-        seat={createMockSeat({ hasUsedAbility: false })} 
-        onClose={mockOnClose} 
+      <StorytellerMenu
+        seat={createMockSeat({ hasUsedAbility: false })}
+        onClose={mockOnClose}
         actions={mockActions}
         currentScriptId="tb"
       />
     );
-    expect(screen.getByText('未使用')).toBeInTheDocument();
+    expect(screen.getByText('game.storytellerMenu.abilityStatusNotUsed')).toBeInTheDocument();
   });
 
   it('displays role icon for demon', () => {
@@ -210,7 +210,7 @@ describe('StorytellerMenu', () => {
       />
     );
     expect(screen.getByText('👤')).toBeInTheDocument();
-    expect(screen.getByText(/NO ROLE/)).toBeInTheDocument();
+    expect(screen.getByText('game.storytellerMenu.noRole')).toBeInTheDocument();
   });
 
   // --- Menu Actions Tests (Lines 116-159) ---
@@ -225,7 +225,7 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    const button = screen.getByText('发起提名');
+    const button = screen.getByText('game.storytellerMenu.nominate');
     fireEvent.click(button);
 
     expect(mockActions.startVote).toHaveBeenCalledWith(0);
@@ -242,7 +242,7 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    const button = screen.getByText('交换座位');
+    const button = screen.getByText('game.storytellerMenu.swapSeat');
     fireEvent.click(button);
 
     expect(mockActions.setSwapSourceId).toHaveBeenCalledWith(0);
@@ -261,7 +261,7 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    expect(screen.getByText('移除机器人')).toBeInTheDocument();
+    expect(screen.getByText('game.storytellerMenu.removeBot')).toBeInTheDocument();
   });
 
   it('calls removeVirtualPlayer when remove button clicked', () => {
@@ -274,7 +274,7 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    const button = screen.getByText('移除机器人');
+    const button = screen.getByText('game.storytellerMenu.removeBot');
     fireEvent.click(button);
 
     expect(mockActions.removeVirtualPlayer).toHaveBeenCalledWith(0);
@@ -291,7 +291,7 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    expect(screen.queryByText('移除机器人')).not.toBeInTheDocument();
+    expect(screen.queryByText('game.storytellerMenu.removeBot')).not.toBeInTheDocument();
   });
 
   // --- Kick Player Tests (Lines 179-198) ---
@@ -306,7 +306,7 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    expect(screen.getByText('踢出玩家')).toBeInTheDocument();
+    expect(screen.getByText('game.storytellerMenu.kickPlayer')).toBeInTheDocument();
   });
 
   it('calls forceLeaveSeat when kick button clicked and confirmed', () => {
@@ -321,10 +321,10 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    const button = screen.getByText('踢出玩家');
+    const button = screen.getByText('game.storytellerMenu.kickPlayer');
     fireEvent.click(button);
 
-    expect(window.confirm).toHaveBeenCalledWith('确定要将 TestUser 踢出座位吗？');
+    expect(window.confirm).toHaveBeenCalledWith('game.storytellerMenu.confirmKick');
     expect(mockActions.forceLeaveSeat).toHaveBeenCalledWith(0);
     expect(mockOnClose).toHaveBeenCalled();
   });
@@ -341,7 +341,7 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    const button = screen.getByText('踢出玩家');
+    const button = screen.getByText('game.storytellerMenu.kickPlayer');
     fireEvent.click(button);
 
     expect(mockActions.forceLeaveSeat).not.toHaveBeenCalled();
@@ -358,7 +358,7 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    expect(screen.queryByText('踢出玩家')).not.toBeInTheDocument();
+    expect(screen.queryByText('game.storytellerMenu.kickPlayer')).not.toBeInTheDocument();
   });
 
   it('does not show kick button when no userId', () => {
@@ -371,7 +371,7 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    expect(screen.queryByText('踢出玩家')).not.toBeInTheDocument();
+    expect(screen.queryByText('game.storytellerMenu.kickPlayer')).not.toBeInTheDocument();
   });
 
   // --- Status Section Tests (Lines 201-224) ---
@@ -387,7 +387,7 @@ describe('StorytellerMenu', () => {
     );
 
     // Status section header
-    expect(screen.getByText('状态效果')).toBeInTheDocument();
+    expect(screen.getByText('game.storytellerMenu.statusEffects')).toBeInTheDocument();
     // Status icons are rendered - since icons appear in both status and reminder sections,
     // we check that at least two instances exist (one from each section)
     expect(screen.getAllByText('🤢').length).toBeGreaterThanOrEqual(2); // Poisoned - status + reminder
@@ -440,7 +440,7 @@ describe('StorytellerMenu', () => {
 
     // Find the status button by looking for elements in the status section
     // Status buttons have the icon and label as siblings
-    const statusSection = screen.getByText('状态效果').parentElement;
+    const statusSection = screen.getByText('game.storytellerMenu.statusEffects').parentElement;
     const poisonButton = statusSection?.querySelector('button');
     if (poisonButton) {
       fireEvent.click(poisonButton);
@@ -459,7 +459,7 @@ describe('StorytellerMenu', () => {
     );
 
     // Find status section and check if poison button has active class
-    const statusSection = screen.getByText('状态效果').parentElement;
+    const statusSection = screen.getByText('game.storytellerMenu.statusEffects').parentElement;
     const buttons = statusSection?.querySelectorAll('button');
     const poisonButton = buttons?.[0]; // First status button is POISONED
     expect(poisonButton).toHaveClass('bg-amber-900/40');
@@ -496,7 +496,7 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    expect(screen.getByText('暂无标记...')).toBeInTheDocument();
+    expect(screen.getByText('game.storytellerMenu.noReminders')).toBeInTheDocument();
   });
 
   it('calls removeReminder when existing reminder clicked', () => {
@@ -532,7 +532,7 @@ describe('StorytellerMenu', () => {
     );
 
     // Check for the reminder section header
-    expect(screen.getByText('标记提醒')).toBeInTheDocument();
+    expect(screen.getByText('game.storytellerMenu.reminders')).toBeInTheDocument();
 
     // Check for unique preset reminders (死亡 and 复活 and 自定义 are only in preset reminders)
     expect(screen.getByText('死亡')).toBeInTheDocument();
@@ -579,7 +579,7 @@ describe('StorytellerMenu', () => {
       fireEvent.click(customButton);
     }
 
-    expect(mockPrompt).toHaveBeenCalledWith('Enter reminder text:');
+    expect(mockPrompt).toHaveBeenCalledWith('game.storytellerMenu.enterReminderText');
     expect(mockActions.addReminder).toHaveBeenCalledWith(0, 'Custom Note', '📝', 'text-stone-300');
 
     mockPrompt.mockRestore();
@@ -641,7 +641,7 @@ describe('StorytellerMenu', () => {
     );
 
     // Find the settings button by its title attribute
-    const settingsButton = screen.getByTitle('音频设置');
+    const settingsButton = screen.getByTitle('common.settings');
     fireEvent.click(settingsButton);
 
     // The AudioSettingsModal should now be open (it renders its own content)

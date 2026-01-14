@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { InfoCard as InfoCardType } from '../../types';
 
 interface InfoCardProps {
@@ -87,6 +88,7 @@ const COLOR_CLASSES = {
 };
 
 export const InfoCard: React.FC<InfoCardProps> = ({ card }) => {
+    const { t } = useTranslation();
     const [isExpanded, setIsExpanded] = useState(true);
 
     const colorKey = (card.color || CARD_COLORS[card.type]) as keyof typeof COLOR_CLASSES;
@@ -121,10 +123,10 @@ export const InfoCard: React.FC<InfoCardProps> = ({ card }) => {
             {/* Type Badge */}
             <div className={`px-3 pb-2 flex justify-end`}>
                 <span className={`text-[10px] ${colors.badge} uppercase tracking-wider`}>
-                    {card.type === 'role_info' && '角色信息'}
-                    {card.type === 'ability' && '能力提示'}
-                    {card.type === 'hint' && '游戏提示'}
-                    {card.type === 'custom' && '自定义'}
+                    {card.type === 'role_info' && t('ui.infoCard.roleInfo')}
+                    {card.type === 'ability' && t('ui.infoCard.ability')}
+                    {card.type === 'hint' && t('ui.infoCard.hint')}
+                    {card.type === 'custom' && t('ui.infoCard.custom')}
                 </span>
             </div>
         </div>

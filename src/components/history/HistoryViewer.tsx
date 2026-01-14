@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { ChatMessage, VoteRecord, Seat } from '../../types';
 import { VotingChart } from '../game/VotingChart';
+import { useTranslation } from 'react-i18next';
 
 // Initialize Supabase client locally for this component
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -37,6 +38,7 @@ interface HistoryViewerProps {
 }
 
 export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
+    const { t } = useTranslation();
     const [records, setRecords] = useState<HistoryRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedRecord, setSelectedRecord] = useState<HistoryRecord | null>(null);
@@ -95,14 +97,14 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                 {/* Sidebar: List */}
                 <div className="w-1/3 border-r border-stone-800 flex flex-col bg-stone-950">
                     <div className="p-4 border-b border-stone-800 flex justify-between items-center bg-stone-900">
-                        <h2 className="text-stone-200 font-bold font-cinzel tracking-wider">📜 Chronicles</h2>
-                        <button onClick={() => void fetchHistory()} className="text-stone-500 hover:text-stone-300 text-xs">↻ Refresh</button>
+                        <h2 className="text-stone-200 font-bold font-cinzel tracking-wider">{t('history.title')}</h2>
+                        <button onClick={() => void fetchHistory()} className="text-stone-500 hover:text-stone-300 text-xs">{t('lobby.switchToSpectator')}</button>
                     </div>
                     <div className="flex-1 overflow-y-auto scrollbar-thin">
                         {loading ? (
-                            <div className="p-8 text-center text-stone-600 italic">Loading chronicles...</div>
+                            <div className="p-8 text-center text-stone-600 italic">{t('history.loading')}</div>
                         ) : records.length === 0 ? (
-                            <div className="p-8 text-center text-stone-600 italic">No history found.</div>
+                            <div className="p-8 text-center text-stone-600 italic">{t('history.noRecords')}</div>
                         ) : (
                             records.map(record => (
                                 <button
@@ -113,11 +115,11 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                                     <div className="flex justify-between mb-1">
                                         <span className="text-xs text-stone-500 font-mono">{new Date(record.created_at).toLocaleString()}</span>
                                         <span className={`text-xs font-bold px-1.5 rounded ${record.winner === 'GOOD' ? 'bg-blue-900/30 text-blue-400' : 'bg-red-900/30 text-red-400'}`}>
-                                            {record.winner} WINS
+                                            {record.winner === 'GOOD' ? t('history.goodWin') : t('history.evilWin')}
                                         </span>
                                     </div>
                                     <div className="text-stone-300 font-bold mb-1 truncate">{record.script_name}</div>
-                                    <div className="text-xs text-stone-500 truncate">Room: {record.room_code} • {record.reason}</div>
+                                    <div className="text-xs text-stone-500 truncate">{t('home.roomCode')}: {record.room_code} • {record.reason}</div>
                                 </button>
                             ))
                         )}
@@ -126,7 +128,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
 
                 {/* Main: Details */}
                 <div className="flex-1 flex flex-col bg-stone-900/50 relative">
-                    <button onClick={onClose} className="absolute top-4 right-4 text-stone-500 hover:text-stone-200 z-10">✕ Close</button>
+                    <button onClick={onClose} className="absolute top-4 right-4 text-stone-500 hover:text-stone-200 z-10">{t('common.close')}</button>
 
                     {selectedRecord ? (
                         <div className="flex-1 flex flex-col">
@@ -139,7 +141,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                                         : 'text-stone-500 hover:text-stone-300'
                                         }`}
                                 >
-                                    Details
+                                    {t('history.details')}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('votes')}
@@ -148,7 +150,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                                         : 'text-stone-500 hover:text-stone-300'
                                         }`}
                                 >
-                                    Voting History
+                                    {t('history.votingRecords')}
                                 </button>
                             </div>
 
@@ -159,7 +161,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                                         <div className="text-center mb-8">
                                             <h1 className="text-3xl font-cinzel font-bold text-stone-200 mb-2">{selectedRecord.script_name}</h1>
                                             <div className={`inline-block px-4 py-1 rounded border ${selectedRecord.winner === 'GOOD' ? 'border-blue-800 bg-blue-950/50 text-blue-300' : 'border-red-800 bg-red-950/50 text-red-300'}`}>
-                                                {selectedRecord.winner} Victory
+                                                {selectedRecord.winner === 'GOOD' ? t('history.goodWin') : t('history.evilWin')}
                                             </div>
                                             <p className="text-stone-500 mt-2 italic">"{selectedRecord.reason}"</p>
                                         </div>
@@ -167,7 +169,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             {/* Players List */}
                                             <div>
-                                                <h3 className="text-stone-400 font-bold uppercase tracking-widest border-b border-stone-700 pb-2 mb-4 font-cinzel">Dramatis Personae</h3>
+                                                <h3 className="text-stone-400 font-bold uppercase tracking-widest border-b border-stone-700 pb-2 mb-4 font-cinzel">{t('history.playerList')}</h3>
                                                 <div className="space-y-2">
                                                     {selectedRecord.players.map((p, i) => (
                                                         <div key={i} className="flex justify-between items-center p-2 rounded bg-stone-950/50 border border-stone-800">
@@ -177,7 +179,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <span className={`text-xs ${p.team === 'DEMON' ? 'text-red-500' : p.team === 'MINION' ? 'text-orange-500' : 'text-blue-400'}`}>
-                                                                    {p.role ?? 'Unknown'}
+                                                                    {p.role ?? t('history.unknownRole')}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -187,7 +189,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
 
                                             {/* Chat Log */}
                                             <div className="flex flex-col h-[500px]">
-                                                <h3 className="text-stone-400 font-bold uppercase tracking-widest border-b border-stone-700 pb-2 mb-4 font-cinzel">Archives</h3>
+                                                <h3 className="text-stone-400 font-bold uppercase tracking-widest border-b border-stone-700 pb-2 mb-4 font-cinzel">{t('history.chatHistory')}</h3>
                                                 <div className="flex-1 overflow-y-auto bg-stone-950 rounded border border-stone-800 p-4 space-y-3 font-sans text-sm">
                                                     {selectedRecord.messages.map(msg => (
                                                         <div key={msg.id} className={`flex flex-col ${msg.type === 'system' ? 'items-center my-2' : 'items-start'}`}>
@@ -210,7 +212,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                                         <VotingChart voteHistory={selectedVoteHistory} seats={selectedSeats} />
                                     ) : (
                                         <div className="text-center text-stone-500 text-sm italic">
-                                            该记录未包含投票数据。
+                                            {t('history.noVotingData')}
                                         </div>
                                     )
                                 )}
@@ -218,7 +220,7 @@ export const HistoryViewer: React.FC<HistoryViewerProps> = ({ onClose }) => {
                         </div>
                     ) : (
                         <div className="flex-1 flex items-center justify-center text-stone-600 italic">
-                            Select a chronicle to view details.
+                            {t('history.selectToView')}
                         </div>
                     )}
                 </div>

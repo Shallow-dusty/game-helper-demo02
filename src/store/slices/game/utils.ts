@@ -74,6 +74,11 @@ export const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: st
 
     const script = SCRIPTS[gameState.currentScriptId];
 
+    // Bug#9 fix: Warn if script doesn't exist
+    if (!script) {
+        console.warn(`Script "${gameState.currentScriptId}" not found, using fallback townsfolk for special roles`);
+    }
+
     // 收集所有已分配的角色（包括真实角色和假角色），避免重复
     const usedRoles = new Set<string>();
     gameState.seats.forEach(s => {

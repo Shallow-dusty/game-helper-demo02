@@ -64,13 +64,13 @@ describe('VirtualizedSeatList', () => {
   it('should render empty state when no seats provided', () => {
     render(<VirtualizedSeatList seats={[]} />);
 
-    expect(screen.getByText('没有座位')).toBeInTheDocument();
+    expect(screen.getByText('game.virtualizedSeatList.noSeats')).toBeInTheDocument();
   });
 
   it('should render empty state when seats is empty array', () => {
     render(<VirtualizedSeatList seats={[]} onSeatClick={mockOnSeatClick} />);
 
-    expect(screen.getByText('没有座位')).toBeInTheDocument();
+    expect(screen.getByText('game.virtualizedSeatList.noSeats')).toBeInTheDocument();
   });
 
   it('should render the virtualized list with seats', () => {
@@ -99,7 +99,7 @@ describe('VirtualizedSeatList', () => {
   it('should show dead indicator for dead players', () => {
     render(<VirtualizedSeatList seats={defaultSeats} onSeatClick={mockOnSeatClick} />);
 
-    expect(screen.getByText('已死亡')).toBeInTheDocument();
+    expect(screen.getByText('game.virtualizedSeatList.dead')).toBeInTheDocument();
   });
 
   it('should show skull icon for dead players', () => {
@@ -198,15 +198,15 @@ describe('VirtualizedSeatList', () => {
   it('should render list header with column labels', () => {
     render(<VirtualizedSeatList seats={defaultSeats} onSeatClick={mockOnSeatClick} />);
 
-    expect(screen.getByText('座位')).toBeInTheDocument();
-    expect(screen.getByText('玩家')).toBeInTheDocument();
-    expect(screen.getByText('状态')).toBeInTheDocument();
+    expect(screen.getByText('game.virtualizedSeatList.seat')).toBeInTheDocument();
+    expect(screen.getByText('game.virtualizedSeatList.player')).toBeInTheDocument();
+    expect(screen.getByText('game.virtualizedSeatList.status')).toBeInTheDocument();
   });
 
   it('should render list footer with seat count', () => {
     render(<VirtualizedSeatList seats={defaultSeats} onSeatClick={mockOnSeatClick} />);
 
-    expect(screen.getByText(/\/ 3 座位/)).toBeInTheDocument();
+    expect(screen.getByText(/game\.virtualizedSeatList\.showing/)).toBeInTheDocument();
   });
 
   it('should handle seat without role', () => {

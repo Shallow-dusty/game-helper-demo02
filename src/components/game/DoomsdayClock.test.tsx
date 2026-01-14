@@ -100,8 +100,8 @@ describe('DoomsdayClock', () => {
 
     render(<DoomsdayClock />);
 
-    expect(screen.getByText('被提名者')).toBeInTheDocument();
-    expect(screen.getByText('被提名玩家')).toBeInTheDocument();
+    expect(screen.getByText('game.doomsdayClock.nominee')).toBeInTheDocument();
+    expect(screen.getByText(/被提名玩家/)).toBeInTheDocument();
   });
 
   it('显示投票者列表', () => {
@@ -137,7 +137,7 @@ describe('DoomsdayClock', () => {
     render(<DoomsdayClock />);
 
     // 3人存活需要2票，当前2票，应该显示可处决
-    expect(screen.getByText('⚠️ 可处决')).toBeInTheDocument();
+    expect(screen.getByText('game.doomsdayClock.executable')).toBeInTheDocument();
   });
 
   it('正确计算处决所需票数', () => {

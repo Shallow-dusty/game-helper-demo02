@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleDef } from '../../types';
 import { RoleCard } from '../game/RoleCard';
 import { Z_INDEX } from '../../constants';
@@ -12,11 +13,11 @@ interface RoleReferencePanelProps {
 
 // 阵营配置
 const TEAM_CONFIG = {
-    TOWNSFOLK: { label: '🏘️ 镇民 (Townsfolk)', color: 'blue' },
-    OUTSIDER: { label: '🌿 外来者 (Outsider)', color: 'green' },
-    MINION: { label: '👿 爪牙 (Minion)', color: 'orange' },
-    DEMON: { label: '👹 恶魔 (Demon)', color: 'red' },
-    TRAVELER: { label: '🎒 旅行者 (Traveler)', color: 'purple' }
+    TOWNSFOLK: { label: 'controls.roleReference.teamTownsfolk', color: 'blue' },
+    OUTSIDER: { label: 'controls.roleReference.teamOutsider', color: 'green' },
+    MINION: { label: 'controls.roleReference.teamMinion', color: 'orange' },
+    DEMON: { label: 'controls.roleReference.teamDemon', color: 'red' },
+    TRAVELER: { label: 'controls.roleReference.teamTraveler', color: 'purple' }
 } as const;
 
 type TeamType = keyof typeof TEAM_CONFIG;
@@ -27,6 +28,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
     playerRoleId,
     scriptRoles
 }) => {
+    const { t } = useTranslation();
     const [descriptionMode, setDescriptionMode] = useState<'simple' | 'detailed'>('simple');
     const [activeTab, setActiveTab] = useState<'roles' | 'rules'>('roles');
     const [searchQuery, setSearchQuery] = useState('');
@@ -117,7 +119,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                     onClick={() => toggleTeamCollapse(team)}
                     className={`w-full flex items-center justify-between text-xl font-bold ${colorClass.header} mb-3 font-cinzel border-b pb-2 ${colorClass.bg} px-2 py-1 rounded-t transition-colors`}
                 >
-                    <span>{config.label} ({roles.length})</span>
+                    <span>{t(config.label)} ({roles.length})</span>
                     <span className="text-sm transition-transform duration-200" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
                         ▼
                     </span>
@@ -133,7 +135,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                             {/* 搜索匹配高亮标记 */}
                             {isRoleMatched(role) && role.id !== playerRoleId && (
                                 <div className="absolute -top-2 -right-2 z-10 bg-amber-500 text-black text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                                    匹配
+                                    {t('controls.roleReference.matched')}
                                 </div>
                             )}
                             <RoleCard
@@ -164,7 +166,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                             <span className="text-2xl">📖</span>
                         </div>
                         <h2 className="text-xl md:text-2xl font-bold text-amber-100 font-cinzel tracking-wider drop-shadow-md">
-                            规则手册 <span className="text-amber-600 text-lg">Grimoire</span>
+                            {t('controls.roleReference.title')}
                         </h2>
                         {activeTab === 'roles' && (
                             <button
@@ -172,7 +174,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                                 className="ml-2 px-3 py-1 text-xs bg-stone-800/50 hover:bg-stone-700/50 text-amber-200/80 hover:text-amber-100 rounded-full border border-stone-700 transition-all flex items-center gap-2 group"
                             >
                                 <span className="group-hover:scale-110 transition-transform">{descriptionMode === 'simple' ? '🔍' : '📝'}</span>
-                                <span className="hidden md:inline">{descriptionMode === 'simple' ? '显示详细' : '显示简略'}</span>
+                                <span className="hidden md:inline">{descriptionMode === 'simple' ? t('controls.roleReference.showDetailed') : t('controls.roleReference.showSimple')}</span>
                             </button>
                         )}
                     </div>
@@ -193,7 +195,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                             : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/20'
                             }`}
                     >
-                        <span className="relative z-10 group-hover:scale-110 inline-block transition-transform duration-300">🎭 角色能力</span>
+                        <span className="relative z-10 group-hover:scale-110 inline-block transition-transform duration-300">🎭 {t('controls.roleReference.rolesTab')}</span>
                         {activeTab === 'roles' && <div className="absolute inset-0 bg-amber-500/5 animate-pulse-glow" />}
                     </button>
                     <button
@@ -203,7 +205,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                             : 'border-transparent text-stone-500 hover:text-stone-300 hover:bg-stone-900/20'
                             }`}
                     >
-                        <span className="relative z-10 group-hover:scale-110 inline-block transition-transform duration-300">📜 游戏规则</span>
+                        <span className="relative z-10 group-hover:scale-110 inline-block transition-transform duration-300">📜 {t('controls.roleReference.rulesTab')}</span>
                         {activeTab === 'rules' && <div className="absolute inset-0 bg-amber-500/5 animate-pulse-glow" />}
                     </button>
                 </div>
@@ -217,7 +219,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="搜索角色名或技能关键字..."
+                                placeholder={t('controls.roleReference.searchPlaceholder')}
                                 className="w-full px-4 py-2.5 pl-10 bg-black/40 border border-stone-700 rounded-lg text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-600/50 focus:ring-1 focus:ring-amber-600/50 text-sm transition-all group-hover:border-stone-600"
                             />
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 group-focus-within:text-amber-500 transition-colors">🔍</span>
@@ -234,7 +236,7 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                         {/* 搜索结果计数 */}
                         {searchQuery && (
                             <span className="text-xs text-stone-500 whitespace-nowrap px-2">
-                                找到 <span className="text-amber-400 font-bold">{totalMatchedCount}</span> 个角色
+                                {t('controls.roleReference.foundCount', { count: totalMatchedCount })}
                             </span>
                         )}
 
@@ -244,13 +246,13 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                                 onClick={() => toggleAllTeams(true)}
                                 className="px-3 py-2 text-xs bg-stone-800/50 hover:bg-stone-700/50 text-stone-300 rounded border border-stone-700 hover:border-stone-500 transition-all whitespace-nowrap"
                             >
-                                📁 全部折叠
+                                📁 {t('controls.roleReference.collapseAll')}
                             </button>
                             <button
                                 onClick={() => toggleAllTeams(false)}
                                 className="px-3 py-2 text-xs bg-stone-800/50 hover:bg-stone-700/50 text-stone-300 rounded border border-stone-700 hover:border-stone-500 transition-all whitespace-nowrap"
                             >
-                                📂 全部展开
+                                📂 {t('controls.roleReference.expandAll')}
                             </button>
                         </div>
                     </div>
@@ -277,8 +279,8 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                             {searchQuery && totalMatchedCount === 0 && (
                                 <div className="text-center py-12 text-stone-500">
                                     <span className="text-4xl mb-4 block">🔍</span>
-                                    <p>没有找到匹配 "<span className="text-amber-400">{searchQuery}</span>" 的角色</p>
-                                    <p className="text-xs mt-2">尝试搜索角色名称或技能关键字</p>
+                                    <p>{t('controls.roleReference.noMatch', { query: searchQuery })}</p>
+                                    <p className="text-xs mt-2">{t('controls.roleReference.tryKeywords')}</p>
                                 </div>
                             )}
 

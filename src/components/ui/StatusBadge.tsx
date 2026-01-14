@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import { useTranslation } from "react-i18next"
 import { cn } from "../../lib/utils"
 
 /**
@@ -109,22 +110,25 @@ const statusIcons: Record<string, string> = {
     success: "✓"
 }
 
-// 状态中文名映射
-const statusLabels: Record<string, string> = {
-    alive: "存活",
-    dead: "死亡",
-    poisoned: "中毒",
-    protected: "受保护",
-    nominated: "被提名",
-    drunk: "醉酒",
-    marked: "待处决",
-    good: "善良",
-    evil: "邪恶",
-    neutral: "中立",
-    info: "提示",
-    warning: "警告",
-    success: "成功"
-}
+// 使用 hook 获取状态标签
+const useStatusLabels = () => {
+    const { t } = useTranslation();
+    return {
+        alive: t('ui.statusBadge.alive'),
+        dead: t('ui.statusBadge.dead'),
+        poisoned: t('ui.statusBadge.poisoned'),
+        protected: t('ui.statusBadge.protected'),
+        nominated: t('ui.statusBadge.nominated'),
+        drunk: t('ui.statusBadge.drunk'),
+        marked: t('ui.statusBadge.marked'),
+        good: t('ui.statusBadge.good'),
+        evil: t('ui.statusBadge.evil'),
+        neutral: t('ui.statusBadge.neutral'),
+        info: t('ui.statusBadge.info'),
+        warning: t('ui.statusBadge.warning'),
+        success: t('ui.statusBadge.success')
+    };
+};
 
 export interface StatusBadgeProps
     extends React.HTMLAttributes<HTMLSpanElement>,
@@ -153,6 +157,7 @@ const StatusBadge = React.forwardRef<HTMLSpanElement, StatusBadgeProps>(
         children,
         ...props
     }, ref) => {
+        const statusLabels = useStatusLabels();
         const statusKey = status || "neutral"
         const displayIcon = icon || (showIcon ? statusIcons[statusKey] : null)
         const displayLabel = label || statusLabels[statusKey]
@@ -171,4 +176,4 @@ const StatusBadge = React.forwardRef<HTMLSpanElement, StatusBadgeProps>(
 )
 StatusBadge.displayName = "StatusBadge"
 
-export { StatusBadge, statusBadgeVariants, statusIcons, statusLabels }
+export { StatusBadge, statusBadgeVariants, statusIcons, useStatusLabels }

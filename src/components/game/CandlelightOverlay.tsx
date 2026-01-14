@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, FlameKindling } from 'lucide-react';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
+import { useTranslation } from 'react-i18next';
 
 interface DeadSeatPosition {
   id: number;
@@ -225,18 +226,20 @@ interface CandlelightToggleProps {
 }
 
 export const CandlelightToggle: React.FC<CandlelightToggleProps> = ({ enabled, onToggle }) => {
+  const { t } = useTranslation();
+
   return (
     <button
       onClick={onToggle}
       className={`
         flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300
-        ${enabled 
-          ? 'bg-amber-900/50 border border-amber-600/50 text-amber-400' 
+        ${enabled
+          ? 'bg-amber-900/50 border border-amber-600/50 text-amber-400'
           : 'bg-stone-900/50 border border-stone-700/50 text-stone-500'
         }
         hover:border-amber-500/50 hover:text-amber-300
       `}
-      title={enabled ? '关闭挂机防窥模式' : '开启挂机防窥模式'}
+      title={enabled ? t('game.candlelight.disable') : t('game.candlelight.enable')}
     >
       {enabled ? (
         <Flame className="w-4 h-4" />
@@ -244,7 +247,7 @@ export const CandlelightToggle: React.FC<CandlelightToggleProps> = ({ enabled, o
         <FlameKindling className="w-4 h-4" />
       )}
       <span className="text-xs font-cinzel">
-        {enabled ? '🕯️ 防窥开启' : '🕯️ 挂机防窥'}
+        {enabled ? t('game.candlelight.enabled') : t('game.candlelight.disabled')}
       </span>
     </button>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface LoadingFallbackProps {
   message?: string;
@@ -11,10 +12,12 @@ interface LoadingFallbackProps {
  * 用于 React.lazy 的 Suspense fallback
  */
 export const LoadingFallback: React.FC<LoadingFallbackProps> = ({
-  message = '加载中...',
+  message,
   size = 'md',
   fullScreen = false,
 }) => {
+  const { t } = useTranslation();
+  const defaultMessage = message || t('ui.loading.default');
   const sizeClasses = {
     sm: 'w-6 h-6 border-2',
     md: 'w-10 h-10 border-3',
@@ -33,7 +36,7 @@ export const LoadingFallback: React.FC<LoadingFallbackProps> = ({
         className={`${sizeClasses[size]} border-stone-700 border-t-amber-500 rounded-full animate-spin`}
       />
       <span className={`${textSizes[size]} text-stone-400 font-cinzel`}>
-        {message}
+        {defaultMessage}
       </span>
     </div>
   );
@@ -63,35 +66,44 @@ export const SkeletonLoader: React.FC<{ className?: string }> = ({ className = '
 /**
  * 游戏视图加载占位
  */
-export const GrimoireLoadingFallback: React.FC = () => (
-  <div className="flex-1 flex flex-col items-center justify-center gap-4 text-stone-500 bg-stone-950">
-    <div className="w-12 h-12 border-4 border-stone-700 border-t-amber-500 rounded-full animate-spin" />
-    <span className="text-sm font-cinzel">正在加载魔典...</span>
-  </div>
-);
+export const GrimoireLoadingFallback: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center gap-4 text-stone-500 bg-stone-950">
+      <div className="w-12 h-12 border-4 border-stone-700 border-t-amber-500 rounded-full animate-spin" />
+      <span className="text-sm font-cinzel">{t('ui.loading.loadingGrimoire')}</span>
+    </div>
+  );
+};
 
 /**
  * 控制面板加载占位
  */
-export const ControlsLoadingFallback: React.FC = () => (
-  <div className="w-80 bg-stone-900 h-full flex items-center justify-center">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-8 h-8 border-3 border-stone-700 border-t-amber-500 rounded-full animate-spin" />
-      <span className="text-xs text-stone-500">加载控制面板...</span>
+export const ControlsLoadingFallback: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="w-80 bg-stone-900 h-full flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-3 border-stone-700 border-t-amber-500 rounded-full animate-spin" />
+        <span className="text-xs text-stone-500">{t('ui.loading.loadingControls')}</span>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 /**
  * 模态框加载占位
  */
-export const ModalLoadingFallback: React.FC = () => (
-  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div className="bg-stone-900 rounded-xl p-8 flex flex-col items-center gap-4">
-      <div className="w-10 h-10 border-3 border-stone-700 border-t-amber-500 rounded-full animate-spin" />
-      <span className="text-sm text-stone-400">加载中...</span>
+export const ModalLoadingFallback: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div className="bg-stone-900 rounded-xl p-8 flex flex-col items-center gap-4">
+        <div className="w-10 h-10 border-3 border-stone-700 border-t-amber-500 rounded-full animate-spin" />
+        <span className="text-sm text-stone-400">{t('ui.loading.default')}</span>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default LoadingFallback;

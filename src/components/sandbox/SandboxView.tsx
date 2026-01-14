@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSandboxStore } from '../../sandboxStore';
 import { ToastContainer, useToasts } from '../ui/Toast';
 import { RoleReferencePanel } from '../controls/RoleReferencePanel';
@@ -10,6 +11,7 @@ import { RoleDef } from '../../types';
  * 使用沙盒 store，完全离线运行
  */
 export const SandboxView: React.FC = () => {
+  const { t } = useTranslation();
   const gameState = useSandboxStore(state => state.gameState);
   const exitSandbox = useSandboxStore(state => state.exitSandbox);
   
@@ -77,7 +79,7 @@ export const SandboxView: React.FC = () => {
   if (!gameState) {
     return (
       <div className="flex items-center justify-center h-screen bg-stone-950 text-stone-400">
-        <p>沙盒模式未初始化</p>
+        <p>{t('sandbox.title')}</p>
       </div>
     );
   }
@@ -108,14 +110,14 @@ export const SandboxView: React.FC = () => {
       <div className="bg-emerald-900/80 border-b border-emerald-700 px-4 py-2 flex items-center justify-between z-50">
         <div className="flex items-center gap-3">
           <span className="text-xl">🧪</span>
-          <span className="text-emerald-200 font-bold font-cinzel">沙盒模式</span>
-          <span className="text-emerald-400/70 text-sm hidden sm:inline">本地练习 • 数据不保存</span>
+          <span className="text-emerald-200 font-bold font-cinzel">{t('sandbox.title')}</span>
+          <span className="text-emerald-400/70 text-sm hidden sm:inline">{t('sandbox.localPractice')}</span>
         </div>
         <button
           onClick={exitSandbox}
           className="px-3 py-1 bg-emerald-800 hover:bg-emerald-700 text-emerald-200 text-sm rounded border border-emerald-600 transition-colors"
         >
-          退出沙盒
+          {t('sandbox.exitSandbox')}
         </button>
       </div>
 
@@ -143,13 +145,13 @@ export const SandboxView: React.FC = () => {
           ) : (
             <div className="flex flex-col items-center justify-center gap-4 text-stone-500">
               <div className="w-12 h-12 border-4 border-stone-700 border-t-emerald-500 rounded-full animate-spin"></div>
-              <span className="text-sm font-cinzel">正在加载沙盒...</span>
+              <span className="text-sm font-cinzel">{t('sandbox.loading')}</span>
             </div>
           )}
 
           {/* Helper Text */}
           <div className="absolute bottom-6 left-6 z-0 text-stone-500 text-xs select-none pointer-events-none font-cinzel opacity-60">
-            沙盒模式 • 右键管理座位 • 滚轮缩放
+            {t('sandbox.helpText')}
           </div>
         </div>
 
@@ -199,7 +201,7 @@ export const SandboxView: React.FC = () => {
         onClick={() => setIsRolePanelOpen(true)}
         className="fixed bottom-20 md:bottom-6 left-4 md:left-6 z-30 bg-emerald-900 hover:bg-emerald-800 text-emerald-200 p-3 md:p-4 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95"
         style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
-        title="查看规则手册"
+        title={t('controls.roleReference.title')}
       >
         <span className="text-xl md:text-2xl">📖</span>
       </button>
@@ -211,17 +213,18 @@ export const SandboxView: React.FC = () => {
  * 沙盒模式的 Phase Indicator
  */
 const SandboxPhaseIndicator: React.FC = () => {
+  const { t } = useTranslation();
   const gameState = useSandboxStore(state => state.gameState);
   const setPhase = useSandboxStore(state => state.setPhase);
-  
+
   if (!gameState) return null;
 
   const PHASE_LABELS: Record<string, string> = {
-    'SETUP': '🔧 准备阶段',
-    'DAY': '☀️ 白天',
-    'NOMINATION': '🗳️ 提名阶段',
-    'NIGHT': '🌙 夜晚',
-    'FINAL_DAY': '⚔️ 决战日'
+    'SETUP': `🔧 ${t('sandbox.phaseSetup')}`,
+    'DAY': `☀️ ${t('sandbox.phaseDay')}`,
+    'NOMINATION': `🗳️ ${t('sandbox.phaseNomination')}`,
+    'NIGHT': `🌙 ${t('sandbox.phaseNight')}`,
+    'FINAL_DAY': `⚔️ ${t('phase.finalDay')}`
   };
 
   const phaseColors: Record<string, string> = {
@@ -245,14 +248,14 @@ const SandboxPhaseIndicator: React.FC = () => {
             key={phase}
             onClick={() => setPhase(phase)}
             className={`px-2 py-0.5 text-xs rounded transition-colors ${
-              gameState.phase === phase 
-                ? 'bg-white/20 font-bold' 
+              gameState.phase === phase
+                ? 'bg-white/20 font-bold'
                 : 'bg-white/5 hover:bg-white/10'
             }`}
           >
-            {phase === 'SETUP' ? '准备' : 
-             phase === 'DAY' ? '白天' : 
-             phase === 'NOMINATION' ? '提名' : '夜晚'}
+            {phase === 'SETUP' ? t('sandbox.phaseSetup') :
+             phase === 'DAY' ? t('sandbox.phaseDay') :
+             phase === 'NOMINATION' ? t('sandbox.phaseNomination') : t('sandbox.phaseNight')}
           </button>
         ))}
       </div>
@@ -265,6 +268,7 @@ const SandboxPhaseIndicator: React.FC = () => {
  * 复用主 Grimoire 组件但使用沙盒 store 数据
  */
 const SandboxGrimoire: React.FC<{ width: number; height: number }> = ({ width, height }) => {
+  const { t } = useTranslation();
   const gameState = useSandboxStore(state => state.gameState);
   const toggleDead = useSandboxStore(state => state.toggleDead);
   
@@ -298,7 +302,7 @@ const SandboxGrimoire: React.FC<{ width: number; height: number }> = ({ width, h
                   top: `calc(50% + ${String(y)}px)`
                 }}
                 onClick={() => toggleDead(seat.id)}
-                title={`${seat.userName}${seat.roleId ? ` - ${ROLES[seat.roleId]?.name ?? seat.roleId}` : ''}\n点击切换死亡状态`}
+                title={`${seat.userName}${seat.roleId ? ` - ${ROLES[seat.roleId]?.name ?? seat.roleId}` : ''}\n${t('sandbox.clickToToggleDeath')}`}
               >
                 <span className="text-stone-300 font-bold text-xs">{index + 1}</span>
                 {seat.roleId && ROLES[seat.roleId] && (
@@ -317,8 +321,8 @@ const SandboxGrimoire: React.FC<{ width: number; height: number }> = ({ width, h
           {/* Center info */}
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
             <div className="bg-stone-800/90 rounded-lg px-4 py-2 border border-stone-600">
-              <p className="text-stone-400 text-sm">沙盒 • {gameState.seats.length} 人</p>
-              <p className="text-stone-500 text-xs mt-1">点击座位切换死亡状态</p>
+              <p className="text-stone-400 text-sm">{t('sandbox.title')} • {gameState.seats.length} {t('phase.playerCount')}</p>
+              <p className="text-stone-500 text-xs mt-1">{t('sandbox.clickToToggleDeath')}</p>
             </div>
           </div>
         </div>
@@ -332,6 +336,7 @@ const SandboxGrimoire: React.FC<{ width: number; height: number }> = ({ width, h
  * 复用部分主 Controls 逻辑但连接到沙盒 store
  */
 const SandboxControls: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { t } = useTranslation();
   const gameState = useSandboxStore(state => state.gameState);
   const setScript = useSandboxStore(state => state.setScript);
   const assignRole = useSandboxStore(state => state.assignRole);
@@ -339,7 +344,7 @@ const SandboxControls: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const assignRoles = useSandboxStore(state => state.assignRoles);
   const setPhase = useSandboxStore(state => state.setPhase);
   const exitSandbox = useSandboxStore(state => state.exitSandbox);
-  
+
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
   
   if (!gameState) return null;
@@ -351,7 +356,7 @@ const SandboxControls: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     <div className="h-full flex flex-col bg-stone-950 border-l border-stone-800">
       {/* Header */}
       <div className="p-4 border-b border-stone-800 flex items-center justify-between">
-        <h2 className="text-stone-200 font-cinzel font-bold">🧪 沙盒控制台</h2>
+        <h2 className="text-stone-200 font-cinzel font-bold">🧪 {t('sandbox.controlPanel')}</h2>
         <button
           onClick={onClose}
           className="md:hidden text-stone-500 hover:text-stone-300 text-xl"
@@ -362,10 +367,10 @@ const SandboxControls: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        
+
         {/* Script Selection */}
         <div className="bg-stone-900/50 rounded-lg p-3 border border-stone-800">
-          <h3 className="text-stone-400 text-sm font-bold mb-2">📜 剧本选择</h3>
+          <h3 className="text-stone-400 text-sm font-bold mb-2">📜 {t('sandbox.scriptSelection')}</h3>
           <select
             value={gameState.currentScriptId}
             onChange={(e) => setScript(e.target.value)}
@@ -379,39 +384,39 @@ const SandboxControls: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
         {/* Quick Actions */}
         <div className="bg-stone-900/50 rounded-lg p-3 border border-stone-800">
-          <h3 className="text-stone-400 text-sm font-bold mb-2">⚡ 快捷操作</h3>
+          <h3 className="text-stone-400 text-sm font-bold mb-2">⚡ {t('sandbox.quickActions')}</h3>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={assignRoles}
               className="px-3 py-2 bg-emerald-800 hover:bg-emerald-700 text-emerald-200 rounded text-sm font-bold transition-colors"
             >
-              🎲 随机分配
+              🎲 {t('sandbox.randomAssign')}
             </button>
             <button
               onClick={() => setPhase('NIGHT')}
               className="px-3 py-2 bg-indigo-800 hover:bg-indigo-700 text-indigo-200 rounded text-sm font-bold transition-colors"
             >
-              🌙 进入夜晚
+              🌙 {t('sandbox.enterNight')}
             </button>
             <button
               onClick={() => setPhase('DAY')}
               className="px-3 py-2 bg-amber-800 hover:bg-amber-700 text-amber-200 rounded text-sm font-bold transition-colors"
             >
-              ☀️ 进入白天
+              ☀️ {t('sandbox.enterDay')}
             </button>
             <button
               onClick={resetGame}
               className="px-3 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded text-sm font-bold transition-colors"
             >
-              🔄 重置游戏
+              🔄 {t('sandbox.resetGame')}
             </button>
           </div>
         </div>
 
         {/* Role Assignment */}
         <div className="bg-stone-900/50 rounded-lg p-3 border border-stone-800">
-          <h3 className="text-stone-400 text-sm font-bold mb-2">🎭 角色分配</h3>
-          <p className="text-stone-500 text-xs mb-2">选择角色，然后点击座位分配</p>
+          <h3 className="text-stone-400 text-sm font-bold mb-2">🎭 {t('sandbox.roleAssignment')}</h3>
+          <p className="text-stone-500 text-xs mb-2">{t('sandbox.selectRole')}</p>
           <div className="grid grid-cols-4 gap-1 max-h-40 overflow-y-auto">
             {scriptRoles.map(role => (
               <button
@@ -430,14 +435,14 @@ const SandboxControls: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           </div>
           {selectedRoleId && (
             <p className="mt-2 text-emerald-400 text-xs">
-              已选择: {ROLES[selectedRoleId]?.name} - 点击座位分配
+              {t('sandbox.selected')}: {ROLES[selectedRoleId]?.name} - {t('sandbox.clickToAssign')}
             </p>
           )}
         </div>
 
         {/* Seats Overview */}
         <div className="bg-stone-900/50 rounded-lg p-3 border border-stone-800">
-          <h3 className="text-stone-400 text-sm font-bold mb-2">💺 座位概览</h3>
+          <h3 className="text-stone-400 text-sm font-bold mb-2">💺 {t('sandbox.seatsOverview')}</h3>
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {gameState.seats.map((seat, idx) => {
               const role = seat.roleId ? ROLES[seat.roleId] : null;
@@ -460,7 +465,7 @@ const SandboxControls: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         assignRole(seat.id, selectedRoleId);
                       }}
                       className="ml-1 px-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs"
-                      title="分配角色"
+                      title={t('sandbox.assignRole')}
                     >
                       ✓
                     </button>
@@ -480,7 +485,7 @@ const SandboxControls: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           onClick={exitSandbox}
           className="w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-400 rounded text-sm font-bold transition-colors"
         >
-          退出沙盒模式
+          {t('sandbox.exitSandboxMode')}
         </button>
       </div>
     </div>

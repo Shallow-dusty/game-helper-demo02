@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { ROLES, Z_INDEX } from '../../constants';
 
@@ -8,6 +9,7 @@ interface PlayerNightActionProps {
 }
 
 export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, onComplete }) => {
+    const { t } = useTranslation();
     const gameState = useStore(state => state.gameState);
     const submitNightAction = useStore(state => state.submitNightAction);
 
@@ -77,12 +79,12 @@ export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, on
                     <span className="text-3xl md:text-4xl animate-pulse">{role.icon || '🌙'}</span>
                     <div className="flex-1">
                         <h3 className="text-xl md:text-2xl font-bold text-indigo-300 font-cinzel">{role.name}</h3>
-                        <p className="text-[10px] md:text-xs text-indigo-400 uppercase tracking-widest">你的回合 (Your Turn)</p>
+                        <p className="text-[10px] md:text-xs text-indigo-400 uppercase tracking-widest">{t('nightAction.player.yourTurn')}</p>
                     </div>
                     <button
                         onClick={onComplete}
                         className="p-2 text-stone-500 hover:text-stone-300 transition-colors"
-                        aria-label="关闭"
+                        aria-label={t('nightAction.player.close')}
                     >
                         ✕
                     </button>
@@ -112,10 +114,10 @@ export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, on
                                 >
                                     <div className="flex flex-col">
                                         <span className="font-bold group-hover:text-stone-200 transition-colors">{seat.userName}</span>
-                                        <span className="text-[10px] opacity-60">座位 {seat.id + 1}</span>
+                                        <span className="text-[10px] opacity-60">{t('nightAction.panel.seat')} {seat.id + 1}</span>
                                     </div>
                                     {isSelected && <span className="text-indigo-400 text-xl">✓</span>}
-                                    {seat.isDead && <span className="text-xs text-red-900 bg-red-950/30 px-1 rounded border border-red-900/50">已死亡</span>}
+                                    {seat.isDead && <span className="text-xs text-red-900 bg-red-950/30 px-1 rounded border border-red-900/50">{t('nightAction.panel.dead')}</span>}
                                 </button>
                             );
                         })}
@@ -148,14 +150,14 @@ export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, on
                             disabled={!canSubmit}
                             className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-stone-800 disabled:text-stone-600 text-white font-bold py-3 rounded transition-all shadow-lg disabled:shadow-none text-base md:text-lg"
                         >
-                            确认提交
+                            {t('nightAction.panel.confirmSubmit')}
                         </button>
                     )}
                     <button
                         onClick={onComplete}
                         className="px-4 py-3 bg-transparent hover:bg-stone-800 text-stone-500 hover:text-stone-300 rounded transition-all text-sm"
                     >
-                        跳过
+                        {t('nightAction.skip')}
                     </button>
                 </div>
             </div>

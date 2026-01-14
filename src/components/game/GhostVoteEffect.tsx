@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Ghost } from 'lucide-react';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
@@ -44,6 +45,7 @@ export const GhostVoteEffect: React.FC<GhostVoteEffectProps> = ({
   targetPosition,
   onComplete
 }) => {
+  const { t } = useTranslation();
   const [isActive, setIsActive] = useState(false);
   const [lastVoteKey, setLastVoteKey] = useState<string | null>(null);
   const { playSound } = useSoundEffect();
@@ -349,7 +351,7 @@ export const GhostVoteEffect: React.FC<GhostVoteEffectProps> = ({
                 👻 {voterName}
               </p>
               <p className="text-xs text-purple-400/60 mt-0.5">
-                最后的投票
+                {t('game.ghostVote.lastVote')}
               </p>
             </motion.div>
           )}

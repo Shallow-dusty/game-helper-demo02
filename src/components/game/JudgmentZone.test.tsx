@@ -68,17 +68,17 @@ describe('JudgmentZone', () => {
     vi.clearAllMocks();
   });
 
-  it('没有投票历史时正常渲染', () => {
+  it('没有投票历史时正常渲染 | renders normally without vote history', () => {
     const { container } = render(<JudgmentZone />);
     expect(container.firstChild).toBeTruthy();
   });
 
-  it('使用自定义尺寸渲染', () => {
+  it('使用自定义尺寸渲染 | renders with custom dimensions', () => {
     const { container } = render(<JudgmentZone width={400} height={400} />);
     expect(container.firstChild).toBeTruthy();
   });
 
-  it('有投票历史时正常渲染', () => {
+  it('有投票历史时正常渲染 | renders normally with vote history', () => {
     mockStoreState = {
       gameState: {
         voteHistory: [

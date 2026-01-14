@@ -69,7 +69,7 @@ describe('SwapRequestModal', () => {
     });
 
     render(<SwapRequestModal />);
-    expect(screen.getByText('换座申请')).toBeInTheDocument();
+    expect(screen.getByText('game.swapRequestModal.title')).toBeInTheDocument();
     expect(screen.getByText('Alice')).toBeInTheDocument();
   });
 
@@ -94,7 +94,7 @@ describe('SwapRequestModal', () => {
     });
 
     render(<SwapRequestModal />);
-    fireEvent.click(screen.getByText(/拒绝/));
+    fireEvent.click(screen.getByText('game.swapRequestModal.reject', { exact: false }));
     expect(mockRespondToSwapRequest).toHaveBeenCalledWith('req1', false);
   });
 
@@ -119,7 +119,7 @@ describe('SwapRequestModal', () => {
     });
 
     render(<SwapRequestModal />);
-    fireEvent.click(screen.getByText(/同意换座/));
+    fireEvent.click(screen.getByText('game.swapRequestModal.accept', { exact: false }));
     expect(mockRespondToSwapRequest).toHaveBeenCalledWith('req1', true);
   });
 });

@@ -36,15 +36,22 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                     seat.isDead = !seat.isDead;
                     if (seat.isDead) {
                          addSystemMessage(state.gameState, `${seat.userName} 死亡了`);
-                         
-                         const demon = state.gameState.seats.find(s => s.realRoleId === 'imp');
-                         if (demon?.isDead) {
+
+                         // Bug#3 fix: Check if the dying seat is a demon (not just 'imp')
+                         const dyingSeatRole = seat.realRoleId ? ROLES[seat.realRoleId] : null;
+                         const isDemon = dyingSeatRole?.team === 'DEMON';
+
+                         if (isDemon) {
                              const scarletWoman = state.gameState.seats.find(s => s.realRoleId === 'scarlet_woman' && !s.isDead);
                              if (scarletWoman) {
-                                 scarletWoman.realRoleId = 'imp';
-                                 scarletWoman.seenRoleId = 'imp';
+                                 // Inherit the demon's role
+                                 const demonRoleId = seat.realRoleId!;
+                                 scarletWoman.realRoleId = demonRoleId;
+                                 scarletWoman.seenRoleId = demonRoleId;
                                  // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility
-                                 scarletWoman.roleId = 'imp';
+                                 scarletWoman.roleId = demonRoleId;
+                                 // Reset ability status for inherited role
+                                 scarletWoman.hasUsedAbility = false;
                                  addSystemMessage(state.gameState, `${scarletWoman.userName} 继承了 恶魔 身份`, scarletWoman.userId);
                              }
                          }

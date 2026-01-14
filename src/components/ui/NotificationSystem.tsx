@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 
 export const NotificationSystem = () => {
+    const { t } = useTranslation();
     const gameState = useStore(state => state.gameState);
     const user = useStore(state => state.user);
     const [toast, setToast] = useState<{ message: string, type: 'info' | 'dead' | 'ability' } | null>(null);
@@ -32,11 +34,11 @@ export const NotificationSystem = () => {
     useEffect(() => {
         if (!currentSeat) return;
         if (currentSeat.isDead && !wasDead) {
-            setToast({ message: "你已出局", type: 'dead' });
+            setToast({ message: t('notification.dead'), type: 'dead' });
             setTimeout(() => setToast(null), 5000);
         }
         setWasDead(currentSeat.isDead);
-    }, [currentSeat?.isDead, wasDead]);
+    }, [currentSeat?.isDead, wasDead, t]);
 
     // Listen for ability usage
     const [hasUsedAbility, setHasUsedAbility] = useState(currentSeat?.hasUsedAbility || false);
@@ -44,11 +46,11 @@ export const NotificationSystem = () => {
     useEffect(() => {
         if (!currentSeat) return;
         if (currentSeat.hasUsedAbility && !hasUsedAbility) {
-            setToast({ message: "技能已使用", type: 'ability' });
+            setToast({ message: t('notification.abilityUsed'), type: 'ability' });
             setTimeout(() => setToast(null), 3000);
         }
         setHasUsedAbility(currentSeat.hasUsedAbility);
-    }, [currentSeat?.hasUsedAbility, hasUsedAbility]);
+    }, [currentSeat?.hasUsedAbility, hasUsedAbility, t]);
 
     if (!toast) return null;
 

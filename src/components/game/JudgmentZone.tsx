@@ -1,8 +1,9 @@
- 
+
 import React, { useEffect, useRef, useMemo } from 'react';
 import Matter from 'matter-js';
 import { useStore } from '../../store';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
+import { useTranslation } from 'react-i18next';
 
 interface JudgmentZoneProps {
     width?: number;
@@ -160,6 +161,7 @@ const ClockFace: React.FC<{
 };
 
 export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height = 300 }) => {
+    const { t } = useTranslation();
     const sceneRef = useRef<HTMLDivElement>(null);
     const engineRef = useRef<Matter.Engine | null>(null);
     const renderRef = useRef<Matter.Render | null>(null);
@@ -355,20 +357,20 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
             
             {/* 标题 */}
             <div className="absolute top-6 left-0 right-0 text-center pointer-events-none" style={{ zIndex: 2 }}>
-                <div className="text-xs text-[#78716c] font-cinzel tracking-[0.3em] uppercase opacity-80">Judgment Zone</div>
-                <div className="text-lg text-[#d6d3d1] font-cinzel font-bold tracking-widest drop-shadow-md mt-1">审判区域</div>
+                <div className="text-xs text-[#78716c] font-cinzel tracking-[0.3em] uppercase opacity-80">{t('game.doomsdayClock.subtitle')}</div>
+                <div className="text-lg text-[#d6d3d1] font-cinzel font-bold tracking-widest drop-shadow-md mt-1">{t('game.doomsdayClock.title')}</div>
             </div>
             
             {/* 投票计数器 */}
-            <div 
+            <div
                 className={`absolute bottom-8 left-0 right-0 mx-auto w-fit text-sm font-cinzel font-bold pointer-events-none px-4 py-1.5 rounded-full border transition-all duration-300 ${
-                    isOverHalf 
-                        ? 'text-red-200 bg-red-950/80 border-red-800 shadow-[0_0_15px_rgba(220,38,38,0.4)]' 
+                    isOverHalf
+                        ? 'text-red-200 bg-red-950/80 border-red-800 shadow-[0_0_15px_rgba(220,38,38,0.4)]'
                         : 'text-[#d4af37] bg-[#292524]/80 border-[#57534e] shadow-lg'
                 }`}
                 style={{ zIndex: 2 }}
             >
-                {currentVotes.length} 票
+                {t('game.doomsdayClock.voteCount', { count: currentVotes.length })}
             </div>
         </div>
     );

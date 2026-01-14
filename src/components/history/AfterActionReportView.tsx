@@ -6,6 +6,7 @@ import { TEAM_COLORS } from '../../constants';
 import { Button } from '../ui/button';
 import { X, Download, Trophy, Skull, Clock, Users, Vote, Copy, Check, Camera } from 'lucide-react';
 import { showSuccess, showError } from '../ui/Toast';
+import { useTranslation } from 'react-i18next';
 
 interface AfterActionReportViewProps {
   isOpen: boolean;
@@ -22,12 +23,13 @@ interface AfterActionReportViewProps {
  * - 分享功能
  */
 export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const gameState = useStore(state => state.gameState);
   const [activeTab, setActiveTab] = useState<'summary' | 'timeline' | 'players'>('summary');
   const [copied, setCopied] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
-  
+
   // 生成战报
   const report = useMemo(() => {
     if (!gameState) return null;
@@ -40,11 +42,11 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
     const text = formatReportAsText(report);
     void navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
-      showSuccess('战报已复制到剪贴板');
+      showSuccess(t('history.afterAction.copied'));
       setTimeout(() => setCopied(false), 2000);
     });
   };
-  
+
   const handleDownload = () => {
     const text = formatReportAsText(report);
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
@@ -54,7 +56,7 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
     a.download = `grimoire-report-${report.gameId}-${String(Date.now())}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    showSuccess('战报已下载');
+    showSuccess(t('history.afterAction.downloaded'));
   };
   
   // 截图导出功能
@@ -85,11 +87,11 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
       link.download = `grimoire-report-${report.gameId}-${String(Date.now())}.png`;
       link.href = dataUrl;
       link.click();
-      
-      showSuccess('战报图片已保存');
+
+      showSuccess(t('history.afterAction.imageSaved'));
     } catch (error) {
       console.error('Failed to capture screenshot:', error);
-      showError('截图失败，请重试');
+      showError(t('history.afterAction.screenshotFailed'));
     } finally {
       setIsCapturing(false);
     }
@@ -121,23 +123,23 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
                 {report.winner === 'GOOD' ? <Trophy className="w-5 h-5 text-amber-400" /> : <Skull className="w-5 h-5 text-red-400" />}
               </div>
               <div>
-                <h2 className="font-cinzel text-xl text-amber-200">游戏战报</h2>
-                <p className="text-xs text-stone-500">{report.scriptName} • {report.totalRounds} 轮</p>
+                <h2 className="font-cinzel text-xl text-amber-200">{t('history.afterAction.title')}</h2>
+                <p className="text-xs text-stone-500">{report.scriptName} • {report.totalRounds} {t('history.afterAction.rounds')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={handleCopyText} title="复制文本">
+              <Button variant="ghost" size="sm" onClick={handleCopyText} title={t('history.afterAction.copyText')}>
                 {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleDownload} title="下载文本">
+              <Button variant="ghost" size="sm" onClick={handleDownload} title={t('history.afterAction.download')}>
                 <Download className="w-4 h-4" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => void handleCaptureImage()} 
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void handleCaptureImage()}
                 disabled={isCapturing}
-                title="保存为图片"
+                title={t('history.afterAction.saveAsImage')}
               >
                 {isCapturing ? (
                   <motion.div
@@ -170,9 +172,9 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
                   }
                 `}
               >
-                {tab === 'summary' && '📊 概览'}
-                {tab === 'timeline' && '⏱️ 时间轴'}
-                {tab === 'players' && '👥 玩家'}
+                {tab === 'summary' && t('history.afterAction.overview')}
+                {tab === 'timeline' && t('history.afterAction.timeline')}
+                {tab === 'players' && t('history.afterAction.players')}
               </button>
             ))}
           </div>
@@ -193,17 +195,17 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
                   }
                 `}>
                   <h3 className={`text-3xl font-cinzel font-bold ${report.winner === 'GOOD' ? 'text-amber-400' : 'text-red-400'}`}>
-                    {report.winner === 'GOOD' ? '善良阵营胜利!' : '邪恶阵营胜利!'}
+                    {report.winner === 'GOOD' ? t('history.afterAction.goodWin') : t('history.afterAction.evilWin')}
                   </h3>
                   <p className="text-stone-400 mt-2">{report.winReason}</p>
                 </div>
                 
                 {/* 统计卡片 */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <StatCard icon={<Clock className="w-5 h-5" />} label="游戏时长" value={`${String(report.duration)}分钟`} />
-                  <StatCard icon={<Users className="w-5 h-5" />} label="玩家人数" value={String(report.playerSummaries.length)} />
-                  <StatCard icon={<Skull className="w-5 h-5" />} label="死亡人数" value={String(report.statistics.totalDeaths)} />
-                  <StatCard icon={<Vote className="w-5 h-5" />} label="处决次数" value={String(report.statistics.totalExecutions)} />
+                  <StatCard icon={<Clock className="w-5 h-5" />} label={t('history.afterAction.duration')} value={`${String(report.duration)}${t('history.afterAction.minutes')}`} />
+                  <StatCard icon={<Users className="w-5 h-5" />} label={t('history.afterAction.playerCount')} value={String(report.playerSummaries.length)} />
+                  <StatCard icon={<Skull className="w-5 h-5" />} label={t('history.afterAction.deathCount')} value={String(report.statistics.totalDeaths)} />
+                  <StatCard icon={<Vote className="w-5 h-5" />} label={t('history.afterAction.executionCount')} value={String(report.statistics.totalExecutions)} />
                 </div>
                 
                 {/* MVP */}
@@ -214,21 +216,21 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
                         <Trophy className="w-6 h-6 text-amber-400" />
                       </div>
                       <div>
-                        <p className="text-xs text-amber-600 uppercase tracking-wider">最佳玩家 MVP</p>
+                        <p className="text-xs text-amber-600 uppercase tracking-wider">{t('history.afterAction.mvp')}</p>
                         <p className="text-lg font-bold text-amber-200">{report.mvp.name}</p>
-                        <p className="text-sm text-stone-500">{report.mvp.realRole} • 存活 {report.mvp.survivalRounds} 轮</p>
+                        <p className="text-sm text-stone-500">{report.mvp.realRole} • {t('history.afterAction.survivedRounds')} {report.mvp.survivalRounds} {t('history.afterAction.rounds')}</p>
                       </div>
                     </div>
                   </div>
                 )}
               </div>
             )}
-            
+
             {/* 时间轴标签页 */}
             {activeTab === 'timeline' && (
               <div className="space-y-4">
                 {report.timeline.length === 0 ? (
-                  <p className="text-center text-stone-500 py-8">暂无时间轴事件</p>
+                  <p className="text-center text-stone-500 py-8">{t('history.afterAction.noTimelineEvents')}</p>
                 ) : (
                   <div className="relative pl-6 border-l-2 border-stone-700">
                     {report.timeline.map((event, index) => (
@@ -269,21 +271,21 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
                             {player.name}
                           </span>
                           {player.wasMisled && (
-                            <span className="text-xs bg-red-900/50 text-red-400 px-1.5 py-0.5 rounded">伪装</span>
+                            <span className="text-xs bg-red-900/50 text-red-400 px-1.5 py-0.5 rounded">{t('history.afterAction.disguised')}</span>
                           )}
                           {player.wasTainted && (
-                            <span className="text-xs bg-purple-900/50 text-purple-400 px-1.5 py-0.5 rounded">受影响</span>
+                            <span className="text-xs bg-purple-900/50 text-purple-400 px-1.5 py-0.5 rounded">{t('history.afterAction.affected')}</span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                          <span 
+                          <span
                             className="text-xs px-2 py-0.5 rounded"
                             style={{ backgroundColor: `${teamColor}33`, color: teamColor }}
                           >
-                            {player.realRole ?? '未知'}
+                            {player.realRole ?? t('history.unknownRole')}
                           </span>
                           <span className="text-xs text-stone-500">
-                            存活 {player.survivalRounds} 轮 • 投票 {player.votesCast} 次
+                            {t('history.afterAction.survivedRounds')} {player.survivalRounds} {t('history.afterAction.rounds')} • {t('history.afterAction.votesCast')} {player.votesCast} {t('history.afterAction.times')}
                           </span>
                         </div>
                       </div>
@@ -327,7 +329,8 @@ const TimelineEventCard: React.FC<{ event: TimelineEvent; index: number }> = ({ 
     }
   };
   
-  const time = new Date(event.timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  const { i18n } = useTranslation();
+  const time = new Date(event.timestamp).toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US', { hour: '2-digit', minute: '2-digit' });
   
   return (
     <motion.div

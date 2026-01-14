@@ -2,6 +2,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { NightActionPanel } from './NightActionPanel';
 
+// Mock i18n
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            const translations: Record<string, string> = {
+                'nightAction.panel.nightAction': 'Night Action',
+                'nightAction.panel.confirmSubmit': 'Confirm Action',
+                'nightAction.panel.virtualPlayer': 'Virtual Player',
+                'nightAction.panel.dead': 'Dead',
+                'nightAction.skip': 'Skip'
+            };
+            return translations[key] || key;
+        }
+    })
+}));
+
 // Mock store
 const mockPerformNightAction = vi.fn();
 const mockGameState = {
@@ -69,55 +85,55 @@ describe('NightActionPanel', () => {
         vi.clearAllMocks();
     });
 
-    it('应该渲染角色信息', () => {
+    it('应该渲染角色信息 | should render role information', () => {
         render(<NightActionPanel roleId="imp" onComplete={vi.fn()} />);
-        
-        expect(screen.getByText('小鬼')).toBeInTheDocument();
-        expect(screen.getByText('Night Action')).toBeInTheDocument();
+
+        expect(screen.getByText(/小鬼|imp/i)).toBeInTheDocument();
+        expect(screen.getByText(/night action/i)).toBeInTheDocument();
     });
 
-    it('应该显示夜间行动提示', () => {
+    it('应该显示夜间行动提示 | should display night action prompt', () => {
         render(<NightActionPanel roleId="imp" onComplete={vi.fn()} />);
-        
-        expect(screen.getByText('"选择一个玩家杀死"')).toBeInTheDocument();
+
+        expect(screen.getByText(/"选择一个玩家杀死"/)).toBeInTheDocument();
     });
 
-    it('没有夜间行动时不渲染', () => {
+    it('没有夜间行动时不渲染 | does not render when no night action', () => {
         const { container } = render(<NightActionPanel roleId="washerwoman" onComplete={vi.fn()} />);
-        
+
         expect(container.firstChild).toBeNull();
     });
 
-    it('应该显示可选择的玩家列表', () => {
+    it('应该显示可选择的玩家列表 | should display list of selectable players', () => {
         render(<NightActionPanel roleId="imp" onComplete={vi.fn()} />);
-        
-        expect(screen.getByText('玩家1')).toBeInTheDocument();
-        expect(screen.getByText('玩家2')).toBeInTheDocument();
+
+        expect(screen.getByText(/玩家1|player1/i)).toBeInTheDocument();
+        expect(screen.getByText(/玩家2|player2/i)).toBeInTheDocument();
     });
 
-    it('choose_player 类型：点击玩家应该选择该玩家', () => {
+    it('choose_player 类型：点击玩家应该选择该玩家 | choose_player type: clicking player should select it', () => {
         render(<NightActionPanel roleId="imp" onComplete={vi.fn()} />);
-        
-        const player1 = screen.getByText('玩家1');
+
+        const player1 = screen.getByText(/玩家1|player1/i);
         fireEvent.click(player1);
-        
+
         // 验证选择状态（通过样式或提交按钮状态）
-        const confirmButton = screen.getByText('确认行动');
+        const confirmButton = screen.getByText(/confirm action|确认行动/i);
         expect(confirmButton).not.toBeDisabled();
     });
 
-    it('choose_player 类型：选择玩家后点击确认应该提交', () => {
+    it('choose_player 类型：选择玩家后点击确认应该提交 | choose_player type: should submit after clicking confirm', () => {
         const onComplete = vi.fn();
         render(<NightActionPanel roleId="imp" onComplete={onComplete} />);
-        
+
         // 选择玩家
-        const player1 = screen.getByText('玩家1');
+        const player1 = screen.getByText(/玩家1|player1/i);
         fireEvent.click(player1);
-        
+
         // 点击确认
-        const confirmButton = screen.getByText('确认行动');
+        const confirmButton = screen.getByText(/confirm action|确认行动/i);
         fireEvent.click(confirmButton);
-        
+
         expect(mockPerformNightAction).toHaveBeenCalledWith({
             roleId: 'imp',
             payload: { seatId: 0 }
@@ -125,49 +141,49 @@ describe('NightActionPanel', () => {
         expect(onComplete).toHaveBeenCalled();
     });
 
-    it('choose_two_players 类型：应该允许选择两个玩家', () => {
+    it('choose_two_players 类型：应该允许选择两个玩家 | choose_two_players type: should allow selecting two players', () => {
         render(<NightActionPanel roleId="fortune_teller" onComplete={vi.fn()} />);
-        
+
         // 选择两个玩家
-        const player1 = screen.getByText('玩家1');
-        const player2 = screen.getByText('玩家2');
-        
+        const player1 = screen.getByText(/玩家1|player1/i);
+        const player2 = screen.getByText(/玩家2|player2/i);
+
         fireEvent.click(player1);
         fireEvent.click(player2);
-        
+
         // 确认按钮应该可用
-        const confirmButton = screen.getByText('确认行动');
+        const confirmButton = screen.getByText(/confirm action|确认行动/i);
         expect(confirmButton).not.toBeDisabled();
     });
 
-    it('choose_two_players 类型：选择满两个后应该提交正确数据', () => {
+    it('choose_two_players 类型：选择满两个后应该提交正确数据 | choose_two_players type: should submit correct data after selecting two', () => {
         const onComplete = vi.fn();
         render(<NightActionPanel roleId="fortune_teller" onComplete={onComplete} />);
-        
-        const player1 = screen.getByText('玩家1');
-        const player2 = screen.getByText('玩家2');
-        
+
+        const player1 = screen.getByText(/玩家1|player1/i);
+        const player2 = screen.getByText(/玩家2|player2/i);
+
         fireEvent.click(player1);
         fireEvent.click(player2);
-        
-        const confirmButton = screen.getByText('确认行动');
+
+        const confirmButton = screen.getByText(/confirm action|确认行动/i);
         fireEvent.click(confirmButton);
-        
+
         expect(mockPerformNightAction).toHaveBeenCalledWith({
             roleId: 'fortune_teller',
             payload: { seatIds: [0, 1] }
         });
     });
 
-    it('confirm 类型：应该直接可以确认', () => {
+    it('confirm 类型：应该直接可以确认 | confirm type: should be able to confirm directly', () => {
         const onComplete = vi.fn();
         render(<NightActionPanel roleId="monk" onComplete={onComplete} />);
-        
-        const confirmButton = screen.getByText('确认行动');
+
+        const confirmButton = screen.getByText(/confirm action|确认行动/i);
         expect(confirmButton).not.toBeDisabled();
-        
+
         fireEvent.click(confirmButton);
-        
+
         expect(mockPerformNightAction).toHaveBeenCalledWith({
             roleId: 'monk',
             payload: { confirmed: true }
@@ -175,18 +191,18 @@ describe('NightActionPanel', () => {
         expect(onComplete).toHaveBeenCalled();
     });
 
-    it('choose_two_players 类型：可以取消选择', () => {
+    it('choose_two_players 类型：可以取消选择 | choose_two_players type: can deselect', () => {
         render(<NightActionPanel roleId="fortune_teller" onComplete={vi.fn()} />);
-        
-        const player1 = screen.getByText('玩家1');
-        
+
+        const player1 = screen.getByText(/玩家1|player1/i);
+
         // 选择
         fireEvent.click(player1);
         // 再次点击取消选择
         fireEvent.click(player1);
-        
+
         // 确认按钮应该禁用（未选满两个）
-        const confirmButton = screen.getByText('确认行动');
+        const confirmButton = screen.getByText(/confirm action|确认行动/i);
         expect(confirmButton).toBeDisabled();
     });
 });

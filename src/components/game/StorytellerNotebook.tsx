@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { useStore } from '../../store';
 import { FloatingNote } from './FloatingNote';
 
 export const StorytellerNotebook: React.FC = () => {
+    const { t } = useTranslation();
     const notes = useStore(state => state.gameState?.storytellerNotes || []);
     const addNote = useStore(state => state.addStorytellerNote);
     const updateNote = useStore(state => state.updateStorytellerNote);
@@ -41,7 +43,7 @@ export const StorytellerNotebook: React.FC = () => {
                 <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#8b4513]/20 to-transparent pointer-events-none" />
 
                 <h3 className="text-[#4a3728] font-cinzel font-bold mb-4 flex items-center gap-2 border-b-2 border-[#8b4513]/30 pb-2 drop-shadow-sm">
-                    <span className="text-2xl">📓</span> 说书人笔记 (Notebook)
+                    <span className="text-2xl">📓</span> {t('game.storytellerNotebook.title')}
                 </h3>
 
                 <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 scrollbar-thin scrollbar-thumb-[#8b4513]/50 scrollbar-track-transparent">
@@ -63,14 +65,14 @@ export const StorytellerNotebook: React.FC = () => {
                             {/* Header / Controls */}
                             <div className="flex justify-between items-start mb-1">
                                 <span className={`text-[10px] uppercase font-bold tracking-wider ${note.type === 'auto' ? 'text-[#1d4ed8]' : 'text-[#8b4513]'}`}>
-                                    {note.type === 'auto' ? 'SYSTEM LOG' : 'NOTE'}
-                                    {note.isFloating && ' (FLOATING)'}
+                                    {note.type === 'auto' ? t('game.storytellerNotebook.systemLog') : t('game.storytellerNotebook.note')}
+                                    {note.isFloating && ` (${t('game.storytellerNotebook.floating')})`}
                                 </span>
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={() => toggleNoteFloating(note.id)}
                                         className={`p-1 rounded hover:bg-[#8b4513]/10 ${note.isFloating ? 'text-[#b45309]' : 'text-[#654321]'}`}
-                                        title={note.isFloating ? "收回笔记" : "悬浮笔记"}
+                                        title={note.isFloating ? t('game.storytellerNotebook.unpinNote') : t('game.storytellerNotebook.pinNote')}
                                     >
                                         {/* Pin */}
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -81,7 +83,7 @@ export const StorytellerNotebook: React.FC = () => {
                                     <button
                                         onClick={() => deleteNote(note.id)}
                                         className="p-1 rounded hover:bg-[#b91c1c]/10 text-[#654321] hover:text-[#b91c1c]"
-                                        title="删除"
+                                        title={t('common.delete')}
                                     >
                                         {/* Trash2 */}
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -100,7 +102,7 @@ export const StorytellerNotebook: React.FC = () => {
                                 onChange={(e) => updateNote(note.id, e.target.value)}
                                 className={`w-full bg-transparent text-sm resize-none focus:outline-none font-serif leading-relaxed ${note.type === 'auto' ? 'text-[#4a3728]/70 italic' : 'text-[#2c241b]'}`}
                                 rows={Math.max(1, Math.min(10, note.content.split('\n').length))}
-                                placeholder="写点什么..."
+                                placeholder={t('game.storytellerNotebook.placeholder')}
                                 style={{ fontFamily: '"Crimson Text", serif' }}
                             />
 
@@ -122,7 +124,7 @@ export const StorytellerNotebook: React.FC = () => {
                     {notes.length === 0 && (
                         <div className="text-[#8b4513]/40 text-center italic text-sm py-8 flex flex-col items-center gap-2">
                             <span className="text-3xl opacity-30">✒️</span>
-                            <span>暂无笔记...</span>
+                            <span>{t('game.storytellerNotebook.noNotes')}</span>
                         </div>
                     )}
                 </div>
@@ -133,7 +135,7 @@ export const StorytellerNotebook: React.FC = () => {
                         value={newNote}
                         onChange={(e) => setNewNote(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                        placeholder="添加新笔记... (Enter)"
+                        placeholder={t('game.storytellerNotebook.addNotePlaceholder')}
                         className="flex-1 bg-[#fff9e6]/80 border border-[#8b4513]/30 rounded px-3 py-2 text-sm text-[#4a3728] focus:border-[#8b4513] focus:outline-none focus:ring-1 focus:ring-[#8b4513]/50 transition-all placeholder-[#8b4513]/40 font-serif"
                     />
                     <button
@@ -141,7 +143,7 @@ export const StorytellerNotebook: React.FC = () => {
                         disabled={!newNote.trim()}
                         className="bg-[#8b4513] hover:bg-[#654321] disabled:opacity-50 disabled:cursor-not-allowed text-[#f4e4bc] px-4 py-2 rounded text-sm transition-colors font-bold shadow-md border border-[#4a3728]"
                     >
-                        添加
+                        {t('game.storytellerNotebook.add')}
                     </button>
                 </div>
             </div>

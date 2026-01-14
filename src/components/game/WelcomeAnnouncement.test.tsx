@@ -46,21 +46,21 @@ describe('WelcomeAnnouncement', () => {
         render(<WelcomeAnnouncement />);
 
         // First shows audio setup
-        expect(screen.getByText('音频环境设置')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.audioSetup.title')).toBeInTheDocument();
 
         // Click confirm to proceed to welcome
-        const confirmButton = screen.getByText('确认设置');
+        const confirmButton = screen.getByText('game.welcomeAnnouncement.audioSetup.confirmSetup', { exact: false });
         fireEvent.click(confirmButton);
 
-        expect(screen.getByText('欢迎使用血染钟楼魔典')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.title')).toBeInTheDocument();
     });
 
     it('应该在已关闭过后不显示公告', () => {
         localStorageMock.getItem.mockReturnValue('true');
-        
+
         render(<WelcomeAnnouncement />);
-        
-        expect(screen.queryByText('欢迎使用血染钟楼魔典')).not.toBeInTheDocument();
+
+        expect(screen.queryByText('game.welcomeAnnouncement.welcome.title')).not.toBeInTheDocument();
     });
 
     it('应该显示主要功能区域', () => {
@@ -69,15 +69,15 @@ describe('WelcomeAnnouncement', () => {
         render(<WelcomeAnnouncement />);
 
         // Complete audio setup first
-        const confirmButton = screen.getByText('确认设置');
+        const confirmButton = screen.getByText('game.welcomeAnnouncement.audioSetup.confirmSetup', { exact: false });
         fireEvent.click(confirmButton);
 
-        expect(screen.getByText('关于魔典')).toBeInTheDocument();
-        expect(screen.getByText('主要功能')).toBeInTheDocument();
-        expect(screen.getByText('角色分配与管理')).toBeInTheDocument();
-        expect(screen.getByText('夜间行动流程')).toBeInTheDocument();
-        expect(screen.getByText('投票与提名')).toBeInTheDocument();
-        expect(screen.getByText('AI规则咨询助手')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.about')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.features')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.feature1Title')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.feature2Title')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.feature3Title')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.feature4Title')).toBeInTheDocument();
     });
 
     it('应该显示重要说明', () => {
@@ -86,13 +86,13 @@ describe('WelcomeAnnouncement', () => {
         render(<WelcomeAnnouncement />);
 
         // Complete audio setup first
-        const confirmButton = screen.getByText('确认设置');
+        const confirmButton = screen.getByText('game.welcomeAnnouncement.audioSetup.confirmSetup', { exact: false });
         fireEvent.click(confirmButton);
 
-        expect(screen.getByText('重要说明')).toBeInTheDocument();
-        expect(screen.getByText('语音通话功能')).toBeInTheDocument();
-        expect(screen.getByText('移动端支持')).toBeInTheDocument();
-        expect(screen.getByText('实时同步')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.important')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.voiceTitle')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.mobileTitle')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.syncTitle')).toBeInTheDocument();
     });
 
     it('应该显示快速开始指南', () => {
@@ -101,10 +101,10 @@ describe('WelcomeAnnouncement', () => {
         render(<WelcomeAnnouncement />);
 
         // Complete audio setup first
-        const confirmButton = screen.getByText('确认设置');
+        const confirmButton = screen.getByText('game.welcomeAnnouncement.audioSetup.confirmSetup', { exact: false });
         fireEvent.click(confirmButton);
 
-        expect(screen.getByText('快速开始')).toBeInTheDocument();
+        expect(screen.getByText('game.welcomeAnnouncement.welcome.quickStart')).toBeInTheDocument();
     });
 
     it('点击进入魔典按钮应该关闭公告', () => {
@@ -113,13 +113,13 @@ describe('WelcomeAnnouncement', () => {
         render(<WelcomeAnnouncement />);
 
         // Complete audio setup first
-        const confirmButton = screen.getByText('确认设置');
+        const confirmButton = screen.getByText('game.welcomeAnnouncement.audioSetup.confirmSetup', { exact: false });
         fireEvent.click(confirmButton);
 
-        const button = screen.getByText('进入魔典');
+        const button = screen.getByText('game.welcomeAnnouncement.welcome.enterGrimoire', { exact: false });
         fireEvent.click(button);
 
-        expect(screen.queryByText('欢迎使用血染钟楼魔典')).not.toBeInTheDocument();
+        expect(screen.queryByText('game.welcomeAnnouncement.welcome.title')).not.toBeInTheDocument();
     });
 
     it('勾选不再显示后点击进入应该保存设置到 localStorage', () => {
@@ -128,7 +128,7 @@ describe('WelcomeAnnouncement', () => {
         render(<WelcomeAnnouncement />);
 
         // Complete audio setup first
-        const confirmButton = screen.getByText('确认设置');
+        const confirmButton = screen.getByText('game.welcomeAnnouncement.audioSetup.confirmSetup', { exact: false });
         fireEvent.click(confirmButton);
 
         // 勾选不再显示
@@ -136,7 +136,7 @@ describe('WelcomeAnnouncement', () => {
         fireEvent.click(checkbox);
 
         // 点击进入
-        const button = screen.getByText('进入魔典');
+        const button = screen.getByText('game.welcomeAnnouncement.welcome.enterGrimoire', { exact: false });
         fireEvent.click(button);
 
         expect(localStorageMock.setItem).toHaveBeenCalledWith('botc_welcome_dismissed_v1', 'true');
@@ -148,11 +148,11 @@ describe('WelcomeAnnouncement', () => {
         render(<WelcomeAnnouncement />);
 
         // Complete audio setup first
-        const confirmButton = screen.getByText('确认设置');
+        const confirmButton = screen.getByText('game.welcomeAnnouncement.audioSetup.confirmSetup', { exact: false });
         fireEvent.click(confirmButton);
 
         // 直接点击进入，不勾选
-        const button = screen.getByText('进入魔典');
+        const button = screen.getByText('game.welcomeAnnouncement.welcome.enterGrimoire', { exact: false });
         fireEvent.click(button);
 
         expect(localStorageMock.setItem).not.toHaveBeenCalled();

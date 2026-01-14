@@ -6,6 +6,51 @@ import { render, screen } from '@testing-library/react';
 import { PhaseIndicator } from './PhaseIndicator';
 import * as storeModule from '../../store';
 
+// Mock i18n
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string, options?: { count?: number }) => {
+      const translations: Record<string, string> = {
+        'connection.connecting': 'Connecting',
+        'connection.connected': 'Connected',
+        'connection.reconnecting': 'Reconnecting',
+        'connection.disconnected': 'Disconnected',
+        'connection.offline': 'Offline Mode',
+        'scripts.custom': 'Custom Script',
+        'phase.goodWin': 'Good Wins',
+        'phase.evilWin': 'Evil Wins',
+        'phase.assigning': 'Assigning Roles',
+        'phase.waitingForST': 'Waiting for Storyteller to Assign Roles',
+        'phase.playerCount': 'players',
+        'phase.rolesAssigned': 'Roles Distributed',
+        'phase.readyToStart': 'Ready to Start',
+        'phase.checkRuleBook': 'Check Rule Book',
+        'phase.alive': 'alive',
+        'phase.current': 'Current',
+        'phase.discussionPhase': 'Discussion Phase',
+        'phase.nominationCount': 'Nominations',
+        'phase.voting': 'Voting',
+        'phase.nominee': 'Nominee',
+        'phase.votes': 'votes',
+        'nightAction.panel.seat': 'Seat'
+      };
+
+      // Handle parameterized translations
+      if (key === 'phase.night' && options?.count !== undefined) {
+        return `Night ${options.count}`;
+      }
+      if (key === 'phase.day' && options?.count !== undefined) {
+        return `Day ${options.count}`;
+      }
+      if (key === 'phase.nomination' && options?.count !== undefined) {
+        return `Day ${options.count} · Nomination Phase`;
+      }
+
+      return translations[key] || key;
+    }
+  })
+}));
+
 vi.mock('../../store', () => ({
   useStore: vi.fn(),
   ConnectionStatus: {
@@ -130,8 +175,8 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/好人胜利/)).toBeInTheDocument();
-    expect(screen.getByText('恶魔死亡')).toBeInTheDocument();
+    expect(screen.getByText(/good wins|好人胜利/i)).toBeInTheDocument();
+    expect(screen.getByText(/恶魔死亡/)).toBeInTheDocument();
   });
 
   it('renders game over message when game is over with evil winning', () => {
@@ -148,8 +193,8 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/邪恶胜利/)).toBeInTheDocument();
-    expect(screen.getByText('只剩2人存活')).toBeInTheDocument();
+    expect(screen.getByText(/evil wins|邪恶胜利/i)).toBeInTheDocument();
+    expect(screen.getByText(/只剩2人存活/)).toBeInTheDocument();
   });
 
   // ==================== Setup Phase Tests ====================
@@ -169,8 +214,8 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/正在分配角色/)).toBeInTheDocument();
-    expect(screen.getByText(/5 人局/)).toBeInTheDocument();
+    expect(screen.getByText(/assigning roles|正在分配角色/i)).toBeInTheDocument();
+    expect(screen.getByText(/5.*players|5.*人局/i)).toBeInTheDocument();
   });
 
   it('renders waiting message for player during assigning phase', () => {
@@ -188,7 +233,7 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/等待说书人分配角色/)).toBeInTheDocument();
+    expect(screen.getByText(/waiting.*storyteller.*assign|等待说书人分配角色/i)).toBeInTheDocument();
   });
 
   it('renders ready phase for storyteller', () => {
@@ -206,8 +251,8 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText('角色已发放')).toBeInTheDocument();
-    expect(screen.getByText('准备开始游戏')).toBeInTheDocument();
+    expect(screen.getByText(/roles distributed|角色已发放/i)).toBeInTheDocument();
+    expect(screen.getByText(/ready to start|准备开始游戏/i)).toBeInTheDocument();
   });
 
   it('renders ready phase for player', () => {
@@ -225,8 +270,8 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText('角色已发放')).toBeInTheDocument();
-    expect(screen.getByText('可查看规则手册')).toBeInTheDocument();
+    expect(screen.getByText(/roles distributed|角色已发放/i)).toBeInTheDocument();
+    expect(screen.getByText(/check.*rule.*book|可查看规则手册/i)).toBeInTheDocument();
   });
 
   // ==================== Night Phase Tests ====================
@@ -250,8 +295,8 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/第 3 夜/)).toBeInTheDocument();
-    expect(screen.getByText(/6\/8 存活/)).toBeInTheDocument();
+    expect(screen.getByText(/night 3|第 3 夜/i)).toBeInTheDocument();
+    expect(screen.getByText(/6\/8.*alive|6\/8.*存活/i)).toBeInTheDocument();
   });
 
   it('renders night phase with current role for storyteller', () => {
@@ -273,8 +318,8 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/第 1 夜/)).toBeInTheDocument();
-    expect(screen.getByText(/当前: poisoner/)).toBeInTheDocument();
+    expect(screen.getByText(/night 1|第 1 夜/i)).toBeInTheDocument();
+    expect(screen.getByText(/current.*poisoner|当前.*poisoner/i)).toBeInTheDocument();
   });
 
   // ==================== Day Phase Tests ====================
@@ -296,8 +341,8 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/第 2 天/)).toBeInTheDocument();
-    expect(screen.getByText(/7\/10 存活 · 讨论阶段/)).toBeInTheDocument();
+    expect(screen.getByText(/day 2|第 2 天/i)).toBeInTheDocument();
+    expect(screen.getByText(/7\/10.*alive.*discussion|7\/10.*存活.*讨论/i)).toBeInTheDocument();
   });
 
   // ==================== Nomination Phase Tests ====================
@@ -319,8 +364,8 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/第 3 天 · 提名阶段/)).toBeInTheDocument();
-    expect(screen.getByText(/提名次数: 2 · 5 人存活/)).toBeInTheDocument();
+    expect(screen.getByText(/day 3.*nomination|第 3 天.*提名/i)).toBeInTheDocument();
+    expect(screen.getByText(/nominations.*2.*5.*alive|提名次数.*2.*5.*存活/i)).toBeInTheDocument();
   });
 
   // ==================== Voting Phase Tests ====================
@@ -352,8 +397,8 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/投票中/)).toBeInTheDocument();
-    expect(screen.getByText(/被提名者: Alice · 当前 3 票/)).toBeInTheDocument();
+    expect(screen.getByText(/voting|投票中/i)).toBeInTheDocument();
+    expect(screen.getByText(/nominee.*Alice.*3.*votes|被提名者.*Alice.*3.*票/i)).toBeInTheDocument();
   });
 
   it('renders voting phase with seat number when userName is undefined', () => {
@@ -384,7 +429,7 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/被提名者: 座位 3 · 当前 0 票/)).toBeInTheDocument();
+    expect(screen.getByText(/nominee.*seat 3.*0.*votes|被提名者.*座位 3.*0.*票/i)).toBeInTheDocument();
   });
 
   it('renders voting phase with empty username (shows empty)', () => {
@@ -415,7 +460,7 @@ describe('PhaseIndicator', () => {
 
     render(<PhaseIndicator />);
     // With empty string userName, ?? operator won't use fallback, so it shows empty
-    expect(screen.getByText(/被提名者:.*当前 0 票/)).toBeInTheDocument();
+    expect(screen.getByText(/nominee.*0.*votes|被提名者.*0.*票/i)).toBeInTheDocument();
   });
 
   // ==================== Connection Status Tests ====================
@@ -434,7 +479,7 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText('已连接')).toBeInTheDocument();
+    expect(screen.getByText(/connected|已连接/i)).toBeInTheDocument();
   });
 
   it('displays connecting status', () => {
@@ -451,7 +496,7 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText('连接中')).toBeInTheDocument();
+    expect(screen.getByText(/connecting|连接中/i)).toBeInTheDocument();
   });
 
   it('displays reconnecting status', () => {
@@ -468,7 +513,7 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText('重连中')).toBeInTheDocument();
+    expect(screen.getByText(/reconnecting|重连中/i)).toBeInTheDocument();
   });
 
   it('displays disconnected status when not offline', () => {
@@ -485,7 +530,7 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText('已断开')).toBeInTheDocument();
+    expect(screen.getByText(/disconnected|已断开/i)).toBeInTheDocument();
   });
 
   // ==================== Offline Mode Tests ====================
@@ -504,7 +549,7 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText('离线模式')).toBeInTheDocument();
+    expect(screen.getByText(/offline mode|离线模式/i)).toBeInTheDocument();
   });
 
   // ==================== Room Code Display Tests ====================
@@ -572,7 +617,7 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/自定义剧本/)).toBeInTheDocument();
+    expect(screen.getByText(/custom script|自定义剧本/i)).toBeInTheDocument();
   });
 
   // ==================== Virtual Player Tests ====================
@@ -630,7 +675,7 @@ describe('PhaseIndicator', () => {
 
     render(<PhaseIndicator />);
     // 3 real players + 2 virtual = 5 total, 1 virtual dead = 4 alive
-    expect(screen.getByText(/4\/5 存活/)).toBeInTheDocument();
+    expect(screen.getByText(/4\/5.*alive|4\/5.*存活/i)).toBeInTheDocument();
   });
 
   // ==================== Edge Cases ====================
@@ -720,6 +765,6 @@ describe('PhaseIndicator', () => {
     });
 
     render(<PhaseIndicator />);
-    expect(screen.getByText(/0\/0 存活/)).toBeInTheDocument();
+    expect(screen.getByText(/0\/0.*alive|0\/0.*存活/i)).toBeInTheDocument();
   });
 });

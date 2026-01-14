@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { shallow } from 'zustand/shallow';
 import { RoleDef, Seat, GamePhase } from '../../types';
@@ -64,6 +65,7 @@ interface ActiveAbilityButtonProps {
 }
 
 const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, gamePhase }) => {
+    const { t } = useTranslation();
     const sendMessage = useStore(state => state.sendMessage);
     const [showModal, setShowModal] = useState(false);
     const [targetInput, setTargetInput] = useState('');
@@ -79,7 +81,7 @@ const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, g
             <div className="mt-3 pt-3 border-t border-stone-800">
                 <div className="text-xs text-stone-600 italic flex items-center gap-2">
                     <span>🚫</span>
-                    <span>技能已使用</span>
+                    <span>{t('game.activeAbility.abilityUsed')}</span>
                 </div>
             </div>
         );
@@ -122,7 +124,7 @@ const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, g
                 </button>
                 {!canUse && (
                     <p className="text-[10px] text-stone-600 mt-1 text-center">
-                        仅在{abilityConfig.phase === 'DAY' ? '白天' : '任意阶段'}可用
+                        {t(abilityConfig.phase === 'DAY' ? 'game.activeAbility.onlyDuringDay' : 'game.activeAbility.onlyDuringAnyPhase')}
                     </p>
                 )}
             </div>
@@ -141,7 +143,7 @@ const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, g
                             type="text"
                             value={targetInput}
                             onChange={e => setTargetInput(e.target.value)}
-                            placeholder="输入目标玩家名称或座位号..."
+                            placeholder={t('game.activeAbility.enterTargetPlaceholder')}
                             className="w-full bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 mb-4"
                             autoFocus
                         />
@@ -151,14 +153,14 @@ const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, g
                                 onClick={() => setShowModal(false)}
                                 className="flex-1 py-2 bg-stone-800 text-stone-400 rounded text-sm"
                             >
-                                取消
+                                {t('common.cancel')}
                             </button>
                             <button
                                 onClick={handleSubmitTarget}
                                 disabled={!targetInput.trim()}
                                 className="flex-1 py-2 bg-amber-700 hover:bg-amber-600 text-white rounded text-sm font-bold disabled:opacity-50"
                             >
-                                确认发动
+                                {t('game.activeAbility.confirmActivation')}
                             </button>
                         </div>
                     </div>
@@ -176,6 +178,7 @@ interface CompactRoleDisplayProps {
 }
 
 const CompactRoleDisplay: React.FC<CompactRoleDisplayProps> = ({ role, seat, gamePhase }) => {
+    const { t } = useTranslation();
     const [isExpanded, setIsExpanded] = useState(true);
 
     return (
@@ -197,7 +200,7 @@ const CompactRoleDisplay: React.FC<CompactRoleDisplayProps> = ({ role, seat, gam
                             </span>
                         </div>
                         <div className="text-xs text-stone-500 font-serif italic truncate max-w-[200px]">
-                            {isExpanded ? '点击折叠详情' : role.ability}
+                            {isExpanded ? t('grimoire.clickToView') : role.ability}
                         </div>
                     </div>
                 </div>
@@ -247,6 +250,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
     onShowHistory,
     onShowNightAction
 }) => {
+    const { t } = useTranslation();
     const user = useStore(state => state.user);
     const { seats, phase, voting, nightQueue, nightCurrentIndex, hasGameState } = usePlayerSectionState();
     const toggleHand = useStore(state => state.toggleHand);
@@ -271,7 +275,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                         onClick={() => useStore.getState().openRoleReveal()}
                         className="w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-400 text-xs rounded border border-stone-700 flex items-center justify-center gap-2 transition-colors"
                     >
-                        <span>👁️</span> 查看完整身份卡
+                        <span>👁️</span> {t('grimoire.clickToView')}
                     </button>
                 </div>
             )}
@@ -281,7 +285,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                 <div className="p-4 bg-indigo-950/30 rounded border border-indigo-900/50 text-center shadow-lg backdrop-blur-sm">
                     <div className="flex items-center justify-center gap-2 mb-2">
                         <span className="text-xl">🌙</span>
-                        <h3 className="text-indigo-200 font-bold font-cinzel tracking-widest">夜幕降临</h3>
+                        <h3 className="text-indigo-200 font-bold font-cinzel tracking-widest">{t('effects.midnightChime.nightFalls')}</h3>
                     </div>
 
                     {/* 当前是你的回合 - 始终显示按钮 */}
@@ -290,7 +294,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                             onClick={onShowNightAction}
                             className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold shadow-lg animate-pulse border border-indigo-400 flex items-center justify-center gap-2"
                         >
-                            <span>⚡</span> 执行夜间行动
+                            <span>⚡</span> {t('nightAction.panel.nightAction')}
                         </button>
                     )}
 
@@ -302,7 +306,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                                 onClick={onShowNightAction}
                                 className="mt-2 w-full py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded text-sm border border-stone-600"
                             >
-                                查看我的夜间行动
+                                {t('nightAction.panel.nightAction')}
                             </button>
                         )}
                 </div>
@@ -313,8 +317,8 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                 <div className="p-3 bg-amber-950/20 rounded border border-amber-800/30 shadow-sm space-y-3">
                     <div className="flex items-center justify-between border-b border-amber-900/20 pb-2">
                         <div className="flex items-center gap-2">
-                            <span className="text-amber-600 font-bold">⚖ 审判</span>
-                            <span className="text-stone-500 text-xs">受审者:</span>
+                            <span className="text-amber-600 font-bold">⚖ {t('voting.title')}</span>
+                            <span className="text-stone-500 text-xs">{t('game.doomsdayClock.nominee')}:</span>
                             <span className="text-amber-100 font-bold">{seats.find(s => s.id === voting?.nomineeSeatId)?.userName}</span>
                         </div>
                     </div>
@@ -330,15 +334,15 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                             />
                             <div className="text-center text-xs text-stone-500 font-serif">
                                 {currentSeat.voteLocked
-                                    ? '说书人已锁定你的投票'
+                                    ? t('game.floatingVote.locked')
                                     : voting.clockHandSeatId === currentSeat.id
-                                        ? '⏳ 正在结算...'
-                                        : '点击按钮举手/放下'}
+                                        ? '⏳ ' + t('common.loading')
+                                        : t('voting.raiseHand') + '/' + t('voting.lowerHand')}
                             </div>
                         </>
                     ) : (
                         <div className="text-center text-stone-600 italic text-xs">
-                            请先入座以参与投票
+                            {t('seat.joinSeat')}
                         </div>
                     )}
                 </div>
@@ -353,7 +357,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                     onClick={onShowHistory}
                     className="bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-stone-200 py-2 px-3 rounded text-xs border border-stone-800 transition-colors flex items-center justify-center gap-2"
                 >
-                    <span>📜</span> 历史记录
+                    <span>📜</span> {t('history.title')}
                 </button>
 
                 {currentSeat && (
@@ -361,7 +365,7 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                         onClick={() => void leaveSeat()}
                         className="bg-stone-900 hover:bg-red-950/30 text-stone-400 hover:text-red-400 py-2 px-3 rounded text-xs border border-stone-800 hover:border-red-900/30 transition-colors flex items-center justify-center gap-2"
                     >
-                        <span>🚪</span> 离开座位
+                        <span>🚪</span> {t('seat.leaveSeat')}
                     </button>
                 )}
             </div>

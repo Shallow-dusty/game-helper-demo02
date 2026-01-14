@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import { shallow } from 'zustand/shallow';
 import { ChatMessage, Seat } from '../../types';
 import { InfoCard } from '../ui/InfoCard';
+import { useTranslation } from 'react-i18next';
 import * as ReactWindow from 'react-window';
 // @ts-expect-error react-window types may not match at runtime
 const List = (ReactWindow.FixedSizeList ?? (ReactWindow as { default?: { FixedSizeList?: unknown } }).default?.FixedSizeList) as React.ComponentType<{
@@ -23,6 +24,7 @@ interface MessageItemProps {
 }
 
 const MessageItem: React.FC<MessageItemProps> = ({ msg, isMe, seats, style }) => {
+    const { t } = useTranslation();
     const isSystem = msg.type === 'system';
     const isPrivate = msg.recipientId !== null;
 
@@ -49,8 +51,8 @@ const MessageItem: React.FC<MessageItemProps> = ({ msg, isMe, seats, style }) =>
                 <div className="flex items-center gap-2 mb-1">
                     <span className={`text-[10px] font-bold tracking-wider uppercase font-cinzel ${isPrivate ? 'text-purple-400' : 'text-stone-500'}`}>
                         {displayName}
-                        {isPrivate && !isMe && " (悄悄话)"}
-                        {isPrivate && isMe && ` ➜ ${seats.find(s => s.userId === msg.recipientId)?.userName ?? '未知'}`}
+                        {isPrivate && !isMe && ` (${t('controls.chat.whisper')})`}
+                        {isPrivate && isMe && ` ${t('controls.chat.to')} ${seats.find(s => s.userId === msg.recipientId)?.userName ?? t('controls.chat.unknown')}`}
                     </span>
                 </div>
                 <div
@@ -90,6 +92,7 @@ export const Chat = () => {
     const { messages, seats, allowWhispers } = useChatState();
     const user = useStore(state => state.user);
     const sendMessage = useStore(state => state.sendMessage);
+    const { t } = useTranslation();
 
     const [input, setInput] = useState('');
     const [recipientId, setRecipientId] = useState<string | null>(null); // null = Public
@@ -231,19 +234,19 @@ export const Chat = () => {
             <div className="flex border-b border-stone-800 bg-[#0c0a09] relative z-10">
                 <button
                     onClick={() => setActiveChannel('CHAT')}
-                    className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-all ${activeChannel === 'CHAT' 
-                        ? 'bg-[#1c1917] text-amber-500 border-b-2 border-amber-600 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.5)]' 
+                    className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-all ${activeChannel === 'CHAT'
+                        ? 'bg-[#1c1917] text-amber-500 border-b-2 border-amber-600 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.5)]'
                         : 'text-stone-600 hover:text-stone-400 hover:bg-[#151312]'}`}
                 >
-                    💬 聊天
+                    💬 {t('controls.chat.publicChannel')}
                 </button>
                 <button
                     onClick={() => setActiveChannel('LOG')}
-                    className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-all ${activeChannel === 'LOG' 
-                        ? 'bg-[#1c1917] text-amber-200 border-b-2 border-amber-800 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.5)]' 
+                    className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-all ${activeChannel === 'LOG'
+                        ? 'bg-[#1c1917] text-amber-200 border-b-2 border-amber-800 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.5)]'
                         : 'text-stone-600 hover:text-stone-400 hover:bg-[#151312]'}`}
                 >
-                    📜 记录
+                    📜 {t('controls.chat.logChannel')}
                 </button>
             </div>
 
@@ -252,7 +255,7 @@ export const Chat = () => {
                 {filteredMessages.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-full text-stone-700 opacity-50">
                         <span className="text-4xl mb-2">🕸️</span>
-                        <span className="text-sm italic font-serif">暂无消息...</span>
+                        <span className="text-sm italic font-serif">{t('controls.smartInfo.noInfo')}</span>
                     </div>
                 )}
 
@@ -292,7 +295,7 @@ export const Chat = () => {
                     style={{ paddingBottom: keyboardOffset > 0 ? `${String(keyboardOffset + 16)}px` : undefined }}
                 >
                     <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[10px] uppercase text-stone-500 font-bold tracking-widest">发送给:</span>
+                        <span className="text-[10px] uppercase text-stone-500 font-bold tracking-widest">{t('controls.chat.to')}:</span>
                         {(allowWhispers || user?.isStoryteller) ? (
                             <div className="relative flex-1">
                                 <select
@@ -300,10 +303,10 @@ export const Chat = () => {
                                     onChange={(e) => setRecipientId(e.target.value || null)}
                                     className={`w-full appearance-none bg-[#1c1917] border text-xs rounded-sm px-3 py-1.5 outline-none transition-colors font-serif ${recipientId ? 'border-purple-900 text-purple-300 shadow-[0_0_10px_rgba(147,51,234,0.1)]' : 'border-stone-700 text-stone-400 hover:border-stone-600'}`}
                                 >
-                                    <option value="">📢 所有人 (Public)</option>
+                                    <option value="">{t('controls.chat.publicChannel')}</option>
                                     {availableRecipients.map(s => (
                                         <option key={s.userId} value={s.userId ?? ''}>
-                                            🕵️ {s.userName} ({s.id + 1}号)
+                                            🕵️ {s.userName} ({s.id + 1}{t('lobby.roomCode')})
                                         </option>
                                     ))}
                                 </select>
@@ -312,7 +315,7 @@ export const Chat = () => {
                         ) : (
                             <div className="text-xs text-red-900/80 flex items-center gap-2 border border-red-900/20 bg-red-950/10 px-3 py-1 rounded-sm w-full">
                                 <span>🔒</span>
-                                <span className="font-serif italic">私聊已禁用</span>
+                                <span className="font-serif italic">{t('controls.chat.whispersDisabled')}</span>
                             </div>
                         )}
                     </div>
@@ -320,18 +323,18 @@ export const Chat = () => {
                     <div className="relative group">
                         <input
                             ref={inputRef}
-                            className={`w-full bg-[#1c1917] text-stone-200 text-sm rounded-sm px-4 py-3 outline-none border transition-all pr-12 font-serif placeholder:text-stone-700 ${recipientId 
-                                ? 'border-purple-900/50 focus:border-purple-600 focus:shadow-[0_0_15px_rgba(147,51,234,0.2)]' 
+                            className={`w-full bg-[#1c1917] text-stone-200 text-sm rounded-sm px-4 py-3 outline-none border transition-all pr-12 font-serif placeholder:text-stone-700 ${recipientId
+                                ? 'border-purple-900/50 focus:border-purple-600 focus:shadow-[0_0_15px_rgba(147,51,234,0.2)]'
                                 : 'border-stone-800 focus:border-amber-700 focus:shadow-[0_0_15px_rgba(245,158,11,0.1)]'}`}
-                            placeholder={recipientId ? "发送悄悄话..." : "发送公开消息..."}
+                            placeholder={t('controls.chat.typeMessage')}
                             value={input}
                             onChange={e => setInput(e.target.value)}
                         />
                         <button
                             type="submit"
                             disabled={!input.trim()}
-                            className={`absolute right-1.5 top-1.5 bottom-1.5 w-9 flex items-center justify-center rounded-sm text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed ${recipientId 
-                                ? 'bg-purple-900 hover:bg-purple-800 border border-purple-700' 
+                            className={`absolute right-1.5 top-1.5 bottom-1.5 w-9 flex items-center justify-center rounded-sm text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed ${recipientId
+                                ? 'bg-purple-900 hover:bg-purple-800 border border-purple-700'
                                 : 'bg-stone-800 hover:bg-amber-900 border border-stone-700 hover:border-amber-700'}`}
                         >
                             <span className="text-xs transform group-hover:translate-x-0.5 transition-transform">➤</span>

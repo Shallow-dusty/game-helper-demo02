@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
+import { useTranslation } from 'react-i18next';
 
 interface DoomsdayClockProps {
   className?: string;
@@ -17,6 +18,7 @@ interface DoomsdayClockProps {
  * - 票数≥半数时，钟面泛红光，背景音加入急促滴答声
  */
 export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) => {
+  const { t } = useTranslation();
   const gameState = useStore(state => state.gameState);
   const voting = gameState?.voting;
   const seats = gameState?.seats ?? [];
@@ -239,7 +241,7 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
           className="mt-4 text-center"
         >
           <p className="text-amber-400/60 text-xs font-cinzel uppercase tracking-widest">
-            被提名者
+            {t('game.doomsdayClock.nominee')}
           </p>
           <p className={`
             text-lg font-cinzel font-bold mt-1
@@ -254,7 +256,7 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
               transition={{ duration: 1, repeat: Infinity }}
               className="text-red-500 text-sm font-bold mt-2"
             >
-              ⚠️ 可处决
+              {t('game.doomsdayClock.executable')}
             </motion.p>
           )}
         </motion.div>
@@ -277,7 +279,7 @@ export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) 
                 className="px-2 py-1 rounded bg-amber-900/30 border border-amber-700/30 
                            text-xs text-amber-300"
               >
-                {voter?.userName ?? `座位${String(seatId + 1)}`}
+                {voter?.userName ?? `${t('seat.empty')} ${String(seatId + 1)}`}
               </motion.span>
             );
           })}

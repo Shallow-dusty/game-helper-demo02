@@ -19,7 +19,8 @@
     "copy": "复制",
     "copied": "已复制",
     "yes": "是",
-    "no": "否"
+    "no": "否",
+    "unknown": "未知"
   },
   "app": {
     "title": "血染钟楼魔典",
@@ -35,34 +36,266 @@
     "sandboxDesc": "离线练习模式，无需网络"
   },
   "game": {
-    "phase": {
-      "setup": "准备阶段",
-      "day": "白天",
-      "night": "夜晚",
-      "vote": "投票阶段",
-      "end": "游戏结束"
+    "actionConfirm": {
+      "ignore": "忽略",
+      "modify": "修改",
+      "confirm": "确认",
+      "modifyPlaceholder": "输入修改后的内容..."
     },
-    "role": {
+    "activeAbility": {
+      "abilityUsed": "技能已使用",
+      "onlyDuringDay": "仅在白天可用",
+      "onlyDuringAnyPhase": "任意阶段",
+      "confirmActivation": "确认发动",
+      "enterTargetPlaceholder": "输入目标玩家名称或座位号...",
+      "skillActivated": "发动技能",
+      "target": "目标",
+      "roles": {
+        "slayer": {
+          "name": "杀手",
+          "button": "发动杀手技能",
+          "description": "选择一名玩家，若为恶魔则立即死亡"
+        },
+        "virgin": {
+          "name": "处女",
+          "button": "声明处女身份",
+          "description": "若被镇民提名，提名者立即死亡"
+        },
+        "artist": {
+          "name": "艺术家",
+          "button": "向ST提问",
+          "description": "向说书人提一个是非题"
+        },
+        "juggler": {
+          "name": "杂耍艺人",
+          "button": "猜测角色",
+          "description": "第一天猜测最多5人的角色"
+        },
+        "gossip": {
+          "name": "造谣者",
+          "button": "发表造谣",
+          "description": "公开声明一个陈述，若为真则当晚死一人"
+        }
+      }
+    },
+    "floatingNote": {
+      "systemLog": "系统日志",
+      "note": "笔记",
+      "changeColor": "更改颜色",
+      "minimize": "收起 (取消悬浮)"
+    },
+    "floatingVote": {
+      "voteButton": "投票",
+      "ghostVote": "幽灵票",
+      "alreadyVoted": "举手中",
+      "voteUsed": "已用",
+      "locked": "锁定"
+    },
+    "ghostVote": {
+      "lastVote": "最后的投票"
+    },
+    "bloodPact": {
+      "title": "血契已立",
+      "subtitle": "The Blood Pact is Sealed"
+    },
+    "chainReaction": {
+      "pendingEvents": "还有 {{count}} 个事件待处理",
+      "affectedSeats": "受影响的座位",
+      "seatNumbers": "座位 {{seats}}",
+      "skip": "跳过",
+      "actions": {
+        "markDead": "标记死亡",
+        "cancelKill": "取消击杀",
+        "endGame": "结束游戏",
+        "confirm": "确认"
+      },
+      "title": "连锁反应确认",
+      "events": "个事件",
+      "affectedPlayers": "受影响玩家",
+      "seatNumber": "座位",
+      "markDeath": "标记死亡",
+      "skipAction": "跳过",
+      "cancelKill": "取消击杀",
+      "stillKill": "仍然击杀",
+      "endGame": "结束游戏",
+      "continueGame": "继续游戏",
+      "acknowledged": "已知晓",
+      "tip": "💡 作为说书人,你可以自由决定是否应用这些建议。",
+      "highPriority": "高优先级",
+      "mediumPriority": "中优先级",
+      "lowPriority": "低优先级"
+    },
+    "candlelight": {
+      "enable": "开启挂机防窥模式",
+      "disable": "关闭挂机防窥模式",
+      "enabled": "🕯️ 防窥开启",
+      "disabled": "🕯️ 挂机防窥"
+    },
+    "detective": {
+      "dragSuspect": "拖拽 = 怀疑",
+      "dragTrust": "拖拽 = 信任",
+      "doubleClick": "双击 = 标记",
+      "rightClick": "右键 = 删除",
+      "clear": "清除"
+    },
+    "deathEcho": {
+      "departed": "已离开人世..."
+    },
+    "doomsdayClock": {
+      "title": "审判区域",
+      "subtitle": "Judgment Zone",
+      "nominee": "被提名者",
+      "executable": "⚠️ 可处决",
+      "voteCount": "{{count}} 票"
+    },
+    "ghostlyVision": {
+      "title": "亡者视界",
+      "you": "你",
+      "becameGhost": "已成为亡者"
+    },
+    "truthReveal": {
+      "title": "📜 真相揭示",
+      "goodWin": "善良阵营胜利",
+      "evilWin": "邪恶阵营胜利",
+      "goodWinFull": "🎉 善良阵营胜利 🎉",
+      "evilWinFull": "💀 邪恶阵营胜利 💀",
+      "disguised": "伪装!",
+      "poisoned": "🧪 中毒",
+      "drunk": "🍺 醉酒",
+      "disguisedCount": "被伪装角色",
+      "affectedCount": "受影响玩家",
+      "deathCount": "死亡人数",
+      "clickToClose": "点击任意位置关闭"
+    },
+    "roleReveal": {
+      "yourIdentity": "你的身份",
+      "clickToOpen": "点击翻开命运之书",
+      "acknowledged": "我已知晓",
+      "gameStart": "GAME START"
+    },
+    "distributionConfirm": {
+      "title": "确认角色分配",
+      "situation": "局势评估",
       "townsfolk": "镇民",
       "outsider": "外来者",
       "minion": "爪牙",
       "demon": "恶魔",
-      "traveler": "旅行者"
+      "distributeMessage": "即将为",
+      "playerCount": "名玩家分配角色。",
+      "afterDistribute": "分配后玩家将看到自己的角色卡。",
+      "backToEdit": "返回编辑",
+      "confirmDistribute": "确认分配"
     },
-    "status": {
-      "alive": "存活",
-      "dead": "死亡",
-      "poisoned": "中毒",
-      "drunk": "醉酒",
-      "protected": "被保护"
+    "ruleCompliance": {
+      "title": "规则合规性检查",
+      "passed": "通过",
+      "warnings": "警告",
+      "errors": "错误",
+      "allPassed": "✨ 游戏配置符合所有规则！",
+      "hasErrors": "⚠️ 请修复错误后再开始游戏",
+      "hasWarnings": "💡 警告不影响游戏进行，但建议检查"
     },
-    "actions": {
-      "nominate": "提名",
-      "vote": "投票",
-      "execute": "处决",
-      "kill": "击杀",
-      "protect": "保护",
-      "poison": "下毒"
+    "storytellerMenu": {
+      "seat": "SEAT {{number}}",
+      "noRole": "NO ROLE",
+      "toggleAlive": "切换存活状态",
+      "statusDead": "当前: 已死亡",
+      "statusAlive": "当前: 存活",
+      "abilityUsed": "技能使用",
+      "abilityStatusUsed": "已使用",
+      "abilityStatusNotUsed": "未使用",
+      "assignRole": "分配角色",
+      "assignRoleDesc": "更改角色身份",
+      "nominate": "发起提名",
+      "nominateDesc": "开始投票流程",
+      "swapSeat": "交换座位",
+      "swapSeatDesc": "移动玩家位置",
+      "removeBot": "移除机器人",
+      "removeBotDesc": "清空座位",
+      "kickPlayer": "踢出玩家",
+      "kickPlayerDesc": "强制离开座位",
+      "confirmKick": "确定要将 {{player}} 踢出座位吗？",
+      "statusEffects": "状态效果",
+      "reminders": "标记提醒",
+      "clickToRemove": "点击移除",
+      "noReminders": "暂无标记...",
+      "enterReminderText": "输入提醒文字:"
+    },
+    "storytellerNotebook": {
+      "title": "说书人笔记 (Notebook)",
+      "systemLog": "SYSTEM LOG",
+      "note": "NOTE",
+      "floating": "FLOATING",
+      "pinNote": "悬浮笔记",
+      "unpinNote": "收回笔记",
+      "noNotes": "暂无笔记...",
+      "placeholder": "写点什么...",
+      "addNotePlaceholder": "添加新笔记... (Enter)",
+      "add": "添加"
+    },
+    "swapRequestModal": {
+      "title": "换座申请",
+      "message": "想要与你交换座位",
+      "seatSwap": "座位 {{from}} ↔️ 座位 {{to}}",
+      "reject": "拒绝",
+      "accept": "同意换座",
+      "moreRequests": "还有 {{count}} 个换座请求"
+    },
+    "voteButton": {
+      "ghostVoteUsed": "👻 幽灵票已使用",
+      "locked": "🔒 状态已锁定",
+      "processing": "⏳ 处理中...",
+      "handRaised": "✋ 已举手",
+      "useGhostVote": "👻 使用幽灵票？",
+      "raiseHand": "举手投票？",
+      "ghostVoteAvailable": "你还有一张幽灵票可用"
+    },
+    "votingChart": {
+      "noVotes": "暂无投票记录",
+      "latestVote": "最新投票 (Latest Vote)",
+      "passed": "票数足够",
+      "notPassed": "票数不足",
+      "nominator": "提名者",
+      "nominee": "被提名者",
+      "requiredVotes": "所需票数: {{count}}",
+      "seatNumber": "座位{{number}}"
+    },
+    "virtualizedSeatList": {
+      "dead": "已死亡",
+      "handRaised": "已举手",
+      "virtual": "虚拟玩家",
+      "noSeats": "没有座位",
+      "seat": "座位",
+      "player": "玩家",
+      "status": "状态",
+      "showing": "显示 {{visible}} / {{total}} 座位"
+    },
+    "townSquare": {
+      "title": "Town Square",
+      "subtitle": "Public Game View",
+      "enterRoomCode": "Enter Room Code",
+      "viewButton": "VIEW TOWN SQUARE",
+      "connecting": "Connecting to Town Square...",
+      "unableToLoad": "Unable to load game data.",
+      "retry": "Retry",
+      "room": "Room"
+    },
+    "waitingArea": {
+      "ready": "已准备 (Ready)",
+      "clickToReady": "点击准备 (Not Ready)",
+      "minimize": "最小化 (Minimize)",
+      "readyStatus": "已准备 (READY)",
+      "notReadyStatus": "点击准备 (NOT READY)",
+      "leaveSeat": "离开座位 (Leave Seat)",
+      "waitingForStart": "等待说书人开始游戏...",
+      "pleaseConfirm": "请确认您已准备好开始游戏",
+      "chooseSeat": "请选择您的座位 (Choose your seat)",
+      "gameInProgress": "⚠️ 游戏进行中 - 请选择空位加入",
+      "seatNumber": "座位 {{number}}",
+      "joining": "JOINING...",
+      "virtual": "VIRTUAL",
+      "taken": "TAKEN",
+      "open": "OPEN"
     }
   },
   "grimoire": {
@@ -71,16 +304,153 @@
     "viewMode": "浏览模式",
     "lockToggle": "点击切换模式",
     "privacyMode": "防窥模式",
-    "loading": "正在加载魔典..."
+    "loading": "正在加载魔典...",
+    "clickToEdit": "点击以编辑",
+    "clickToView": "点击以查看",
+    "enablePrivacy": "开启防窥模式",
+    "disablePrivacy": "关闭防窥模式",
+    "reservedForVirtual": "这是虚拟玩家座位",
+    "swapCancelled": "交换座位已取消",
+    "confirmSwap": "确认交换座位 {{from}} 和 {{to}} 吗？",
+    "confirmSwapPlayer": "确认要与 {{player}} 交换座位吗？",
+    "loadingGrimoire": "正在加载魔典..."
   },
   "controls": {
-    "title": "控制面板",
-    "phaseControl": "阶段控制",
-    "nightOrder": "夜间顺序",
-    "executeNight": "执行夜间动作",
-    "aiAssistant": "AI 助手",
-    "notebook": "笔记本",
-    "roleBook": "角色手册"
+    "admin": {
+      "title": "管理员面板",
+      "subtitle": "查看和管理活跃房间",
+      "passwordError": "密码错误",
+      "fetchError": "获取房间列表失败",
+      "closeConfirm": "确定要关闭房间",
+      "closeError": "关闭房间失败",
+      "deleteData": "吗？这将删除该房间的所有数据。"
+    },
+    "st": {
+      "script": "剧本",
+      "createScript": "创建",
+      "importScript": "导入",
+      "officialScripts": "官方剧本",
+      "customScripts": "自定义剧本",
+      "seatManagement": "座位管理",
+      "addVirtual": "加虚拟",
+      "addSeat": "加座位",
+      "removeSeat": "减座位",
+      "roleManagement": "角色管理",
+      "autoAssign": "自动分配",
+      "distributeRoles": "发放角色",
+      "viewComposition": "查看板子配置建议",
+      "ruleCheck": "规则检查",
+      "gameFlow": "游戏流程",
+      "startGame": "开始游戏",
+      "enterNight": "进入夜晚",
+      "enterDay": "天亮",
+      "history": "历史记录",
+      "vibrationOn": "振动: 开",
+      "vibrationOff": "振动: 关",
+      "candlelightOn": "🕯️ 烛光模式: 开",
+      "candlelightOff": "🕯️ 烛光模式: 关",
+      "candlelightEnableTooltip": "开启烛光模式 - 夜晚时玩家视野受限",
+      "candlelightDisableTooltip": "关闭烛光模式",
+      "nightOrder": "夜间行动顺序",
+      "dawn": "天亮",
+      "dusk": "入夜",
+      "executeNightAction": "执行夜间动作",
+      "forceDawn": "强制天亮",
+      "forceDawnConfirm": "确定要强制天亮吗？这将跳过剩余的夜间流程。",
+      "votingInProgress": "投票进行中",
+      "nominee": "被提名者",
+      "moveClockHand": "移动时针",
+      "cancelVote": "取消/结束投票",
+      "distributeEmptyRoleError": "有座位未分配角色！请先分配角色再发放。"
+    },
+    "chat": {
+      "whisper": "悄悄话",
+      "unknown": "未知",
+      "publicChannel": "公共频道",
+      "logChannel": "系统日志",
+      "typeMessage": "输入消息...",
+      "sendButton": "发送",
+      "whispersDisabled": "悄悄话已被禁用",
+      "selectRecipient": "选择悄悄话对象...",
+      "to": "发送给"
+    },
+    "roleReference": {
+      "title": "规则手册 Grimoire",
+      "searchPlaceholder": "搜索角色、能力描述...",
+      "matchedResults": "匹配结果",
+      "matched": "匹配",
+      "simpleMode": "简洁",
+      "detailedMode": "详细",
+      "showDetailed": "显示详细",
+      "showSimple": "显示简略",
+      "collapseAll": "全部折叠",
+      "expandAll": "全部展开",
+      "rolesTab": "角色能力",
+      "rulesTab": "游戏规则",
+      "yourRole": "你的角色",
+      "teamTownsfolk": "🏘️ 镇民 (Townsfolk)",
+      "teamOutsider": "🌿 外来者 (Outsider)",
+      "teamMinion": "👿 爪牙 (Minion)",
+      "teamDemon": "👹 恶魔 (Demon)",
+      "teamTraveler": "🎒 旅行者 (Traveler)",
+      "noRoles": "暂无角色",
+      "firstNight": "首夜",
+      "otherNight": "其他夜晚",
+      "setupReminder": "设置提醒",
+      "rulesContent": "游戏规则内容...",
+      "foundCount": "找到 <1>{{count}}</1> 个角色",
+      "noMatch": "没有找到匹配 \"<1>{{query}}</1>\" 的角色",
+      "tryKeywords": "尝试搜索角色名称或技能关键字",
+      "collapseSidebar": "收起规则手册",
+      "expandSidebar": "展开规则手册",
+      "searchRoles": "🔍 搜索角色...",
+      "allRoles": "所有角色",
+      "searchingFor": "(搜索: \"{{query}}\")",
+      "noMatchingRoles": "没有找到匹配的角色"
+    },
+    "smartInfo": {
+      "title": "智能信息生成",
+      "noInfo": "暂无提示信息",
+      "roleCount": "{{count}} 角色",
+      "noInfoRoles": "本夜无需处理的信息角色",
+      "generateAll": "一键生成所有信息",
+      "seat": "座位",
+      "tainted": "中毒/醉酒",
+      "regenerate": "重新生成",
+      "selectTargets": "选择查验目标",
+      "target": "目标",
+      "number": "号",
+      "generateResult": "生成查验结果",
+      "suggested": "建议",
+      "real": "真实",
+      "clickToGenerate": "点击生成信息",
+      "selectTargetsFirst": "请先选择目标后生成",
+      "helpText": "提示：占卜师需要选择两个查验目标。中毒/醉酒状态的玩家会收到伪造信息。"
+    },
+    "ai": {
+      "ready": "AI 助手就绪",
+      "subtitle": "输入问题，获取游戏建议",
+      "delete": "删除",
+      "thinking": "思考中...",
+      "apiKeyWarning": "⚠️ 缺少 API Key，请在",
+      "configFile": ".env.local",
+      "configMessage": "中配置",
+      "placeholder": "询问 AI 助手...",
+      "send": "发送",
+      "clearHistory": "清空记录",
+      "officialProvider": "✅ 官方直连 (Official)",
+      "siliconflowProvider": "⚡ SiliconFlow (高速中转)",
+      "selectModel": "选择一个 AI 模型"
+    },
+    "audioTab": {
+      "bgmTitle": "🎵 背景音乐 (BGM)",
+      "sfxTitle": "🔊 即时音效 (SFX)",
+      "unknownTrack": "未知音轨",
+      "playing": "正在播放",
+      "paused": "已暂停",
+      "volume": "音量",
+      "selectTrack": "选择音轨"
+    }
   },
   "seat": {
     "empty": "空座位",
@@ -132,7 +502,33 @@
     "connected": "已连接",
     "reconnecting": "重新连接中...",
     "disconnected": "已断开连接",
-    "error": "连接错误"
+    "error": "连接错误",
+    "offline": "离线模式",
+    "connectingShort": "连接中",
+    "reconnectingShort": "重连中",
+    "disconnectedShort": "已断开"
+  },
+  "phase": {
+    "goodWin": "好人胜利！",
+    "evilWin": "邪恶胜利！",
+    "assigning": "正在分配角色...",
+    "waitingForST": "等待说书人分配角色...",
+    "rolesAssigned": "角色已发放",
+    "readyToStart": "准备开始游戏",
+    "checkRuleBook": "可查看规则手册",
+    "night": "第 {{count}} 夜",
+    "day": "第 {{count}} 天",
+    "nomination": "第 {{count}} 天 · 提名阶段",
+    "finalDay": "决战日",
+    "voting": "投票中",
+    "nominationCount": "提名次数",
+    "alive": "存活",
+    "discussionPhase": "讨论阶段",
+    "nominee": "被提名者",
+    "currentVotes": "当前",
+    "votes": "票",
+    "playerCount": "人局",
+    "current": "当前"
   },
   "storyteller": {
     "title": "说书人",
@@ -149,14 +545,55 @@
     "yourRole": "你的角色",
     "yourAbility": "你的能力",
     "useAbility": "使用技能",
-    "abilityUsed": "技能已使用"
+    "abilityUsed": "技能已使用",
+    "notebook": {
+      "title": "玩家笔记 (Notebook)",
+      "placeholder": "记录你的逻辑...",
+      "addPlaceholder": "添加新笔记... (Enter)",
+      "addButton": "添加",
+      "deleteNote": "删除笔记",
+      "emptyState": "暂无笔记... (仅保存在本地)",
+      "localStorageOnly": "仅保存在本地"
+    }
   },
   "nightAction": {
     "title": "夜间行动",
     "selectTarget": "选择目标",
     "confirm": "确认行动",
     "skip": "跳过",
-    "waiting": "等待其他玩家..."
+    "waiting": "等待其他玩家...",
+    "manager": {
+      "title": "待处理夜间行动",
+      "pending": "待处理",
+      "fakeAction": "假行动",
+      "target": "目标",
+      "realRole": "实际",
+      "confirmAction": "确认行动",
+      "sendReply": "发送回复",
+      "skipAction": "跳过",
+      "replyPlaceholder": "输入回复给玩家的结果...",
+      "drunkWarning": "此玩家的真实角色是",
+      "drunkEffect": "他的行动不会生效，但你可以选择告诉他虚假信息。",
+      "drunkLabel": "酒鬼",
+      "disguiseLabel": "伪装",
+      "quickReplies": {
+        "executed": "已执行",
+        "noEffect": "无效果",
+        "targetDead": "目标已死亡"
+      }
+    },
+    "panel": {
+      "nightAction": "夜间行动",
+      "yourTurn": "你的回合",
+      "confirmSubmit": "确认提交",
+      "virtualPlayer": "虚拟玩家",
+      "dead": "已死亡",
+      "seat": "座位"
+    },
+    "player": {
+      "yourTurn": "你的回合 (Your Turn)",
+      "close": "关闭"
+    }
   },
   "errors": {
     "networkError": "网络错误，请稍后重试",
@@ -171,5 +608,382 @@
     "joined": "成功加入",
     "roleAssigned": "角色已分配",
     "actionCompleted": "操作完成"
+  },
+  "audio": {
+    "settingsTitle": "设置",
+    "privacyMode": "隐私模式",
+    "onlineMode": "在线模式",
+    "onlineModeDesc": "个人设备使用\n播放所有音效",
+    "offlineMode": "线下/投屏",
+    "offlineModeDesc": "公共屏幕使用\n隐藏秘密音效",
+    "privacyWarning": "注意隐私泄露：",
+    "privacyWarningDesc": "此模式会播放包含身份信息的提示音（如夜间行动反馈）。请勿在公共屏幕上使用此模式。",
+    "safeMode": "安全投屏：",
+    "safeModeDesc": "已自动屏蔽所有敏感提示音。适合通过投影仪或直播展示给所有玩家观看。",
+    "categories": "音效类别",
+    "ambience": "氛围音效",
+    "ambienceDesc": "BGM、钟声、环境音",
+    "ui": "界面音效",
+    "uiDesc": "点击、拖拽、纸张声",
+    "cues": "提示音效",
+    "cuesDesc": "夜间行动、私聊提示",
+    "cuesDisabled": "提示音效 (已禁用)",
+    "language": "语言设置",
+    "interfaceLanguage": "界面语言",
+    "selectLanguage": "选择应用显示语言"
+  },
+  "lobby": {
+    "title": "魔典 GRIMOIRE",
+    "subtitle": "血染钟楼线上助手",
+    "yourNickname": "你的昵称",
+    "enterNickname": "请输入昵称...",
+    "storytellerMode": "说书人模式",
+    "storytellerDesc": "主持并管理游戏",
+    "roomCode": "房间号",
+    "enterRoomCode": "8888",
+    "enterAsSpectator": "以观众身份进入",
+    "enterGrimoire": "进入魔典",
+    "enterAsPlayer": "以玩家身份进入",
+    "backToLogin": "返回登录",
+    "switchToSpectator": "切换到观众模式",
+    "demonAmongUs": "\"恶魔就在我们中间...\"",
+    "clickToEnableAudio": "点击开启音效",
+    "welcome": "欢迎",
+    "chooseDestiny": "选择你的命运",
+    "townWaiting": "小镇正在等待你的抉择...",
+    "resumeGame": "恢复上一局游戏",
+    "resume": "恢复",
+    "connecting": "连接中...",
+    "createRoomTitle": "创建房间",
+    "startRitual": "开始一场新的仪式,召唤镇民。",
+    "playerCount": "玩家人数",
+    "small": "小型",
+    "standard": "标准",
+    "large": "大型",
+    "createRitualBtn": "创建仪式",
+    "joinRoomTitle": "加入房间",
+    "enterCode": "输入代码加入现有的城镇。",
+    "enterTown": "进入城镇",
+    "enterNow": "立即进入",
+    "enterRoomCode4": "请输入4位房间号",
+    "moreOptions": "更多选项 (沙盒 & 离线)",
+    "collapse": "收起",
+    "expand": "展开",
+    "sandboxMode": "沙盒模式",
+    "singleSimulation": "单人模拟 • 自由测试",
+    "offlineMode": "离线模式",
+    "comingSoon": "即将推出",
+    "offlineAvailable": "离线可用",
+    "singlePlayer": "单人游玩",
+    "fullFeatures": "完整功能",
+    "noSave": "无需存档",
+    "gameRules": {
+      "title": "游戏规则",
+      "basicFlow": "基础流程",
+      "winConditions": "获胜条件",
+      "deathGhostVote": "死亡与幽灵票",
+      "flowDescription": "游戏分为**白天**和**夜晚**两个阶段交替进行。",
+      "nightPhase": "**夜晚**: 所有玩家闭眼,特定角色睁眼发动技能。",
+      "dayPhase": "**白天**: 所有玩家睁眼,自由讨论。",
+      "nomination": "**提名与投票**: 白天讨论后,玩家可以提名处决嫌疑人。",
+      "execution": "**处决**: 得票数超过半数且最高的玩家被处决(死亡)。",
+      "goodWinCondition": "好人阵营 (Good) 获胜条件：",
+      "executeDemon": "处决恶魔。",
+      "noDemonAlive": "或者,场上没有恶魔存活。",
+      "evilWinCondition": "邪恶阵营 (Evil) 获胜条件：",
+      "twoPlayersLeft": "场上仅剩 2 名玩家存活(其中包含恶魔)。",
+      "specialCondition": "或者,达成特定角色的特殊获胜条件(如小恶魔自杀传递给爪牙)。",
+      "deadPlayers": "死亡的玩家：",
+      "loseAbility": "失去技能(除非特定角色)。",
+      "canStillSpeak": "仍然可以发言和参与讨论。",
+      "ghostVote": "获得 **1 张幽灵票**,可在整局游戏的任意一次投票中使用。",
+      "ghostVoteUsed": "使用后幽灵票消失,无法再次投票。"
+    }
+  },
+  "ui": {
+    "buttons": {
+      "confirm": "确认",
+      "cancel": "取消",
+      "save": "保存",
+      "delete": "删除",
+      "edit": "编辑",
+      "close": "关闭",
+      "submit": "提交",
+      "retry": "重试",
+      "add": "添加",
+      "remove": "移除",
+      "clear": "清除"
+    },
+    "toast": {
+      "success": "成功",
+      "error": "错误",
+      "warning": "警告",
+      "info": "信息"
+    },
+    "loading": {
+      "default": "加载中...",
+      "pleaseWait": "请稍候...",
+      "loadingGrimoire": "正在加载魔典...",
+      "loadingControls": "加载控制面板..."
+    },
+    "empty": {
+      "noData": "暂无数据",
+      "noResults": "未找到结果",
+      "noNotes": "暂无笔记"
+    },
+    "audioEnableOverlay": {
+      "title": "启用音效",
+      "browserBlocked": "浏览器已阻止自动播放音频。",
+      "clickToEnable": "点击任意位置以启用游戏音效。",
+      "buttonText": "点击启用",
+      "adjustLater": "你可以随时在设置中调整音量或静音"
+    },
+    "errorBoundary": {
+      "title": "出现了一个意外错误。请尝试刷新页面。",
+      "errorDetails": "错误详情（开发环境）",
+      "actionButtons": "操作按钮",
+      "retryButton": "🔄 重试",
+      "refreshButton": "↻ 刷新页面",
+      "helpText": "如问题持续存在，请联系开发者或提交 Issue"
+    },
+    "confirmModal": {
+      "defaultConfirm": "确认",
+      "defaultCancel": "取消"
+    },
+    "helpModal": {
+      "title": "❓ 说书人操作指引",
+      "gameFlow": {
+        "title": "🎮 游戏流程控制",
+        "assignRoles": "分配角色：在游戏设置中点击【自动分配角色】或在魔典中右键点击座位手动分配。",
+        "distributeRoles": "发放角色：点击【发放角色】让玩家看到自己的身份。再次点击可隐藏。",
+        "phaseSwitch": "阶段切换：使用【白天】、【夜晚】、【提名】按钮控制游戏进程。",
+        "nightActions": "夜间行动：在夜晚阶段，按照【夜间行动顺序】列表依次唤醒角色。点击【执行夜间动作】可记录行动。"
+      },
+      "grimoireOps": {
+        "title": "📖 魔典 (Grimoire) 操作",
+        "rightClickMenu": "右键菜单：右键点击玩家Token可打开操作菜单。",
+        "statusManagement": "状态管理：在右键菜单中可设置中毒、醉酒、保护等状态，或标记玩家死亡。",
+        "addMarkers": "添加标记：使用【添加标记】功能在Token旁添加视觉提示（如【被调查】、【被保护】）。",
+        "virtualPlayers": "虚拟玩家：点击【添加虚拟玩家】可增加占位符，用于测试或填补空位。"
+      },
+      "atmosphere": {
+        "title": "🎵 氛围与工具",
+        "ambientSound": "氛围音效：在【氛围音效】面板选择并播放背景音乐，增强代入感。",
+        "notebook": "笔记本：切换到【笔记】标签页，随时记录游戏中的关键信息和推理逻辑。",
+        "aiAssistant": "AI助手：在【助手】标签页咨询AI关于规则或判决的问题。"
+      },
+      "tip": "提示：作为说书人，你是游戏的主持者和裁判。保持公正，但也要确保游戏的趣味性！"
+    },
+    "infoCard": {
+      "roleInfo": "角色信息",
+      "ability": "能力提示",
+      "hint": "游戏提示",
+      "custom": "自定义"
+    },
+    "voiceRoomLink": {
+      "title": "🎙️ 语音房间",
+      "edit": "编辑",
+      "add": "添加",
+      "placeholder": "输入 Discord/QQ/腾讯会议链接...",
+      "join": "加入语音房间",
+      "notSet": "说书人尚未设置语音房间",
+      "clickToAdd": "点击【添加】设置语音房间链接"
+    },
+    "updateNotification": {
+      "title": "新版本可用",
+      "message": "血染钟楼魔典已更新，立即刷新以获得最新功能",
+      "later": "稍后",
+      "refresh": "刷新",
+      "remindLater": "稍后提醒"
+    },
+    "statusBadge": {
+      "alive": "存活",
+      "dead": "死亡",
+      "poisoned": "中毒",
+      "protected": "受保护",
+      "nominated": "被提名",
+      "drunk": "醉酒",
+      "marked": "待处决",
+      "good": "善良",
+      "evil": "邪恶",
+      "neutral": "中立",
+      "info": "提示",
+      "warning": "警告",
+      "success": "成功"
+    },
+    "languageSelector": {
+      "title": "语言选择"
+    }
+  },
+  "history": {
+    "title": "📜 历史回放",
+    "exitReplay": "退出回放",
+    "gameRecords": "📜 游戏记录",
+    "loading": "加载中...",
+    "noRecords": "暂无游戏记录",
+    "goodWin": "好人胜利",
+    "evilWin": "邪恶胜利",
+    "undecided": "未分胜负",
+    "details": "详情",
+    "votingRecords": "投票记录",
+    "watchReplay": "🎥 观看回放",
+    "playerList": "玩家名单",
+    "unknownRole": "未知",
+    "chatHistory": "聊天记录",
+    "votingHistory": "投票历史",
+    "noVotingData": "该记录未包含投票数据。",
+    "selectToView": "请从左侧选择一个游戏记录查看详情。",
+    "afterAction": {
+      "title": "游戏战报",
+      "rounds": "轮",
+      "copyText": "复制文本",
+      "download": "下载文本",
+      "saveAsImage": "保存为图片",
+      "overview": "📊 概览",
+      "timeline": "⏱️ 时间轴",
+      "players": "👥 玩家",
+      "goodWin": "善良阵营胜利!",
+      "evilWin": "邪恶阵营胜利!",
+      "duration": "游戏时长",
+      "minutes": "分钟",
+      "playerCount": "玩家人数",
+      "deathCount": "死亡人数",
+      "executionCount": "处决次数",
+      "mvp": "最佳玩家 MVP",
+      "survivedRounds": "存活",
+      "noTimelineEvents": "暂无时间轴事件",
+      "disguised": "伪装",
+      "affected": "受影响",
+      "votesCast": "投票",
+      "times": "次",
+      "copied": "战报已复制到剪贴板",
+      "downloaded": "战报已下载",
+      "imageSaved": "战报图片已保存",
+      "screenshotFailed": "截图失败，请重试"
+    }
+  },
+  "script": {
+    "manager": {
+      "title": "剧本管理",
+      "currentScript": "当前剧本",
+      "importScript": "导入剧本",
+      "exportJson": "导出 JSON",
+      "description": "说明：",
+      "supportFormat": "支持导入官方 JSON 格式的剧本文件。你可以从官方脚本工具导出,或者手动编写。",
+      "formatExample": "格式示例",
+      "uploadFile": "从文件上传",
+      "or": "OR",
+      "pasteJson": "粘贴 JSON 内容",
+      "confirmImport": "确认导入",
+      "notFound": "未找到当前剧本信息"
+    },
+    "editor": {
+      "title": "剧本编辑器",
+      "customEditor": "自定义剧本编辑器",
+      "searchRoles": "搜索角色...",
+      "allTeams": "全部阵营",
+      "townsfolk": "村民",
+      "outsider": "外来者",
+      "minion": "爪牙",
+      "demon": "恶魔",
+      "scriptName": "剧本名称",
+      "enterName": "输入剧本名称...",
+      "author": "作者",
+      "yourName": "你的名字",
+      "description": "简介",
+      "descriptionPlaceholder": "剧本简介...",
+      "selectedRoles": "已选角色",
+      "importJson": "导入 JSON",
+      "exportJson": "导出 JSON",
+      "cancel": "取消",
+      "saveScript": "保存剧本",
+      "pleaseEnterName": "请输入剧本名称",
+      "pleaseSelectRole": "请至少选择一个角色"
+    },
+    "reference": {
+      "title": "剧本参考",
+      "scriptReference": "板子参考",
+      "searchPlaceholder": "搜索角色或技能...",
+      "all": "全部"
+    },
+    "composition": {
+      "title": "剧本构成指南",
+      "guide": "板子配置建议",
+      "currentPlayers": "当前人数",
+      "people": "人",
+      "standardComposition": "标准配比",
+      "townsfolk": "镇民",
+      "outsider": "外来者",
+      "minion": "爪牙",
+      "demon": "恶魔",
+      "roleStrength": "角色强度参考（暗流涌动）",
+      "strongRoles": "强力角色",
+      "mediumStrongRoles": "中强角色",
+      "mediumRoles": "中等角色",
+      "selectStrategy": "选择一个策略查看详情：",
+      "balanced": "平衡打法",
+      "evilFavored": "邪恶优势",
+      "goodFavored": "好人优势",
+      "chaotic": "混乱模式",
+      "beginner": "新手",
+      "medium": "中等",
+      "hard": "困难",
+      "roleConfig": "角色强度配置",
+      "suggestions": "选取建议",
+      "generateConfig": "生成具体角色配置",
+      "generatedConfig": "生成的角色配置",
+      "applyWarning": "应用此策略将<strong>清除当前所有角色分配</strong>,并根据上方配置重新分配角色。",
+      "applyStrategy": "应用策略",
+      "pleaseGenerate": "请先生成角色配置",
+      "errorLoading": "加载出错",
+      "loadFailed": "板子参考加载失败,请重试。"
+    }
+  },
+  "sandbox": {
+    "title": "沙盒模式",
+    "description": "离线练习环境",
+    "exitSandbox": "退出沙盒",
+    "localPractice": "本地练习 • 数据不保存",
+    "loading": "正在加载沙盒...",
+    "helpText": "沙盒模式 • 右键管理座位 • 滚轮缩放",
+    "phaseSetup": "准备",
+    "phaseDay": "白天",
+    "phaseNomination": "提名",
+    "phaseNight": "夜晚",
+    "quickPhaseSwitch": "快速阶段切换",
+    "controlPanel": "沙盒控制台",
+    "scriptSelection": "剧本选择",
+    "quickActions": "快捷操作",
+    "randomAssign": "随机分配",
+    "enterNight": "进入夜晚",
+    "enterDay": "进入白天",
+    "resetGame": "重置游戏",
+    "roleAssignment": "角色分配",
+    "selectRole": "选择角色,然后点击座位分配",
+    "selected": "已选择",
+    "clickToAssign": "点击座位分配",
+    "seatsOverview": "座位概览",
+    "clickToToggleDeath": "点击切换死亡状态",
+    "assignRole": "分配角色",
+    "exitSandboxMode": "退出沙盒模式"
+  },
+  "effects": {
+    "bloodDrip": "血滴效果",
+    "midnightChime": {
+      "midnight": "午夜",
+      "nightFalls": "夜幕降临于村庄..."
+    },
+    "ghostParticles": "幽灵粒子"
+  },
+  "modals": {
+    "actionConfirm": {
+      "title": "确认操作",
+      "testTitle": "测试标题",
+      "testMessage": "测试消息"
+    }
+  },
+  "notification": {
+    "dead": "你已出局",
+    "abilityUsed": "技能已使用"
   }
 }

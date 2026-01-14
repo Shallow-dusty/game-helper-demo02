@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { shallow } from 'zustand/shallow';
 import { Grimoire } from './Grimoire';
@@ -14,6 +15,7 @@ const useTownSquareState = () => useStore(
 );
 
 export const TownSquare = () => {
+    const { t } = useTranslation();
     const spectateGame = useStore(state => state.spectateGame);
     const connectionStatus = useStore(state => state.connectionStatus);
     const { gameOver, hasGameState } = useTownSquareState();
@@ -47,15 +49,15 @@ export const TownSquare = () => {
         return (
             <div className="min-h-screen bg-stone-950 flex items-center justify-center p-4 font-serif text-stone-200">
                 <div className="max-w-md w-full bg-stone-900 border border-stone-700 p-8 rounded-lg shadow-2xl text-center">
-                    <h1 className="text-3xl font-cinzel text-amber-500 mb-2">Town Square</h1>
-                    <p className="text-stone-500 mb-8">Public Game View</p>
+                    <h1 className="text-3xl font-cinzel text-amber-500 mb-2">{t('game.townSquare.title')}</h1>
+                    <p className="text-stone-500 mb-8">{t('game.townSquare.subtitle')}</p>
 
                     <form onSubmit={handleJoin} className="flex flex-col gap-4">
                         <input
                             type="text"
                             value={inputCode}
                             onChange={(e) => setInputCode(e.target.value)}
-                            placeholder="Enter Room Code"
+                            placeholder={t('game.townSquare.enterRoomCode')}
                             className="bg-stone-950 border border-stone-700 p-4 rounded text-center text-xl tracking-widest uppercase focus:border-amber-600 focus:outline-none transition-colors"
                             maxLength={4}
                         />
@@ -63,7 +65,7 @@ export const TownSquare = () => {
                             type="submit"
                             className="bg-amber-700 hover:bg-amber-600 text-white p-4 rounded font-bold tracking-wider transition-colors"
                         >
-                            VIEW TOWN SQUARE
+                            {t('game.townSquare.viewButton')}
                         </button>
                     </form>
                 </div>
@@ -76,7 +78,7 @@ export const TownSquare = () => {
             <div className="min-h-screen bg-stone-950 flex items-center justify-center text-stone-400">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-stone-700 border-t-amber-500 rounded-full animate-spin"></div>
-                    <p>Connecting to Town Square...</p>
+                    <p>{t('game.townSquare.connecting')}</p>
                 </div>
             </div>
         );
@@ -86,12 +88,12 @@ export const TownSquare = () => {
         return (
             <div className="min-h-screen bg-stone-950 flex items-center justify-center text-stone-400">
                 <div className="text-center">
-                    <p className="mb-4">Unable to load game data.</p>
+                    <p className="mb-4">{t('game.townSquare.unableToLoad')}</p>
                     <button
                         onClick={() => window.location.reload()}
                         className="text-amber-500 hover:text-amber-400 underline"
                     >
-                        Retry
+                        {t('game.townSquare.retry')}
                     </button>
                 </div>
             </div>
@@ -117,8 +119,8 @@ export const TownSquare = () => {
             {/* Header / Info Overlay */}
             <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start z-10 pointer-events-none">
                 <div className="bg-stone-900/80 backdrop-blur border border-stone-700 px-4 py-2 rounded shadow-lg">
-                    <h1 className="text-amber-500 font-cinzel font-bold text-lg">Town Square</h1>
-                    <div className="text-xs text-stone-400">Room: <span className="text-stone-200 font-mono">{roomCode}</span></div>
+                    <h1 className="text-amber-500 font-cinzel font-bold text-lg">{t('game.townSquare.title')}</h1>
+                    <div className="text-xs text-stone-400">{t('game.townSquare.room')}: <span className="text-stone-200 font-mono">{roomCode}</span></div>
                 </div>
             </div>
 

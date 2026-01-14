@@ -15,7 +15,7 @@ const resources = {
   },
 };
 
-i18n
+void i18n
   // 浏览器语言检测
   .use(LanguageDetector)
   // react-i18next 绑定
@@ -45,7 +45,7 @@ export default i18n;
 
 // 语言切换函数
 export const changeLanguage = (lng: 'zh-CN' | 'en') => {
-  i18n.changeLanguage(lng);
+  void i18n.changeLanguage(lng);
   localStorage.setItem('i18nextLng', lng);
 };
 

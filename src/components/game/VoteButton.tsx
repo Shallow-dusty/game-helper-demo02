@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface VoteButtonProps {
     isRaised: boolean;
@@ -15,6 +16,7 @@ export const VoteButton: React.FC<VoteButtonProps> = React.memo(({
     hasGhostVote = true,
     onToggle
 }) => {
+    const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
     
     // 死亡且无幽灵票时禁用
@@ -31,11 +33,11 @@ export const VoteButton: React.FC<VoteButtonProps> = React.memo(({
     
     // 获取按钮显示文本
     const getButtonText = () => {
-        if (isGhostVoteUsed) return '👻 幽灵票已使用';
-        if (isLocked) return '🔒 状态已锁定';
-        if (isLoading) return '⏳ 处理中...';
-        if (isRaised) return '✋ 已举手';
-        return isDead ? '👻 使用幽灵票？' : '举手投票？';
+        if (isGhostVoteUsed) return t('game.voteButton.ghostVoteUsed');
+        if (isLocked) return t('game.voteButton.locked');
+        if (isLoading) return t('game.voteButton.processing');
+        if (isRaised) return t('game.voteButton.handRaised');
+        return isDead ? t('game.voteButton.useGhostVote') : t('game.voteButton.raiseHand');
     };
 
     // 获取按钮样式
@@ -71,7 +73,7 @@ export const VoteButton: React.FC<VoteButtonProps> = React.memo(({
             {/* 幽灵票状态提示 */}
             {isDead && hasGhostVote && !isRaised && (
                 <p className="text-xs text-purple-400 text-center mt-1 animate-pulse">
-                    你还有一张幽灵票可用
+                    {t('game.voteButton.ghostVoteAvailable')}
                 </p>
             )}
         </div>

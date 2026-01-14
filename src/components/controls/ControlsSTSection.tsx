@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { shallow } from 'zustand/shallow';
 import { SCRIPTS, ROLES } from '../../constants';
@@ -50,6 +51,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
     onShowHistory,
     onShowScriptEditor
 }) => {
+    const { t } = useTranslation();
     const {
         seats,
         phase,
@@ -88,7 +90,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
 
         const hasEmptyRoles = seats.some(s => !s.roleId);
         if (hasEmptyRoles) {
-            alert("有座位未分配角色！请先分配角色再发放。");
+            alert(t('controls.st.distributeEmptyRoleError'));
             return;
         }
 
@@ -108,16 +110,16 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
             {/* Script Selector */}
             <div className="bg-stone-900 p-3 rounded border border-stone-700">
                 <div className="flex justify-between items-center mb-2">
-                    <label className="text-xs font-bold text-stone-500 uppercase block">📖 剧本 (Script)</label>
+                    <label className="text-xs font-bold text-stone-500 uppercase block">📖 {t('controls.st.script')}</label>
                     <div className="flex gap-2">
                         <button
                             onClick={onShowScriptEditor}
                             className="text-[10px] text-amber-400 hover:text-amber-300 border border-amber-900/50 px-2 py-0.5 rounded bg-amber-950/20 transition-colors"
                         >
-                            ✏️ 创建 (Create)
+                            ✏️ {t('controls.st.createScript')}
                         </button>
                         <label className="cursor-pointer text-[10px] text-blue-400 hover:text-blue-300 border border-blue-900/50 px-2 py-0.5 rounded bg-blue-950/20 transition-colors">
-                            📥 导入 (Import)
+                            📥 {t('controls.st.importScript')}
                             <input
                                 type="file"
                                 accept=".json"
@@ -143,13 +145,13 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     onChange={(e) => setScript(e.target.value)}
                     className="w-full bg-stone-950 border border-stone-700 rounded text-sm text-stone-300 p-2"
                 >
-                    <optgroup label="官方剧本">
+                    <optgroup label={t('controls.st.officialScripts')}>
                         {Object.values(SCRIPTS).map(script => (
                             <option key={script.id} value={script.id}>{script.name}</option>
                         ))}
                     </optgroup>
                     {Object.keys(customScripts || {}).length > 0 && (
-                        <optgroup label="自定义剧本">
+                        <optgroup label={t('controls.st.customScripts')}>
                             {Object.values(customScripts).map(script => (
                                 <option key={script.id} value={script.id}>{script.name}</option>
                             ))}
@@ -164,7 +166,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     className="w-full p-3 flex justify-between items-center text-xs font-bold text-stone-500 uppercase"
                     onClick={() => toggleSection('seats')}
                 >
-                    <span>🪑 座位管理 (Seats)</span>
+                    <span>🪑 {t('controls.st.seatManagement')}</span>
                     <span className="text-stone-600">{collapsedSections.seats ? '▼' : '▲'}</span>
                 </button>
                 <div className={`grid grid-cols-3 gap-2 px-3 pb-3 ${collapsedSections.seats ? 'hidden' : ''}`}>
@@ -173,21 +175,21 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                         className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-2 rounded text-xs border border-stone-600 transition-colors flex flex-col items-center justify-center gap-1"
                     >
                         <span className="text-lg">🤖</span>
-                        <span>加虚拟</span>
+                        <span>{t('controls.st.addVirtual')}</span>
                     </button>
                     <button
                         onClick={() => useStore.getState().addSeat()}
                         className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-2 rounded text-xs border border-stone-600 transition-colors flex flex-col items-center justify-center gap-1"
                     >
                         <span className="text-lg">➕</span>
-                        <span>加座位</span>
+                        <span>{t('controls.st.addSeat')}</span>
                     </button>
                     <button
                         onClick={() => useStore.getState().removeSeat()}
                         className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-2 rounded text-xs border border-stone-600 transition-colors flex flex-col items-center justify-center gap-1"
                     >
                         <span className="text-lg">➖</span>
-                        <span>减座位</span>
+                        <span>{t('controls.st.removeSeat')}</span>
                     </button>
                 </div>
             </div>
@@ -198,7 +200,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     className="w-full p-3 flex justify-between items-center text-xs font-bold text-stone-500 uppercase"
                     onClick={() => toggleSection('roles')}
                 >
-                    <span>🎭 角色管理 (Roles)</span>
+                    <span>🎭 {t('controls.st.roleManagement')}</span>
                     <span className="text-stone-600">{collapsedSections.roles ? '▼' : '▲'}</span>
                 </button>
                 <div className={`grid grid-cols-2 gap-2 px-3 pb-3 ${collapsedSections.roles ? 'hidden' : ''}`}>
@@ -206,25 +208,25 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                         onClick={() => useStore.getState().assignRoles()}
                         className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-2"
                     >
-                        <span>🎲</span> 自动分配
+                        <span>🎲</span> {t('controls.st.autoAssign')}
                     </button>
                     <button
                         onClick={handleDistributeClick}
                         className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-2"
                     >
-                        <span>👀</span> 发放角色
+                        <span>👀</span> {t('controls.st.distributeRoles')}
                     </button>
                     <button
                         onClick={onShowCompositionGuide}
                         className="bg-stone-800 hover:bg-amber-900 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-2"
                     >
-                        <span>📊</span> 查看板子配置建议
+                        <span>📊</span> {t('controls.st.viewComposition')}
                     </button>
                     <button
                         onClick={() => setShowRuleCompliance(true)}
                         className="bg-stone-800 hover:bg-emerald-900 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-2"
                     >
-                        <Shield className="w-3 h-3" /> 规则检查
+                        <Shield className="w-3 h-3" /> {t('controls.st.ruleCheck')}
                     </button>
                 </div>
             </div>
@@ -235,7 +237,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                     className="w-full p-3 flex justify-between items-center text-xs font-bold text-stone-500 uppercase"
                     onClick={() => toggleSection('game')}
                 >
-                    <span>🎮 游戏流程 (Game)</span>
+                    <span>🎮 {t('controls.st.gameFlow')}</span>
                     <span className="text-stone-600">{collapsedSections.game ? '▼' : '▲'}</span>
                 </button>
                 <div className={`space-y-2 px-3 pb-3 ${collapsedSections.game ? 'hidden' : ''}`}>
@@ -245,14 +247,14 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                             onClick={() => useStore.getState().startGame()}
                             className="w-full bg-indigo-900 hover:bg-indigo-800 text-indigo-100 py-3 px-3 rounded text-sm border border-indigo-700 transition-colors flex items-center justify-center gap-2 font-bold shadow-lg"
                         >
-                            <span>🌙</span> {phase === 'SETUP' ? '开始游戏 (进入夜晚)' : '进入夜晚'}
+                            <span>🌙</span> {phase === 'SETUP' ? t('controls.st.startGame') : t('controls.st.enterNight')}
                         </button>
                     ) : (
                         <button
                             onClick={() => setPhase('DAY')}
                             className="w-full bg-amber-700 hover:bg-amber-600 text-white py-3 px-3 rounded text-sm border border-amber-600 transition-colors flex items-center justify-center gap-2 font-bold shadow-lg"
                         >
-                            <span>☀</span> 天亮 (进入白天)
+                            <span>☀</span> {t('controls.st.enterDay')}
                         </button>
                     )}
 
@@ -261,7 +263,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                             onClick={onShowHistory}
                             className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
                         >
-                            <span>📜</span> 历史记录
+                            <span>📜</span> {t('controls.st.history')}
                         </button>
                         <button
                             onClick={() => useStore.getState().toggleVibration()}
@@ -271,7 +273,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                                 }`}
                         >
                             <span>{vibrationEnabled ? '📳' : '🔇'}</span>
-                            {vibrationEnabled ? '振动: 开' : '振动: 关'}
+                            {vibrationEnabled ? t('controls.st.vibrationOn') : t('controls.st.vibrationOff')}
                         </button>
                     </div>
 
@@ -283,14 +285,14 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                                 ? 'bg-amber-900/60 border-amber-600/50 text-amber-300 hover:bg-amber-800/60 shadow-[0_0_10px_rgba(251,191,36,0.2)]'
                                 : 'bg-stone-800 border-stone-600 text-stone-400 hover:bg-stone-700'
                         }`}
-                        title={candlelightEnabled ? '关闭烛光模式' : '开启烛光模式 - 夜晚时玩家视野受限'}
+                        title={candlelightEnabled ? t('controls.st.candlelightDisableTooltip') : t('controls.st.candlelightEnableTooltip')}
                     >
                         {candlelightEnabled ? (
                             <Flame className="w-4 h-4" />
                         ) : (
                             <FlameKindling className="w-4 h-4" />
                         )}
-                        <span>{candlelightEnabled ? '🕯️ 烛光模式: 开' : '🕯️ 烛光模式: 关'}</span>
+                        <span>{candlelightEnabled ? t('controls.st.candlelightOn') : t('controls.st.candlelightOff')}</span>
                     </button>
                 </div>
             </div>
@@ -313,13 +315,13 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                 return (
                     <div className="bg-black/30 p-3 rounded border border-indigo-900/50 shadow-lg">
                         <div className="text-xs text-indigo-400/70 mb-2 flex justify-between uppercase tracking-wider">
-                            <span>夜间行动顺序</span>
+                            <span>{t('controls.st.nightOrder')}</span>
                             <span>{nightCurrentIndex + 1} / {nightQueue.length}</span>
                         </div>
                         <div className="flex items-center justify-between mb-3 bg-indigo-950/30 p-2 rounded border border-indigo-900/30">
                             <button onClick={nightPrev} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&lt;</button>
                             <span className={`font-serif text-lg font-bold ${currentRoleId ? 'text-indigo-200' : 'text-stone-600'}`}>
-                                {currentRole?.name || (nightCurrentIndex >= 0 ? '天亮' : '入夜')}
+                                {currentRole?.name || (nightCurrentIndex >= 0 ? t('controls.st.dawn') : t('controls.st.dusk'))}
                             </span>
                             <button onClick={nightNext} className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400">&gt;</button>
                         </div>
@@ -340,20 +342,20 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
                                 onClick={() => onShowNightAction(currentRoleId)}
                                 className="mt-3 w-full py-2 bg-purple-900/50 hover:bg-purple-800/50 border border-purple-700 text-purple-200 rounded font-bold text-sm transition-all shadow-lg"
                             >
-                                🌙 执行夜间动作
+                                🌙 {t('controls.st.executeNightAction')}
                             </button>
                         )}
 
                         {/* Manual Day Switch (Backup) */}
                         <button
                             onClick={() => {
-                                if (window.confirm('确定要强制天亮吗？这将跳过剩余的夜间流程。')) {
+                                if (window.confirm(t('controls.st.forceDawnConfirm'))) {
                                     setPhase('DAY');
                                 }
                             }}
                             className="mt-3 w-full py-2 bg-amber-900/30 hover:bg-amber-800/50 text-amber-500 rounded text-xs border border-amber-900/50 transition-colors flex items-center justify-center gap-2"
                         >
-                            <span>☀</span> 强制天亮
+                            <span>☀</span> {t('controls.st.forceDawn')}
                         </button>
                     </div>
                 );
@@ -362,19 +364,19 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
             {/* Voting Controls */}
             {voting?.isOpen && (
                 <div className="bg-amber-950/20 border border-amber-800/50 p-4 rounded shadow-[0_0_20px_rgba(180,83,9,0.1)] animate-fade-in">
-                    <div className="text-xs text-amber-600 mb-3 font-bold uppercase tracking-widest text-center">投票进行中</div>
+                    <div className="text-xs text-amber-600 mb-3 font-bold uppercase tracking-widest text-center">{t('controls.st.votingInProgress')}</div>
                     <div className="text-sm mb-4 flex justify-between items-center border-b border-amber-900/30 pb-2">
-                        <span className="text-stone-400">被提名者</span>
+                        <span className="text-stone-400">{t('controls.st.nominee')}</span>
                         <span className="font-bold text-amber-100 text-lg font-cinzel">{seats.find(s => s.id === voting?.nomineeSeatId)?.userName}</span>
                     </div>
                     <button
                         onClick={nextClockHand}
                         className="w-full py-3 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-bold rounded-sm mb-2 shadow border border-amber-500 font-cinzel"
                     >
-                        移动时针 ➜
+                        {t('controls.st.moveClockHand')} ➜
                     </button>
                     <button onClick={closeVote} className="w-full py-1 bg-transparent hover:bg-red-900/20 text-xs rounded text-red-400 border border-transparent hover:border-red-900/50 transition-colors">
-                        取消 / 结束投票
+                        {t('controls.st.cancelVote')}
                     </button>
                 </div>
             )}

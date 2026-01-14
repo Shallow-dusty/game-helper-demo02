@@ -110,6 +110,32 @@ vi.mock('zustand/shallow', () => ({
   shallow: vi.fn((a, b) => JSON.stringify(a) === JSON.stringify(b)),
 }));
 
+// Mock i18n
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'nightAction.manager.title': '待处理夜间行动',
+        'nightAction.manager.pending': '待回复',
+        'nightAction.manager.fakeAction': '假行动',
+        'nightAction.manager.target': '目标',
+        'nightAction.manager.realRole': '实际',
+        'nightAction.manager.sendReply': '发送回复',
+        'nightAction.manager.skipAction': '跳过',
+        'nightAction.manager.replyPlaceholder': '输入回复给玩家的结果...',
+        'nightAction.manager.drunkWarning': '此玩家的真实角色是',
+        'nightAction.manager.drunkEffect': '他的行动不会生效，但你可以选择告诉他虚假信息。',
+        'nightAction.manager.drunkLabel': '酒鬼',
+        'nightAction.manager.disguiseLabel': '伪装',
+        'nightAction.manager.quickReplies.executed': '已执行',
+        'nightAction.manager.quickReplies.noEffect': '无效果',
+        'nightAction.manager.quickReplies.targetDead': '目标已死亡',
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
+
 // Mock constants
 vi.mock('../../constants', () => ({
   ROLES: {
@@ -370,8 +396,8 @@ describe('NightActionManager', () => {
       const firstRequest = findRequestCard(container, 'Alice');
       fireEvent.click(firstRequest!);
 
-      expect(screen.getByText('你的信息是：___号是___')).toBeInTheDocument();
-      expect(screen.getByText('无有效信息')).toBeInTheDocument();
+      expect(screen.getByText('已执行')).toBeInTheDocument();
+      expect(screen.getByText('无效果')).toBeInTheDocument();
     });
 
     it('should show role-specific quick replies for fortune_teller', () => {
@@ -381,8 +407,8 @@ describe('NightActionManager', () => {
       const secondRequest = findRequestCard(container, 'Bob');
       fireEvent.click(secondRequest!);
 
-      expect(screen.getByText('是')).toBeInTheDocument();
-      expect(screen.getByText('否')).toBeInTheDocument();
+      expect(screen.getByText('已执行')).toBeInTheDocument();
+      expect(screen.getByText('无效果')).toBeInTheDocument();
     });
 
     it('should show default quick replies for unknown roles', () => {
@@ -416,12 +442,12 @@ describe('NightActionManager', () => {
       fireEvent.click(firstRequest!);
 
       // Click quick reply
-      const quickReply = screen.getByText('无有效信息');
+      const quickReply = screen.getByText('无效果');
       fireEvent.click(quickReply);
 
       // Check textarea value
       const textarea = screen.getByPlaceholderText('输入回复给玩家的结果...');
-      expect(textarea.value).toBe('无有效信息');
+      expect(textarea.value).toBe('无效果');
     });
   });
 

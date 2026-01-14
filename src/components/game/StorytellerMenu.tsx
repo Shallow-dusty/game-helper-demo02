@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ROLES, STATUS_OPTIONS, PRESET_REMINDERS } from '../../constants';
 import { Seat, SeatStatus } from '../../types';
 import { Button } from '../ui/button';
@@ -26,6 +27,7 @@ interface StorytellerMenuProps {
 }
 
 export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose, actions, currentScriptId }) => {
+    const { t } = useTranslation();
     const selectedRole = seat.seenRoleId ? ROLES[seat.seenRoleId] : null;
     const roleTeamIcon = selectedRole?.team === 'DEMON' ? '👿' : selectedRole?.team === 'MINION' ? '🧪' : '⚜️';
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
@@ -55,19 +57,19 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                 <div>
                                     <CardTitle className="text-xl text-[#e7e5e4] font-cinzel tracking-wide">{seat.userName}</CardTitle>
                                     <p className="text-xs text-[#a8a29e] font-serif mt-1 flex items-center gap-2">
-                                        <span className="bg-stone-800 px-1.5 py-0.5 rounded text-[#d6d3d1] border border-stone-700">SEAT {seat.id + 1}</span>
+                                        <span className="bg-stone-800 px-1.5 py-0.5 rounded text-[#d6d3d1] border border-stone-700">{t('game.storytellerMenu.seat', { number: seat.id + 1 })}</span>
                                         <span className="text-[#78716c]">•</span>
-                                        <span className="text-[#d4af37] font-bold">{selectedRole?.name || 'NO ROLE'}</span>
+                                        <span className="text-[#d4af37] font-bold">{selectedRole?.name || t('game.storytellerMenu.noRole')}</span>
                                     </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => setIsSettingsOpen(true)} 
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setIsSettingsOpen(true)}
                                     className="text-stone-500 hover:text-[#d4af37] hover:bg-stone-800/50"
-                                    title="音频设置"
+                                    title={t('common.settings')}
                                 >
                                     <Settings className="w-5 h-5" />
                                 </Button>
@@ -91,8 +93,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                     {seat.isDead ? <Skull className="w-5 h-5" /> : <Heart className="w-5 h-5" />}
                                 </div>
                                 <div className="text-left">
-                                    <div className="font-bold text-sm font-cinzel text-stone-200">切换存活状态</div>
-                                    <div className="text-[10px] opacity-70 font-serif text-stone-400">{seat.isDead ? '当前: 已死亡' : '当前: 存活'}</div>
+                                    <div className="font-bold text-sm font-cinzel text-stone-200">{t('game.storytellerMenu.toggleAlive')}</div>
+                                    <div className="text-[10px] opacity-70 font-serif text-stone-400">{seat.isDead ? t('game.storytellerMenu.statusDead') : t('game.storytellerMenu.statusAlive')}</div>
                                 </div>
                             </Button>
 
@@ -108,8 +110,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                     <Ban className="w-5 h-5" />
                                 </div>
                                 <div className="text-left">
-                                    <div className="font-bold text-sm font-cinzel text-stone-200">技能使用</div>
-                                    <div className="text-[10px] opacity-70 font-serif text-stone-400">{seat.hasUsedAbility ? '已使用' : '未使用'}</div>
+                                    <div className="font-bold text-sm font-cinzel text-stone-200">{t('game.storytellerMenu.abilityUsed')}</div>
+                                    <div className="text-[10px] opacity-70 font-serif text-stone-400">{seat.hasUsedAbility ? t('game.storytellerMenu.abilityStatusUsed') : t('game.storytellerMenu.abilityStatusNotUsed')}</div>
                                 </div>
                             </Button>
 
@@ -123,8 +125,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                     <Theater className="w-5 h-5" />
                                 </div>
                                 <div className="text-left">
-                                    <div className="font-bold text-sm font-cinzel text-stone-200">分配角色</div>
-                                    <div className="text-[10px] opacity-70 font-serif text-stone-400">更改角色身份</div>
+                                    <div className="font-bold text-sm font-cinzel text-stone-200">{t('game.storytellerMenu.assignRole')}</div>
+                                    <div className="text-[10px] opacity-70 font-serif text-stone-400">{t('game.storytellerMenu.assignRoleDesc')}</div>
                                 </div>
                             </Button>
 
@@ -138,8 +140,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                     <Scale className="w-5 h-5" />
                                 </div>
                                 <div className="text-left">
-                                    <div className="font-bold text-sm font-cinzel text-stone-200">发起提名</div>
-                                    <div className="text-[10px] opacity-70 font-serif text-stone-400">开始投票流程</div>
+                                    <div className="font-bold text-sm font-cinzel text-stone-200">{t('game.storytellerMenu.nominate')}</div>
+                                    <div className="text-[10px] opacity-70 font-serif text-stone-400">{t('game.storytellerMenu.nominateDesc')}</div>
                                 </div>
                             </Button>
 
@@ -153,8 +155,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                     <ArrowLeftRight className="w-5 h-5" />
                                 </div>
                                 <div className="text-left">
-                                    <div className="font-bold text-sm font-cinzel text-stone-200">交换座位</div>
-                                    <div className="text-[10px] opacity-70 font-serif text-stone-400">移动玩家位置</div>
+                                    <div className="font-bold text-sm font-cinzel text-stone-200">{t('game.storytellerMenu.swapSeat')}</div>
+                                    <div className="text-[10px] opacity-70 font-serif text-stone-400">{t('game.storytellerMenu.swapSeatDesc')}</div>
                                 </div>
                             </Button>
 
@@ -169,8 +171,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                         <Trash2 className="w-5 h-5" />
                                     </div>
                                     <div className="text-left">
-                                        <div className="font-bold text-sm font-cinzel text-red-200">移除机器人</div>
-                                        <div className="text-[10px] opacity-70 font-serif text-red-300">清空座位</div>
+                                        <div className="font-bold text-sm font-cinzel text-red-200">{t('game.storytellerMenu.removeBot')}</div>
+                                        <div className="text-[10px] opacity-70 font-serif text-red-300">{t('game.storytellerMenu.removeBotDesc')}</div>
                                     </div>
                                 </Button>
                             )}
@@ -181,7 +183,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                     variant="destructive"
                                     className="h-auto py-3 flex justify-start gap-3 col-span-1 bg-red-950/30 border border-red-900/50 hover:bg-red-900/50 transition-all duration-300"
                                     onClick={() => {
-                                        if (window.confirm(`确定要将 ${seat.userName} 踢出座位吗？`)) {
+                                        if (window.confirm(t('game.storytellerMenu.confirmKick', { player: seat.userName }))) {
                                             actions.forceLeaveSeat(seat.id);
                                             onClose();
                                         }
@@ -191,8 +193,8 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                         <LogOut className="w-5 h-5" />
                                     </div>
                                     <div className="text-left">
-                                        <div className="font-bold text-sm font-cinzel text-red-200">踢出玩家</div>
-                                        <div className="text-[10px] opacity-70 font-serif text-red-300">强制离开座位</div>
+                                        <div className="font-bold text-sm font-cinzel text-red-200">{t('game.storytellerMenu.kickPlayer')}</div>
+                                        <div className="text-[10px] opacity-70 font-serif text-red-300">{t('game.storytellerMenu.kickPlayerDesc')}</div>
                                     </div>
                                 </Button>
                             )}
@@ -200,7 +202,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
 
                         {/* Status Section */}
                         <div className="px-4 pb-4">
-                            <h4 className="text-xs font-bold text-[#a8a29e] uppercase mb-3 font-cinzel tracking-widest border-b border-stone-800 pb-1">状态效果</h4>
+                            <h4 className="text-xs font-bold text-[#a8a29e] uppercase mb-3 font-cinzel tracking-widest border-b border-stone-800 pb-1">{t('game.storytellerMenu.statusEffects')}</h4>
                             <div className="flex flex-wrap gap-2">
                                 {STATUS_OPTIONS.filter(status => {
                                     if (currentScriptId === 'tb' && status.id === 'MADNESS') return false;
@@ -226,7 +228,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
 
                         {/* Reminders Section */}
                         <div className="px-4 pb-4 border-t border-stone-800 pt-4 bg-[#0c0a09]/50">
-                            <h4 className="text-xs font-bold text-[#a8a29e] uppercase mb-3 font-cinzel tracking-widest">标记提醒</h4>
+                            <h4 className="text-xs font-bold text-[#a8a29e] uppercase mb-3 font-cinzel tracking-widest">{t('game.storytellerMenu.reminders')}</h4>
 
                             {/* Existing Reminders */}
                             <div className="flex flex-wrap gap-2 mb-4 min-h-[2rem]">
@@ -235,7 +237,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                         key={rem.id}
                                         onClick={() => actions.removeReminder(rem.id)}
                                         className="px-2 py-1 rounded-sm bg-stone-800 border border-stone-600 text-xs text-stone-300 hover:bg-red-900/30 hover:border-red-800 hover:text-red-300 flex items-center gap-1 transition-all group animate-in fade-in zoom-in duration-200 shadow-sm"
-                                        title="点击移除"
+                                        title={t('game.storytellerMenu.clickToRemove')}
                                     >
                                         <span>{rem.icon || '🔸'}</span>
                                         <span className="font-serif">{rem.text}</span>
@@ -243,7 +245,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                     </button>
                                 ))}
                                 {seat.reminders.length === 0 && (
-                                    <span className="text-xs text-stone-700 italic py-1 font-serif">暂无标记...</span>
+                                    <span className="text-xs text-stone-700 italic py-1 font-serif">{t('game.storytellerMenu.noReminders')}</span>
                                 )}
                             </div>
 
@@ -254,7 +256,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                         key={preset.text}
                                         onClick={() => {
                                             if (preset.text === '自定义') {
-                                                const text = prompt("Enter reminder text:");
+                                                const text = prompt(t('game.storytellerMenu.enterReminderText'));
                                                 if (text) actions.addReminder(seat.id, text, preset.icon, preset.color);
                                             } else {
                                                 actions.addReminder(seat.id, preset.text, preset.icon, preset.color);

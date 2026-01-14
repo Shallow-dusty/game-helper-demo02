@@ -43,9 +43,10 @@ export const addSystemMessage = (gameState: GameState, content: string, recipien
  * @returns 按顺序排列的角色ID列表
  */
 export const buildNightQueue = (seats: Seat[], isFirstNight: boolean): string[] => {
+    // Bug#7 fix: Use realRoleId (true identity) for night actions, not seenRoleId
     const availableRoles = seats
-        .filter((s): s is Seat & { seenRoleId: string } => s.seenRoleId != null && !s.isDead)
-        .map(s => s.seenRoleId);
+        .filter((s): s is Seat & { realRoleId: string } => s.realRoleId != null && !s.isDead)
+        .map(s => s.realRoleId);
 
     const order = isFirstNight ? NIGHT_ORDER_FIRST : NIGHT_ORDER_OTHER;
 
@@ -262,9 +263,10 @@ export const checkEvilWin = (seats: Seat[]): boolean => {
 /**
  * 检查游戏是否结束
  * @param seats 座位列表
+ * @param executedSeatId 本次被处决的座位ID（可选，用于圣徒检查）
  * @returns 游戏结束状态，null 表示未结束
  */
-export const checkGameOver = (seats: Seat[]): {
+export const checkGameOver = (seats: Seat[], executedSeatId?: number): {
     isOver: boolean;
     winner: 'GOOD' | 'EVIL' | null;
     reason: string;
@@ -283,17 +285,19 @@ export const checkGameOver = (seats: Seat[]): {
             reason: '存活玩家不足，邪恶胜利！'
         };
     }
-    
-    // Saint Check
-    const saint = seats.find(s => s.realRoleId === 'saint');
-    if (saint?.isDead) { 
-        return {
-            isOver: true,
-            winner: 'EVIL',
-            reason: '圣徒被处决,邪恶胜利！'
-        };
-    }
 
+    // Bug#8 fix: Saint only triggers evil win when EXECUTED, not killed at night
+    // Only check if executedSeatId is provided (meaning this was an execution)
+    if (executedSeatId !== undefined) {
+        const executedSeat = seats.find(s => s.id === executedSeatId);
+        if (executedSeat?.realRoleId === 'saint') {
+            return {
+                isOver: true,
+                winner: 'EVIL',
+                reason: '圣徒被处决，邪恶胜利！'
+            };
+        }
+    }
 
     return null;
 };

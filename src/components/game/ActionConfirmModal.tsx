@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, CheckCircle, Info, X, Edit2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import type { ConfirmationOptions } from '../../hooks/useActionConfirmation';
+import { useTranslation } from 'react-i18next';
 
 interface ActionConfirmModalProps {
   isOpen: boolean;
@@ -31,6 +32,8 @@ export const ActionConfirmModal: React.FC<ActionConfirmModalProps> = ({
   onCancel,
   onInputChange,
 }) => {
+  const { t } = useTranslation();
+
   if (!options) return null;
 
   const getIcon = () => {
@@ -102,12 +105,12 @@ export const ActionConfirmModal: React.FC<ActionConfirmModalProps> = ({
                   <textarea
                     value={inputValue}
                     onChange={(e) => onInputChange(e.target.value)}
-                    className="w-full mt-4 p-3 bg-stone-900/50 border border-stone-700/50 rounded-lg 
+                    className="w-full mt-4 p-3 bg-stone-900/50 border border-stone-700/50 rounded-lg
                                text-stone-200 placeholder-stone-600 resize-none
                                focus:outline-none focus:border-amber-600/50 focus:ring-1 focus:ring-amber-600/30
                                transition-all duration-200"
                     rows={3}
-                    placeholder="输入修改后的内容..."
+                    placeholder={t('game.actionConfirm.modifyPlaceholder')}
                   />
                 )}
               </div>
@@ -119,7 +122,7 @@ export const ActionConfirmModal: React.FC<ActionConfirmModalProps> = ({
                   onClick={onCancel}
                   className="text-stone-400 hover:text-stone-200"
                 >
-                  {options.cancelText || '忽略'}
+                  {options.cancelText || t('game.actionConfirm.ignore')}
                 </Button>
 
                 {options.type === 'confirm-modify' && onModify && (
@@ -129,17 +132,17 @@ export const ActionConfirmModal: React.FC<ActionConfirmModalProps> = ({
                     className="border-blue-600/50 text-blue-400 hover:bg-blue-900/30"
                   >
                     <Edit2 className="w-4 h-4 mr-2" />
-                    {options.modifyText || '修改'}
+                    {options.modifyText || t('game.actionConfirm.modify')}
                   </Button>
                 )}
 
                 <Button
                   onClick={onConfirm}
-                  className="bg-amber-900/50 border border-amber-600/50 text-amber-200 
+                  className="bg-amber-900/50 border border-amber-600/50 text-amber-200
                              hover:bg-amber-800/50 hover:border-amber-500/50"
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  {options.confirmText || '确认'}
+                  {options.confirmText || t('game.actionConfirm.confirm')}
                 </Button>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { StoreSlice, GameSlice } from '../../types';
 import { addSystemMessage } from '../../utils';
+import { generateShortId } from '../../../lib/random';
 
 export const createGameChatSlice: StoreSlice<Pick<GameSlice, 'sendMessage' | 'forwardMessage' | 'toggleWhispers'>> = (set, get) => ({
     sendMessage: (content, recipientId) => {
@@ -9,7 +10,7 @@ export const createGameChatSlice: StoreSlice<Pick<GameSlice, 'sendMessage' | 'fo
                     return;
                 }
                 const msg = {
-                    id: Math.random().toString(36).substr(2, 9),
+                    id: generateShortId(),
                     senderId: state.user.id,
                     senderName: state.user.name,
                     recipientId,
@@ -30,7 +31,7 @@ export const createGameChatSlice: StoreSlice<Pick<GameSlice, 'sendMessage' | 'fo
                 const originalMsg = state.gameState.messages.find(m => m.id === messageId);
                 if (originalMsg) {
                     const newMsg = {
-                        id: Math.random().toString(36).substr(2, 9),
+                        id: generateShortId(),
                         senderId: state.user.id,
                         senderName: state.user.name, // Forwarder name
                         recipientId: targetRecipientId,

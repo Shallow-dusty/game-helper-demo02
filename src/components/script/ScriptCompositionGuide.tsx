@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { ROLES, SCRIPTS } from '../../constants';
 import { getStandardComposition } from '../../lib/distributionAnalysis';
+import { shuffle, randomInt } from '../../lib/random';
 import type { RoleDef } from '../../types';
 
 // 错误边界内容组件
@@ -315,14 +316,14 @@ const ScriptCompositionGuideInner: React.FC<ScriptCompositionGuideProps> = ({ on
             const demonRoles = scriptRoles.filter(id => ROLES[id]?.team === 'DEMON');
 
             // 随机选择角色
-            const shuffleArray = <T,>(array: T[]): T[] => [...array].sort(() => Math.random() - 0.5);
+            const shuffleArray = <T,>(array: T[]): T[] => shuffle(array);
 
             // 根据策略的角色强度分级来选择镇民
             const { strongRoles, mediumStrongRoles, mediumRoles } = strategy.guidelines;
 
             // 计算每个强度等级需要的数量
-            const strongCount = Math.floor(Math.random() * (strongRoles.max - strongRoles.min + 1)) + strongRoles.min;
-            const mediumStrongCount = Math.floor(Math.random() * (mediumStrongRoles.max - mediumStrongRoles.min + 1)) + mediumStrongRoles.min;
+            const strongCount = randomInt(strongRoles.min, strongRoles.max + 1);
+            const mediumStrongCount = randomInt(mediumStrongRoles.min, mediumStrongRoles.max + 1);
             const remainingCount = composition.townsfolk - strongCount - mediumStrongCount;
 
             // 从各强度池中选择角色

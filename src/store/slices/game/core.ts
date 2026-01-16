@@ -4,6 +4,7 @@ import { addSystemMessage } from '../../utils';
 import { getInitialState } from './utils';
 import { REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
 import type { GameState } from '../../../types';
+import { generateRoomCode } from '../../../lib/random';
 
 // Type for RPC responses
 interface RpcResponse {
@@ -18,7 +19,7 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
 
         set({ connectionStatus: 'connecting' });
 
-        const code = Math.floor(1000 + Math.random() * 9000).toString();
+        const code = generateRoomCode();
         const newState = getInitialState(code, seatCount);
         const updatedUser = { ...user, roomId: code };
 

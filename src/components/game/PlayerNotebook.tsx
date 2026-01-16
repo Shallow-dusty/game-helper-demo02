@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { generateShortId } from '../../lib/random';
 
 interface Note {
     id: string;
@@ -32,7 +33,7 @@ export const PlayerNotebook: React.FC = () => {
     const addNote = () => {
         if (!newNote.trim()) return;
         const note: Note = {
-            id: Math.random().toString(36).slice(2, 11),
+            id: generateShortId(),
             content: newNote,
             timestamp: Date.now()
         };

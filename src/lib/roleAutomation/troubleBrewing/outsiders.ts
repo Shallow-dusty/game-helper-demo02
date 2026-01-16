@@ -16,6 +16,7 @@ import {
   formatSeatName,
   formatRoleName
 } from '../utils';
+import { randomInt, randomBoolean } from '../../random';
 
 // ==================== 管家 (Butler) ====================
 
@@ -60,7 +61,7 @@ export function processButler(
             id: 'random',
             label: '随机选择',
             isRecommended: true,
-            result: String(alivePlayers[Math.floor(Math.random() * alivePlayers.length)]!.id)
+            result: String(alivePlayers[randomInt(0, alivePlayers.length)]!.id)
           }] : [])
         ]
       }]
@@ -182,7 +183,7 @@ export function processRecluse(
           id: 'show_evil',
           label: '显示为邪恶',
           description: '探测为邪恶阵营',
-          isRecommended: Math.random() > 0.5,
+          isRecommended: randomBoolean(),
           result: 'evil'
         },
         {

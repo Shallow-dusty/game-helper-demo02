@@ -17,6 +17,7 @@ import {
   generateId,
   formatSeatName
 } from '../utils';
+import { randomInt, randomBoolean } from '../../random';
 
 // ==================== 投毒者 (Poisoner) ====================
 
@@ -51,7 +52,7 @@ export function processPoisoner(
       if (foundTarget) {
         recommendedTarget = foundTarget;
       } else if (alivePlayers.length > 0) {
-        recommendedTarget = alivePlayers[Math.floor(Math.random() * alivePlayers.length)] ?? null;
+        recommendedTarget = alivePlayers[randomInt(0, alivePlayers.length)] ?? null;
       }
     }
 
@@ -179,7 +180,7 @@ export function processSpy(
           id: 'show_good',
           label: '显示为好人',
           description: '伪装为镇民/外来者',
-          isRecommended: Math.random() > 0.6,
+          isRecommended: randomBoolean(0.4),
           result: 'good'
         },
         {

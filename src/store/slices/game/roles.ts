@@ -3,6 +3,7 @@ import { addSystemMessage } from '../../utils';
 import { ROLES } from '../../../constants';
 import { applyRoleAssignment } from './utils';
 import { generateRoleAssignment, checkGameOver } from '../../../lib/gameLogic';
+import { generateShortId, shuffle } from '../../../lib/random';
 
 export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'toggleDead' | 'toggleAbilityUsed' | 'toggleStatus' | 'addReminder' | 'removeReminder' | 'assignRoles' | 'resetRoles' | 'distributeRoles' | 'hideRoles' | 'applyStrategy'>> = (set, get) => ({
     assignRole: (seatId, roleId) => {
@@ -16,7 +17,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                     const role = roleId ? ROLES[roleId] : undefined;
                     if (role?.reminders) {
                         seat.reminders = role.reminders.map(text => ({
-                            id: Math.random().toString(36).substring(2, 11),
+                            id: generateShortId(),
                             text,
                             sourceRole: roleId,
                             seatId: seatId
@@ -102,7 +103,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                 const seat = state.gameState.seats.find(s => s.id === seatId);
                 if (seat) {
                     seat.reminders.push({
-                        id: Math.random().toString(36).substring(2, 11),
+                        id: generateShortId(),
                         text,
                         sourceRole: 'manual',
                         seatId,
@@ -204,7 +205,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                     s.statuses = [];
                 });
 
-                const shuffledRoles = [...roleIds].sort(() => Math.random() - 0.5);
+                const shuffledRoles = shuffle(roleIds);
 
                 let roleIndex = 0;
                 state.gameState.seats.forEach(seat => {

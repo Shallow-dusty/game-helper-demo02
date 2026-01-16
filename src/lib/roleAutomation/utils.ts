@@ -6,6 +6,7 @@
 
 import type { GameState, Seat, Team } from '../../types';
 import type { StatusChange } from './types';
+import { randomInt, generateShortId } from '../random';
 
 /**
  * 检查座位是否被干扰（中毒/醉酒）
@@ -197,7 +198,7 @@ export function getRandomSeat(seats: Seat[], excludeIds: number[] = []): Seat | 
     s.userId && !s.isDead && !excludeIds.includes(s.id)
   );
   if (available.length === 0) return null;
-  const selected = available[Math.floor(Math.random() * available.length)];
+  const selected = available[randomInt(0, available.length)];
   return selected ?? null;
 }
 
@@ -217,7 +218,7 @@ export function getRandomSeatByTeam(
   });
 
   if (seats.length === 0) return null;
-  const selected = seats[Math.floor(Math.random() * seats.length)];
+  const selected = seats[randomInt(0, seats.length)];
   return selected ?? null;
 }
 
@@ -225,7 +226,7 @@ export function getRandomSeatByTeam(
  * 生成唯一ID
  */
 export function generateId(): string {
-  return `${String(Date.now())}-${Math.random().toString(36).substring(2, 11)}`;
+  return `${String(Date.now())}-${generateShortId()}`;
 }
 
 /**

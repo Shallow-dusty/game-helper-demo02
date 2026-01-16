@@ -21,6 +21,7 @@ import {
   formatSeatName,
   formatRoleName
 } from '../utils';
+import { randomInt } from '../../random';
 
 // ==================== 小恶魔 (Imp) ====================
 
@@ -91,7 +92,7 @@ export function processImp(
       if (foundTarget) {
         recommendedTarget = foundTarget;
       } else if (unprotected.length > 0) {
-        recommendedTarget = unprotected[Math.floor(Math.random() * unprotected.length)] ?? null;
+        recommendedTarget = unprotected[randomInt(0, unprotected.length)] ?? null;
       }
     }
 

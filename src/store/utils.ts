@@ -1,4 +1,5 @@
 import { Seat, GameState, StorytellerNote } from '../types';
+import { generateShortId } from '../lib/random';
 
 // --- DATA FILTERING UTILITIES ---
 // 数据视野隔离：根据用户身份过滤敏感信息
@@ -94,7 +95,7 @@ export const filterGameStateForUser = (gameState: GameState, currentUserId: stri
 
 export const addSystemMessage = (gameState: GameState, content: string, recipientId: string | null = null) => {
     gameState.messages.push({
-        id: Math.random().toString(36).substring(2, 11),
+        id: generateShortId(),
         senderId: 'system',
         senderName: '系统',
         recipientId,

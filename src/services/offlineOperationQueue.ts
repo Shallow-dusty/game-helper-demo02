@@ -7,6 +7,8 @@
  * 3. 支持优先级队列
  */
 
+import { generateShortId } from '../lib/random';
+
 // GameState type is available but not currently used in this module
 // import { GameState } from '../types';
 
@@ -301,7 +303,7 @@ export class OfflineOperationQueue {
      * 生成唯一 ID
      */
     private generateId(): string {
-        return `op_${String(Date.now())}_${Math.random().toString(36).slice(2, 11)}`;
+        return `op_${String(Date.now())}_${generateShortId()}`;
     }
 }
 

@@ -1,5 +1,6 @@
 import { StoreSlice, GameSlice } from '../../../types';
 import { InteractionLogEntry } from '../../../../types';
+import { generateShortId } from '../../../../lib/random';
 
 export const createFeaturesSlice: StoreSlice<Pick<GameSlice, 'toggleCandlelight' | 'addInteractionLog'>> = (set, get) => ({
     // v2.0: 烛光模式控制 (手动开关，需要同步)
@@ -18,7 +19,7 @@ export const createFeaturesSlice: StoreSlice<Pick<GameSlice, 'toggleCandlelight'
             if (state.gameState) {
                 const logEntry: InteractionLogEntry = {
                     ...entry,
-                    id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+                    id: `log-${generateShortId()}`,
                     timestamp: Date.now(),
                 };
                 state.gameState.interactionLog.push(logEntry);

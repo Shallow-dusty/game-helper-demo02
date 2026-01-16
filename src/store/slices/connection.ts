@@ -7,6 +7,7 @@ import { StoreSlice, ConnectionStatus } from '../types';
 import { User, GameState } from '../../types';
 import { createClient, RealtimeChannel, REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
 import { addSystemMessage, splitGameState, mergeGameState, type SecretState } from '../utils';
+import { generateShortId } from '../../lib/random';
 
 // --- SUPABASE CONFIG ---
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -63,7 +64,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
     login: (name, isStoryteller) => {
         let id = localStorage.getItem('grimoire_uid');
         if (!id) {
-            id = Math.random().toString(36).substring(7);
+            id = generateShortId();
             localStorage.setItem('grimoire_uid', id);
         }
         const newUser: User = { id, name, isStoryteller, roomId: null, isSeated: false };

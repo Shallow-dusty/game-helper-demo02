@@ -1,5 +1,6 @@
 import { GameState, Seat } from '../../../types';
 import { SCRIPTS, ROLES } from '../../../constants';
+import { randomInt } from '../../../lib/random';
 
 export const getInitialState = (roomId: string, seatCount: number, currentScriptId = 'tb'): GameState => ({
     roomId,
@@ -104,7 +105,7 @@ export const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: st
             return fallbackTownsfolk[0] ?? null;
         }
         
-        return pool[Math.floor(Math.random() * pool.length)] ?? null;
+        return pool[randomInt(0, pool.length)] ?? null;
     };
 
     if (roleId === 'drunk') {

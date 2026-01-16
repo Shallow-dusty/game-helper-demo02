@@ -1,5 +1,6 @@
 import type { Seat, GameState } from '../types';
 import { ROLES } from '../constants/roles';
+import { randomInt } from './random';
 
 /**
  * 智能信息生成模块
@@ -110,7 +111,7 @@ export function generateEmpathInfo(gameState: GameState, empathSeatId: number): 
 
   // 生成伪造信息
   const alternatives = ['0', '1', '2'].filter(n => n !== realInfo);
-  const fakeInfo = alternatives[Math.floor(Math.random() * alternatives.length)] ?? '0';
+  const fakeInfo = alternatives[randomInt(0, alternatives.length)] ?? '0';
 
   return {
     roleId: 'empath',
@@ -152,7 +153,7 @@ export function generateChefInfo(gameState: GameState, chefSeatId: number): Info
 
   // 生成伪造信息（0-3 范围内的其他数字）
   const possibleValues = ['0', '1', '2', '3'].filter(n => n !== realInfo);
-  const fakeInfo = possibleValues[Math.floor(Math.random() * possibleValues.length)] ?? '0';
+  const fakeInfo = possibleValues[randomInt(0, possibleValues.length)] ?? '0';
 
   return {
     roleId: 'chef',
@@ -240,7 +241,7 @@ export function generateWasherwomanInfo(gameState: GameState, washerwomanSeatId:
   }
 
   // 随机选择一个镇民作为目标
-  const targetTownsfolk = townsfolk[Math.floor(Math.random() * townsfolk.length)];
+  const targetTownsfolk = townsfolk[randomInt(0, townsfolk.length)];
   if (!targetTownsfolk) {
     return createErrorResult('washerwoman', '洗衣妇', washerwomanSeatId, '无法选择目标');
   }
@@ -252,14 +253,14 @@ export function generateWasherwomanInfo(gameState: GameState, washerwomanSeatId:
     s.id !== washerwomanSeatId && s.id !== targetTownsfolk.id
   );
   const decoy = otherPlayers.length > 0 
-    ? (otherPlayers[Math.floor(Math.random() * otherPlayers.length)] ?? targetTownsfolk)
+    ? (otherPlayers[randomInt(0, otherPlayers.length)] ?? targetTownsfolk)
     : targetTownsfolk;
 
   const realInfo = `${targetTownsfolk.userName}(${String(targetTownsfolk.id + 1)}号) 或 ${decoy.userName}(${String(decoy.id + 1)}号) 中有一人是 ${targetRoleName}`;
 
   // 伪造信息：指向错误的镇民类型
   const fakeRoleNames = ['洗衣妇', '图书管理员', '调查员', '厨师', '共情者', '占卜师'];
-  const fakeRole = fakeRoleNames[Math.floor(Math.random() * fakeRoleNames.length)] ?? '厨师';
+  const fakeRole = fakeRoleNames[randomInt(0, fakeRoleNames.length)] ?? '厨师';
   const fakeInfo = `${decoy.userName}(${String(decoy.id + 1)}号) 或 ${targetTownsfolk.userName}(${String(targetTownsfolk.id + 1)}号) 中有一人是 ${fakeRole}`;
 
   return {
@@ -303,7 +304,7 @@ export function generateUndertakerInfo(
   const allRoleNames = Object.values(ROLES)
     .filter(r => r.name !== realRoleName)
     .map(r => r.name);
-  const fakeRole = allRoleNames[Math.floor(Math.random() * allRoleNames.length)] ?? '村民';
+  const fakeRole = allRoleNames[randomInt(0, allRoleNames.length)] ?? '村民';
   const fakeInfo = `被处决者是 ${fakeRole}`;
 
   return {
@@ -403,7 +404,7 @@ export function generateInvestigatorInfo(gameState: GameState, investigatorSeatI
   }
 
   // 随机选择一个爪牙作为目标
-  const targetMinion = minions[Math.floor(Math.random() * minions.length)];
+  const targetMinion = minions[randomInt(0, minions.length)];
   if (!targetMinion) {
     return createErrorResult('investigator', '调查员', investigatorSeatId, '无法选择目标');
   }
@@ -415,14 +416,14 @@ export function generateInvestigatorInfo(gameState: GameState, investigatorSeatI
     s.id !== investigatorSeatId && s.id !== targetMinion.id
   );
   const decoy = otherPlayers.length > 0 
-    ? (otherPlayers[Math.floor(Math.random() * otherPlayers.length)] ?? targetMinion)
+    ? (otherPlayers[randomInt(0, otherPlayers.length)] ?? targetMinion)
     : targetMinion;
 
   const realInfo = `${targetMinion.userName}(${String(targetMinion.id + 1)}号) 或 ${decoy.userName}(${String(decoy.id + 1)}号) 中有一人是 ${targetRoleName}`;
 
   // 伪造信息
   const fakeMinionNames = ['投毒者', '间谍', '男爵', '猩红女郎'];
-  const fakeRole = fakeMinionNames[Math.floor(Math.random() * fakeMinionNames.length)] ?? '投毒者';
+  const fakeRole = fakeMinionNames[randomInt(0, fakeMinionNames.length)] ?? '投毒者';
   const fakeInfo = `${decoy.userName}(${String(decoy.id + 1)}号) 或 ${targetMinion.userName}(${String(targetMinion.id + 1)}号) 中有一人是 ${fakeRole}`;
 
   return {
@@ -458,7 +459,7 @@ export function generateLibrarianInfo(gameState: GameState, librarianSeatId: num
   if (outsiders.length === 0) {
     const realInfo = '没有外来者';
     const fakeOutsiders = ['酒鬼', '隐士', '圣徒', '男爵'];
-    const fakeOutsider = fakeOutsiders[Math.floor(Math.random() * fakeOutsiders.length)] ?? '酒鬼';
+    const fakeOutsider = fakeOutsiders[randomInt(0, fakeOutsiders.length)] ?? '酒鬼';
     // 伪造：声称有外来者
     const randomPlayer = gameState.seats.find(s => s.id !== librarianSeatId);
     const fakeInfo = randomPlayer ? `${randomPlayer.userName} 可能是 ${fakeOutsider}` : realInfo;
@@ -475,7 +476,7 @@ export function generateLibrarianInfo(gameState: GameState, librarianSeatId: num
   }
 
   // 随机选择一个外来者作为目标
-  const targetOutsider = outsiders[Math.floor(Math.random() * outsiders.length)];
+  const targetOutsider = outsiders[randomInt(0, outsiders.length)];
   if (!targetOutsider) {
     return createErrorResult('librarian', '图书管理员', librarianSeatId, '无法选择目标');
   }
@@ -487,14 +488,14 @@ export function generateLibrarianInfo(gameState: GameState, librarianSeatId: num
     s.id !== librarianSeatId && s.id !== targetOutsider.id
   );
   const decoy = otherPlayers.length > 0 
-    ? (otherPlayers[Math.floor(Math.random() * otherPlayers.length)] ?? targetOutsider)
+    ? (otherPlayers[randomInt(0, otherPlayers.length)] ?? targetOutsider)
     : targetOutsider;
 
   const realInfo = `${targetOutsider.userName}(${String(targetOutsider.id + 1)}号) 或 ${decoy.userName}(${String(decoy.id + 1)}号) 中有一人是 ${targetRoleName}`;
 
   // 伪造信息
   const fakeOutsiderNames = ['酒鬼', '隐士', '圣徒', '男爵'];
-  const fakeRole = fakeOutsiderNames[Math.floor(Math.random() * fakeOutsiderNames.length)] ?? '酒鬼';
+  const fakeRole = fakeOutsiderNames[randomInt(0, fakeOutsiderNames.length)] ?? '酒鬼';
   const fakeInfo = `${decoy.userName}(${String(decoy.id + 1)}号) 或 ${targetOutsider.userName}(${String(targetOutsider.id + 1)}号) 中有一人是 ${fakeRole}`;
 
   return {

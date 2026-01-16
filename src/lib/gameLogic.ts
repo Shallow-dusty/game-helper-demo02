@@ -7,6 +7,7 @@
 
 import { GameState, Seat, GamePhase, ChatMessage } from '../types';
 import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } from '../constants';
+import { generateShortId, shuffle } from './random';
 
 // ==================== 消息创建 ====================
 
@@ -17,7 +18,7 @@ import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } fr
  * 创建系统消息
  */
 export const createSystemMessage = (content: string, recipientId: string | null = null): ChatMessage => ({
-    id: Math.random().toString(36).slice(2, 11),
+    id: generateShortId(),
     senderId: 'system',
     senderName: '系统',
     recipientId,
@@ -118,8 +119,8 @@ export const generateRoleAssignment = (scriptId: string, playerCount: number): s
     const minionRoles = rolePool.filter(id => ROLES[id]?.team === 'MINION');
     const demonRoles = rolePool.filter(id => ROLES[id]?.team === 'DEMON');
 
-    // 随机打乱
-    const shuffle = <T>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
+    // 随机打乱（使用 Fisher-Yates 算法）
+    // shuffle 函数已从 ./random 导入
 
     // 先随机选择爪牙（需要先确定是否有男爵）
     const selectedMinions = shuffle(minionRoles).slice(0, composition.minion);
@@ -312,7 +313,7 @@ export const createReminder = (
     icon?: string,
     color?: string
 ) => ({
-    id: Math.random().toString(36),
+    id: generateShortId(),
     text,
     sourceRole,
     seatId,

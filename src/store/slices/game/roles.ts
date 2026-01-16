@@ -15,7 +15,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
 
                     // Auto-add reminders
                     const role = roleId ? ROLES[roleId] : undefined;
-                    if (role?.reminders) {
+                    if (role?.reminders && roleId) {
                         seat.reminders = role.reminders.map(text => ({
                             id: generateShortId(),
                             text,

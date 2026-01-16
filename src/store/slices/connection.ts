@@ -24,6 +24,16 @@ let realtimeChannel: RealtimeChannel | null = null;
 let secretChannel: RealtimeChannel | null = null;
 let isReceivingUpdate = false;
 
+// Debounce state for sync
+let syncDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+let pendingSync = false;
+const SYNC_DEBOUNCE_MS = 300; // 300ms 防抖延迟
+
+// Helper functions for managing realtime state (exported for use in other slices)
+export const setIsReceivingUpdate = (val: boolean): void => { isReceivingUpdate = val; };
+export const setRealtimeChannel = (channel: RealtimeChannel | null): void => { realtimeChannel = channel; };
+export const getRealtimeChannel = (): RealtimeChannel | null => realtimeChannel;
+
 // Helper to get toast functions (lazy load)
 let showErrorFn: ((msg: string) => void) | null = null;
 const getToastFunctions = async () => {
@@ -385,7 +395,20 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
     },
 
     sync: () => {
-        void get().syncToCloud();
+        // 使用防抖避免高频同步
+        pendingSync = true;
+
+        if (syncDebounceTimer) {
+            clearTimeout(syncDebounceTimer);
+        }
+
+        syncDebounceTimer = setTimeout(() => {
+            if (pendingSync) {
+                pendingSync = false;
+                void get().syncToCloud();
+            }
+            syncDebounceTimer = null;
+        }, SYNC_DEBOUNCE_MS);
     },
 });
 

@@ -1,5 +1,5 @@
 import { StoreSlice, GameSlice } from '../../types';
-import { supabase, ConnectionSlice } from '../connection';
+import { supabase, setIsReceivingUpdate, setRealtimeChannel } from '../connection';
 import { addSystemMessage } from '../../utils';
 import { getInitialState } from './utils';
 import { REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
@@ -42,10 +42,9 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
                     (payload) => {
                         const newData = payload.new as { data?: GameState } | undefined;
                         if (newData?.data) {
-                            const connection = get() as ConnectionSlice;
-                            connection._setIsReceivingUpdate(true);
+                            setIsReceivingUpdate(true);
                             set({ gameState: newData.data });
-                            connection._setIsReceivingUpdate(false);
+                            setIsReceivingUpdate(false);
                         }
                     }
                 )
@@ -59,8 +58,7 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
                     }
                 });
 
-             const connection = get() as ConnectionSlice;
-             connection._setRealtimeChannel(channel);
+             setRealtimeChannel(channel);
 
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : String(err);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
-import { getAiConfig } from '../../store/aiConfig';
+import { AI_CONFIG } from '../../store/aiConfig';
 import { AiProvider } from '../../store/types';
 
 export const ControlsAITab: React.FC = () => {
@@ -17,8 +17,6 @@ export const ControlsAITab: React.FC = () => {
 
   const [aiPrompt, setAiPrompt] = useState('');
 
-  const aiConfig = getAiConfig();
-
   if (!user || !gameState) return null;
 
   const handleAiSubmit = (e: React.FormEvent) => {
@@ -29,9 +27,8 @@ export const ControlsAITab: React.FC = () => {
     void askAi(prompt);
   };
 
-  // 获取当前 provider 的配置状态
-  const currentConfig = aiConfig[aiProvider];
-  const hasApiKey = !!currentConfig?.apiKey;
+  // 获取当前 provider 的配置
+  const currentConfig = AI_CONFIG[aiProvider];
 
   return (
     <div className="h-full flex flex-col p-4">
@@ -71,13 +68,6 @@ export const ControlsAITab: React.FC = () => {
         )}
       </div>
 
-      {/* API Key 状态提示 */}
-      {!hasApiKey && (
-        <div className="mb-2 p-2 bg-red-950/30 border border-red-800/50 rounded text-xs text-red-400">
-          {t('controls.ai.apiKeyWarning')} <code>{t('controls.ai.configFile')}</code> {t('controls.ai.configMessage')}
-        </div>
-      )}
-
       <form onSubmit={handleAiSubmit} className="flex gap-2">
         <input
           type="text"
@@ -86,7 +76,7 @@ export const ControlsAITab: React.FC = () => {
           placeholder={t('controls.ai.placeholder')}
           className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 focus:border-amber-600 focus:outline-none"
         />
-        <button type="submit" disabled={!aiPrompt.trim() || isAiThinking || !hasApiKey} className="bg-amber-700 hover:bg-amber-600 disabled:opacity-50 text-white px-3 py-2 rounded">
+        <button type="submit" disabled={!aiPrompt.trim() || isAiThinking} className="bg-amber-700 hover:bg-amber-600 disabled:opacity-50 text-white px-3 py-2 rounded">
           {t('controls.ai.send')}
         </button>
       </form>
@@ -99,20 +89,29 @@ export const ControlsAITab: React.FC = () => {
             className="bg-stone-950 border border-stone-800 text-[10px] text-stone-500 rounded px-1 max-w-[200px]"
           >
             <optgroup label={t('controls.ai.officialProvider')}>
-              {Object.entries(aiConfig)
-                .filter(([key]) => !key.startsWith('sf_'))
+              {Object.entries(AI_CONFIG)
+                .filter(([key]) => !key.startsWith('sf_') && !key.startsWith('hw_'))
                 .map(([key, config]) => (
                   <option key={key} value={key}>
-                    {config.name} {config.apiKey ? '✓' : '✗'}
+                    {config.name}
                   </option>
                 ))}
             </optgroup>
             <optgroup label={t('controls.ai.siliconflowProvider')}>
-              {Object.entries(aiConfig)
+              {Object.entries(AI_CONFIG)
                 .filter(([key]) => key.startsWith('sf_'))
                 .map(([key, config]) => (
                   <option key={key} value={key}>
-                    {config.name} {config.apiKey ? '✓' : '✗'}
+                    {config.name}
+                  </option>
+                ))}
+            </optgroup>
+            <optgroup label="华为云 MaaS">
+              {Object.entries(AI_CONFIG)
+                .filter(([key]) => key.startsWith('hw_'))
+                .map(([key, config]) => (
+                  <option key={key} value={key}>
+                    {config.name}
                   </option>
                 ))}
             </optgroup>

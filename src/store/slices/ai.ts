@@ -1,13 +1,15 @@
 /**
  * AI Slice - 处理 AI 助手相关状态和操作
- * 
+ *
  * 重命名自 createAISlice.ts，遵循新的命名规范
+ *
+ * 注意：AI API 调用通过 Supabase Edge Function 进行，
+ * API 密钥存储在服务端，不暴露到前端。
  */
 import { StoreSlice, AiProvider } from '../types';
-import { getAiConfig } from '../aiConfig';
+import { AI_CONFIG } from '../aiConfig';
 import { ChatMessage } from '../../types';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import OpenAI from 'openai';
+import { supabase } from './connection';
 
 export interface AISlice {
     isAiThinking: boolean;
@@ -62,54 +64,46 @@ export const aiSlice: StoreSlice<AISlice> = (set, get) => ({
         });
 
         try {
-            const config = getAiConfig()[aiProvider];
-            if (!config.apiKey) {
-                throw new Error(`未配置 ${config.name} 的 API Key`);
+            const config = AI_CONFIG[aiProvider];
+
+            // 构建游戏上下文（精简版，避免传输过多数据）
+            const gameContext = {
+                phase: gameState.phase,
+                dayCount: gameState.roundInfo.dayCount,
+                scriptId: gameState.currentScriptId,
+                seatCount: gameState.seats.length,
+                alivePlayers: gameState.seats.filter(s => !s.isDead).length,
+                // 包含历史对话以支持多轮会话
+                previousMessages: gameState.aiMessages.slice(-10).map(m => ({
+                    role: m.role ?? 'user',
+                    content: m.content
+                }))
+            };
+
+            // 调用 Supabase Edge Function
+            const { data, error } = await supabase.functions.invoke('ask-ai', {
+                body: {
+                    prompt,
+                    gameContext,
+                    aiProvider
+                }
+            });
+
+            if (error) {
+                throw new Error(error.message || 'Edge Function 调用失败');
             }
 
-            let responseText = '';
-
-            // --- GEMINI ---
-            if (aiProvider === 'gemini') {
-                const genAI = new GoogleGenerativeAI(config.apiKey);
-                const model = genAI.getGenerativeModel({ model: config.model });
-                const result = await model.generateContent(prompt);
-                responseText = result.response.text();
+            if (data?.error) {
+                throw new Error(data.error);
             }
-            // --- OPENAI COMPATIBLE (DeepSeek, Kimi, GLM, SiliconFlow, HW MaaS) ---
-            else {
-                let baseURL = 'https://api.deepseek.com';
-                if (aiProvider === 'kimi') baseURL = 'https://api.moonshot.cn/v1';
-                if (aiProvider === 'glm') baseURL = 'https://open.bigmodel.cn/api/paas/v4';
-                if (aiProvider.startsWith('hw_')) baseURL = 'https://api.modelarts-maas.com/v1';
-                if (aiProvider.startsWith('sf_')) baseURL = 'https://api.siliconflow.cn/v1';
 
-                const openai = new OpenAI({
-                    apiKey: config.apiKey,
-                    baseURL: baseURL,
-                    dangerouslyAllowBrowser: true
-                });
-
-                const completion = await openai.chat.completions.create({
-                    messages: [
-                        { role: "system", content: "你是《血染钟楼》的说书人助手。请简短、专业地回答规则问题。不要废话。" },
-                        ...gameState.aiMessages.map(m => ({
-                            role: (m.role ?? 'user'),
-                            content: m.content
-                        })),
-                        { role: "user", content: prompt }
-                    ],
-                    model: config.model,
-                });
-
-                responseText = completion.choices[0]?.message.content ?? '（无回复）';
-            }
+            const responseText = data?.reply ?? '（无回复）';
 
             // Add AI response
             const aiMsg: ChatMessage = {
                 id: (Date.now() + 1).toString(),
                 senderId: 'ai',
-                senderName: 'Grimoire AI',
+                senderName: `Grimoire AI (${config.name})`,
                 recipientId: null,
                 content: responseText,
                 timestamp: Date.now(),

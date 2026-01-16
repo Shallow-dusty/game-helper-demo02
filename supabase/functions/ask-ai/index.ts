@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 // AI Provider Configuration Mapping
+// 环境变量名不再使用 VITE_ 前缀（服务端不需要）
 interface ProviderConfig {
     envKey: string;
     baseURL: string;
@@ -15,48 +16,66 @@ interface ProviderConfig {
 }
 
 const PROVIDER_CONFIG: Record<string, ProviderConfig> = {
+    // === 官方 API ===
     deepseek: {
-        envKey: 'VITE_DEEPSEEK_KEY',
+        envKey: 'DEEPSEEK_KEY',
         baseURL: 'https://api.deepseek.com',
         model: 'deepseek-chat',
     },
     gemini: {
-        envKey: 'VITE_GEMINI_KEY',
+        envKey: 'GEMINI_KEY',
         baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
         model: 'gemini-2.0-flash-exp',
     },
     kimi: {
-        envKey: 'VITE_KIMI_KEY',
+        envKey: 'KIMI_KEY',
         baseURL: 'https://api.moonshot.cn/v1',
         model: 'moonshot-v1-8k',
     },
+    glm: {
+        envKey: 'GLM_KEY',
+        baseURL: 'https://open.bigmodel.cn/api/paas/v4',
+        model: 'glm-4.7',
+    },
+    // === 华为云 MaaS ===
+    hw_deepseek_v3: {
+        envKey: 'HW_MAAS_KEY',
+        baseURL: 'https://api.modelarts-maas.com/v1',
+        model: 'deepseek-v3.2',
+    },
+    hw_deepseek_r1: {
+        envKey: 'HW_MAAS_KEY',
+        baseURL: 'https://api.modelarts-maas.com/v1',
+        model: 'DeepSeek-R1',
+    },
+    // === SiliconFlow 代理 ===
     sf_deepseek_v3_2: {
-        envKey: 'VITE_SILICONFLOW_KEY',
+        envKey: 'SILICONFLOW_KEY',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'deepseek-ai/DeepSeek-V3.2-Exp',
     },
     sf_minimax_m2: {
-        envKey: 'VITE_SILICONFLOW_KEY',
+        envKey: 'SILICONFLOW_KEY',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'MiniMaxAI/MiniMax-M2',
     },
     sf_qwen_3_vl: {
-        envKey: 'VITE_SILICONFLOW_KEY',
+        envKey: 'SILICONFLOW_KEY',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'Qwen/Qwen3-VL-32B-Instruct',
     },
     sf_glm_4_6: {
-        envKey: 'VITE_SILICONFLOW_KEY',
+        envKey: 'SILICONFLOW_KEY',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'zai-org/GLM-4.6',
     },
     sf_kimi_k2: {
-        envKey: 'VITE_SILICONFLOW_KEY',
+        envKey: 'SILICONFLOW_KEY',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'moonshotai/Kimi-K2-Thinking',
     },
     sf_kimi_k2_instruct: {
-        envKey: 'VITE_SILICONFLOW_KEY',
+        envKey: 'SILICONFLOW_KEY',
         baseURL: 'https://api.siliconflow.cn/v1',
         model: 'moonshotai/Kimi-K2-Instruct-0905',
     },
@@ -69,9 +88,7 @@ serve(async (req: Request) => {
     }
 
     try {
-        // 1. Verify Authentication (Optional but recommended)
-        // For this demo, we'll check if the Authorization header exists.
-        // In a stricter app, you'd verify the JWT using Supabase Auth.
+        // 1. Verify Authentication
         const authHeader = req.headers.get('Authorization');
         if (!authHeader) {
             throw new Error('Missing Authorization header');
@@ -97,12 +114,37 @@ serve(async (req: Request) => {
             baseURL: config.baseURL,
         });
 
-        // 4. Call AI API
+        // 4. Build messages array with conversation history
+        const systemPrompt = "你是《血染钟楼》的说书人助手。请简短、专业地回答规则问题。不要废话。";
+
+        const messages: Array<{ role: string; content: string }> = [
+            { role: "system", content: systemPrompt }
+        ];
+
+        // Add previous messages for multi-turn conversation
+        if (gameContext?.previousMessages && Array.isArray(gameContext.previousMessages)) {
+            for (const msg of gameContext.previousMessages) {
+                if (msg.role && msg.content) {
+                    messages.push({
+                        role: msg.role === 'assistant' ? 'assistant' : 'user',
+                        content: msg.content
+                    });
+                }
+            }
+        }
+
+        // Add current prompt with context
+        const contextInfo = gameContext ?
+            `[游戏状态: 第${gameContext.dayCount || 1}天, ${gameContext.phase || 'DAY'}阶段, ${gameContext.alivePlayers || '?'}/${gameContext.seatCount || '?'}存活]` : '';
+
+        messages.push({
+            role: "user",
+            content: contextInfo ? `${contextInfo}\n${prompt}` : prompt
+        });
+
+        // 5. Call AI API
         const completion = await openai.chat.completions.create({
-            messages: [
-                { role: "system", content: "You are an expert 'Blood on the Clocktower' Storyteller assistant. Keep answers concise and helpful. Respond in Chinese." },
-                { role: "user", content: `Context: ${JSON.stringify(gameContext)}. User Question: ${prompt}` }
-            ],
+            messages: messages as any,
             model: config.model,
         });
 
@@ -115,7 +157,7 @@ serve(async (req: Request) => {
             reply = `<think>${reasoning}</think>\n${reply}`;
         }
 
-        // 5. Return Response
+        // 6. Return Response
         return new Response(JSON.stringify({ reply }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200,
@@ -125,7 +167,7 @@ serve(async (req: Request) => {
         console.error('Error:', error.message);
         return new Response(JSON.stringify({ error: error.message }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 400, // Or 500 depending on error
+            status: 400,
         });
     }
 });

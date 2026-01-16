@@ -1,6 +1,18 @@
+/**
+ * AI Provider 配置
+ *
+ * 注意：API 密钥现在存储在 Supabase Edge Function 的服务端环境变量中，
+ * 不再暴露到前端代码。前端只需要知道模型名称和显示信息。
+ */
 import { AiProvider } from './types';
 
-export const AI_CONFIG: Record<AiProvider, { model: string; name: string; note?: string }> = {
+export interface AiProviderConfig {
+    model: string;
+    name: string;
+    note?: string;
+}
+
+export const AI_CONFIG: Record<AiProvider, AiProviderConfig> = {
     deepseek: {
         model: 'deepseek-chat',
         name: 'DeepSeek V3.2 Exp (Official)',
@@ -21,7 +33,7 @@ export const AI_CONFIG: Record<AiProvider, { model: string; name: string; note?:
         name: '🧠 GLM 4.7 (Official)',
         note: '✅ 智谱官方API，稳定可用'
     },
-    // 华为云 MaaS Models - 需要 VITE_HW_MAAS_KEY
+    // 华为云 MaaS Models
     hw_deepseek_v3: {
         model: 'deepseek-v3.2',
         name: '🔥 DeepSeek V3.2 (华为云)',
@@ -32,72 +44,35 @@ export const AI_CONFIG: Record<AiProvider, { model: string; name: string; note?:
         name: '🧠 DeepSeek R1 (华为云)',
         note: '✅ 华为云 MaaS，推理增强模型'
     },
-    // SiliconFlow Models - 需要 VITE_SILICONFLOW_KEY
+    // SiliconFlow Models
     sf_deepseek_v3_2: {
         model: 'deepseek-ai/DeepSeek-V3.2-Exp',
         name: '🚀 DeepSeek V3.2 Exp (SF)',
-        note: '⚠️ SiliconFlow 直连'
+        note: '✅ SiliconFlow 代理，稳定可用'
     },
     sf_minimax_m2: {
         model: 'MiniMaxAI/MiniMax-M2',
         name: '🦄 MiniMax M2',
-        note: '⚠️ SiliconFlow 直连 (MoE)'
+        note: '✅ SiliconFlow 代理 (MoE)'
     },
     sf_qwen_3_vl: {
         model: 'Qwen/Qwen3-VL-32B-Instruct',
         name: '👁️ Qwen 3 VL 32B',
-        note: '⚠️ SiliconFlow 直连 (视觉模型)'
+        note: '✅ SiliconFlow 代理 (视觉模型)'
     },
     sf_glm_4_6: {
         model: 'zai-org/GLM-4.6',
         name: '🚀 GLM 4.6',
-        note: '⚠️ SiliconFlow 直连 (最新版)'
+        note: '✅ SiliconFlow 代理 (最新版)'
     },
     sf_kimi_k2: {
         model: 'moonshotai/Kimi-K2-Thinking',
         name: '🤔 Kimi K2 Thinking',
-        note: '⚠️ SiliconFlow 直连 (思考模型)'
+        note: '✅ SiliconFlow 代理 (思考模型)'
     },
     sf_kimi_k2_instruct: {
         model: 'moonshotai/Kimi-K2-Instruct-0905',
         name: '📚 Kimi K2 Instruct',
-        note: '⚠️ SiliconFlow 直连 (指令模型)'
+        note: '✅ SiliconFlow 代理 (指令模型)'
     }
-};
-
-// 导出配置供组件使用，动态添加 apiKey 字段
-export const getAiConfig = (): Record<AiProvider, { model: string; name: string; note?: string; apiKey?: string }> => {
-    const config = { ...AI_CONFIG } as Record<AiProvider, { model: string; name: string; note?: string; apiKey?: string }>;
-
-    // 从环境变量读取 API Keys
-    const deepseekKey = import.meta.env.VITE_DEEPSEEK_KEY;
-    const geminiKey = import.meta.env.VITE_GEMINI_KEY;
-    const kimiKey = import.meta.env.VITE_KIMI_KEY;
-    const glmKey = import.meta.env.VITE_GLM_KEY;
-    const hwMaasKey = import.meta.env.VITE_HW_MAAS_KEY;
-    const siliconflowKey = import.meta.env.VITE_SILICONFLOW_KEY;
-
-    // 为每个 provider 添加 apiKey 字段
-    for (const [key, value] of Object.entries(AI_CONFIG)) {
-        const provider = key as AiProvider;
-        let apiKey: string | undefined;
-
-        if (provider === 'deepseek') {
-            apiKey = deepseekKey;
-        } else if (provider === 'gemini') {
-            apiKey = geminiKey;
-        } else if (provider === 'kimi') {
-            apiKey = kimiKey;
-        } else if (provider === 'glm') {
-            apiKey = glmKey;
-        } else if (provider.startsWith('hw_')) {
-            apiKey = hwMaasKey;
-        } else if (provider.startsWith('sf_')) {
-            apiKey = siliconflowKey;
-        }
-
-        config[provider] = { ...value, apiKey };
-    }
-
-    return config;
 };

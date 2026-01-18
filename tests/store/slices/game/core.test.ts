@@ -102,7 +102,7 @@ const createMockStore = () => {
     } else {
       Object.assign(state, fn);
     }
-  });
+  }) as any;
 
   const get = vi.fn(() => state);
 
@@ -117,7 +117,7 @@ describe('createGameCoreSlice', () => {
     vi.clearAllMocks();
     mockStore = createMockStore();
     coreSlice = createGameCoreSlice(
-      mockStore.set as unknown as (fn: (state: AppState) => void) => void,
+      mockStore.set as any,
       mockStore.get as unknown as () => AppState,
       {} as unknown as any
     );

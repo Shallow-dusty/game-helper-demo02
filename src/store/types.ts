@@ -1,3 +1,5 @@
+import type { StoreApi } from 'zustand';
+import type { Draft } from 'immer';
 import { GameState, User, GamePhase, SeatStatus, NightActionRequest, GameHistory, Seat } from '../types';
 import type { PhaseMachineContext } from '../lib/machines/phaseMachine';
 
@@ -218,4 +220,22 @@ export interface PhaseMachineSlice {
   stopPhaseMachine: () => void;
 }
 
-export type StoreSlice<T> = (set: any, get: () => AppState, api: any) => T;
+/**
+ * Type-safe slice creator for Zustand with Immer middleware
+ *
+ * The set function supports two calling patterns:
+ * 1. set({ key: value }) - Partial state update
+ * 2. set((draft) => { draft.key = value }) - Immer draft function
+ *
+ * @template T - The slice type
+ */
+export type StoreSlice<T> = (
+  set: {
+    // Overload 1: Partial state update
+    (partial: Partial<AppState> | AppState): void;
+    // Overload 2: Immer draft function
+    (fn: (draft: Draft<AppState>) => void): void;
+  },
+  get: () => AppState,
+  api: StoreApi<AppState>
+) => T;

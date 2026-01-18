@@ -47,7 +47,7 @@ const createMockStore = () => {
 
   const set = vi.fn((fn: (state: any) => void) => {
     fn(state);
-  });
+  }) as any;
 
   const get = vi.fn(() => state as AppState);
 
@@ -61,7 +61,7 @@ describe('createGameSeatSwapSlice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore = createMockStore();
-    seatSwapSlice = createGameSeatSwapSlice(mockStore.set, mockStore.get, {} as any);
+    seatSwapSlice = createGameSeatSwapSlice(mockStore.set as any, mockStore.get, {} as any);
   });
 
   describe('swapSeats', () => {

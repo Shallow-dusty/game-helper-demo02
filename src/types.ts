@@ -201,6 +201,14 @@ export interface DailyNomination {
   timestamp: number;
 }
 
+export interface VotingState {
+  nominatorSeatId: number | null;
+  nomineeSeatId: number | null;
+  clockHandSeatId: number | null; // The seat the ST is currently pointing at
+  votes: number[]; // SeatIDs of those who voted
+  isOpen: boolean;
+}
+
 export interface GameState {
   roomId: string;
   currentScriptId: string; // 'tb', 'bmr', 'sv'
@@ -221,13 +229,7 @@ export interface GameState {
   nightCurrentIndex: number; // -1 if not started
 
   // Voting State
-  voting: {
-    nominatorSeatId: number | null;
-    nomineeSeatId: number | null;
-    clockHandSeatId: number | null; // The seat the ST is currently pointing at
-    votes: number[]; // SeatIDs of those who voted
-    isOpen: boolean;
-  } | null;
+  voting: VotingState | null;
 
   customScripts: Record<string, ScriptDefinition>; // New: Store uploaded scripts
   customRoles: Record<string, RoleDef>; // New: Store custom roles from scripts

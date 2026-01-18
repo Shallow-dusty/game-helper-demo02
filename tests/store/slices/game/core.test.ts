@@ -8,6 +8,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createGameCoreSlice } from '../../../../src/store/slices/game/core';
 import type { GameState, Seat } from '../../../../src/types';
 import type { AppState } from '../../../../src/store/types';
+import { setIsReceivingUpdate, setRealtimeChannel } from '../../../../src/store/slices/connection';
 
 // Mock @supabase/supabase-js to provide REALTIME_SUBSCRIBE_STATES
 vi.mock('@supabase/supabase-js', () => ({
@@ -417,8 +418,8 @@ describe('createGameCoreSlice', () => {
         (postgresChangesCallback as (payload: unknown) => void)(mockPayload);
 
         // Verify the callback processed the data
-        expect(mockStore.state._setIsReceivingUpdate).toHaveBeenCalledWith(true);
-        expect(mockStore.state._setIsReceivingUpdate).toHaveBeenCalledWith(false);
+        expect(setIsReceivingUpdate).toHaveBeenCalledWith(true);
+        expect(setIsReceivingUpdate).toHaveBeenCalledWith(false);
       }
     });
 
@@ -448,7 +449,7 @@ describe('createGameCoreSlice', () => {
         (postgresChangesCallback as (payload: unknown) => void)({ new: undefined });
 
         // _setIsReceivingUpdate should NOT be called when no data
-        expect(mockStore.state._setIsReceivingUpdate).not.toHaveBeenCalled();
+        expect(setIsReceivingUpdate).not.toHaveBeenCalled();
       }
     });
 
@@ -478,7 +479,7 @@ describe('createGameCoreSlice', () => {
         (postgresChangesCallback as (payload: unknown) => void)({ new: {} });
 
         // _setIsReceivingUpdate should NOT be called when no data property
-        expect(mockStore.state._setIsReceivingUpdate).not.toHaveBeenCalled();
+        expect(setIsReceivingUpdate).not.toHaveBeenCalled();
       }
     });
 
@@ -633,7 +634,7 @@ describe('createGameCoreSlice', () => {
 
       await coreSlice.createGame(7);
 
-      expect(mockStore.state._setRealtimeChannel).toHaveBeenCalledWith(mockChannel);
+      expect(setRealtimeChannel).toHaveBeenCalledWith(mockChannel);
     });
   });
 

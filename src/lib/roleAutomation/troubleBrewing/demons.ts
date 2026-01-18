@@ -4,7 +4,7 @@
  * 暗流涌动剧本 - 恶魔角色自动化实现
  */
 
-import type { GameState, Seat } from '../../../types';
+import type { GameState, Seat } from '@/types';
 import type {
   AbilityContext,
   AbilityResult,

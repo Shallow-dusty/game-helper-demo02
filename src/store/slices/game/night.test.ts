@@ -103,17 +103,17 @@ describe('createGameNightSlice', () => {
                 {} as Parameters<typeof createGameNightSlice>[2]
             );
             
-             
+
             await slice.submitNightAction({
                 roleId: 'washerwoman',
-                payload: { targetSeat: 1 }
+                payload: { seatId: 1 }
             });
-            
+
             expect(supabase.rpc).toHaveBeenCalledWith('submit_night_action', {
                 p_room_code: 123,
                 p_seat_id: 0,
                 p_role_id: 'washerwoman',
-                p_payload: { targetSeat: 1 }
+                p_payload: { seatId: 1 }
             });
         });
 

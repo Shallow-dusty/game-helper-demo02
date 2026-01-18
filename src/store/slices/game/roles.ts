@@ -1,9 +1,9 @@
 import { StoreSlice, GameSlice } from '../../types';
 import { addSystemMessage } from '../../utils';
-import { ROLES } from '../../../constants';
+import { ROLES } from '@/constants';
 import { applyRoleAssignment } from './utils';
-import { generateRoleAssignment, checkGameOver } from '../../../lib/gameLogic';
-import { generateShortId, shuffle } from '../../../lib/random';
+import { generateRoleAssignment, checkGameOver } from '@/lib/gameLogic';
+import { generateShortId, shuffle } from '@/lib/random';
 
 export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'toggleDead' | 'toggleAbilityUsed' | 'toggleStatus' | 'addReminder' | 'removeReminder' | 'assignRoles' | 'resetRoles' | 'distributeRoles' | 'hideRoles' | 'applyStrategy'>> = (set, get) => ({
     assignRole: (seatId, roleId) => {

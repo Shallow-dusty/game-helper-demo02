@@ -1,6 +1,6 @@
 import { StoreSlice, GameSlice } from '../../types';
 import { addSystemMessage } from '../../utils';
-import { SCRIPTS } from '../../../constants';
+import { SCRIPTS } from '@/constants';
 
 export const createGameScriptsSlice: StoreSlice<Pick<GameSlice, 'setScript' | 'importScript' | 'saveCustomScript' | 'deleteCustomScript' | 'loadCustomScript'>> = (set, get) => ({
     setScript: (scriptId) => {

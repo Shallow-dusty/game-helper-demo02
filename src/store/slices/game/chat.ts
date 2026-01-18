@@ -1,6 +1,6 @@
 import { StoreSlice, GameSlice } from '../../types';
 import { addSystemMessage } from '../../utils';
-import { generateShortId } from '../../../lib/random';
+import { generateShortId } from '@/lib/random';
 
 export const createGameChatSlice: StoreSlice<Pick<GameSlice, 'sendMessage' | 'forwardMessage' | 'toggleWhispers'>> = (set, get) => ({
     sendMessage: (content, recipientId) => {

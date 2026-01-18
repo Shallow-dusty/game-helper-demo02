@@ -3,8 +3,8 @@ import { supabase, setIsReceivingUpdate, setRealtimeChannel } from '../connectio
 import { addSystemMessage } from '../../utils';
 import { getInitialState } from './utils';
 import { REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
-import type { GameState } from '../../../types';
-import { generateRoomCode } from '../../../lib/random';
+import type { GameState } from '@/types';
+import { generateRoomCode } from '@/lib/random';
 
 // Type for RPC responses
 interface RpcResponse {

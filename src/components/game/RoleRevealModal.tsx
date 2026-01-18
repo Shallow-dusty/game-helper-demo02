@@ -26,6 +26,7 @@ export const RoleRevealModal: React.FC = () => {
     const { role } = useMemo(() => {
         const seat = seats?.find(s => s.userId === user?.id);
         // 使用 seenRoleId 以支持酒鬼/疯子等机制
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Fallback for backward compatibility
         const rId = seat?.seenRoleId ?? seat?.roleId;
         const r = rId ? ROLES[rId] : null;
         return { role: r };
@@ -34,7 +35,6 @@ export const RoleRevealModal: React.FC = () => {
     // 监听手动打开请求
     useEffect(() => {
         if (isRoleRevealOpen && !isVisible && !isExiting && countdown === null) {
-            console.log('Manual role reveal triggered');
             setCountdown(3);
             setIsFlipped(false);
         }
@@ -50,27 +50,12 @@ export const RoleRevealModal: React.FC = () => {
         // 检测 rolesRevealed 从 false -> true 的变化
         const wasRolesRevealedJustEnabled = rolesRevealed && prevRolesRevealedRef.current === false;
 
-        console.log('RoleReveal Auto-Check:', {
-            rolesRevealed,
-            prevRolesRevealed: prevRolesRevealedRef.current,
-            wasRolesRevealedJustEnabled,
-            hasRole: !!role,
-            roleId: role?.id,
-            lastSeenRoleId,
-            isVisible,
-            isExiting,
-            countdown,
-            isRoleRevealOpen,
-            storageKey
-        });
-        
         // 更新 ref
         prevRolesRevealedRef.current = rolesRevealed;
 
         // 1. 如果 rolesRevealed 为 false，说明游戏重置或未开始，清除"已查看"记录
         if (!rolesRevealed) {
             if (lastSeenRoleId) {
-                console.log('Clearing seen role history due to reset');
                 localStorage.removeItem(storageKey);
             }
             return;
@@ -80,20 +65,11 @@ export const RoleRevealModal: React.FC = () => {
         if (role && !isRoleRevealOpen) {
             // 条件1: rolesRevealed 刚从 false 变为 true（新游戏开始）
             // 条件2: 从未看过这个角色（新用户/角色变更）
-             
+
             const shouldTrigger = wasRolesRevealedJustEnabled || lastSeenRoleId !== role.id;
-            
+
             if (shouldTrigger && !isVisible && !isExiting && countdown === null) {
-                console.log('Auto-triggering role reveal! Reason:', wasRolesRevealedJustEnabled ? 'Game just started' : 'New role or not seen yet');
                 setCountdown(3);
-            } else {
-                console.log('Skipping auto-trigger:', {
-                    shouldTrigger,
-                    seenMatch: lastSeenRoleId === role.id,
-                    isVisible,
-                    isExiting,
-                    countdown
-                });
             }
         }
     }, [rolesRevealed, roomId, user?.id, role?.id, isVisible, isExiting, countdown, isRoleRevealOpen, role, user]);

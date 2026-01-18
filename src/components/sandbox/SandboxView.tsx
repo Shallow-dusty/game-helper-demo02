@@ -302,11 +302,11 @@ const SandboxGrimoire: React.FC<{ width: number; height: number }> = ({ width, h
                   top: `calc(50% + ${String(y)}px)`
                 }}
                 onClick={() => toggleDead(seat.id)}
-                title={`${seat.userName}${seat.roleId ? ` - ${ROLES[seat.roleId]?.name ?? seat.roleId}` : ''}\n${t('sandbox.clickToToggleDeath')}`}
+                title={`${seat.userName}${seat.seenRoleId ? ` - ${ROLES[seat.seenRoleId]?.name ?? seat.seenRoleId}` : ''}\n${t('sandbox.clickToToggleDeath')}`}
               >
                 <span className="text-stone-300 font-bold text-xs">{index + 1}</span>
-                {seat.roleId && ROLES[seat.roleId] && (
-                  <span className="text-lg">{ROLES[seat.roleId]?.icon}</span>
+                {seat.seenRoleId && ROLES[seat.seenRoleId] && (
+                  <span className="text-lg">{ROLES[seat.seenRoleId]?.icon}</span>
                 )}
                 {seat.isDead && (
                   <span className="absolute -top-1 -right-1 text-lg">💀</span>
@@ -445,7 +445,7 @@ const SandboxControls: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <h3 className="text-stone-400 text-sm font-bold mb-2">💺 {t('sandbox.seatsOverview')}</h3>
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {gameState.seats.map((seat, idx) => {
-              const role = seat.roleId ? ROLES[seat.roleId] : null;
+              const role = seat.seenRoleId ? ROLES[seat.seenRoleId] : null;
               return (
               <div 
                 key={seat.id}

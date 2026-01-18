@@ -40,10 +40,11 @@ export interface VoteRecord {
 
 // 夜间行动请求载荷类型
 export interface NightActionPayload {
-  seatId?: number;           // 单选玩家目标
-  seatIds?: number[];        // 多选玩家目标
-  choice?: number;           // 二选一选项索引
-  confirmed?: boolean;       // 确认类操作
+  seatId?: number;           // 单选玩家目标 (choose_player)
+  seatIds?: number[];        // 多选玩家目标 (choose_two_players)
+  choice?: number;           // 二选一选项索引 (binary)
+  confirmed?: boolean;       // 确认类操作 (confirm)
+  roleId?: string;           // 选择角色目标 (choose_role)
   customData?: string;       // 自定义数据
 }
 

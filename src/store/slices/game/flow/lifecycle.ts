@@ -1,5 +1,5 @@
-import { StoreSlice, GameSlice } from '../../../types';
-import { addSystemMessage } from '../../../utils';
+import { StoreSlice, GameSlice } from '@/store/types';
+import { addSystemMessage } from '@/store/utils';
 import { calculateNightQueue } from './utils';
 
 export const createLifecycleSlice: StoreSlice<Pick<GameSlice, 'startGame' | 'endGame'>> = (set, get) => ({

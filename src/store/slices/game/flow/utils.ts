@@ -1,5 +1,5 @@
-import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '../../../../constants';
-import { Seat } from '../../../../types';
+import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '@/constants';
+import { Seat } from '@/types';
 
 /**
  * Calculate night action queue based on alive roles

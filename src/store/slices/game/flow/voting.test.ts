@@ -9,7 +9,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createVotingSlice } from './voting';
-import type { GameState, Seat, VoteRecord } from '../../../../types';
+import type { GameState, Seat, VoteRecord } from '@/types';
 
 // Mock dependencies - paths relative to flow/ directory
 vi.mock('../../connection', () => ({
@@ -33,9 +33,9 @@ vi.mock('../../../../lib/supabaseService', () => ({
 
 // Import mocked modules for assertions
 import { supabase } from '../../connection';
-import { checkGameOver } from '../../../../lib/gameLogic';
-import { logExecution, updateNominationResult } from '../../../../lib/supabaseService';
-import { addSystemMessage } from '../../../utils';
+import { checkGameOver } from '@/lib/gameLogic';
+import { logExecution, updateNominationResult } from '@/lib/supabaseService';
+import { addSystemMessage } from '@/store/utils';
 
 // Helper to create test seats
 function createTestSeat(id: number, overrides: Partial<Seat> = {}): Seat {

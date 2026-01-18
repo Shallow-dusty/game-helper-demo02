@@ -29,7 +29,7 @@ vi.mock('../../../lib/gameLogic', () => ({
 
 // Import after mocks
 import { createGameRolesSlice } from './roles';
-import { checkGameOver } from '../../../lib/gameLogic';
+import { checkGameOver } from '@/lib/gameLogic';
 
 describe('createGameRolesSlice', () => {
     let mockState: {

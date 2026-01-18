@@ -1,6 +1,6 @@
-import { StoreSlice, GameSlice } from '../../../types';
-import { addSystemMessage } from '../../../utils';
-import { PHASE_LABELS } from '../../../../constants';
+import { StoreSlice, GameSlice } from '@/store/types';
+import { addSystemMessage } from '@/store/utils';
+import { PHASE_LABELS } from '@/constants';
 import { calculateNightQueue } from './utils';
 
 export const createPhaseSlice: StoreSlice<Pick<GameSlice, 'setPhase'>> = (set, get) => ({

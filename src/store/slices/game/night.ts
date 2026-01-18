@@ -1,14 +1,8 @@
 import { StoreSlice, GameSlice } from '../../types';
 import { supabase } from '../connection';
 import { addSystemMessage } from '../../utils';
-import { logNightAction, getTeamFromRoleType } from '../../../lib/supabaseService';
-import { ROLES } from '../../../constants';
-
-// Type for night action payload used in this module
-interface NightActionPayloadInternal {
-    targetSeat?: number;
-    [key: string]: unknown;
-}
+import { logNightAction, getTeamFromRoleType } from '@/lib/supabaseService';
+import { ROLES } from '@/constants';
 
 export const createGameNightSlice: StoreSlice<Pick<GameSlice, 'performNightAction' | 'submitNightAction' | 'resolveNightAction' | 'getPendingNightActions'>> = (set, get) => ({
     performNightAction: (_action) => {
@@ -24,7 +18,7 @@ export const createGameNightSlice: StoreSlice<Pick<GameSlice, 'performNightActio
         if (!seat) return;
 
         try {
-            const payload = action.payload as NightActionPayloadInternal | undefined;
+            const payload = action.payload;
             const { error } = await supabase.rpc('submit_night_action', {
                 p_room_code: user.roomId,
                 p_seat_id: seat.id,
@@ -36,7 +30,7 @@ export const createGameNightSlice: StoreSlice<Pick<GameSlice, 'performNightActio
 
             // v2.0: Log night action to database
             const roleData = ROLES[action.roleId];
-            const targetSeatId = payload?.targetSeat;
+            const targetSeatId = payload?.seatId;
             const targetSeat = targetSeatId !== undefined
                 ? gameState.seats.find(s => s.id === targetSeatId)
                 : undefined;

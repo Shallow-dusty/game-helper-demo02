@@ -1,6 +1,6 @@
-import { GameState, Seat } from '../../../types';
-import { SCRIPTS, ROLES } from '../../../constants';
-import { randomInt } from '../../../lib/random';
+import { GameState, Seat } from '@/types';
+import { SCRIPTS, ROLES } from '@/constants';
+import { randomInt } from '@/lib/random';
 
 export const getInitialState = (roomId: string, seatCount: number, currentScriptId = 'tb'): GameState => ({
     roomId,

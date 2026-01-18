@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createPhaseMachineSlice } from './phaseMachine';
-import type { Seat } from '../../../types';
+import type { Seat } from '@/types';
 
 describe('PhaseMachine Slice Integration', () => {
   const mockSet = vi.fn();

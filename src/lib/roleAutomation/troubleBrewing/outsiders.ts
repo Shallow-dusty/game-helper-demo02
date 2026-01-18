@@ -4,7 +4,7 @@
  * 暗流涌动剧本 - 外来者角色自动化实现
  */
 
-import type { GameState } from '../../../types';
+import type { GameState } from '@/types';
 import type {
   AbilityContext,
   AbilityResult

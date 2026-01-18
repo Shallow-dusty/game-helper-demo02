@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect } from 'vitest';
-import type { ChatMessage } from '../../../types';
+import type { ChatMessage } from '@/types';
 
 // Create mock state and functions
 const createMockState = () => ({

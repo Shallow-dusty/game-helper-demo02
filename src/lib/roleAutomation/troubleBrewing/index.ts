@@ -8,7 +8,7 @@ import { TOWNSFOLK_PROCESSORS } from './townsfolk';
 import { OUTSIDER_PROCESSORS } from './outsiders';
 import { MINION_PROCESSORS } from './minions';
 import { DEMON_PROCESSORS } from './demons';
-import type { GameState } from '../../../types';
+import type { GameState } from '@/types';
 import type { AbilityContext, AbilityResult } from '../types';
 
 // 合并所有角色处理器

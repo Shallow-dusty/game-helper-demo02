@@ -4,7 +4,7 @@
  * 暗流涌动剧本 - 爪牙角色自动化实现
  */
 
-import type { GameState, Seat } from '../../../types';
+import type { GameState, Seat } from '@/types';
 import type {
   AbilityContext,
   AbilityResult,

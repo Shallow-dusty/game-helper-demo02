@@ -26,6 +26,7 @@ export function isProtected(seat: Seat): boolean {
  * 获取真实角色ID（考虑酒鬼等情况）
  */
 export function getRealRoleId(seat: Seat): string | null {
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- Fallback for backward compatibility
   return seat.realRoleId ?? seat.roleId;
 }
 
@@ -33,6 +34,7 @@ export function getRealRoleId(seat: Seat): string | null {
  * 获取显示角色ID（玩家看到的）
  */
 export function getSeenRoleId(seat: Seat): string | null {
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- Fallback for backward compatibility
   return seat.seenRoleId ?? seat.roleId;
 }
 

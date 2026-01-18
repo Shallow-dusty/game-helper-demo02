@@ -1,4 +1,4 @@
-import { StoreSlice, GameSlice } from '../../../types';
+import { StoreSlice, GameSlice } from '@/store/types';
 
 export const createNightSlice: StoreSlice<Pick<GameSlice, 'nightNext' | 'nightPrev'>> = (set, get) => ({
     nightNext: () => {

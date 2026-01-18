@@ -11,7 +11,7 @@
  * Refactored on 2026-01-09 as part of Stage 3.1
  */
 
-import { StoreSlice, GameSlice } from '../../../types';
+import { StoreSlice, GameSlice } from '@/store/types';
 import { createPhaseSlice } from './phase';
 import { createNightSlice } from './night';
 import { createVotingSlice } from './voting';

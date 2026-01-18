@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { GameState, Seat, User, ChatMessage } from '../../../types';
+import { GameState, Seat, User, ChatMessage } from '@/types';
 
 // Mock utils
 vi.mock('../../utils', () => ({

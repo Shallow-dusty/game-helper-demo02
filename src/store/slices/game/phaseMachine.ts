@@ -11,14 +11,14 @@
  * based on the explicit interface definitions.
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+ 
  
  
 
 import { createActor } from 'xstate';
-import { phaseMachine, type PhaseMachineContext } from '../../../lib/machines/phaseMachine';
+import { phaseMachine, type PhaseMachineContext } from '@/lib/machines/phaseMachine';
 import type { StoreSlice } from '../../types';
-import type { Seat } from '../../../types';
+import type { Seat } from '@/types';
 
 /**
  * Actor interface for sending events to the phase machine.

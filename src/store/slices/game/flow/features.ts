@@ -1,6 +1,6 @@
-import { StoreSlice, GameSlice } from '../../../types';
-import { InteractionLogEntry } from '../../../../types';
-import { generateShortId } from '../../../../lib/random';
+import { StoreSlice, GameSlice } from '@/store/types';
+import { InteractionLogEntry } from '@/types';
+import { generateShortId } from '@/lib/random';
 
 export const createFeaturesSlice: StoreSlice<Pick<GameSlice, 'toggleCandlelight' | 'addInteractionLog'>> = (set, get) => ({
     // v2.0: 烛光模式控制 (手动开关，需要同步)

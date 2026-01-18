@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getInitialState, applyRoleAssignment, fallbackTownsfolk } from './utils';
-import { Seat, GameState, SeatStatus } from '../../../types';
+import { Seat, GameState, SeatStatus } from '@/types';
 
 describe('store/slices/game/utils', () => {
   describe('getInitialState', () => {

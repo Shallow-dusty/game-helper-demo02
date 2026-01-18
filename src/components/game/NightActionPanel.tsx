@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { ROLES, Z_INDEX } from '../../constants';
+import type { NightActionPayload } from '../../types';
 
 interface NightActionPanelProps {
     roleId: string;
@@ -24,7 +25,7 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
     const availableSeats = gameState.seats.filter(s => s.userId !== null || s.isVirtual);
 
     const handleSubmit = () => {
-        let payload: any = {};
+        let payload: NightActionPayload = {};
 
         if (nightAction.type === 'choose_player' && selectedPlayer !== null) {
             payload = { seatId: selectedPlayer };

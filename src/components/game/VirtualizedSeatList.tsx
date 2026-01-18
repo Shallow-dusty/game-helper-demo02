@@ -189,7 +189,6 @@ export function GameSeatsPanel() {
             width="100%"
             isStoryteller={true}
             currentUserId="user-123"
-            onSeatClick={(seat) => console.log('Clicked:', seat.id)}
         />
     );
 }

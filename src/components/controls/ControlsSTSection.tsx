@@ -86,7 +86,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
     const handleDistributeClick = () => {
         if (!hasGameState) return;
 
-        const hasEmptyRoles = seats.some(s => !s.roleId);
+        const hasEmptyRoles = seats.some(s => !s.realRoleId);
         if (hasEmptyRoles) {
             alert(t('controls.st.distributeEmptyRoleError'));
             return;

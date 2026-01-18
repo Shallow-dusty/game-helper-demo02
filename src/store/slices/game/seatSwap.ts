@@ -67,7 +67,10 @@ export const createGameSeatSwapSlice: StoreSlice<Pick<GameSlice, 'swapSeats' | '
                 if (seat) {
                     seat.userId = null;
                     seat.userName = `座位 ${seat.id + 1}`;
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility
                     seat.roleId = null;
+                    seat.realRoleId = null;
+                    seat.seenRoleId = null;
                 }
             }
         });

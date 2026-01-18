@@ -1,13 +1,13 @@
 import type { Draft } from 'immer';
-import { StoreSlice, GameSlice } from '../../../types';
-import type { AppState } from '../../../types';
-import { addSystemMessage } from '../../../utils';
+import { StoreSlice, GameSlice } from '@/store/types';
+import type { AppState } from '@/store/types';
+import { addSystemMessage } from '@/store/utils';
 import { supabase } from '../../connection';
-import { checkGameOver } from '../../../../lib/gameLogic';
+import { checkGameOver } from '@/lib/gameLogic';
 import {
     logExecution,
     updateNominationResult
-} from '../../../../lib/supabaseService';
+} from '@/lib/supabaseService';
 import { calculateVoteResult } from './utils';
 
 export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote'>> = (set, get) => ({

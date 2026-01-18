@@ -1,6 +1,6 @@
 import type { StoreApi } from 'zustand';
 import type { Draft } from 'immer';
-import { GameState, User, GamePhase, SeatStatus, NightActionRequest, GameHistory, Seat } from '../types';
+import { GameState, User, GamePhase, SeatStatus, NightActionRequest, NightActionPayload, GameHistory, Seat } from '../types';
 import type { PhaseMachineContext } from '../lib/machines/phaseMachine';
 
 // --- CONNECTION STATE TYPE ---
@@ -104,8 +104,8 @@ export interface GameSlice {
     sendInfoCard: (card: import('../types').InfoCard, recipientId: string | null) => void;
 
     // Night Actions
-    performNightAction: (action: { roleId: string, payload: any }) => void;
-    submitNightAction: (action: { roleId: string, payload: any }) => void;
+    performNightAction: (action: { roleId: string, payload: NightActionPayload }) => void;
+    submitNightAction: (action: { roleId: string, payload: NightActionPayload }) => void;
     resolveNightAction: (requestId: string, result: string) => void;
     getPendingNightActions: () => NightActionRequest[];
 
@@ -230,12 +230,7 @@ export interface PhaseMachineSlice {
  * @template T - The slice type
  */
 export type StoreSlice<T> = (
-  set: {
-    // Overload 1: Partial state update
-    (partial: Partial<AppState> | AppState): void;
-    // Overload 2: Immer draft function
-    (fn: (draft: Draft<AppState>) => void): void;
-  },
+  set: (partial: Partial<AppState> | AppState | ((draft: Draft<AppState>) => void)) => void,
   get: () => AppState,
   api: StoreApi<AppState>
 ) => T;

@@ -174,7 +174,7 @@ describe('createGameFlowSlice', () => {
             });
             
             const log = mockState.gameState?.interactionLog[0] as { id: string; timestamp: number };
-            expect(log.id).toMatch(/^log-\d+-[a-z0-9]+$/);
+            expect(log.id).toMatch(/^log-[a-z0-9]+$/);
             expect(log.timestamp).toBeGreaterThan(0);
         });
     });

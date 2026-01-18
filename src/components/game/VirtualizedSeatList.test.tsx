@@ -9,13 +9,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { VirtualizedSeatList } from './VirtualizedSeatList';
 import { Seat } from '../../types';
 
-// Mock react-window - pass component as children
+// Mock react-window - mock List component used by VirtualizedSeatList
 vi.mock('react-window', () => ({
-  FixedSizeList: ({ children: RowComponent, itemCount, itemData, height, width }: any) => (
+  List: ({ rowCount, rowComponent: RowComponent, rowProps, height, width }: any) => (
     <div data-testid="fixed-size-list" style={{ height, width }}>
-      {Array.from({ length: itemCount }, (_, index) => (
+      {Array.from({ length: rowCount }, (_, index) => (
         <div key={index} data-testid={`list-item-${index}`}>
-          <RowComponent index={index} style={{}} data={itemData} />
+          <RowComponent index={index} style={{}} {...rowProps} />
         </div>
       ))}
     </div>

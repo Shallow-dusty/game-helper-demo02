@@ -6,6 +6,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { ChainReactionModal } from './ChainReactionModal';
 import type { ChainReactionEvent } from '../../lib/chainReaction';
 
+// Mock react-i18next to return translation keys as-is for testing
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, onClick, ...props }: React.PropsWithChildren<{ onClick?: () => void }>) => (
@@ -64,7 +71,8 @@ describe('ChainReactionModal', () => {
     const onConfirm = vi.fn();
     render(<ChainReactionModal {...baseProps} onConfirm={onConfirm} />);
     // The component renders translation key for button text
-    fireEvent.click(screen.getByText('game.chainReaction.actions.confirm'));
+    // Since suggestedAction is 'mark_dead', the button text is 'game.chainReaction.actions.markDead'
+    fireEvent.click(screen.getByText('game.chainReaction.actions.markDead'));
     expect(onConfirm).toHaveBeenCalledWith(mockEvent);
   });
 

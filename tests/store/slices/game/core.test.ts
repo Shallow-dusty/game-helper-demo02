@@ -25,7 +25,7 @@ vi.mock('@supabase/supabase-js', () => ({
   }
 }));
 
-// Mock supabase
+// Mock supabase and connection functions
 vi.mock('../../../../src/store/slices/connection', () => ({
   supabase: {
     from: vi.fn(() => ({
@@ -40,7 +40,9 @@ vi.mock('../../../../src/store/slices/connection', () => ({
       })
     })),
     rpc: vi.fn().mockResolvedValue({ data: { success: true }, error: null })
-  }
+  },
+  setIsReceivingUpdate: vi.fn(),
+  setRealtimeChannel: vi.fn()
 }));
 
 // 创建测试座位

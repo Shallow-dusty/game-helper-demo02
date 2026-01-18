@@ -11,7 +11,7 @@ interface STNightQueueManagerProps {
     onShowNightAction: (roleId: string) => void;
 }
 
-export const STNightQueueManager: React.FC<STNightQueueManagerProps> = ({
+export const STNightQueueManager = React.memo<STNightQueueManagerProps>(({
     nightQueue,
     nightCurrentIndex,
     onSetPhase,
@@ -20,8 +20,10 @@ export const STNightQueueManager: React.FC<STNightQueueManagerProps> = ({
     const { t } = useTranslation();
     const currentRoleId = nightCurrentIndex >= 0 ? nightQueue[nightCurrentIndex] : undefined;
     const currentRole = currentRoleId ? ROLES[currentRoleId] : undefined;
-    const nightNext = useStore.getState().nightNext;
-    const nightPrev = useStore.getState().nightPrev;
+
+    // 使用selector获取稳定引用，避免每次渲染创建新函数
+    const nightNext = useStore(state => state.nightNext);
+    const nightPrev = useStore(state => state.nightPrev);
 
     return (
         <div className="bg-black/30 p-3 rounded border border-indigo-900/50 shadow-lg">
@@ -86,4 +88,4 @@ export const STNightQueueManager: React.FC<STNightQueueManagerProps> = ({
             </button>
         </div>
     );
-};
+});

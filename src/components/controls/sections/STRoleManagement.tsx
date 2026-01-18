@@ -12,7 +12,7 @@ interface STRoleManagementProps {
     onShowRuleCompliance: () => void;
 }
 
-export const STRoleManagement: React.FC<STRoleManagementProps> = ({
+export const STRoleManagement = React.memo<STRoleManagementProps>(({
     isCollapsed,
     onToggle,
     onShowCompositionGuide,
@@ -55,4 +55,4 @@ export const STRoleManagement: React.FC<STRoleManagementProps> = ({
             </div>
         </CollapsibleSection>
     );
-};
+});

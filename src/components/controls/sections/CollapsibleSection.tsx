@@ -7,7 +7,7 @@ interface CollapsibleSectionProps {
     children: React.ReactNode;
 }
 
-export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
+export const CollapsibleSection = React.memo<CollapsibleSectionProps>(({
     title,
     isCollapsed,
     onToggle,
@@ -25,4 +25,4 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
             {!isCollapsed && children}
         </div>
     );
-};
+});

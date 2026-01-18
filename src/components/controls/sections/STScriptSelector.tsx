@@ -11,7 +11,7 @@ interface STScriptSelectorProps {
     onShowScriptEditor: () => void;
 }
 
-export const STScriptSelector: React.FC<STScriptSelectorProps> = ({
+export const STScriptSelector = React.memo<STScriptSelectorProps>(({
     currentScriptId,
     customScripts,
     onSetScript,
@@ -74,4 +74,4 @@ export const STScriptSelector: React.FC<STScriptSelectorProps> = ({
             </select>
         </div>
     );
-};
+});

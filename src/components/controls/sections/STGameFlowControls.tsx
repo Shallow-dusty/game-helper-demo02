@@ -16,7 +16,7 @@ interface STGameFlowControlsProps {
     onShowHistory: () => void;
 }
 
-export const STGameFlowControls: React.FC<STGameFlowControlsProps> = ({
+export const STGameFlowControls = React.memo<STGameFlowControlsProps>(({
     isCollapsed,
     onToggle,
     phase,
@@ -92,4 +92,4 @@ export const STGameFlowControls: React.FC<STGameFlowControlsProps> = ({
             </div>
         </CollapsibleSection>
     );
-};
+});

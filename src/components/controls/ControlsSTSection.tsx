@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { useShallow } from 'zustand/react/shallow';
@@ -86,6 +86,16 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
         setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
     };
 
+    // 缓存回调函数以避免子组件不必要的重渲染
+    const toggleCallbacks = useMemo(() => ({
+        seats: () => toggleSection('seats'),
+        roles: () => toggleSection('roles'),
+        game: () => toggleSection('game'),
+        smartInfo: () => toggleSection('smartInfo'),
+    }), []);
+
+    const handleShowRuleCompliance = useMemo(() => () => setShowRuleCompliance(true), []);
+
     const handleDistributeClick = () => {
         if (!hasGameState) return;
 
@@ -119,22 +129,22 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
             {/* Seat Management */}
             <STSeatManagement
                 isCollapsed={collapsedSections.seats ?? false}
-                onToggle={() => toggleSection('seats')}
+                onToggle={toggleCallbacks.seats}
             />
 
             {/* Role Management */}
             <STRoleManagement
                 isCollapsed={collapsedSections.roles ?? false}
-                onToggle={() => toggleSection('roles')}
+                onToggle={toggleCallbacks.roles}
                 onShowCompositionGuide={onShowCompositionGuide}
                 onDistributeClick={handleDistributeClick}
-                onShowRuleCompliance={() => setShowRuleCompliance(true)}
+                onShowRuleCompliance={handleShowRuleCompliance}
             />
 
             {/* Game Flow */}
             <STGameFlowControls
                 isCollapsed={collapsedSections.game ?? false}
-                onToggle={() => toggleSection('game')}
+                onToggle={toggleCallbacks.game}
                 phase={phase}
                 vibrationEnabled={vibrationEnabled}
                 candlelightEnabled={candlelightEnabled}
@@ -147,7 +157,7 @@ export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({
             {phase === 'NIGHT' && (
                 <SmartInfoPanel
                     isExpanded={!collapsedSections.smartInfo}
-                    onToggle={() => toggleSection('smartInfo')}
+                    onToggle={toggleCallbacks.smartInfo}
                 />
             )}
 

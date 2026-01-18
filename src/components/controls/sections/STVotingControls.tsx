@@ -9,7 +9,7 @@ interface STVotingControlsProps {
     onCloseVote: () => void;
 }
 
-export const STVotingControls: React.FC<STVotingControlsProps> = ({
+export const STVotingControls = React.memo<STVotingControlsProps>(({
     voting,
     seats,
     onNextClockHand,
@@ -44,4 +44,4 @@ export const STVotingControls: React.FC<STVotingControlsProps> = ({
             </button>
         </div>
     );
-};
+});

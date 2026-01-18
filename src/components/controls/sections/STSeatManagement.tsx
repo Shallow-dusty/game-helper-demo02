@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { CollapsibleSection } from './CollapsibleSection';
 
-export const STSeatManagement: React.FC<{
+export const STSeatManagement = React.memo<{
     isCollapsed: boolean;
     onToggle: () => void;
-}> = ({ isCollapsed, onToggle }) => {
+}>(({ isCollapsed, onToggle }) => {
     const { t } = useTranslation();
 
     return (
@@ -40,4 +40,4 @@ export const STSeatManagement: React.FC<{
             </div>
         </CollapsibleSection>
     );
-};
+});

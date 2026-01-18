@@ -165,7 +165,7 @@ describe('PlayerNotebook', () => {
   it('should clear input after adding note', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const input = screen.getByPlaceholderText('Add new note... (Enter)') as HTMLInputElement;
     const addButton = screen.getByText('Add');
 
     fireEvent.change(input, { target: { value: 'Test note' } });

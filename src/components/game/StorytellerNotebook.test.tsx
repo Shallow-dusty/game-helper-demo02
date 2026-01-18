@@ -185,7 +185,7 @@ describe('StorytellerNotebook', () => {
   it('should clear input after adding note', () => {
     render(<StorytellerNotebook />);
 
-    const input = screen.getByPlaceholderText('添加新笔记... (Enter)');
+    const input = screen.getByPlaceholderText('添加新笔记... (Enter)') as HTMLInputElement;
     const addButton = screen.getByText('添加');
 
     fireEvent.change(input, { target: { value: 'Test' } });

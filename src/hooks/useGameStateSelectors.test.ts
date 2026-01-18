@@ -252,9 +252,9 @@ describe('useGameStateSelectors', () => {
             const { result } = renderHook(() => useSeatList());
 
             expect(result.current).toHaveLength(3);
-            expect(result.current![0].userName).toBe('Alice');
-            expect(result.current![1].userName).toBe('Bob');
-            expect(result.current![2].userName).toBe('Charlie');
+            expect(result.current![0]!.userName).toBe('Alice');
+            expect(result.current![1]!.userName).toBe('Bob');
+            expect(result.current![2]!.userName).toBe('Charlie');
         });
     });
 
@@ -372,8 +372,8 @@ describe('useGameStateSelectors', () => {
             const { result } = renderHook(() => useGameMessages());
 
             expect(result.current).toHaveLength(2);
-            expect(result.current![0].content).toBe('Hello everyone');
-            expect(result.current![1].content).toBe('Game started');
+            expect(result.current![0]!.content).toBe('Hello everyone');
+            expect(result.current![1]!.content).toBe('Game started');
         });
     });
 

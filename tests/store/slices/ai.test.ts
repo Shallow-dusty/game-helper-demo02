@@ -4,9 +4,10 @@
  * AI 助手功能状态测试
  */
 
-import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { aiSlice } from '../../../src/store/slices/ai';
 import type { GameState, ChatMessage } from '../../../src/types';
+import type { AppState } from '../../../src/store/types';
 
 // Mock external dependencies
 vi.mock('@google/generative-ai', () => ({
@@ -32,52 +33,67 @@ vi.mock('openai', () => ({
 }));
 
 vi.mock('../../../src/store/aiConfig', () => ({
-  getAiConfig: vi.fn(() => ({
+  AI_CONFIG: {
     sf_deepseek_v3_2: {
       name: 'SiliconFlow DeepSeek V3',
-      model: 'deepseek-chat',
-      apiKey: 'test-api-key'
+      model: 'deepseek-chat'
     },
     gemini: {
       name: 'Google Gemini',
-      model: 'gemini-pro',
-      apiKey: 'test-gemini-key'
+      model: 'gemini-pro'
     },
     deepseek: {
       name: 'DeepSeek',
-      model: 'deepseek-chat',
-      apiKey: 'test-deepseek-key'
+      model: 'deepseek-chat'
     },
     kimi: {
       name: 'Kimi',
-      model: 'moonshot-v1-8k',
-      apiKey: 'test-kimi-key'
+      model: 'moonshot-v1-8k'
     },
     glm: {
       name: 'GLM',
-      model: 'glm-4',
-      apiKey: 'test-glm-key'
+      model: 'glm-4'
     },
-    hw_pangu: {
-      name: 'HW Pangu',
-      model: 'pangu',
-      apiKey: 'test-hw-key'
+    hw_deepseek_v3: {
+      name: 'HW DeepSeek V3',
+      model: 'deepseek-v3.2'
     },
-    no_key_provider: {
-      name: 'No Key Provider',
-      model: 'test',
-      apiKey: ''
+    hw_deepseek_r1: {
+      name: 'HW DeepSeek R1',
+      model: 'DeepSeek-R1'
+    },
+    sf_minimax_m2: {
+      name: 'MiniMax M2',
+      model: 'MiniMaxAI/MiniMax-M2'
+    },
+    sf_qwen_3_vl: {
+      name: 'Qwen 3 VL 32B',
+      model: 'Qwen/Qwen3-VL-32B-Instruct'
+    },
+    sf_glm_4_6: {
+      name: 'GLM 4.6',
+      model: 'zai-org/GLM-4.6'
+    },
+    sf_kimi_k2: {
+      name: 'Kimi K2 Thinking',
+      model: 'moonshotai/Kimi-K2-Thinking'
+    },
+    sf_kimi_k2_instruct: {
+      name: 'Kimi K2 Instruct',
+      model: 'moonshotai/Kimi-K2-Instruct-0905'
     }
-  }))
+  }
 }));
 
 // Mock store state
+interface MockStoreState {
+  gameState: Partial<GameState> | null;
+  aiProvider: string;
+  isAiThinking: boolean;
+}
+
 const createMockStore = () => {
-  const state: {
-    gameState: Partial<GameState> | null;
-    aiProvider: string;
-    isAiThinking: boolean;
-  } = {
+  const state: MockStoreState = {
     gameState: {
       aiMessages: [] as ChatMessage[]
     } as Partial<GameState>,
@@ -85,7 +101,7 @@ const createMockStore = () => {
     isAiThinking: false
   };
 
-  const set = vi.fn((fnOrObj: ((state: typeof state) => void) | Partial<typeof state>) => {
+  const set = vi.fn((fnOrObj: ((state: MockStoreState) => void) | Partial<MockStoreState>) => {
     if (typeof fnOrObj === 'function') {
       fnOrObj(state);
     } else {
@@ -93,7 +109,7 @@ const createMockStore = () => {
     }
   });
 
-  const get = vi.fn(() => state);
+  const get = vi.fn((): AppState => state as any);
 
   return { state, set, get };
 };
@@ -105,7 +121,13 @@ describe('aiSlice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore = createMockStore();
-    slice = aiSlice(mockStore.set, mockStore.get, {});
+    // Create a proper mock StateCreator argument
+    const mockStateCreator = [
+      mockStore.set,
+      mockStore.get,
+      {}
+    ] as unknown as Parameters<typeof aiSlice>;
+    slice = aiSlice(...mockStateCreator);
   });
 
   describe('initialization', () => {
@@ -210,15 +232,6 @@ describe('aiSlice', () => {
     });
 
     it('should handle API error gracefully', async () => {
-      const { getAiConfig } = await import('../../../src/store/aiConfig');
-      (getAiConfig as Mock).mockReturnValueOnce({
-        no_key_provider: {
-          name: 'No Key',
-          model: 'test',
-          apiKey: ''
-        }
-      });
-
       mockStore.state.gameState = { aiMessages: [] } as any;
       mockStore.state.aiProvider = 'no_key_provider';
 
@@ -244,7 +257,12 @@ describe('aiSlice', () => {
       for (const { provider, expectedUrl } of testCases) {
         vi.clearAllMocks();
         mockStore = createMockStore();
-        slice = aiSlice(mockStore.set, mockStore.get, {});
+        const mockStateCreator = [
+          mockStore.set,
+          mockStore.get,
+          {}
+        ] as unknown as Parameters<typeof aiSlice>;
+        slice = aiSlice(...mockStateCreator);
         mockStore.state.gameState = { aiMessages: [] } as any;
         mockStore.state.aiProvider = provider;
 

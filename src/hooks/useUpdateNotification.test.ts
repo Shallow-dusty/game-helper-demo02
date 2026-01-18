@@ -154,8 +154,12 @@ describe('useUpdateNotification', () => {
         configurable: true,
       },
     });
-    // Use a property descriptor that makes 'serviceWorker' in navigator return false
-    delete (navigatorWithoutSW as Partial<Navigator>).serviceWorker;
+    // Remove serviceWorker property from the navigator object
+    Object.defineProperty(navigatorWithoutSW, 'serviceWorker', {
+      value: undefined,
+      configurable: true,
+      writable: true
+    });
 
     // Mock the navigator
     vi.stubGlobal('navigator', {});

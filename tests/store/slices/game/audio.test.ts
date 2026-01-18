@@ -48,7 +48,7 @@ describe('createGameAudioSlice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore = createMockStore();
-    audioSlice = createGameAudioSlice(mockStore.set, mockStore.get, {});
+    audioSlice = createGameAudioSlice(mockStore.set as Parameters<typeof createGameAudioSlice>[0], mockStore.get as unknown as Parameters<typeof createGameAudioSlice>[1], {} as Parameters<typeof createGameAudioSlice>[2]);
   });
 
   describe('setAudioTrack', () => {

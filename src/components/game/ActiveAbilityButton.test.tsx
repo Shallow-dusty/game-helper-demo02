@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ActiveAbilityButton, ACTIVE_ABILITY_ROLES } from './ActiveAbilityButton';
 import * as storeModule from '../../store';
-import { RoleDef, Seat, GamePhase } from '../../types';
+import { RoleDef, Seat } from '../../types';
 
 vi.mock('../../store', () => ({
   useStore: vi.fn(),
@@ -66,13 +66,13 @@ describe('ActiveAbilityButton', () => {
   describe('ACTIVE_ABILITY_ROLES', () => {
     it('should contain slayer role config', () => {
       expect(ACTIVE_ABILITY_ROLES.slayer).toBeDefined();
-      expect(ACTIVE_ABILITY_ROLES.slayer.name).toBe('game.activeAbility.roles.slayer.name');
-      expect(ACTIVE_ABILITY_ROLES.slayer.requiresTarget).toBe(true);
+      expect(ACTIVE_ABILITY_ROLES.slayer?.name).toBe('game.activeAbility.roles.slayer.name');
+      expect(ACTIVE_ABILITY_ROLES.slayer?.requiresTarget).toBe(true);
     });
 
     it('should contain virgin role config', () => {
       expect(ACTIVE_ABILITY_ROLES.virgin).toBeDefined();
-      expect(ACTIVE_ABILITY_ROLES.virgin.requiresTarget).toBe(false);
+      expect(ACTIVE_ABILITY_ROLES.virgin?.requiresTarget).toBe(false);
     });
   });
 

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
 import { AudioEnableOverlay } from './AudioEnableOverlay';
 
 // Mock Audio
@@ -134,12 +133,12 @@ describe('AudioEnableOverlay', () => {
     await new Promise(resolve => setTimeout(resolve, 600));
 
     // Re-setup Audio mock to work correctly
-    global.Audio = vi.fn(function() {
+    global.Audio = vi.fn(function(this: any) {
       this.play = vi.fn().mockResolvedValue(undefined);
       this.pause = vi.fn();
       this.volume = 0;
       this.src = '';
-    } as any);
+    }) as any;
 
     const button = screen.getByRole('button');
     fireEvent.click(button);

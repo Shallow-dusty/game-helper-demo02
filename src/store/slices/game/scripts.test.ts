@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // Create mock state
 const createMockState = () => ({
@@ -60,11 +60,11 @@ describe('createGameScriptsSlice', () => {
         name: 'My Custom Script',
         roles: ['imp', 'mayor'],
       };
-      
+
       state.gameState.customScripts[script.id] = script;
-      
+
       expect(state.gameState.customScripts.my_script).toBeDefined();
-      expect(state.gameState.customScripts.my_script.name).toBe('My Custom Script');
+      expect(state.gameState.customScripts.my_script?.name).toBe('My Custom Script');
     });
   });
 

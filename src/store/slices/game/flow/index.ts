@@ -29,13 +29,15 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice,
     'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote' |
     'startGame' | 'endGame' |
     'toggleCandlelight' | 'addInteractionLog'
->> = (set, get) => ({
-    ...createPhaseSlice(set, get),
-    ...createNightSlice(set, get),
-    ...createVotingSlice(set, get),
-    ...createLifecycleSlice(set, get),
-    ...createFeaturesSlice(set, get)
-});
+>> = (set, get) => {
+    return {
+        ...(createPhaseSlice as any)(set, get),
+        ...(createNightSlice as any)(set, get),
+        ...(createVotingSlice as any)(set, get),
+        ...(createLifecycleSlice as any)(set, get),
+        ...(createFeaturesSlice as any)(set, get)
+    };
+};
 
 // Export sub-modules for direct access if needed
 export { createPhaseSlice } from './phase';

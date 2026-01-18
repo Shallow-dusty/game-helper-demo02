@@ -2,105 +2,87 @@
  * createAISlice Tests
  *
  * Comprehensive tests for AI assistant state management
+ * Tests the Supabase Edge Function integration for AI chat
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
-import { createAISlice } from './createAISlice';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { createAISlice, type AISlice } from './createAISlice';
 import type { ChatMessage } from '../../types';
+import type { AiProvider } from '../types';
 
-// Mocked create function that we can track
-let mockOpenAICreate: Mock;
-let mockGeminiGenerateContent: Mock;
-
-// Mock external dependencies with class constructors
-vi.mock('@google/generative-ai', () => {
-  return {
-    GoogleGenerativeAI: vi.fn().mockImplementation(function(this: any) {
-      this.getGenerativeModel = vi.fn().mockReturnValue({
-        generateContent: vi.fn().mockImplementation(async () => ({
-          response: { text: () => 'Gemini response' }
-        }))
-      });
-      return this;
-    })
-  };
-});
-
-vi.mock('openai', () => {
-  return {
-    default: vi.fn().mockImplementation(function(this: any) {
-      this.chat = {
-        completions: {
-          create: vi.fn().mockResolvedValue({
-            choices: [{ message: { content: 'OpenAI response' } }]
-          })
-        }
-      };
-      return this;
-    })
-  };
-});
+// Mock supabase
+const mockInvoke = vi.fn();
+vi.mock('./connection', () => ({
+  supabase: {
+    functions: {
+      invoke: (...args: unknown[]) => mockInvoke(...args)
+    }
+  }
+}));
 
 vi.mock('../aiConfig', () => ({
-  getAiConfig: vi.fn(() => ({
+  AI_CONFIG: {
     sf_deepseek_v3_2: {
       name: 'SiliconFlow DeepSeek V3',
-      model: 'deepseek-chat',
-      apiKey: 'test-api-key'
+      model: 'deepseek-chat'
     },
     gemini: {
       name: 'Google Gemini',
-      model: 'gemini-pro',
-      apiKey: 'test-gemini-key'
+      model: 'gemini-pro'
     },
     deepseek: {
       name: 'DeepSeek',
-      model: 'deepseek-chat',
-      apiKey: 'test-deepseek-key'
+      model: 'deepseek-chat'
     },
     kimi: {
       name: 'Kimi',
-      model: 'moonshot-v1-8k',
-      apiKey: 'test-kimi-key'
+      model: 'moonshot-v1-8k'
     },
     glm: {
       name: 'GLM',
-      model: 'glm-4',
-      apiKey: 'test-glm-key'
+      model: 'glm-4'
     },
     hw_deepseek_v3: {
       name: 'HW DeepSeek V3',
-      model: 'deepseek-v3',
-      apiKey: 'test-hw-key'
+      model: 'deepseek-v3'
     },
     hw_deepseek_r1: {
       name: 'HW DeepSeek R1',
-      model: 'deepseek-r1',
-      apiKey: 'test-hw-key'
-    },
-    no_key_provider: {
-      name: 'No Key Provider',
-      model: 'test',
-      apiKey: ''
+      model: 'deepseek-r1'
     }
-  }))
+  } as Record<AiProvider, { name: string; model: string }>
 }));
 
 // Create a mock store factory
+interface MockState {
+  gameState: {
+    aiMessages: ChatMessage[];
+    phase: string;
+    roundInfo: { dayCount: number };
+    currentScriptId: string;
+    seats: { isDead: boolean }[];
+  } | null;
+  aiProvider: AiProvider;
+  isAiThinking: boolean;
+}
+
 const createMockStore = () => {
-  const state: {
-    gameState: { aiMessages: ChatMessage[] } | null;
-    aiProvider: string;
-    isAiThinking: boolean;
-  } = {
+  const state: MockState = {
     gameState: {
-      aiMessages: [] as ChatMessage[]
+      aiMessages: [] as ChatMessage[],
+      phase: 'DAY',
+      roundInfo: { dayCount: 1 },
+      currentScriptId: 'tb',
+      seats: [{ isDead: false }, { isDead: false }, { isDead: true }]
     },
     aiProvider: 'sf_deepseek_v3_2',
     isAiThinking: false
   };
 
-  const set = vi.fn((fnOrObj: ((state: typeof state) => void) | Partial<typeof state>) => {
+  type SetFn = (fnOrObj: ((state: MockState) => void) | Partial<MockState>) => void;
+  type GetFn = () => MockState;
+
+  const set: SetFn = vi.fn((fnOrObj) => {
     if (typeof fnOrObj === 'function') {
       fnOrObj(state);
     } else {
@@ -108,46 +90,20 @@ const createMockStore = () => {
     }
   });
 
-  const get = vi.fn(() => state);
+  const get: GetFn = vi.fn(() => state);
 
-  return { state, set, get };
+  return { state, set: set as unknown as Parameters<typeof createAISlice>[0], get: get as unknown as Parameters<typeof createAISlice>[1] };
 };
 
 describe('createAISlice', () => {
   let mockStore: ReturnType<typeof createMockStore>;
-  let slice: ReturnType<typeof createAISlice>;
+  let slice: AISlice;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
-
-    // Reset OpenAI mock to default behavior
-    const OpenAI = (await import('openai')).default;
-    (OpenAI as Mock).mockImplementation(function(this: any) {
-      mockOpenAICreate = vi.fn().mockResolvedValue({
-        choices: [{ message: { content: 'OpenAI response' } }]
-      });
-      this.chat = {
-        completions: {
-          create: mockOpenAICreate
-        }
-      };
-      return this;
-    });
-
-    // Reset Gemini mock to default behavior
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    (GoogleGenerativeAI as Mock).mockImplementation(function(this: any) {
-      mockGeminiGenerateContent = vi.fn().mockResolvedValue({
-        response: { text: () => 'Gemini response' }
-      });
-      this.getGenerativeModel = vi.fn().mockReturnValue({
-        generateContent: mockGeminiGenerateContent
-      });
-      return this;
-    });
-
+    mockInvoke.mockResolvedValue({ data: { reply: 'AI response' }, error: null });
     mockStore = createMockStore();
-    slice = createAISlice(mockStore.set, mockStore.get, {} as any);
+    slice = createAISlice(mockStore.set, mockStore.get, {} as never);
   });
 
   describe('initialization', () => {
@@ -164,7 +120,7 @@ describe('createAISlice', () => {
     });
 
     it('should set different providers', () => {
-      const providers = ['deepseek', 'kimi', 'glm', 'sf_deepseek_v3_2'] as const;
+      const providers: AiProvider[] = ['deepseek', 'kimi', 'glm', 'sf_deepseek_v3_2'];
       providers.forEach(provider => {
         slice.setAiProvider(provider);
         expect(mockStore.set).toHaveBeenCalledWith({ aiProvider: provider });
@@ -189,7 +145,7 @@ describe('createAISlice', () => {
       expect(mockStore.state.gameState?.aiMessages).toEqual([]);
     });
 
-    it('should handle null gameState gracefully (else branch)', () => {
+    it('should handle null gameState gracefully', () => {
       mockStore.state.gameState = null;
 
       expect(() => slice.clearAiMessages()).not.toThrow();
@@ -217,7 +173,7 @@ describe('createAISlice', () => {
       expect(mockStore.state.gameState?.aiMessages).toHaveLength(1);
     });
 
-    it('should handle null gameState gracefully (else branch)', () => {
+    it('should handle null gameState gracefully', () => {
       mockStore.state.gameState = null;
 
       expect(() => slice.deleteAiMessage('1')).not.toThrow();
@@ -232,20 +188,16 @@ describe('createAISlice', () => {
 
       // Should not have set isAiThinking
       expect(mockStore.set).not.toHaveBeenCalledWith({ isAiThinking: true });
+      expect(mockInvoke).not.toHaveBeenCalled();
     });
 
     it('should set isAiThinking to true when starting', async () => {
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'sf_deepseek_v3_2';
-
       await slice.askAi('test prompt');
 
       expect(mockStore.set).toHaveBeenCalledWith({ isAiThinking: true });
     });
 
     it('should add user message before API call', async () => {
-      mockStore.state.gameState = { aiMessages: [] };
-
       await slice.askAi('Hello AI');
 
       // Check that a user message was added
@@ -258,200 +210,77 @@ describe('createAISlice', () => {
       expect(userMsg?.type).toBe('chat');
     });
 
-    it('should throw error when API key is missing', async () => {
-      const { getAiConfig } = await import('../aiConfig');
-      (getAiConfig as Mock).mockReturnValueOnce({
-        no_key_provider: {
-          name: 'No Key',
-          model: 'test',
-          apiKey: ''
-        }
-      });
-
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'no_key_provider';
-
-      await slice.askAi('test');
-
-      // Should have added error message
-      const messages = mockStore.state.gameState?.aiMessages;
-      const errorMsg = messages?.find(m => m.type === 'system');
-      expect(errorMsg?.content).toContain('AI 请求失败');
-      expect(errorMsg?.content).toContain('未配置');
-    });
-
-    it('should use Gemini API when provider is gemini', async () => {
-      const { GoogleGenerativeAI } = await import('@google/generative-ai');
-
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'gemini';
+    it('should call Supabase Edge Function with correct parameters', async () => {
+      mockStore.state.aiProvider = 'deepseek';
 
       await slice.askAi('test prompt');
 
-      expect(GoogleGenerativeAI).toHaveBeenCalledWith('test-gemini-key');
+      expect(mockInvoke).toHaveBeenCalledWith('ask-ai', {
+        body: {
+          prompt: 'test prompt',
+          gameContext: expect.objectContaining({
+            phase: 'DAY',
+            dayCount: 1,
+            scriptId: 'tb',
+            seatCount: 3,
+            alivePlayers: 2
+          }),
+          aiProvider: 'deepseek'
+        }
+      });
     });
 
-    it('should add AI response message on success with Gemini', async () => {
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'gemini';
+    it('should include previous messages in game context', async () => {
+      mockStore.state.gameState!.aiMessages = [
+        { id: '1', content: 'previous question', role: 'user' } as ChatMessage,
+        { id: '2', content: 'previous answer', role: 'assistant' } as ChatMessage
+      ];
+
+      await slice.askAi('new question');
+
+      expect(mockInvoke).toHaveBeenCalledWith('ask-ai', {
+        body: expect.objectContaining({
+          gameContext: expect.objectContaining({
+            previousMessages: expect.arrayContaining([
+              { role: 'user', content: 'previous question' },
+              { role: 'assistant', content: 'previous answer' }
+            ])
+          })
+        })
+      });
+    });
+
+    it('should add AI response message on success', async () => {
+      mockInvoke.mockResolvedValueOnce({ data: { reply: 'AI response text' }, error: null });
 
       await slice.askAi('Hello');
 
       const messages = mockStore.state.gameState?.aiMessages;
       const aiMsg = messages?.find(m => m.role === 'assistant');
-      expect(aiMsg?.content).toBe('Gemini response');
-      expect(aiMsg?.senderName).toBe('Grimoire AI');
+      expect(aiMsg?.content).toBe('AI response text');
+      expect(aiMsg?.senderName).toContain('Grimoire AI');
       expect(aiMsg?.senderId).toBe('ai');
     });
 
-    it('should use correct baseURL for deepseek provider (default)', async () => {
-      const OpenAI = (await import('openai')).default;
-
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'deepseek';
+    it('should use default message when reply is null', async () => {
+      mockInvoke.mockResolvedValueOnce({ data: { reply: null }, error: null });
 
       await slice.askAi('test');
-
-      expect(OpenAI).toHaveBeenCalledWith(
-        expect.objectContaining({
-          baseURL: 'https://api.deepseek.com'
-        })
-      );
-    });
-
-    it('should use correct baseURL for kimi provider', async () => {
-      const OpenAI = (await import('openai')).default;
-
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'kimi';
-
-      await slice.askAi('test');
-
-      expect(OpenAI).toHaveBeenCalledWith(
-        expect.objectContaining({
-          baseURL: 'https://api.moonshot.cn/v1'
-        })
-      );
-    });
-
-    it('should use correct baseURL for glm provider', async () => {
-      const OpenAI = (await import('openai')).default;
-
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'glm';
-
-      await slice.askAi('test');
-
-      expect(OpenAI).toHaveBeenCalledWith(
-        expect.objectContaining({
-          baseURL: 'https://open.bigmodel.cn/api/paas/v4'
-        })
-      );
-    });
-
-    it('should use correct baseURL for hw_ prefixed providers', async () => {
-      const OpenAI = (await import('openai')).default;
-
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'hw_deepseek_v3';
-
-      await slice.askAi('test');
-
-      expect(OpenAI).toHaveBeenCalledWith(
-        expect.objectContaining({
-          baseURL: 'https://api.modelarts-maas.com/v1'
-        })
-      );
-    });
-
-    it('should use correct baseURL for sf_ prefixed providers', async () => {
-      const OpenAI = (await import('openai')).default;
-
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'sf_deepseek_v3_2';
-
-      await slice.askAi('test');
-
-      expect(OpenAI).toHaveBeenCalledWith(
-        expect.objectContaining({
-          baseURL: 'https://api.siliconflow.cn/v1'
-        })
-      );
-    });
-
-    it('should add AI response message on success with OpenAI compatible API', async () => {
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'sf_deepseek_v3_2';
-
-      await slice.askAi('Hello');
 
       const messages = mockStore.state.gameState?.aiMessages;
       const aiMsg = messages?.find(m => m.role === 'assistant');
-      expect(aiMsg?.content).toBe('OpenAI response');
-      expect(aiMsg?.senderName).toBe('Grimoire AI');
+      expect(aiMsg?.content).toBe('（无回复）');
     });
 
     it('should set isAiThinking to false after successful completion', async () => {
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'sf_deepseek_v3_2';
-
       await slice.askAi('test');
 
-      // Find the set call that sets isAiThinking to false
-      const setCallsWithIsAiThinking = mockStore.set.mock.calls.filter(
-        call => typeof call[0] === 'function'
-      );
-      expect(setCallsWithIsAiThinking.length).toBeGreaterThan(0);
       expect(mockStore.state.isAiThinking).toBe(false);
     });
 
-    it('should handle null response content from OpenAI API (fallback to default message)', async () => {
-      const OpenAI = (await import('openai')).default;
-      // Reset the mock to return null content - use function pattern for constructor mock
-      (OpenAI as Mock).mockImplementation(function(this: any) {
-        this.chat = {
-          completions: {
-            create: vi.fn().mockResolvedValue({
-              choices: [{ message: { content: null } }]
-            })
-          }
-        };
-        return this;
-      });
+    it('should handle Edge Function error gracefully', async () => {
+      mockInvoke.mockResolvedValueOnce({ data: null, error: { message: 'Edge Function Error' } });
 
-      // Create fresh store and slice after changing mock
-      mockStore = createMockStore();
-      slice = createAISlice(mockStore.set, mockStore.get, {} as any);
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'deepseek';
-
-      await slice.askAi('test');
-
-      const messages = mockStore.state.gameState?.aiMessages;
-      const aiMsg = messages?.find(m => m.role === 'assistant');
-      // The code uses ?? operator to fallback to default message
-      expect(aiMsg?.content).toBeDefined();
-    });
-
-    it('should handle API error gracefully', async () => {
-      const OpenAI = (await import('openai')).default;
-      // Reset the mock to throw an error
-      (OpenAI as Mock).mockImplementation(function(this: any) {
-        this.chat = {
-          completions: {
-            create: vi.fn().mockRejectedValue(new Error('API Error'))
-          }
-        };
-        return this;
-      });
-
-      // Create fresh store and slice after changing mock
-      mockStore = createMockStore();
-      slice = createAISlice(mockStore.set, mockStore.get, {} as any);
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'deepseek';
-
-      // Silence console.error for this test
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await slice.askAi('test');
@@ -459,7 +288,7 @@ describe('createAISlice', () => {
       const messages = mockStore.state.gameState?.aiMessages;
       const errorMsg = messages?.find(m => m.type === 'system');
       expect(errorMsg?.content).toContain('AI 请求失败');
-      expect(errorMsg?.content).toContain('API Error');
+      expect(errorMsg?.content).toContain('Edge Function Error');
       expect(errorMsg?.senderName).toBe('System');
       expect(errorMsg?.senderId).toBe('system');
       expect(errorMsg?.role).toBe('system');
@@ -468,23 +297,38 @@ describe('createAISlice', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should handle non-Error exceptions gracefully', async () => {
-      const OpenAI = (await import('openai')).default;
-      // Reset the mock to throw a string error
-      (OpenAI as Mock).mockImplementation(function(this: any) {
-        this.chat = {
-          completions: {
-            create: vi.fn().mockRejectedValue('string error')
-          }
-        };
-        return this;
-      });
+    it('should handle data.error response', async () => {
+      mockInvoke.mockResolvedValueOnce({ data: { error: 'API limit reached' }, error: null });
 
-      // Create fresh store and slice after changing mock
-      mockStore = createMockStore();
-      slice = createAISlice(mockStore.set, mockStore.get, {} as any);
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'deepseek';
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      await slice.askAi('test');
+
+      const messages = mockStore.state.gameState?.aiMessages;
+      const errorMsg = messages?.find(m => m.type === 'system');
+      expect(errorMsg?.content).toContain('API limit reached');
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle network/unexpected errors', async () => {
+      mockInvoke.mockRejectedValueOnce(new Error('Network Error'));
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      await slice.askAi('test');
+
+      const messages = mockStore.state.gameState?.aiMessages;
+      const errorMsg = messages?.find(m => m.type === 'system');
+      expect(errorMsg?.content).toContain('AI 请求失败');
+      expect(errorMsg?.content).toContain('Network Error');
+      expect(mockStore.state.isAiThinking).toBe(false);
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle non-Error exceptions gracefully', async () => {
+      mockInvoke.mockRejectedValueOnce('string error');
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -498,143 +342,83 @@ describe('createAISlice', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should include existing aiMessages in OpenAI request context', async () => {
-      const OpenAI = (await import('openai')).default;
-      const mockCreate = vi.fn().mockResolvedValue({
-        choices: [{ message: { content: 'response' } }]
-      });
-      (OpenAI as Mock).mockImplementation(function(this: any) {
-        this.chat = {
-          completions: {
-            create: mockCreate
-          }
-        };
-        return this;
-      });
-
-      // Create fresh store and slice after changing mock
-      mockStore = createMockStore();
-      slice = createAISlice(mockStore.set, mockStore.get, {} as any);
-      mockStore.state.gameState = {
-        aiMessages: [
-          { id: '1', content: 'previous message', role: 'user' } as ChatMessage,
-          { id: '2', content: 'previous response', role: 'assistant' } as ChatMessage
-        ]
-      };
-      mockStore.state.aiProvider = 'deepseek';
-
-      await slice.askAi('new question');
-
-      expect(mockCreate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          messages: expect.arrayContaining([
-            { role: 'system', content: expect.any(String) },
-            { role: 'user', content: 'previous message' },
-            { role: 'assistant', content: 'previous response' },
-            { role: 'user', content: 'new question' }
-          ])
-        })
-      );
-    });
-
     it('should handle messages without role property (default to user)', async () => {
-      const OpenAI = (await import('openai')).default;
-      const mockCreate = vi.fn().mockResolvedValue({
-        choices: [{ message: { content: 'response' } }]
-      });
-      (OpenAI as Mock).mockImplementation(function(this: any) {
-        this.chat = {
-          completions: {
-            create: mockCreate
-          }
-        };
-        return this;
-      });
-
-      // Create fresh store and slice after changing mock
-      mockStore = createMockStore();
-      slice = createAISlice(mockStore.set, mockStore.get, {} as any);
-      mockStore.state.gameState = {
-        aiMessages: [
-          { id: '1', content: 'message without role' } as ChatMessage // No role property
-        ]
-      };
-      mockStore.state.aiProvider = 'deepseek';
+      mockStore.state.gameState!.aiMessages = [
+        { id: '1', content: 'message without role' } as ChatMessage // No role property
+      ];
 
       await slice.askAi('test');
 
-      expect(mockCreate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          messages: expect.arrayContaining([
-            expect.objectContaining({ role: 'user', content: 'message without role' })
-          ])
+      expect(mockInvoke).toHaveBeenCalledWith('ask-ai', {
+        body: expect.objectContaining({
+          gameContext: expect.objectContaining({
+            previousMessages: expect.arrayContaining([
+              { role: 'user', content: 'message without role' }
+            ])
+          })
         })
-      );
+      });
     });
 
-    it('should handle error in set callback for adding AI response when gameState becomes null', async () => {
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'sf_deepseek_v3_2';
-
-      // Override set to simulate gameState becoming null during the callback
-      let callCount = 0;
-      mockStore.set = vi.fn((fnOrObj: ((state: typeof mockStore.state) => void) | Partial<typeof mockStore.state>) => {
-        callCount++;
-        if (typeof fnOrObj === 'function') {
-          // After the initial calls, simulate gameState becoming null
-          if (callCount > 2) {
-            mockStore.state.gameState = null;
-          }
-          fnOrObj(mockStore.state);
-        } else {
-          Object.assign(mockStore.state, fnOrObj);
-        }
-      });
-
-      // This should not throw even if gameState becomes null
-      await expect(slice.askAi('test')).resolves.not.toThrow();
-    });
-
-    it('should handle error in catch block when gameState is null', async () => {
-      const OpenAI = (await import('openai')).default;
-      (OpenAI as Mock).mockImplementation(function(this: any) {
-        this.chat = {
-          completions: {
-            create: vi.fn().mockRejectedValue(new Error('API Error'))
-          }
-        };
-        return this;
-      });
-
-      // Create fresh store and slice after changing mock
-      mockStore = createMockStore();
-      slice = createAISlice(mockStore.set, mockStore.get, {} as any);
-      mockStore.state.gameState = { aiMessages: [] };
-      mockStore.state.aiProvider = 'deepseek';
+    it('should handle gameState becoming null during error handling', async () => {
+      mockInvoke.mockRejectedValueOnce(new Error('API Error'));
 
       // Override set to simulate gameState becoming null in the error handler
-      let errorHandlerCalled = false;
-      mockStore.set = vi.fn((fnOrObj: ((state: typeof mockStore.state) => void) | Partial<typeof mockStore.state>) => {
+      let callCount = 0;
+      const originalSet = mockStore.set;
+      mockStore.set = vi.fn((fnOrObj) => {
+        callCount++;
         if (typeof fnOrObj === 'function') {
-          // After adding user message and failing API call, null the gameState before error handling
-          if (errorHandlerCalled) {
+          // After a few calls, simulate gameState becoming null
+          if (callCount > 3) {
             mockStore.state.gameState = null;
           }
           fnOrObj(mockStore.state);
-          // Check if this was likely the error handler (sets isAiThinking to false)
-          if (!mockStore.state.isAiThinking) {
-            errorHandlerCalled = true;
-          }
         } else {
           Object.assign(mockStore.state, fnOrObj);
         }
-      });
+      }) as typeof originalSet;
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await expect(slice.askAi('test')).resolves.not.toThrow();
 
       consoleSpy.mockRestore();
+    });
+
+    it('should include provider name in AI response senderName', async () => {
+      mockStore.state.aiProvider = 'gemini';
+      mockInvoke.mockResolvedValueOnce({ data: { reply: 'response' }, error: null });
+
+      await slice.askAi('test');
+
+      const messages = mockStore.state.gameState?.aiMessages;
+      const aiMsg = messages?.find(m => m.role === 'assistant');
+      expect(aiMsg?.senderName).toContain('Google Gemini');
+    });
+
+    it('should limit previous messages to last 10', async () => {
+      // Add more than 10 messages
+      mockStore.state.gameState!.aiMessages = Array.from({ length: 15 }, (_, i) => ({
+        id: String(i),
+        content: `message ${i}`,
+        role: i % 2 === 0 ? 'user' : 'assistant'
+      } as ChatMessage));
+
+      await slice.askAi('test');
+
+      expect(mockInvoke).toHaveBeenCalledWith('ask-ai', {
+        body: expect.objectContaining({
+          gameContext: expect.objectContaining({
+            previousMessages: expect.any(Array)
+          })
+        })
+      });
+
+      // Verify only last 10 messages are included
+      const call = mockInvoke.mock.calls[0]!;
+      const previousMessages = call[1].body.gameContext.previousMessages;
+      expect(previousMessages.length).toBeLessThanOrEqual(10);
     });
   });
 });

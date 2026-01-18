@@ -6,30 +6,24 @@
 
 import { describe, it, expect } from 'vitest';
 import { splitGameState, mergeGameState, filterSeatForUser, filterGameStateForUser, addSystemMessage } from '../../src/store/utils';
-import type { GameState, Seat, Message } from '../../src/types';
+import type { GameState, Seat } from '../../src/types';
 
 // Helper to create a test seat
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 1,
-    index: 0,
     userId: 'user1',
     userName: 'Player 1',
-    isEmpty: false,
     isDead: false,
     hasGhostVote: true,
+    isHandRaised: false,
     isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: ['POISONED'],
     hasUsedAbility: true,
-    notes: [],
+    statuses: ['POISONED'],
     reminders: [
-      { id: 'r1', text: 'Public reminder', sourceRole: 'public' },
-      { id: 'r2', text: 'Secret reminder', sourceRole: 'imp' }
+      { id: 'r1', text: 'Public reminder', sourceRole: 'public', seatId: 0 },
+      { id: 'r2', text: 'Secret reminder', sourceRole: 'imp', seatId: 0 }
     ],
-    nightReminders: [],
-    causeOfDeath: null,
     roleId: 'washerwoman',
     realRoleId: 'drunk',
     seenRoleId: 'washerwoman',
@@ -43,7 +37,7 @@ function createTestGameState(overrides: Partial<GameState> = {}): GameState {
     roomId: 'TEST123',
     currentScriptId: 'tb',
     phase: 'SETUP',
-    setupPhase: 'WAITING',
+    setupPhase: 'ASSIGNING',
     rolesRevealed: false,
     allowWhispers: true,
     vibrationEnabled: false,
@@ -109,13 +103,13 @@ describe('splitGameState 进阶测试', () => {
     const gameState = createTestGameState({
       phase: 'NIGHT',
       candlelightEnabled: true,
-      voting: { nomineeId: 1, votesFor: 3, votesAgainst: 2 }
+      voting: { nominatorSeatId: 1, nomineeSeatId: 1, clockHandSeatId: null, votes: [], isOpen: false }
     });
     const { publicState } = splitGameState(gameState);
 
     expect(publicState.phase).toBe('NIGHT');
     expect(publicState.candlelightEnabled).toBe(true);
-    expect(publicState.voting).toEqual({ nomineeId: 1, votesFor: 3, votesAgainst: 2 });
+    expect(publicState.voting).toEqual({ nominatorSeatId: 1, nomineeSeatId: 1, clockHandSeatId: null, votes: [], isOpen: false });
   });
 
   it('should not mutate original game state', () => {
@@ -176,9 +170,9 @@ describe('mergeGameState 进阶测试', () => {
   it('should preserve all data after round-trip', () => {
     const gameState = createTestGameState({
       messages: [
-        { id: 'm1', senderId: 'user1', senderName: 'P1', content: 'Hello', timestamp: Date.now(), type: 'chat' }
+        { id: 'm1', senderId: 'user1', senderName: 'P1', content: 'Hello', timestamp: Date.now(), type: 'chat', recipientId: null }
       ],
-      voteHistory: [{ dayCount: 1, nomineeId: 1, votes: [true, false, true] }]
+      voteHistory: [{ round: 1, nominatorSeatId: 1, nomineeSeatId: 2, votes: [1, 3, 4], voteCount: 3, timestamp: Date.now(), result: 'executed' }]
     });
 
     const { publicState, secretState } = splitGameState(gameState);
@@ -203,8 +197,8 @@ describe('filterSeatForUser 进阶测试', () => {
   it('should filter reminders by source role', () => {
     const seat = createTestSeat({
       reminders: [
-        { id: 'r1', text: 'Public', sourceRole: 'public' },
-        { id: 'r2', text: 'Private', sourceRole: 'imp' }
+        { id: 'r1', text: 'Public', sourceRole: 'public', seatId: 0 },
+        { id: 'r2', text: 'Private', sourceRole: 'imp', seatId: 0 }
       ]
     });
 
@@ -278,7 +272,7 @@ describe('filterGameStateForUser 进阶测试', () => {
       messages: [
         { id: 'm1', senderId: 'system', senderName: 'System', recipientId: 'user1', content: 'Private to user1', timestamp: Date.now(), type: 'system', isPrivate: true },
         { id: 'm2', senderId: 'system', senderName: 'System', recipientId: 'user2', content: 'Private to user2', timestamp: Date.now(), type: 'system', isPrivate: true },
-        { id: 'm3', senderId: 'system', senderName: 'System', content: 'Public message', timestamp: Date.now(), type: 'system' }
+        { id: 'm3', senderId: 'system', senderName: 'System', recipientId: null, content: 'Public message', timestamp: Date.now(), type: 'system' }
       ]
     });
 
@@ -294,7 +288,7 @@ describe('filterGameStateForUser 进阶测试', () => {
     const gameState = createTestGameState({
       messages: [
         { id: 'm1', senderId: 'system', senderName: 'System', recipientId: 'user1', content: 'Private', timestamp: Date.now(), type: 'system', isPrivate: true },
-        { id: 'm2', senderId: 'system', senderName: 'System', content: 'Public', timestamp: Date.now(), type: 'system' }
+        { id: 'm2', senderId: 'system', senderName: 'System', recipientId: null, content: 'Public', timestamp: Date.now(), type: 'system' }
       ]
     });
 

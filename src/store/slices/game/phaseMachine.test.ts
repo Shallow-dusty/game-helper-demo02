@@ -8,9 +8,9 @@ describe('PhaseMachine Slice Integration', () => {
   let slice: ReturnType<typeof createPhaseMachineSlice>;
 
   const mockSeats: Seat[] = [
-    { id: 0, roleId: 'imp', userName: 'Player1', isDead: false, isGhost: false, votes: 1, userId: 'user1' },
-    { id: 1, roleId: 'washerwoman', userName: 'Player2', isDead: false, isGhost: false, votes: 1, userId: 'user2' },
-    { id: 2, roleId: 'empath', userName: 'Player3', isDead: false, isGhost: false, votes: 1, userId: 'user3' },
+    { id: 0, roleId: 'imp', userName: 'Player1', isDead: false, hasGhostVote: false, userId: 'user1', realRoleId: 'imp', seenRoleId: 'imp', reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] },
+    { id: 1, roleId: 'washerwoman', userName: 'Player2', isDead: false, hasGhostVote: false, userId: 'user2', realRoleId: 'washerwoman', seenRoleId: 'washerwoman', reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] },
+    { id: 2, roleId: 'empath', userName: 'Player3', isDead: false, hasGhostVote: false, userId: 'user3', realRoleId: 'empath', seenRoleId: 'empath', reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] },
   ];
 
   beforeEach(() => {
@@ -27,7 +27,7 @@ describe('PhaseMachine Slice Integration', () => {
       Object.assign(slice, updates);
     });
 
-    slice = createPhaseMachineSlice(mockSet, mockGet as any);
+    slice = createPhaseMachineSlice(mockSet, mockGet as any, {} as any);
     mockGet.mockReturnValue(slice);
   });
 

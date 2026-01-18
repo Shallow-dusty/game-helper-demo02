@@ -185,10 +185,10 @@ describe('WaitingArea', () => {
       render(<WaitingArea />);
 
       const availableSeats = screen.getAllByText('game.waitingArea.seatNumber');
-      const availableSeat = availableSeats[0].closest('button');
+      const availableSeat = availableSeats[0]!.closest('button')!;
 
       await act(async () => {
-        fireEvent.click(availableSeat!);
+        fireEvent.click(availableSeat);
       });
 
       expect(mockJoinSeat).toHaveBeenCalledWith(0);
@@ -236,11 +236,11 @@ describe('WaitingArea', () => {
       render(<WaitingArea />);
 
       const availableSeats = screen.getAllByText('game.waitingArea.seatNumber');
-      const availableSeat = availableSeats[0].closest('button');
+      const availableSeat = availableSeats[0]!.closest('button')!;
 
       // Use act to wrap the click that triggers state update
       await act(async () => {
-        fireEvent.click(availableSeat!);
+        fireEvent.click(availableSeat);
       });
 
       expect(screen.getByText('game.waitingArea.joining')).toBeInTheDocument();
@@ -265,16 +265,16 @@ describe('WaitingArea', () => {
       render(<WaitingArea />);
 
       const availableSeats = screen.getAllByText('game.waitingArea.seatNumber');
-      const availableSeat = availableSeats[0].closest('button');
+      const availableSeat = availableSeats[0]!.closest('button')!;
 
       // First click starts the join
       await act(async () => {
-        fireEvent.click(availableSeat!);
+        fireEvent.click(availableSeat);
       });
 
       // These additional clicks should be ignored because joiningId is set
-      fireEvent.click(availableSeat!);
-      fireEvent.click(availableSeat!);
+      fireEvent.click(availableSeat);
+      fireEvent.click(availableSeat);
 
       // Should only call once despite multiple clicks
       expect(slowJoinSeat).toHaveBeenCalledTimes(1);
@@ -607,11 +607,11 @@ describe('WaitingArea', () => {
       render(<WaitingArea />);
 
       const availableSeats = screen.getAllByText('game.waitingArea.seatNumber');
-      const availableSeat = availableSeats[0].closest('button');
+      const availableSeat = availableSeats[0]!.closest('button')!;
 
       // First click starts joining
       await act(async () => {
-        fireEvent.click(availableSeat!);
+        fireEvent.click(availableSeat);
       });
 
       expect(slowJoinSeat).toHaveBeenCalledTimes(1);
@@ -626,7 +626,7 @@ describe('WaitingArea', () => {
       // After resolution, joining state should be cleared
       // Click again to verify - this time mock should be called again
       await act(async () => {
-        fireEvent.click(availableSeat!);
+        fireEvent.click(availableSeat);
       });
 
       expect(slowJoinSeat).toHaveBeenCalledTimes(2);

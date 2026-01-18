@@ -280,12 +280,12 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
         if (!engineRef.current || !latestVote) return;
 
         const newVotes = currentVotes.filter(seatId => !addedVotesRef.current.has(seatId));
-        
+
         if (newVotes.length > 0) {
             newVotes.forEach(seatId => {
                 const seat = gameState?.seats.find(s => s.id === seatId);
                 const userName = seat?.userName ?? `Seat ${String(seatId)}`;
-                
+
                 // Randomize spawn position slightly
                 const x = (width / 2) + (Math.random() * 40 - 20);
                 const y = -50 - (Math.random() * 50);
@@ -301,7 +301,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
                     label: userName
                 });
 
-                Matter.Composite.add(engineRef.current.world, chip);
+                Matter.Composite.add(engineRef.current!.world, chip);
                 addedVotesRef.current.add(seatId);
                 
                 // 播放筹码掉落音效

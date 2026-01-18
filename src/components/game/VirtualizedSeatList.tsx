@@ -6,9 +6,9 @@
  * 支持：100+ 玩家无卡顿
  */
 
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FixedSizeList as List } from 'react-window';
+import { List } from 'react-window';
 import { Seat } from '../../types';
 import { cn } from '../../lib/utils';
 import { ROLES } from '../../constants';
@@ -22,7 +22,6 @@ interface VirtualizedSeatListProps {
     height?: number;
     itemSize?: number;
     onSeatClick?: (seat: Seat) => void;
-    readOnly?: boolean;
     isStoryteller?: boolean;
     currentUserId?: string;
 }
@@ -32,74 +31,74 @@ const OVERSCAN_COUNT = 5; // 提前加载 5 个项，避免闪烁
 
 /**
  * 单个座位列表项组件
+ * Note: index and style are automatically provided by List component
  */
-interface SeatItemProps {
-    index: number;
-    style: React.CSSProperties;
-    data: {
-        seats: Seat[];
-        isStoryteller: boolean;
-        currentUserId: string;
-        onSeatClick: (seat: Seat) => void;
-    };
+interface CustomRowProps {
+    seats: Seat[];
+    isStoryteller: boolean;
+    currentUserId: string;
+    onSeatClick: (seat: Seat) => void;
 }
 
-const SeatItem: React.FC<SeatItemProps> = React.memo(({ index, style, data }) => {
-    const { t } = useTranslation();
-    const seat = data.seats[index];
-    const isCurrentUser = seat.userId === data.currentUserId;
-    const roleDef = seat.realRoleId ? ROLES[seat.realRoleId] : null;
+const SeatItem = React.memo<CustomRowProps & { index: number; style: React.CSSProperties }>(
+    ({ index, style, seats, isStoryteller, currentUserId, onSeatClick }) => {
+        const { t } = useTranslation();
+        const seat = seats[index];
 
-    if (!seat) return null;
+        if (!seat) return null;
 
-    return (
-        <div style={style} className="px-2">
-            <div
-                className={cn(
-                    'flex items-center gap-3 p-3 rounded border transition-all cursor-pointer hover:bg-stone-800/50',
-                    isCurrentUser
-                        ? 'bg-blue-900/30 border-blue-700'
-                        : seat.isDead
-                            ? 'bg-gray-900/50 border-gray-700 opacity-60'
-                            : 'bg-stone-900/30 border-stone-700 hover:border-amber-700'
-                )}
-                onClick={() => data.onSeatClick(seat)}
-                title={seat.userName}
-            >
-                {/* 座位号 */}
-                <div className="text-xs font-bold text-stone-500 w-8 text-center">
-                    #{seat.id + 1}
-                </div>
+        const isCurrentUser = seat.userId === currentUserId;
+        const roleDef = seat.realRoleId ? ROLES[seat.realRoleId] : null;
 
-                {/* 玩家名称 */}
-                <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-stone-200 truncate">
-                        {seat.userName}
-                    </div>
-                    {seat.isDead && <div className="text-xs text-red-500">{t('game.virtualizedSeatList.dead')}</div>}
-                </div>
-
-                {/* 角色显示（仅 ST 和当前玩家） */}
-                {data.isStoryteller && roleDef && (
-                    <div className="text-xs bg-amber-900/30 px-2 py-1 rounded border border-amber-700/30">
-                        {roleDef.name}
-                    </div>
-                )}
-
-                {/* 状态指示器 */}
-                <div className="flex gap-1">
-                    {seat.isHandRaised && (
-                        <span title={t('game.virtualizedSeatList.handRaised')} className="text-lg">✋</span>
+        return (
+            <div style={style} className="px-2">
+                <div
+                    className={cn(
+                        'flex items-center gap-3 p-3 rounded border transition-all cursor-pointer hover:bg-stone-800/50',
+                        isCurrentUser
+                            ? 'bg-blue-900/30 border-blue-700'
+                            : seat.isDead
+                                ? 'bg-gray-900/50 border-gray-700 opacity-60'
+                                : 'bg-stone-900/30 border-stone-700 hover:border-amber-700'
                     )}
-                    {seat.isDead && <span title={t('game.virtualizedSeatList.dead')} className="text-lg">💀</span>}
-                    {seat.isVirtual && (
-                        <span title={t('game.virtualizedSeatList.virtual')} className="text-lg">🤖</span>
+                    onClick={() => onSeatClick(seat)}
+                    title={seat.userName}
+                >
+                    {/* 座位号 */}
+                    <div className="text-xs font-bold text-stone-500 w-8 text-center">
+                        #{seat.id + 1}
+                    </div>
+
+                    {/* 玩家名称 */}
+                    <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-stone-200 truncate">
+                            {seat.userName}
+                        </div>
+                        {seat.isDead && <div className="text-xs text-red-500">{t('game.virtualizedSeatList.dead')}</div>}
+                    </div>
+
+                    {/* 角色显示（仅 ST 和当前玩家） */}
+                    {isStoryteller && roleDef && (
+                        <div className="text-xs bg-amber-900/30 px-2 py-1 rounded border border-amber-700/30">
+                            {roleDef.name}
+                        </div>
                     )}
+
+                    {/* 状态指示器 */}
+                    <div className="flex gap-1">
+                        {seat.isHandRaised && (
+                            <span title={t('game.virtualizedSeatList.handRaised')} className="text-lg">✋</span>
+                        )}
+                        {seat.isDead && <span title={t('game.virtualizedSeatList.dead')} className="text-lg">💀</span>}
+                        {seat.isVirtual && (
+                            <span title={t('game.virtualizedSeatList.virtual')} className="text-lg">🤖</span>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
-    );
-});
+        );
+    }
+);
 
 SeatItem.displayName = 'SeatItem';
 
@@ -112,7 +111,6 @@ export const VirtualizedSeatList: React.FC<VirtualizedSeatListProps> = ({
     height = 400,
     itemSize = ITEM_HEIGHT,
     onSeatClick,
-    readOnly = false,
     isStoryteller = false,
     currentUserId = '',
 }) => {
@@ -126,15 +124,6 @@ export const VirtualizedSeatList: React.FC<VirtualizedSeatListProps> = ({
             onSeatClick: onSeatClick ?? noop,
         }),
         [seats, isStoryteller, currentUserId, onSeatClick]
-    );
-
-    const handleItemClick = useCallback(
-        (seat: Seat) => {
-            if (!readOnly && onSeatClick) {
-                onSeatClick(seat);
-            }
-        },
-        [readOnly, onSeatClick]
     );
 
     // 空状态
@@ -161,16 +150,17 @@ export const VirtualizedSeatList: React.FC<VirtualizedSeatListProps> = ({
             </div>
 
             {/* 虚拟列表 */}
-            <List
-                height={height}
-                itemCount={seats.length}
-                itemSize={itemSize}
-                width={width}
-                itemData={itemData}
-                overscanCount={OVERSCAN_COUNT}
-            >
-                {SeatItem}
-            </List>
+            <div>
+                {React.createElement(List as any, {
+                    height,
+                    rowCount: seats.length,
+                    rowHeight: itemSize,
+                    width,
+                    rowComponent: SeatItem as any,
+                    rowProps: itemData as any,
+                    overscanCount: OVERSCAN_COUNT,
+                })}
+            </div>
 
             {/* 列表底部信息 */}
             <div className="px-2 py-2 bg-stone-900/30 border-t border-stone-700 text-xs text-stone-600">

@@ -11,7 +11,7 @@ import { calculateVoteResult } from './utils';
 export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote'>> = (set, get) => ({
     // Bug#10 fix: Accept nominatorId to properly record in vote history
     startVote: (nomineeId, nominatorId) => {
-        set((state) => {
+        set((state: any) => {
             if (state.gameState) {
                 state.gameState.voting = {
                     nominatorSeatId: nominatorId ?? null,
@@ -27,7 +27,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
     },
 
     nextClockHand: () => {
-        set((state) => {
+        set((state: any) => {
             if (state.gameState?.voting) {
                 const current = state.gameState.voting.clockHandSeatId;
                 if (current !== null) {
@@ -77,7 +77,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
             }
 
             // Optimistic update
-            set((state) => {
+            set((state: any) => {
                 if (state.gameState?.voting) {
                     const isRaised = data?.isHandRaised;
                     if (isRaised) {
@@ -86,13 +86,13 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                         }
                         // Consume ghost vote if dead player voted
                         if (willConsumeGhostVote) {
-                            const votingSeat = state.gameState.seats.find(s => s.id === current);
+                            const votingSeat = state.gameState.seats.find((s: any) => s.id === current);
                             if (votingSeat) {
                                 votingSeat.hasGhostVote = false;
                             }
                         }
                     } else {
-                        state.gameState.voting.votes = state.gameState.voting.votes.filter(v => v !== current);
+                        state.gameState.voting.votes = state.gameState.voting.votes.filter((v: any) => v !== current);
                     }
                 }
             });
@@ -105,15 +105,15 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
     closeVote: () => {
         const { user } = get();
 
-        set((state) => {
+        set((state: any) => {
             if (state.gameState?.voting) {
                 const { nomineeSeatId, nominatorSeatId, votes } = state.gameState.voting;
-                const aliveCount = state.gameState.seats.filter(s => !s.isDead).length;
+                const aliveCount = state.gameState.seats.filter((s: any) => !s.isDead).length;
                 const isExecuted = calculateVoteResult(votes.length, aliveCount);
 
                 let result: 'executed' | 'survived' | 'cancelled' = 'survived';
 
-                const nomineeSeat = state.gameState.seats.find(s => s.id === nomineeSeatId);
+                const nomineeSeat = state.gameState.seats.find((s: any) => s.id === nomineeSeatId);
 
                 // Bug#4 fix: Validate nominee is alive before execution
                 if (nomineeSeat?.isDead) {
@@ -137,7 +137,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                         }
 
                         // Bug#8 fix: Pass executedSeatId for Saint check
-                        const gameOver = checkGameOver(state.gameState.seats, nomineeSeatId);
+                        const gameOver = checkGameOver(state.gameState.seats, nomineeSeatId ?? undefined);
                         if (gameOver) {
                             state.gameState.gameOver = gameOver;
                             addSystemMessage(state.gameState, `游戏结束！${gameOver.winner === 'GOOD' ? '好人' : '邪恶'} 获胜 - ${gameOver.reason}`);

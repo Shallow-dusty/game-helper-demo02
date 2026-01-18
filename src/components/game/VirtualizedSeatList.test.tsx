@@ -40,14 +40,15 @@ describe('VirtualizedSeatList', () => {
     userId: 'user1',
     isDead: false,
     isVirtual: false,
-    hasVoted: false,
-    ghostVotes: 1,
+    hasGhostVote: false,
     isHandRaised: false,
     isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     realRoleId: null,
-    shownRoleId: null,
-    canNominate: true,
-    canVote: true,
+    roleId: null,
+    seenRoleId: null,
+    reminders: [],
     ...overrides,
   });
 
@@ -130,21 +131,6 @@ describe('VirtualizedSeatList', () => {
     fireEvent.click(seatItem);
 
     expect(mockOnSeatClick).toHaveBeenCalledWith(defaultSeats[0]);
-  });
-
-  // Note: readOnly prop exists but handleItemClick that uses it is not passed to itemData
-  // This is a potential bug in the implementation - readOnly doesn't prevent clicks
-  it('should accept readOnly prop', () => {
-    render(
-      <VirtualizedSeatList
-        seats={defaultSeats}
-        onSeatClick={mockOnSeatClick}
-        readOnly={true}
-      />
-    );
-
-    // Component should render without error
-    expect(screen.getByTestId('fixed-size-list')).toBeInTheDocument();
   });
 
   it('should display role name when isStoryteller is true', () => {

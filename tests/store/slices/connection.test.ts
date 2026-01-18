@@ -5,9 +5,9 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createStore } from 'zustand';
+import { createStore, type StoreApi } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { GameState, Seat, Message } from '../../../src/types';
+import type { GameState, Seat } from '../../../src/types';
 
 // Mock Supabase with detailed channel simulation
 const mockChannel = {
@@ -35,12 +35,12 @@ const mockQueryBuilder = {
         error: null
       }))
     }))
-  })),
+  })) as ReturnType<typeof vi.fn>,
   update: vi.fn(() => ({
     eq: vi.fn(() => ({ error: null }))
-  })),
-  upsert: vi.fn(() => ({ error: null })),
-  insert: vi.fn(() => ({ data: null, error: null }))
+  })) as ReturnType<typeof vi.fn>,
+  upsert: vi.fn(() => ({ error: null })) as ReturnType<typeof vi.fn>,
+  insert: vi.fn(() => ({ data: null, error: null })) as ReturnType<typeof vi.fn>
 };
 
 vi.mock('@supabase/supabase-js', () => ({
@@ -69,19 +69,18 @@ import { createConnectionSlice, ConnectionSlice } from '../../../src/store/slice
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 1,
-    index: 0,
-    isEmpty: false,
+    userId: null,
+    userName: '',
     isDead: false,
     hasGhostVote: true,
-    isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
-    hasUsedAbility: false,
-    notes: [],
+    roleId: null,
+    realRoleId: null,
+    seenRoleId: null,
     reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     ...overrides
   };
 }
@@ -92,7 +91,7 @@ function createTestGameState(overrides: Partial<GameState> = {}): GameState {
     roomId: 'TEST123',
     currentScriptId: 'tb',
     phase: 'SETUP',
-    setupPhase: 'WAITING',
+    setupPhase: 'ASSIGNING',
     rolesRevealed: false,
     allowWhispers: true,
     vibrationEnabled: false,
@@ -123,7 +122,7 @@ function createTestGameState(overrides: Partial<GameState> = {}): GameState {
 }
 
 describe('Connection Slice', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -351,7 +350,8 @@ describe('Connection Slice', () => {
     });
 
     it('should set realtime channel', () => {
-      const mockCh = { id: 'test-channel' };
+       
+      const mockCh = { id: 'test-channel' } as any;
       store.getState()._setRealtimeChannel(mockCh);
       expect(store.getState()._getRealtimeChannel()).toBe(mockCh);
     });
@@ -359,7 +359,7 @@ describe('Connection Slice', () => {
 });
 
 describe('Connection Status Transitions', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -405,7 +405,7 @@ describe('Connection Status Transitions', () => {
 });
 
 describe('Storyteller Secret Sync', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -456,7 +456,7 @@ describe('Storyteller Secret Sync', () => {
 });
 
 describe('joinGame Error Handling', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -528,7 +528,7 @@ describe('joinGame Error Handling', () => {
 });
 
 describe('refreshFromCloud', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -638,7 +638,7 @@ describe('refreshFromCloud', () => {
 });
 
 describe('syncToCloud Error Handling', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -719,7 +719,7 @@ describe('syncToCloud Error Handling', () => {
 });
 
 describe('refreshFromCloud Exception Handling', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -759,7 +759,7 @@ describe('refreshFromCloud Exception Handling', () => {
 });
 
 describe('Storyteller joinGame with Secret Subscription', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -935,7 +935,7 @@ describe('Storyteller joinGame with Secret Subscription', () => {
 });
 
 describe('joinGame Exception Handling', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -1020,7 +1020,7 @@ describe('joinGame Exception Handling', () => {
 });
 
 describe('spectateGame Subscription Status', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -1131,7 +1131,7 @@ describe('spectateGame Subscription Status', () => {
     // Capture the postgres_changes callback
     let postgresCallback: ((payload: unknown) => void) | null = null;
 
-    mockChannel.on.mockImplementation((event: string, config: unknown, callback: (payload: unknown) => void) => {
+    mockChannel.on.mockImplementation((event: string, _config: unknown, callback: (payload: unknown) => void) => {
       if (event === 'postgres_changes') {
         postgresCallback = callback;
       }
@@ -1141,13 +1141,12 @@ describe('spectateGame Subscription Status', () => {
     await store.getState().spectateGame('TEST123');
 
     // Simulate receiving an update
-    if (postgresCallback) {
-      postgresCallback({
-        new: {
-          data: createTestGameState({ roomId: 'TEST123', phase: 'NIGHT' })
-        }
-      });
-    }
+    expect(postgresCallback).not.toBeNull();
+    postgresCallback!({
+      new: {
+        data: createTestGameState({ roomId: 'TEST123', phase: 'NIGHT' })
+      }
+    });
 
     // The state should be updated
     expect(store.getState().gameState?.phase).toBe('NIGHT');
@@ -1155,7 +1154,7 @@ describe('spectateGame Subscription Status', () => {
 });
 
 describe('leaveGame with Secret Channel', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null; isAudioBlocked?: boolean }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null; isAudioBlocked?: boolean }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -1250,8 +1249,8 @@ describe('leaveGame with Secret Channel', () => {
           hasUsedAbility: true,
           isHandRaised: true,
           voteLocked: true,
-          reminders: [{ id: 'r1', roleId: 'emp', sourceRole: 'empowered' }],
-          statuses: ['poisoned']
+          reminders: [{ id: 'r1', text: 'empowered', sourceRole: 'empath', seatId: 1 }],
+          statuses: ['POISONED']
         })
       ]
     });
@@ -1312,7 +1311,7 @@ describe('leaveGame with Secret Channel', () => {
 });
 
 describe('Realtime Channel Update Handling', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -1334,7 +1333,7 @@ describe('Realtime Channel Update Handling', () => {
   it('should process realtime updates in joinGame', async () => {
     let postgresCallback: ((payload: unknown) => void) | null = null;
 
-    mockChannel.on.mockImplementation((event: string, config: unknown, callback: (payload: unknown) => void) => {
+    mockChannel.on.mockImplementation((event: string, _config: unknown, callback: (payload: unknown) => void) => {
       if (event === 'postgres_changes') {
         postgresCallback = callback;
       }
@@ -1344,16 +1343,13 @@ describe('Realtime Channel Update Handling', () => {
     store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
 
-    const initialPhase = store.getState().gameState?.phase;
-
     // Simulate receiving an update
-    if (postgresCallback) {
-      postgresCallback({
-        new: {
-          data: createTestGameState({ roomId: 'TEST123', phase: 'NIGHT' })
-        }
-      });
-    }
+    expect(postgresCallback).not.toBeNull();
+    postgresCallback!({
+      new: {
+        data: createTestGameState({ roomId: 'TEST123', phase: 'NIGHT' })
+      }
+    });
 
     expect(store.getState().gameState?.phase).toBe('NIGHT');
   });
@@ -1361,7 +1357,7 @@ describe('Realtime Channel Update Handling', () => {
   it('should handle empty payload data gracefully', async () => {
     let postgresCallback: ((payload: unknown) => void) | null = null;
 
-    mockChannel.on.mockImplementation((event: string, config: unknown, callback: (payload: unknown) => void) => {
+    mockChannel.on.mockImplementation((event: string, _config: unknown, callback: (payload: unknown) => void) => {
       if (event === 'postgres_changes') {
         postgresCallback = callback;
       }
@@ -1374,11 +1370,10 @@ describe('Realtime Channel Update Handling', () => {
     const currentPhase = store.getState().gameState?.phase;
 
     // Simulate receiving an empty update
-    if (postgresCallback) {
-      postgresCallback({
-        new: {}
-      });
-    }
+    expect(postgresCallback).not.toBeNull();
+    postgresCallback!({
+      new: {}
+    });
 
     // State should not change
     expect(store.getState().gameState?.phase).toBe(currentPhase);
@@ -1387,7 +1382,7 @@ describe('Realtime Channel Update Handling', () => {
   it('should handle undefined payload gracefully', async () => {
     let postgresCallback: ((payload: unknown) => void) | null = null;
 
-    mockChannel.on.mockImplementation((event: string, config: unknown, callback: (payload: unknown) => void) => {
+    mockChannel.on.mockImplementation((event: string, _config: unknown, callback: (payload: unknown) => void) => {
       if (event === 'postgres_changes') {
         postgresCallback = callback;
       }
@@ -1400,11 +1395,10 @@ describe('Realtime Channel Update Handling', () => {
     const currentPhase = store.getState().gameState?.phase;
 
     // Simulate receiving undefined
-    if (postgresCallback) {
-      postgresCallback({
-        new: undefined
-      });
-    }
+    expect(postgresCallback).not.toBeNull();
+    postgresCallback!({
+      new: undefined
+    });
 
     // State should not change
     expect(store.getState().gameState?.phase).toBe(currentPhase);
@@ -1412,15 +1406,11 @@ describe('Realtime Channel Update Handling', () => {
 });
 
 describe('Secret Channel Update Handling for Storyteller', () => {
-  let store: ReturnType<typeof createStore<ConnectionSlice & { gameState: GameState | null }>>;
-  let secretPostgresCallback: ((payload: unknown) => void) | null = null;
-  let channelCallCount = 0;
+  let store: StoreApi<ConnectionSlice & { gameState: GameState | null }>;
 
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
-    secretPostgresCallback = null;
-    channelCallCount = 0;
 
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
@@ -1438,18 +1428,18 @@ describe('Secret Channel Update Handling for Storyteller', () => {
   it('should process secret channel updates for storyteller', async () => {
     // Mock channel to capture the secret channel callback
     const { createClient } = await import('@supabase/supabase-js');
-    const mockSupabase = (createClient as ReturnType<typeof vi.fn>)();
+     
+    const mockSupabase = (createClient as any)();
+    let channelCallCount = 0;
 
     // Track which channel is being created
     mockSupabase.channel.mockImplementation((channelName: string) => {
       channelCallCount++;
       const isSecretChannel = channelName.includes('secrets');
+      void isSecretChannel; // Mark as intentionally unused
 
       return {
-        on: vi.fn().mockImplementation((event: string, config: unknown, callback: (payload: unknown) => void) => {
-          if (event === 'postgres_changes' && isSecretChannel) {
-            secretPostgresCallback = callback;
-          }
+        on: vi.fn().mockImplementation((_event: string, _config: unknown, _callback: (payload: unknown) => void) => {
           return mockChannel;
         }),
         subscribe: vi.fn((callback?: (status: string) => void) => {
@@ -1486,5 +1476,6 @@ describe('Secret Channel Update Handling for Storyteller', () => {
     // Verify the store is connected
     expect(store.getState().connectionStatus).toBe('connected');
     expect(store.getState().user?.isStoryteller).toBe(true);
+    expect(channelCallCount).toBeGreaterThan(0);
   });
 });

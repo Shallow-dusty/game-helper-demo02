@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { SCRIPTS, ROLES } from '../../constants';
 import { NightActionManager } from '../game/NightActionManager';
 import { DistributionConfirmationModal } from '../modals/DistributionConfirmationModal';
@@ -19,7 +19,7 @@ interface ControlsSTSectionProps {
 
 // 优化选择器 - 细粒度订阅
 const useSTSectionState = () => useStore(
-    state => ({
+    useShallow(state => ({
         seats: state.gameState?.seats ?? [],
         phase: state.gameState?.phase ?? 'SETUP',
         currentScriptId: state.gameState?.currentScriptId ?? 'tb',
@@ -30,19 +30,17 @@ const useSTSectionState = () => useStore(
         vibrationEnabled: state.gameState?.vibrationEnabled ?? false,
         candlelightEnabled: state.gameState?.candlelightEnabled ?? false,
         hasGameState: !!state.gameState,
-    }),
-    shallow
+    }))
 );
 
 const useSTSectionActions = () => useStore(
-    state => ({
+    useShallow(state => ({
         setPhase: state.setPhase,
         setScript: state.setScript,
         toggleCandlelight: state.toggleCandlelight,
         nextClockHand: state.nextClockHand,
         closeVote: state.closeVote,
-    }),
-    shallow
+    }))
 );
 
 export const ControlsSTSection: React.FC<ControlsSTSectionProps> = ({

@@ -36,24 +36,18 @@ import type { GameState, Seat } from '../../../src/types';
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 0,
-    index: 0,
-    isEmpty: false,
-    isDead: false,
-    hasGhostVote: true,
-    isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
-    hasUsedAbility: false,
-    notes: [],
-    reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
     userId: 'user1',
     userName: 'Player1',
+    isDead: false,
+    hasGhostVote: true,
     roleId: null,
     realRoleId: null,
     seenRoleId: null,
+    reminders: [],
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     ...overrides
   };
 }
@@ -61,24 +55,33 @@ function createTestSeat(overrides: Partial<Seat> = {}): Seat {
 // 创建测试游戏状态
 function createTestGameState(seats: Seat[]): GameState {
   return {
-    seats,
-    phase: 'NIGHT',
-    voting: null,
+    roomId: 'test-room',
     currentScriptId: 'tb',
-    messages: [],
-    roundInfo: { dayCount: 1, nightCount: 1 },
-    voteHistory: [],
-    storytellerNotes: [],
-    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    phase: 'NIGHT',
+    setupPhase: 'READY',
+    rolesRevealed: false,
     allowWhispers: false,
+    vibrationEnabled: true,
+    seats,
+    swapRequests: [],
+    messages: [],
+    gameOver: { isOver: false, winner: null, reason: '' },
+    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    nightQueue: [],
+    nightCurrentIndex: -1,
+    voting: null,
     customScripts: {},
     customRoles: {},
-    swapRequests: [],
-    vibrationEnabled: true,
-    nightQueue: [],
-    setupPhase: 'READY',
-    rolesRevealed: false
-  } as GameState;
+    voteHistory: [],
+    roundInfo: { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 1 },
+    storytellerNotes: [],
+    skillDescriptionMode: 'simple',
+    aiMessages: [],
+    nightActionRequests: [],
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: []
+  };
 }
 
 describe('isTainted', () => {
@@ -554,8 +557,8 @@ describe('applyStatusChange', () => {
       source: 'monk'
     });
 
-    expect(updated[0].statuses).toContain('PROTECTED');
-    expect(updated[1].statuses.length).toBe(0);
+    expect(updated[0]!.statuses).toContain('PROTECTED');
+    expect(updated[1]!.statuses.length).toBe(0);
   });
 
   it('should remove status from seat', () => {
@@ -569,8 +572,8 @@ describe('applyStatusChange', () => {
       source: 'system'
     });
 
-    expect(updated[0].statuses).not.toContain('POISONED');
-    expect(updated[0].statuses).toContain('PROTECTED');
+    expect(updated[0]!.statuses).not.toContain('POISONED');
+    expect(updated[0]!.statuses).toContain('PROTECTED');
   });
 });
 
@@ -582,8 +585,8 @@ describe('clearNightStatuses', () => {
     ];
     const updated = clearNightStatuses(seats);
 
-    expect(updated[0].statuses).toEqual(['POISONED']);
-    expect(updated[1].statuses).toEqual([]);
+    expect(updated[0]!.statuses).toEqual(['POISONED']);
+    expect(updated[1]!.statuses).toEqual([]);
   });
 });
 

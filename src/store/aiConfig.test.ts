@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AI_CONFIG, getAiConfig } from './aiConfig';
+import { describe, it, expect } from 'vitest';
+import { AI_CONFIG } from './aiConfig';
 
 describe('aiConfig', () => {
     describe('AI_CONFIG 常量', () => {
@@ -52,89 +52,53 @@ describe('aiConfig', () => {
         });
     });
 
-    describe('getAiConfig', () => {
-        beforeEach(() => {
-            // 清除所有环境变量
-            vi.stubEnv('VITE_DEEPSEEK_KEY', '');
-            vi.stubEnv('VITE_GEMINI_KEY', '');
-            vi.stubEnv('VITE_KIMI_KEY', '');
-            vi.stubEnv('VITE_SILICONFLOW_KEY', '');
+    describe('AI_CONFIG 对象结构', () => {
+        it('应该有 deepseek, gemini, kimi 等提供商', () => {
+            // Check basic providers exist
+            expect(AI_CONFIG.deepseek).toBeDefined();
+            expect(AI_CONFIG.gemini).toBeDefined();
+            expect(AI_CONFIG.kimi).toBeDefined();
         });
 
-        afterEach(() => {
-            vi.unstubAllEnvs();
+        it('应该有 SiliconFlow 提供商 (sf_* 开头)', () => {
+            const sfProviders = Object.entries(AI_CONFIG)
+                .filter(([key]) => key.startsWith('sf_'))
+                .map(([key]) => key);
+
+            expect(sfProviders).toContain('sf_deepseek_v3_2');
+            expect(sfProviders).toContain('sf_minimax_m2');
+            expect(sfProviders).toContain('sf_qwen_3_vl');
+            expect(sfProviders).toContain('sf_glm_4_6');
+            expect(sfProviders).toContain('sf_kimi_k2');
+            expect(sfProviders).toContain('sf_kimi_k2_instruct');
         });
 
-        it('无环境变量时应该返回 undefined apiKey', () => {
-            const config = getAiConfig();
-            
-            // 所有 apiKey 应该是 undefined 或空字符串
-            expect(config.deepseek.apiKey).toBeFalsy();
-            expect(config.gemini.apiKey).toBeFalsy();
-            expect(config.kimi.apiKey).toBeFalsy();
-        });
-
-        it('有 VITE_DEEPSEEK_KEY 时 deepseek 应该有 apiKey', () => {
-            vi.stubEnv('VITE_DEEPSEEK_KEY', 'test-deepseek-key');
-            
-            const config = getAiConfig();
-            
-            expect(config.deepseek.apiKey).toBe('test-deepseek-key');
-        });
-
-        it('有 VITE_GEMINI_KEY 时 gemini 应该有 apiKey', () => {
-            vi.stubEnv('VITE_GEMINI_KEY', 'test-gemini-key');
-            
-            const config = getAiConfig();
-            
-            expect(config.gemini.apiKey).toBe('test-gemini-key');
-        });
-
-        it('有 VITE_KIMI_KEY 时 kimi 应该有 apiKey', () => {
-            vi.stubEnv('VITE_KIMI_KEY', 'test-kimi-key');
-            
-            const config = getAiConfig();
-            
-            expect(config.kimi.apiKey).toBe('test-kimi-key');
-        });
-
-        it('有 VITE_SILICONFLOW_KEY 时所有 sf_* provider 应该有 apiKey', () => {
-            vi.stubEnv('VITE_SILICONFLOW_KEY', 'test-sf-key');
-            
-            const config = getAiConfig();
-            
-            const sfProviders = Object.entries(config).filter(([key]) => key.startsWith('sf_'));
-            
-            for (const [, providerConfig] of sfProviders) {
-                expect(providerConfig.apiKey).toBe('test-sf-key');
+        it('每个提供商配置都有 model 属性 (字符串)', () => {
+            for (const [, config] of Object.entries(AI_CONFIG)) {
+                expect(config.model).toBeDefined();
+                expect(typeof config.model).toBe('string');
             }
         });
 
-        it('应该保留原始配置的 model, name, note', () => {
-            const config = getAiConfig();
-            
-            for (const [key, originalConfig] of Object.entries(AI_CONFIG)) {
-                const provider = key as keyof typeof AI_CONFIG;
-                expect(config[provider].model).toBe(originalConfig.model);
-                expect(config[provider].name).toBe(originalConfig.name);
-                if (originalConfig.note) {
-                    expect(config[provider].note).toBe(originalConfig.note);
-                }
+        it('每个提供商配置都有 name 属性 (字符串)', () => {
+            for (const [, config] of Object.entries(AI_CONFIG)) {
+                expect(config.name).toBeDefined();
+                expect(typeof config.name).toBe('string');
             }
         });
 
-        it('不同 provider 应该使用对应的 key', () => {
-            vi.stubEnv('VITE_DEEPSEEK_KEY', 'deepseek-key');
-            vi.stubEnv('VITE_SILICONFLOW_KEY', 'sf-key');
-            
-            const config = getAiConfig();
-            
-            // deepseek 使用自己的 key
-            expect(config.deepseek.apiKey).toBe('deepseek-key');
-            
-            // sf_* 使用 siliconflow key
-            expect(config.sf_deepseek_v3_2.apiKey).toBe('sf-key');
-            expect(config.sf_kimi_k2.apiKey).toBe('sf-key');
+        it('SiliconFlow 提供商的模型路径包含斜杠分隔符', () => {
+            expect(AI_CONFIG.sf_deepseek_v3_2.model).toMatch(/\//);
+        });
+
+        it('deepseek 配置正确', () => {
+            expect(AI_CONFIG.deepseek.model).toBe('deepseek-chat');
+            expect(AI_CONFIG.deepseek.name).toContain('DeepSeek');
+        });
+
+        it('gemini 配置正确', () => {
+            expect(AI_CONFIG.gemini.model).toContain('gemini');
+            expect(AI_CONFIG.gemini.name).toContain('Gemini');
         });
     });
 });

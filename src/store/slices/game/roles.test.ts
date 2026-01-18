@@ -88,7 +88,7 @@ describe('createGameRolesSlice', () => {
                     { id: 4, userId: 'user5', userName: '玩家5', roleId: null, realRoleId: null, seenRoleId: null, isDead: false, hasUsedAbility: false, statuses: [], reminders: [] }
                 ],
                 rolesRevealed: false,
-                setupPhase: 'WAITING',
+                setupPhase: 'ASSIGNING',
                 phase: 'SETUP',
                 currentScriptId: 'trouble_brewing',
                 messages: []

@@ -207,7 +207,8 @@ describe('StorytellerNotebook', () => {
     render(<StorytellerNotebook />);
 
     const deleteButtons = screen.getAllByTitle('Delete');
-    fireEvent.click(deleteButtons[0]);
+    const deleteButton = deleteButtons[0]!;
+    fireEvent.click(deleteButton);
 
     expect(mockDeleteNote).toHaveBeenCalledWith('note1');
   });
@@ -216,7 +217,8 @@ describe('StorytellerNotebook', () => {
     render(<StorytellerNotebook />);
 
     const pinButtons = screen.getAllByTitle('悬浮笔记');
-    fireEvent.click(pinButtons[0]);
+    const pinButton = pinButtons[0]!;
+    fireEvent.click(pinButton);
 
     expect(mockToggleNoteFloating).toHaveBeenCalledWith('note1');
   });
@@ -243,7 +245,8 @@ describe('StorytellerNotebook', () => {
 
     // Find color buttons and click one
     const colorButtons = document.querySelectorAll('[class*="rounded-full"]');
-    fireEvent.click(colorButtons[0]);
+    const colorButton = colorButtons[0]!;
+    fireEvent.click(colorButton);
 
     expect(mockSetNoteColor).toHaveBeenCalled();
   });

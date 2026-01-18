@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { ROLES } from '../../constants';
 import { NightActionRequest } from '../../types';
 
 // 优化选择器 - 细粒度订阅
 const useNightActionManagerState = () => useStore(
-    state => ({
+    useShallow(state => ({
         seats: state.gameState?.seats ?? [],
         isStoryteller: state.user?.isStoryteller ?? false,
         hasGameState: !!state.gameState,
-    }),
-    shallow
+    }))
 );
 
 /**
@@ -158,7 +157,7 @@ export const NightActionManager: React.FC = () => {
                                     )}
                                     {/* 快捷回复 */}
                                     <div className="flex flex-wrap gap-1 mb-2">
-                                        {roleQuickReplies.map((reply, idx) => (
+                                        {roleQuickReplies!.map((reply, idx) => (
                                             <button
                                                 key={idx}
                                                 onClick={() => setResultInputs(prev => ({

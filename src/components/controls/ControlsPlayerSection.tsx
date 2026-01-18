@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { RoleDef, Seat, GamePhase } from '../../types';
 import { ROLES, TEAM_COLORS } from '../../constants';
 import { VoteButton } from '../game/VoteButton';
@@ -235,15 +235,14 @@ interface ControlsPlayerSectionProps {
 
 // 优化选择器 - 细粒度订阅
 const usePlayerSectionState = () => useStore(
-    state => ({
+    useShallow(state => ({
         seats: state.gameState?.seats ?? [],
         phase: state.gameState?.phase ?? 'SETUP',
         voting: state.gameState?.voting,
         nightQueue: state.gameState?.nightQueue ?? [],
         nightCurrentIndex: state.gameState?.nightCurrentIndex ?? 0,
         hasGameState: !!state.gameState,
-    }),
-    shallow
+    }))
 );
 
 export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({

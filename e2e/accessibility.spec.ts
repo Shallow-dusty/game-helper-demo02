@@ -144,15 +144,6 @@ test.describe('焦点可见性', () => {
       const outline = await focusedElement.evaluate((el) =>
         window.getComputedStyle(el).outline
       );
-      const boxShadow = await focusedElement.evaluate((el) =>
-        window.getComputedStyle(el).boxShadow
-      );
-
-      // 应该有某种焦点指示器
-      const hasFocusIndicator =
-        outline !== 'none' ||
-        boxShadow !== 'none' ||
-        outline.includes('px');
 
       // 这个测试可能需要根据实际样式调整
       expect(typeof outline).toBe('string');

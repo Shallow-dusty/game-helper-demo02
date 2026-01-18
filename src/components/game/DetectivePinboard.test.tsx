@@ -184,9 +184,6 @@ describe('DetectivePinboard', () => {
 
     const canvas = document.querySelector('canvas')!;
 
-    // Initial call count
-    const initialCallCount = mockContext.moveTo.mock.calls.length;
-
     fireEvent.mouseDown(canvas, {
       clientX: 100,
       clientY: 100,
@@ -212,8 +209,6 @@ describe('DetectivePinboard', () => {
       bubbles: true,
     });
 
-    // Should prevent default
-    const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
     canvas.dispatchEvent(event);
 
     // Note: event is native, so we just verify no errors thrown

@@ -8,19 +8,22 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createGameNotesSlice } from '../../../../src/store/slices/game/notes';
 import type { GameState, StorytellerNote } from '../../../../src/types';
 
+// Define a minimal mock state type that matches what createGameNotesSlice expects
+interface MockState {
+  gameState: Partial<GameState> | null;
+  sync: () => void;
+}
+
 // Mock store state
 const createMockStore = () => {
-  const state: {
-    gameState: Partial<GameState> | null;
-    sync: () => void;
-  } = {
+  const state: MockState = {
     gameState: {
       storytellerNotes: [] as StorytellerNote[]
-    } as Partial<GameState>,
+    },
     sync: vi.fn()
   };
 
-  const set = vi.fn((fn: (state: typeof state) => void) => {
+  const set = vi.fn((fn: (state: MockState) => void) => {
     fn(state);
   });
 
@@ -36,19 +39,28 @@ describe('createGameNotesSlice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore = createMockStore();
-    notesSlice = createGameNotesSlice(mockStore.set, mockStore.get, {});
+    // Cast to expected types for the slice creator
+     
+    notesSlice = createGameNotesSlice(
+      mockStore.set as any,
+      mockStore.get as any,
+      {} as any
+    );
   });
 
   describe('addStorytellerNote', () => {
     it('should add a manual note', () => {
       notesSlice.addStorytellerNote('This is a test note');
 
-      expect(mockStore.state.gameState?.storytellerNotes?.length).toBe(1);
-      const note = mockStore.state.gameState?.storytellerNotes?.[0];
-      expect(note?.content).toBe('This is a test note');
-      expect(note?.type).toBe('manual');
-      expect(note?.id).toBeDefined();
-      expect(note?.timestamp).toBeDefined();
+      const notes = mockStore.state.gameState?.storytellerNotes;
+      expect(notes).toBeDefined();
+      expect(notes!.length).toBe(1);
+      const note = notes![0];
+      expect(note).toBeDefined();
+      expect(note!.content).toBe('This is a test note');
+      expect(note!.type).toBe('manual');
+      expect(note!.id).toBeDefined();
+      expect(note!.timestamp).toBeDefined();
       expect(mockStore.get().sync).toHaveBeenCalled();
     });
 
@@ -65,19 +77,25 @@ describe('createGameNotesSlice', () => {
     it('should add an auto note with color', () => {
       notesSlice.addAutoNote('Auto generated note', 'blue');
 
-      expect(mockStore.state.gameState?.storytellerNotes?.length).toBe(1);
-      const note = mockStore.state.gameState?.storytellerNotes?.[0];
-      expect(note?.content).toBe('Auto generated note');
-      expect(note?.type).toBe('auto');
-      expect(note?.color).toBe('blue');
+      const notes = mockStore.state.gameState?.storytellerNotes;
+      expect(notes).toBeDefined();
+      expect(notes!.length).toBe(1);
+      const note = notes![0];
+      expect(note).toBeDefined();
+      expect(note!.content).toBe('Auto generated note');
+      expect(note!.type).toBe('auto');
+      expect(note!.color).toBe('blue');
     });
 
     it('should add auto note without color', () => {
       notesSlice.addAutoNote('Auto note');
 
-      const note = mockStore.state.gameState?.storytellerNotes?.[0];
-      expect(note?.type).toBe('auto');
-      expect(note?.color).toBeUndefined();
+      const notes = mockStore.state.gameState?.storytellerNotes;
+      expect(notes).toBeDefined();
+      const note = notes![0];
+      expect(note).toBeDefined();
+      expect(note!.type).toBe('auto');
+      expect(note!.color).toBeUndefined();
     });
   });
 
@@ -92,7 +110,11 @@ describe('createGameNotesSlice', () => {
 
       notesSlice.updateStorytellerNote('note1', 'Updated content');
 
-      expect(mockStore.state.gameState?.storytellerNotes?.[0]?.content).toBe('Updated content');
+      const notes = mockStore.state.gameState?.storytellerNotes;
+      expect(notes).toBeDefined();
+      const note = notes![0];
+      expect(note).toBeDefined();
+      expect(note!.content).toBe('Updated content');
       expect(mockStore.get().sync).toHaveBeenCalled();
     });
 
@@ -114,8 +136,12 @@ describe('createGameNotesSlice', () => {
 
       notesSlice.deleteStorytellerNote('note1');
 
-      expect(mockStore.state.gameState?.storytellerNotes?.length).toBe(1);
-      expect(mockStore.state.gameState?.storytellerNotes?.[0]?.id).toBe('note2');
+      const notes = mockStore.state.gameState?.storytellerNotes;
+      expect(notes).toBeDefined();
+      expect(notes!.length).toBe(1);
+      const remainingNote = notes![0];
+      expect(remainingNote).toBeDefined();
+      expect(remainingNote!.id).toBe('note2');
     });
 
     it('should not crash if note not found', () => {
@@ -123,7 +149,9 @@ describe('createGameNotesSlice', () => {
 
       notesSlice.deleteStorytellerNote('nonexistent');
 
-      expect(mockStore.state.gameState?.storytellerNotes?.length).toBe(0);
+      const notes = mockStore.state.gameState?.storytellerNotes;
+      expect(notes).toBeDefined();
+      expect(notes!.length).toBe(0);
     });
   });
 
@@ -139,7 +167,11 @@ describe('createGameNotesSlice', () => {
 
       notesSlice.toggleNoteFloating('note1');
 
-      expect(mockStore.state.gameState?.storytellerNotes?.[0]?.isFloating).toBe(true);
+      const notes = mockStore.state.gameState?.storytellerNotes;
+      expect(notes).toBeDefined();
+      const note = notes![0];
+      expect(note).toBeDefined();
+      expect(note!.isFloating).toBe(true);
     });
 
     it('should toggle back to false', () => {
@@ -153,7 +185,11 @@ describe('createGameNotesSlice', () => {
 
       notesSlice.toggleNoteFloating('note1');
 
-      expect(mockStore.state.gameState?.storytellerNotes?.[0]?.isFloating).toBe(false);
+      const notes = mockStore.state.gameState?.storytellerNotes;
+      expect(notes).toBeDefined();
+      const note = notes![0];
+      expect(note).toBeDefined();
+      expect(note!.isFloating).toBe(false);
     });
   });
 
@@ -168,7 +204,11 @@ describe('createGameNotesSlice', () => {
 
       notesSlice.updateNotePosition('note1', 100, 200);
 
-      expect(mockStore.state.gameState?.storytellerNotes?.[0]?.position).toEqual({ x: 100, y: 200 });
+      const notes = mockStore.state.gameState?.storytellerNotes;
+      expect(notes).toBeDefined();
+      const note = notes![0];
+      expect(note).toBeDefined();
+      expect(note!.position).toEqual({ x: 100, y: 200 });
     });
 
     it('should not crash if note not found', () => {
@@ -191,7 +231,11 @@ describe('createGameNotesSlice', () => {
 
       notesSlice.setNoteColor('note1', 'red');
 
-      expect(mockStore.state.gameState?.storytellerNotes?.[0]?.color).toBe('red');
+      const notes = mockStore.state.gameState?.storytellerNotes;
+      expect(notes).toBeDefined();
+      const note = notes![0];
+      expect(note).toBeDefined();
+      expect(note!.color).toBe('red');
     });
   });
 
@@ -207,7 +251,11 @@ describe('createGameNotesSlice', () => {
 
       notesSlice.toggleNoteCollapse('note1');
 
-      expect(mockStore.state.gameState?.storytellerNotes?.[0]?.isCollapsed).toBe(true);
+      const notes = mockStore.state.gameState?.storytellerNotes;
+      expect(notes).toBeDefined();
+      const note = notes![0];
+      expect(note).toBeDefined();
+      expect(note!.isCollapsed).toBe(true);
     });
   });
 

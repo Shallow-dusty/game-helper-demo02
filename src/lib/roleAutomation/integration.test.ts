@@ -12,19 +12,18 @@ import type { GameState, Seat } from '../../types';
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 1,
-    index: 0,
-    isEmpty: false,
+    userId: null,
+    userName: '',
     isDead: false,
     hasGhostVote: true,
-    isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
-    hasUsedAbility: false,
-    notes: [],
+    roleId: null,
+    realRoleId: null,
+    seenRoleId: null,
     reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     ...overrides
   };
 }
@@ -42,36 +41,45 @@ function createFullGameState(playerCount: number, customSeats?: Partial<Seat>[])
     const customSeat = customSeats?.[i] ?? {};
     seats.push(createTestSeat({
       id: i + 1,
-      index: i,
       userId: `user${i + 1}`,
+      userName: `Player ${i + 1}`,
       realRoleId: defaultRoles[i % defaultRoles.length],
       ...customSeat
     }));
   }
 
   return {
-    id: 'test-game-id',
     roomId: 'test-room-id',
-    hostId: 'test-host-id',
-    isActive: true,
-    currentPhase: 'NIGHT',
     currentScriptId: 'tb',
+    phase: 'NIGHT',
+    setupPhase: 'STARTED',
+    rolesRevealed: true,
+    allowWhispers: true,
+    vibrationEnabled: false,
+    seats,
+    swapRequests: [],
+    messages: [],
+    gameOver: { isOver: false, winner: null, reason: '' },
+    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    nightQueue: ['poisoner', 'monk', 'imp', 'washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller'],
+    nightCurrentIndex: 0,
+    voting: null,
+    customScripts: {},
+    customRoles: {},
+    voteHistory: [],
     roundInfo: {
       dayCount: 1,
       nightCount: 1,
-      nominations: [],
-      executions: [],
-      currentNomination: null
+      nominationCount: 0,
+      totalRounds: 0
     },
-    seats,
-    nightQueue: ['poisoner', 'monk', 'imp', 'washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortune_teller'],
-    nightCurrentIndex: 0,
-    alivePlayers: seats.filter(s => !s.isDead).map(s => s.id),
-    deadPlayers: seats.filter(s => s.isDead).map(s => s.id),
-    messages: [],
-    interactionLogs: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    storytellerNotes: [],
+    skillDescriptionMode: 'simple',
+    aiMessages: [],
+    nightActionRequests: [],
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: []
   };
 }
 

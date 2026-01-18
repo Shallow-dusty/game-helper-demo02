@@ -262,7 +262,7 @@ describe('phaseMachine', () => {
 
     it('should handle empty night queue', () => {
       const emptySeats: Seat[] = [
-        { id: 0, roleId: 'mayor', userName: 'Player1', isDead: false, isGhost: false, votes: 1, userId: 'user1' },
+        { id: 0, roleId: 'mayor', userName: 'Player1', isDead: false, hasGhostVote: false, userId: 'user1', realRoleId: 'mayor', seenRoleId: 'mayor', reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] },
       ];
 
       const actor = createActor(phaseMachine);
@@ -280,9 +280,9 @@ describe('phaseMachine', () => {
 
     it('should filter out dead players from night queue', () => {
       const seatsWithDead: Seat[] = [
-        { id: 0, roleId: 'imp', userName: 'Player1', isDead: false, isGhost: false, votes: 1, userId: 'user1' },
-        { id: 1, roleId: 'washerwoman', userName: 'Player2', isDead: true, isGhost: true, votes: 0, userId: 'user2' },
-        { id: 2, roleId: 'empath', userName: 'Player3', isDead: false, isGhost: false, votes: 1, userId: 'user3' },
+        { id: 0, roleId: 'imp', userName: 'Player1', isDead: false, hasGhostVote: false, userId: 'user1', realRoleId: 'imp', seenRoleId: 'imp', reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] },
+        { id: 1, roleId: 'washerwoman', userName: 'Player2', isDead: true, hasGhostVote: true, userId: 'user2', realRoleId: 'washerwoman', seenRoleId: 'washerwoman', reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] },
+        { id: 2, roleId: 'empath', userName: 'Player3', isDead: false, hasGhostVote: false, userId: 'user3', realRoleId: 'empath', seenRoleId: 'empath', reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] },
       ];
 
       const actor = createActor(phaseMachine);
@@ -333,8 +333,8 @@ describe('phaseMachine', () => {
   describe('Edge Cases', () => {
     it('should handle game with no roles that have night actions', () => {
       const seatsNoNight: Seat[] = [
-        { id: 0, roleId: 'saint', userName: 'Player1', isDead: false, isGhost: false, votes: 1, userId: 'user1' },
-        { id: 1, roleId: 'mayor', userName: 'Player2', isDead: false, isGhost: false, votes: 1, userId: 'user2' },
+        { id: 0, roleId: 'saint', userName: 'Player1', isDead: false, hasGhostVote: false, userId: 'user1', realRoleId: 'saint', seenRoleId: 'saint', reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] },
+        { id: 1, roleId: 'mayor', userName: 'Player2', isDead: false, hasGhostVote: false, userId: 'user2', realRoleId: 'mayor', seenRoleId: 'mayor', reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] },
       ];
 
       const actor = createActor(phaseMachine);

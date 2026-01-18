@@ -12,13 +12,13 @@
  */
 
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+ 
+ 
 
 import { createActor } from 'xstate';
 import { phaseMachine, type PhaseMachineContext } from '../../../lib/machines/phaseMachine';
 import type { StoreSlice } from '../../types';
-import type { Seat, Team } from '../../../types';
+import type { Seat } from '../../../types';
 
 /**
  * Actor interface for sending events to the phase machine.
@@ -31,7 +31,7 @@ interface PhaseActorInterface {
     seats?: Seat[];
     nomineeSeatId?: number;
     isExecuted?: boolean;
-    winner?: Team;
+    winner?: 'GOOD' | 'EVIL';
     reason?: string;
   }) => void;
   stop: () => void;
@@ -58,7 +58,7 @@ export interface PhaseMachineSlice {
     endNight: () => void;
     startVoting: (nomineeSeatId: number) => void;
     closeVote: (isExecuted: boolean) => void;
-    endGame: (winner: Team, reason: string) => void;
+    endGame: (winner: 'GOOD' | 'EVIL', reason: string) => void;
   };
 
   // Initialize the phase machine actor
@@ -124,7 +124,7 @@ export const createPhaseMachineSlice: StoreSlice<PhaseMachineSlice> = (set, get)
         phaseActor?.send({ type: 'CLOSE_VOTE', isExecuted });
       },
 
-      endGame: (winner: Team, reason: string) => {
+      endGame: (winner: 'GOOD' | 'EVIL', reason: string) => {
         const { phaseActor } = get();
         phaseActor?.send({ type: 'END_GAME', winner, reason });
       },

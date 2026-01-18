@@ -22,7 +22,7 @@ import { NightActionPanel } from '../game/NightActionPanel';
 import { PlayerNightAction } from '../game/PlayerNightAction';
 import { ScriptEditor } from '../script/ScriptEditor';
 import { VoiceRoomLink } from '../ui/VoiceRoomLink';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 interface ControlsProps {
     onClose?: () => void;
@@ -30,26 +30,21 @@ interface ControlsProps {
 
 // 优化的选择器
 const useControlsState = () => useStore(
-    state => ({
+    useShallow(state => ({
         user: state.user,
-        phase: state.gameState?.phase,
-        currentScriptId: state.gameState?.currentScriptId,
-        roomId: state.gameState?.roomId,
         isOffline: state.isOffline,
-    }),
-    shallow
+    }))
 );
 
 const useControlsActions = () => useStore(
-    state => ({
+    useShallow(state => ({
         leaveGame: state.leaveGame,
         setModalOpen: state.setModalOpen,
-    }),
-    shallow
+    }))
 );
 
 export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
-    const { user, phase, currentScriptId, roomId, isOffline } = useControlsState();
+    const { user, isOffline } = useControlsState();
     const { leaveGame, setModalOpen } = useControlsActions();
     const { t } = useAppTranslation();
     const { t: tControls } = useTranslation();

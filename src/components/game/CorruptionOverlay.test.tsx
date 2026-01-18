@@ -74,10 +74,10 @@ describe('CorruptionOverlay', () => {
         
         // 切换到 stage 3
         rerender(<CorruptionOverlay stage={3} />);
-        
+
         // 应该创建 Audio 实例用于 drone
         expect(mockAudioInstances.length).toBeGreaterThan(0);
-        expect(mockAudioInstances[0].src).toBe('/audio/sfx/drone_low.mp3');
+        expect(mockAudioInstances[0]!.src).toBe('/audio/sfx/drone_low.mp3');
     });
 
     it('从 stage 3 降级时应该触发淡出', () => {
@@ -102,12 +102,12 @@ describe('CorruptionOverlay', () => {
         
         // 确保音频已创建
         expect(mockAudioInstances.length).toBeGreaterThan(0);
-        
+
         // 卸载组件
         unmount();
-        
+
         // 验证音频被暂停
-        expect(mockAudioInstances[0].pause).toHaveBeenCalled();
+        expect(mockAudioInstances[0]!.pause).toHaveBeenCalled();
     });
 
     it('stage 3 直接渲染时不应该立即创建音频（因为没有阶段变化）', () => {

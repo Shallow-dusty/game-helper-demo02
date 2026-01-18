@@ -18,24 +18,18 @@ import type { AbilityContext } from '../../../src/lib/roleAutomation/types';
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 0,
-    index: 0,
-    isEmpty: false,
-    isDead: false,
-    hasGhostVote: true,
-    isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
-    hasUsedAbility: false,
-    notes: [],
-    reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
     userId: 'user1',
     userName: 'Player1',
+    isDead: false,
+    hasGhostVote: true,
     roleId: null,
     realRoleId: null,
     seenRoleId: null,
+    reminders: [],
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     ...overrides
   };
 }
@@ -43,23 +37,33 @@ function createTestSeat(overrides: Partial<Seat> = {}): Seat {
 // 创建测试游戏状态
 function createTestGameState(seats: Seat[]): GameState {
   return {
-    seats,
-    phase: 'NIGHT',
-    voting: null,
+    roomId: 'test-room',
     currentScriptId: 'tb',
-    messages: [],
-    roundInfo: { dayCount: 1, nightCount: 1 },
-    voteHistory: [],
-    storytellerNotes: [],
-    audio: { trackId: null, isPlaying: false, volume: 0.5 },
-    allowWhispers: false,
-    customScripts: {},
-    swapRequests: [],
-    vibrationEnabled: true,
-    nightQueue: [],
+    phase: 'NIGHT',
     setupPhase: 'READY',
-    rolesRevealed: false
-  } as GameState;
+    rolesRevealed: false,
+    allowWhispers: false,
+    vibrationEnabled: true,
+    seats,
+    swapRequests: [],
+    messages: [],
+    gameOver: { isOver: false, winner: null, reason: '' },
+    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    nightQueue: [],
+    nightCurrentIndex: 0,
+    voting: null,
+    customScripts: {},
+    customRoles: {},
+    voteHistory: [],
+    roundInfo: { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 1 },
+    storytellerNotes: [],
+    skillDescriptionMode: 'detailed',
+    aiMessages: [],
+    nightActionRequests: [],
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: []
+  };
 }
 
 describe('processButler', () => {
@@ -95,8 +99,8 @@ describe('processButler', () => {
 
     expect(result.success).toBe(true);
     expect(result.suggestions.length).toBe(1);
-    expect(result.suggestions[0].type).toBe('action');
-    expect(result.suggestions[0].title).toContain('管家');
+    expect(result.suggestions[0]!.type).toBe('action');
+    expect(result.suggestions[0]!.title).toContain('管家');
   });
 
   it('should exclude self from master options', () => {
@@ -104,7 +108,7 @@ describe('processButler', () => {
 
     expect(result.success).toBe(true);
     // The options should be for selecting a master, excluding self
-    const suggestion = result.suggestions[0];
+    const suggestion = result.suggestions[0]!;
     expect(suggestion.options).toBeDefined();
   });
 
@@ -114,8 +118,8 @@ describe('processButler', () => {
     const result = processButler(gameState, 0, context);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].type).toBe('effect');
-    expect(result.suggestions[0].targetSeatIds).toContain(1);
+    expect(result.suggestions[0]!.type).toBe('effect');
+    expect(result.suggestions[0]!.targetSeatIds).toContain(1);
   });
 
   it('should return error if target seat not found', () => {
@@ -134,7 +138,7 @@ describe('processButler', () => {
 
     // Should return action suggestion as no target selected
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].type).toBe('action');
+    expect(result.suggestions[0]!.type).toBe('action');
   });
 
   it('should provide random recommendation in FULL_AUTO mode', () => {
@@ -143,7 +147,7 @@ describe('processButler', () => {
     const result = processButler(gameState, 0, context);
 
     expect(result.success).toBe(true);
-    const suggestion = result.suggestions[0];
+    const suggestion = result.suggestions[0]!;
     expect(suggestion.options?.some(o => o.id === 'random')).toBe(true);
   });
 });
@@ -185,14 +189,14 @@ describe('processDrunk', () => {
 
     expect(result.success).toBe(true);
     expect(result.suggestions.length).toBe(1);
-    expect(result.suggestions[0].type).toBe('info');
-    expect(result.suggestions[0].roleId).toBe('drunk');
-    expect(result.suggestions[0].description).toContain('洗衣妇');
-    expect(result.suggestions[0].description).toContain('酒鬼');
+    expect(result.suggestions[0]!.type).toBe('info');
+    expect(result.suggestions[0]!.roleId).toBe('drunk');
+    expect(result.suggestions[0]!.description).toContain('洗衣妇');
+    expect(result.suggestions[0]!.description).toContain('酒鬼');
   });
 
   it('should return empty suggestions if not drunk', () => {
-    gameState.seats[0].realRoleId = 'washerwoman';
+    gameState.seats[0]!.realRoleId = 'washerwoman';
 
     const result = processDrunk(gameState, 0, context);
 
@@ -201,12 +205,12 @@ describe('processDrunk', () => {
   });
 
   it('should handle drunk without seenRoleId', () => {
-    gameState.seats[0].seenRoleId = null;
+    gameState.seats[0]!.seenRoleId = null;
 
     const result = processDrunk(gameState, 0, context);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].description).toContain('未设置');
+    expect(result.suggestions[0]!.description).toContain('未设置');
   });
 });
 
@@ -246,16 +250,16 @@ describe('processRecluse', () => {
 
     expect(result.success).toBe(true);
     expect(result.suggestions.length).toBe(1);
-    expect(result.suggestions[0].type).toBe('info');
-    expect(result.suggestions[0].description).toContain('邪恶');
+    expect(result.suggestions[0]!.type).toBe('info');
+    expect(result.suggestions[0]!.description).toContain('邪恶');
   });
 
   it('should provide detection options in GUIDED mode', () => {
     const result = processRecluse(gameState, 0, context);
 
-    expect(result.suggestions[0].options).toBeDefined();
-    expect(result.suggestions[0].options?.length).toBe(4);
-    expect(result.suggestions[0].options?.some(o => o.id === 'show_evil')).toBe(true);
+    expect(result.suggestions[0]!.options).toBeDefined();
+    expect(result.suggestions[0]!.options?.length).toBe(4);
+    expect(result.suggestions[0]!.options?.some(o => o.id === 'show_evil')).toBe(true);
   });
 
   it('should not provide options in FULL_AUTO mode', () => {
@@ -263,16 +267,16 @@ describe('processRecluse', () => {
 
     const result = processRecluse(gameState, 0, context);
 
-    expect(result.suggestions[0].options).toBeUndefined();
+    expect(result.suggestions[0]!.options).toBeUndefined();
   });
 
   it('should indicate tainted status if poisoned', () => {
-    gameState.seats[0].statuses = ['POISONED'];
+    gameState.seats[0]!.statuses = ['POISONED'];
 
     const result = processRecluse(gameState, 0, context);
 
-    expect(result.suggestions[0].isTainted).toBe(true);
-    expect(result.suggestions[0].description).toContain('中毒');
+    expect(result.suggestions[0]!.isTainted).toBe(true);
+    expect(result.suggestions[0]!.description).toContain('中毒');
   });
 });
 
@@ -312,9 +316,9 @@ describe('processSaint', () => {
 
     expect(result.success).toBe(true);
     expect(result.suggestions.length).toBe(1);
-    expect(result.suggestions[0].type).toBe('warning');
-    expect(result.suggestions[0].description).toContain('被处决');
-    expect(result.suggestions[0].description).toContain('邪恶');
+    expect(result.suggestions[0]!.type).toBe('warning');
+    expect(result.suggestions[0]!.description).toContain('被处决');
+    expect(result.suggestions[0]!.description).toContain('邪恶');
   });
 
   it('should return game end effect when saint is executed', () => {
@@ -323,8 +327,8 @@ describe('processSaint', () => {
     const result = processSaint(gameState, 0, context);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].type).toBe('effect');
-    expect(result.suggestions[0].title).toContain('被处决');
+    expect(result.suggestions[0]!.type).toBe('effect');
+    expect(result.suggestions[0]!.title).toContain('被处决');
     expect(result.gameEndCondition).toBeDefined();
     expect(result.gameEndCondition?.winner).toBe('EVIL');
     expect(result.gameEndCondition?.reason).toContain('圣徒');
@@ -336,7 +340,7 @@ describe('processSaint', () => {
 
     const result = processSaint(gameState, 0, context);
 
-    expect(result.suggestions[0].requiresConfirmation).toBe(true);
+    expect(result.suggestions[0]!.requiresConfirmation).toBe(true);
   });
 
   it('should not require confirmation in FULL_AUTO mode for execution', () => {
@@ -345,6 +349,6 @@ describe('processSaint', () => {
 
     const result = processSaint(gameState, 0, context);
 
-    expect(result.suggestions[0].requiresConfirmation).toBe(false);
+    expect(result.suggestions[0]!.requiresConfirmation).toBe(false);
   });
 });

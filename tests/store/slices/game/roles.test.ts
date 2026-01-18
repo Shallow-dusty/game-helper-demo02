@@ -12,47 +12,48 @@ import type { Seat, GameState } from '../../../../src/types';
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 1,
-    index: 0,
-    isEmpty: false,
+    userId: null,
+    userName: '',
     isDead: false,
     hasGhostVote: true,
-    isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
-    hasUsedAbility: false,
-    notes: [],
+    roleId: null,
+    realRoleId: null,
+    seenRoleId: null,
     reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     ...overrides
   };
 }
 
 // Mock store state
 const createMockStore = () => {
-  const state: {
+  type MockStoreState = {
     gameState: Partial<GameState> | null;
     sync: () => void;
-  } = {
+  };
+
+  const state: MockStoreState = {
     gameState: {
       seats: [
-        createTestSeat({ id: 1, index: 0, userId: 'user1' }),
-        createTestSeat({ id: 2, index: 1, userId: 'user2' }),
-        createTestSeat({ id: 3, index: 2, userId: 'user3' }),
-        createTestSeat({ id: 4, index: 3, userId: 'user4' }),
-        createTestSeat({ id: 5, index: 4, userId: 'user5' })
+        createTestSeat({ id: 1, userId: 'user1' }),
+        createTestSeat({ id: 2, userId: 'user2' }),
+        createTestSeat({ id: 3, userId: 'user3' }),
+        createTestSeat({ id: 4, userId: 'user4' }),
+        createTestSeat({ id: 5, userId: 'user5' })
       ],
       currentScriptId: 'tb',
       messages: [],
       rolesRevealed: false,
       phase: 'SETUP',
-      setupPhase: 'WAITING'
+      setupPhase: 'ASSIGNING'
     } as Partial<GameState>,
     sync: vi.fn()
   };
 
-  const set = vi.fn((fn: (state: typeof state) => typeof state) => {
+  const set = vi.fn((fn: (state: MockStoreState) => void) => {
     fn(state);
   });
 
@@ -67,9 +68,9 @@ describe('Game Roles Slice', () => {
 
   beforeEach(() => {
     mockStore = createMockStore();
-    rolesSlice = createGameRolesSlice(
-      mockStore.set as never,
-      mockStore.get as never
+    rolesSlice = (createGameRolesSlice as any)(
+      mockStore.set,
+      mockStore.get
     );
   });
 

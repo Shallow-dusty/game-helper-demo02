@@ -197,14 +197,6 @@ export class PushNotificationService {
                 badge: options.badge ?? '/img/icon-192.png',
                 tag: options.tag, // 相同 tag 会替换之前的通知
                 data: options.data ?? {},
-                vibrate: [200, 100, 200], // 振动模式
-                actions: [
-                    {
-                        action: 'open',
-                        title: '打开游戏',
-                        icon: '/img/icon-192.png',
-                    },
-                ],
             });
 
             console.log('✓ Notification shown:', options.title);

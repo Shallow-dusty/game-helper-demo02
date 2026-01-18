@@ -209,7 +209,9 @@ describe('useSoundEffect', () => {
         });
 
         it('should apply master volume from store', () => {
-            mockStoreState.gameState.audio.volume = 0.5;
+            if (mockStoreState.gameState) {
+                mockStoreState.gameState.audio.volume = 0.5;
+            }
             
             const { result } = renderHook(() => useSoundEffect());
             
@@ -222,7 +224,9 @@ describe('useSoundEffect', () => {
         });
 
         it('should handle edge case volumes', () => {
-            mockStoreState.gameState.audio.volume = 2; // Over max
+            if (mockStoreState.gameState) {
+                mockStoreState.gameState.audio.volume = 2; // Over max
+            }
             
             const { result } = renderHook(() => useSoundEffect());
             
@@ -376,7 +380,7 @@ describe('useSoundEffect', () => {
             });
 
             // Get the last created audio instance
-            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1]!;
 
             // Simulate playback ended
             act(() => {
@@ -399,7 +403,7 @@ describe('useSoundEffect', () => {
             });
 
             // Get the last created audio instance
-            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1]!;
 
             // Simulate error
             act(() => {
@@ -422,7 +426,7 @@ describe('useSoundEffect', () => {
             });
 
             // Get the audio instance
-            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1]!;
 
             // Stop all sounds first - this removes audio from activeAudiosRef
             act(() => {
@@ -450,7 +454,7 @@ describe('useSoundEffect', () => {
             });
 
             // Get the audio instance
-            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1]!;
 
             // Stop all sounds first - this removes audio from activeAudiosRef
             act(() => {
@@ -583,7 +587,7 @@ describe('useSoundEffect', () => {
             });
 
             // Get the audio instance to check its volume
-            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1]!;
             expect(audioInstance.volume).toBeLessThanOrEqual(1);
             expect(audioInstance.volume).toBeGreaterThanOrEqual(0);
         });
@@ -597,7 +601,7 @@ describe('useSoundEffect', () => {
                 result.current.playSound('clock_tick');
             });
 
-            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1];
+            const audioInstance = mockAudioInstances[mockAudioInstances.length - 1]!;
             expect(audioInstance.volume).toBe(0);
         });
     });

@@ -1,15 +1,38 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
+
+// Helper to create a test seat with all required properties
+const createTestSeat = (overrides: {
+  id: number;
+  userId: string | null;
+  userName: string;
+  isVirtual?: boolean;
+}) => ({
+  id: overrides.id,
+  userId: overrides.userId,
+  userName: overrides.userName,
+  isDead: false,
+  hasGhostVote: false,
+  roleId: null,
+  realRoleId: null,
+  seenRoleId: null,
+  reminders: [],
+  isHandRaised: false,
+  isNominated: false,
+  hasUsedAbility: false,
+  statuses: [],
+  isVirtual: overrides.isVirtual ?? false,
+});
 
 // Create mock state
 const createMockState = () => ({
   gameState: {
     seats: [
-      { id: 0, userId: 'user1', userName: 'Player1', isVirtual: false },
-      { id: 1, userId: 'user2', userName: 'Player2', isVirtual: false },
-      { id: 2, userId: null, userName: '座位 3', isVirtual: false },
+      createTestSeat({ id: 0, userId: 'user1', userName: 'Player1', isVirtual: false }),
+      createTestSeat({ id: 1, userId: 'user2', userName: 'Player2', isVirtual: false }),
+      createTestSeat({ id: 2, userId: null, userName: '座位 3', isVirtual: false }),
     ],
     swapRequests: [] as {
       id: string;
@@ -40,8 +63,8 @@ describe('createGameSeatSwapSlice', () => {
       s2.userName = tempUser.userName;
       s2.isVirtual = tempUser.isVirtual;
       
-      expect(state.gameState.seats[0].userId).toBe('user2');
-      expect(state.gameState.seats[1].userId).toBe('user1');
+      expect(state.gameState.seats[0]!.userId).toBe('user2');
+      expect(state.gameState.seats[1]!.userId).toBe('user1');
     });
 
     it('handles swap with empty seat', () => {
@@ -55,8 +78,8 @@ describe('createGameSeatSwapSlice', () => {
       s2.userId = tempUser.userId;
       s2.userName = tempUser.userName;
       
-      expect(state.gameState.seats[0].userId).toBe(null);
-      expect(state.gameState.seats[2].userId).toBe('user1');
+      expect(state.gameState.seats[0]!.userId).toBe(null);
+      expect(state.gameState.seats[2]!.userId).toBe('user1');
     });
   });
 
@@ -77,8 +100,8 @@ describe('createGameSeatSwapSlice', () => {
       });
       
       expect(state.gameState.swapRequests).toHaveLength(1);
-      expect(state.gameState.swapRequests[0].fromSeatId).toBe(0);
-      expect(state.gameState.swapRequests[0].toSeatId).toBe(1);
+      expect(state.gameState.swapRequests[0]!.fromSeatId).toBe(0);
+      expect(state.gameState.swapRequests[0]!.toSeatId).toBe(1);
     });
 
     it('does not create request if target seat is empty', () => {
@@ -129,8 +152,8 @@ describe('createGameSeatSwapSlice', () => {
       seat.userId = null;
       seat.userName = `座位 ${seat.id + 1}`;
       
-      expect(state.gameState.seats[0].userId).toBeNull();
-      expect(state.gameState.seats[0].userName).toBe('座位 1');
+      expect(state.gameState.seats[0]!.userId).toBeNull();
+      expect(state.gameState.seats[0]!.userName).toBe('座位 1');
     });
   });
 });

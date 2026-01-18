@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
 import { ConfirmModal } from './ConfirmModal';
 
 describe('ConfirmModal', () => {
@@ -94,7 +93,8 @@ describe('ConfirmModal', () => {
     render(<ConfirmModal {...defaultProps} onCancel={onCancel} />);
 
     const closeButtons = screen.getAllByText('✕');
-    fireEvent.click(closeButtons[0]);
+    const closeButton = closeButtons[0]!;
+    fireEvent.click(closeButton);
 
     expect(onCancel).toHaveBeenCalled();
   });
@@ -130,7 +130,7 @@ describe('ConfirmModal', () => {
     render(<ConfirmModal {...defaultProps} message={multilineMessage} />);
 
     // Check that the message is rendered in the p tag with whitespace-pre-wrap
-    const messageElement = screen.getByText((content, element) => {
+    const messageElement = screen.getByText((_content, element) => {
       return element?.tagName.toLowerCase() === 'p' && element?.textContent === multilineMessage;
     });
     expect(messageElement).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('ConfirmModal', () => {
     const onCancel = vi.fn();
     render(<ConfirmModal {...defaultProps} onCancel={onCancel} />);
 
-    const modal = screen.getByText('确认操作').closest('div');
+    const modal = screen.getByText('确认操作').closest('div') as HTMLElement;
     if (modal) {
       fireEvent.click(modal);
       // Should not call onCancel when clicking on modal content

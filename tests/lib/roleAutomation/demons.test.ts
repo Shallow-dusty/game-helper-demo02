@@ -13,24 +13,18 @@ import type { AbilityContext } from '../../../src/lib/roleAutomation/types';
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 0,
-    index: 0,
-    isEmpty: false,
-    isDead: false,
-    hasGhostVote: true,
-    isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
-    hasUsedAbility: false,
-    notes: [],
-    reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
     userId: 'user1',
     userName: 'Player1',
-    roleId: null,
+    isDead: false,
+    hasGhostVote: true,
+    roleId: null,  // deprecated
     realRoleId: null,
     seenRoleId: null,
+    reminders: [],
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     ...overrides
   };
 }
@@ -38,24 +32,33 @@ function createTestSeat(overrides: Partial<Seat> = {}): Seat {
 // 创建测试游戏状态
 function createTestGameState(seats: Seat[]): GameState {
   return {
-    seats,
-    phase: 'NIGHT',
-    voting: null,
+    roomId: 'test-room',
     currentScriptId: 'tb',
-    messages: [],
-    roundInfo: { dayCount: 1, nightCount: 1 },
-    voteHistory: [],
-    storytellerNotes: [],
-    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    phase: 'NIGHT',
+    setupPhase: 'STARTED',
+    rolesRevealed: true,
     allowWhispers: false,
+    vibrationEnabled: true,
+    seats,
+    swapRequests: [],
+    messages: [],
+    gameOver: { isOver: false, winner: null, reason: '' },
+    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    nightQueue: [],
+    nightCurrentIndex: -1,
+    voting: null,
     customScripts: {},
     customRoles: {},
-    swapRequests: [],
-    vibrationEnabled: true,
-    nightQueue: [],
-    setupPhase: 'READY',
-    rolesRevealed: false
-  } as GameState;
+    voteHistory: [],
+    roundInfo: { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 1 },
+    storytellerNotes: [],
+    skillDescriptionMode: 'simple',
+    aiMessages: [],
+    nightActionRequests: [],
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: []
+  };
 }
 
 // 默认测试上下文
@@ -100,8 +103,8 @@ describe('processImp', () => {
 
       expect(result.success).toBe(true);
       expect(result.suggestions.length).toBe(1);
-      expect(result.suggestions[0].type).toBe('action');
-      expect(result.suggestions[0].title).toBe('小恶魔击杀');
+      expect(result.suggestions[0]!.type).toBe('action');
+      expect(result.suggestions[0]!.title).toBe('小恶魔击杀');
     });
 
     it('should include self-kill option when minions exist', () => {
@@ -114,7 +117,7 @@ describe('processImp', () => {
       const result = processImp(gameState, 0, defaultContext);
 
       expect(result.success).toBe(true);
-      const options = result.suggestions[0].options;
+      const options = result.suggestions[0]!.options;
       expect(options).toBeDefined();
       const selfKillOption = options?.find(o => o.id === 'self_kill');
       expect(selfKillOption).toBeDefined();
@@ -131,7 +134,7 @@ describe('processImp', () => {
       const result = processImp(gameState, 0, defaultContext);
 
       expect(result.success).toBe(true);
-      const options = result.suggestions[0].options;
+      const options = result.suggestions[0]!.options;
       const selfKillOption = options?.find(o => o.id === 'self_kill');
       expect(selfKillOption).toBeUndefined();
     });
@@ -149,7 +152,7 @@ describe('processImp', () => {
       });
 
       expect(result.success).toBe(true);
-      const options = result.suggestions[0].options;
+      const options = result.suggestions[0]!.options;
       const recommendedOption = options?.find(o => o.id === 'recommended');
       expect(recommendedOption).toBeDefined();
       expect(recommendedOption?.isRecommended).toBe(true);
@@ -168,7 +171,7 @@ describe('processImp', () => {
       });
 
       expect(result.success).toBe(true);
-      const options = result.suggestions[0].options;
+      const options = result.suggestions[0]!.options;
       const recommendedOption = options?.find(o => o.id === 'recommended');
       // Should recommend the fortune_teller player (seat 1)
       expect(recommendedOption?.label).toContain('2号');
@@ -189,7 +192,7 @@ describe('processImp', () => {
 
       // Empty array means no target selected, should ask for target
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('action');
+      expect(result.suggestions[0]!.type).toBe('action');
     });
 
     it('should return error for non-existent target seat', () => {
@@ -222,11 +225,11 @@ describe('processImp', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('effect');
-      expect(result.suggestions[0].title).toBe('小恶魔击杀');
+      expect(result.suggestions[0]!.type).toBe('effect');
+      expect(result.suggestions[0]!.title).toBe('小恶魔击杀');
       expect(result.deaths?.length).toBe(1);
-      expect(result.deaths?.[0].seatId).toBe(1);
-      expect(result.deaths?.[0].cause).toBe('demon_kill');
+      expect(result.deaths![0]!.seatId).toBe(1);
+      expect(result.deaths![0]!.cause).toBe('demon_kill');
     });
 
     it('should trigger ravenkeeper ability when killed', () => {
@@ -243,11 +246,11 @@ describe('processImp', () => {
       expect(result.success).toBe(true);
       expect(result.suggestions.length).toBe(2);
       // First suggestion is the kill
-      expect(result.suggestions[0].type).toBe('effect');
+      expect(result.suggestions[0]!.type).toBe('effect');
       // Second suggestion is ravenkeeper ability trigger
-      expect(result.suggestions[1].roleId).toBe('ravenkeeper');
-      expect(result.suggestions[1].type).toBe('action');
-      expect(result.suggestions[1].title).toBe('守鸦人能力触发');
+      expect(result.suggestions[1]!.roleId).toBe('ravenkeeper');
+      expect(result.suggestions[1]!.type).toBe('action');
+      expect(result.suggestions[1]!.title).toBe('守鸦人能力触发');
     });
 
     it('should not trigger ravenkeeper ability if tainted', () => {
@@ -263,7 +266,7 @@ describe('processImp', () => {
 
       expect(result.success).toBe(true);
       expect(result.suggestions.length).toBe(1);
-      expect(result.suggestions[0].type).toBe('effect');
+      expect(result.suggestions[0]!.type).toBe('effect');
     });
   });
 
@@ -280,12 +283,12 @@ describe('processImp', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('effect');
-      expect(result.suggestions[0].title).toBe('小恶魔击杀被阻止');
-      expect(result.suggestions[0].description).toContain('僧侣保护');
+      expect(result.suggestions[0]!.type).toBe('effect');
+      expect(result.suggestions[0]!.title).toBe('小恶魔击杀被阻止');
+      expect(result.suggestions[0]!.description).toContain('僧侣保护');
       expect(result.deaths?.length).toBe(1);
-      expect(result.deaths?.[0].wasPrevented).toBe(true);
-      expect(result.deaths?.[0].preventedBy).toBe('monk');
+      expect(result.deaths![0]!.wasPrevented).toBe(true);
+      expect(result.deaths![0]!.preventedBy).toBe('monk');
     });
 
     it('should show override option in GUIDED mode', () => {
@@ -302,8 +305,8 @@ describe('processImp', () => {
 
       expect(result.success).toBe(true);
       expect(result.suggestions.length).toBe(2);
-      expect(result.suggestions[1].type).toBe('warning');
-      expect(result.suggestions[1].title).toBe('规则违反选项');
+      expect(result.suggestions[1]!.type).toBe('warning');
+      expect(result.suggestions[1]!.title).toBe('规则违反选项');
     });
 
     it('should not show override option in FULL_AUTO mode', () => {
@@ -336,10 +339,10 @@ describe('processImp', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('effect');
-      expect(result.suggestions[0].title).toBe('小恶魔击杀被阻止');
-      expect(result.suggestions[0].description).toContain('士兵免疫');
-      expect(result.deaths?.[0].preventedBy).toBe('soldier');
+      expect(result.suggestions[0]!.type).toBe('effect');
+      expect(result.suggestions[0]!.title).toBe('小恶魔击杀被阻止');
+      expect(result.suggestions[0]!.description).toContain('士兵免疫');
+      expect(result.deaths![0]!.preventedBy).toBe('soldier');
     });
 
     it('should kill soldier if poisoned', () => {
@@ -354,10 +357,10 @@ describe('processImp', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('effect');
-      expect(result.suggestions[0].title).toBe('小恶魔击杀');
+      expect(result.suggestions[0]!.type).toBe('effect');
+      expect(result.suggestions[0]!.title).toBe('小恶魔击杀');
       expect(result.deaths?.length).toBe(1);
-      expect(result.deaths?.[0].wasPrevented).toBeUndefined();
+      expect(result.deaths![0]!.wasPrevented).toBeUndefined();
     });
 
     it('should kill soldier if drunk', () => {
@@ -372,8 +375,8 @@ describe('processImp', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].title).toBe('小恶魔击杀');
-      expect(result.deaths?.[0].wasPrevented).toBeUndefined();
+      expect(result.suggestions[0]!.title).toBe('小恶魔击杀');
+      expect(result.deaths![0]!.wasPrevented).toBeUndefined();
     });
   });
 
@@ -390,8 +393,8 @@ describe('processImp', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('warning');
-      expect(result.suggestions[0].title).toBe('自杀传位失败');
+      expect(result.suggestions[0]!.type).toBe('warning');
+      expect(result.suggestions[0]!.title).toBe('自杀传位失败');
     });
 
     it('should ask for new demon when minions exist', () => {
@@ -407,9 +410,9 @@ describe('processImp', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('action');
-      expect(result.suggestions[0].title).toBe('小恶魔自杀传位');
-      expect(result.suggestions[0].options?.length).toBe(2);  // Two minions
+      expect(result.suggestions[0]!.type).toBe('action');
+      expect(result.suggestions[0]!.title).toBe('小恶魔自杀传位');
+      expect(result.suggestions[0]!.options?.length).toBe(2);  // Two minions
     });
 
     it('should auto-select first minion in FULL_AUTO mode', () => {
@@ -426,11 +429,11 @@ describe('processImp', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('effect');
-      expect(result.suggestions[0].title).toBe('小恶魔自杀传位');
+      expect(result.suggestions[0]!.type).toBe('effect');
+      expect(result.suggestions[0]!.title).toBe('小恶魔自杀传位');
       expect(result.deaths?.length).toBe(1);
       expect(result.chainReactions?.length).toBe(1);
-      expect(result.chainReactions?.[0].type).toBe('imp_transfer');
+      expect(result.chainReactions![0]!.type).toBe('imp_transfer');
     });
 
     it('should complete self-kill with specified new demon', () => {
@@ -446,11 +449,11 @@ describe('processImp', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('effect');
+      expect(result.suggestions[0]!.type).toBe('effect');
       expect(result.deaths?.length).toBe(1);
-      expect(result.deaths?.[0].seatId).toBe(0);
-      expect(result.chainReactions?.[0].targetSeatId).toBe(1);
-      expect(result.chainReactions?.[0].newRoleId).toBe('imp');
+      expect(result.deaths![0]!.seatId).toBe(0);
+      expect(result.chainReactions![0]!.targetSeatId).toBe(1);
+      expect(result.chainReactions![0]!.newRoleId).toBe('imp');
     });
 
     it('should return error for invalid new demon seat', () => {

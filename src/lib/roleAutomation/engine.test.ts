@@ -12,19 +12,18 @@ import type { GameState, Seat } from '../../types';
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 1,
-    index: 0,
-    isEmpty: false,
+    userId: null,
+    userName: '',
     isDead: false,
     hasGhostVote: true,
-    isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
-    hasUsedAbility: false,
-    notes: [],
+    roleId: null,
+    realRoleId: null,
+    seenRoleId: null,
     reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     ...overrides
   };
 }
@@ -32,28 +31,37 @@ function createTestSeat(overrides: Partial<Seat> = {}): Seat {
 // 创建测试用的游戏状态
 function createTestGameState(overrides: Partial<GameState> = {}): GameState {
   return {
-    id: 'test-game-id',
     roomId: 'test-room-id',
-    hostId: 'test-host-id',
-    isActive: true,
-    currentPhase: 'NIGHT',
     currentScriptId: 'tb',
+    phase: 'NIGHT',
+    setupPhase: 'STARTED',
+    rolesRevealed: true,
+    allowWhispers: true,
+    vibrationEnabled: false,
+    seats: [],
+    swapRequests: [],
+    messages: [],
+    gameOver: { isOver: false, winner: null, reason: '' },
+    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    nightQueue: [],
+    nightCurrentIndex: 0,
+    voting: null,
+    customScripts: {},
+    customRoles: {},
+    voteHistory: [],
     roundInfo: {
       dayCount: 1,
       nightCount: 1,
-      nominations: [],
-      executions: [],
-      currentNomination: null
+      nominationCount: 0,
+      totalRounds: 0
     },
-    seats: [],
-    nightQueue: [],
-    nightCurrentIndex: 0,
-    alivePlayers: [],
-    deadPlayers: [],
-    messages: [],
-    interactionLogs: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    storytellerNotes: [],
+    skillDescriptionMode: 'simple',
+    aiMessages: [],
+    nightActionRequests: [],
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: [],
     ...overrides
   };
 }

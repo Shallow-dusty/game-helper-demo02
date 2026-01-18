@@ -41,8 +41,22 @@ describe('createGameFlowSlice', () => {
         gameState: {
             phase: string;
             candlelightEnabled: boolean;
-            roundInfo: { nightCount: number; dayCount: number; totalRounds: number };
-            seats: { id: number; userId: string; userName: string; roleId: string | null; isDead: boolean }[];
+            roundInfo: { nightCount: number; dayCount: number; nominationCount: number; totalRounds: number };
+            seats: {
+                id: number;
+                userId: string;
+                userName: string;
+                roleId: string | null;
+                realRoleId: string | null;
+                seenRoleId: string | null;
+                isDead: boolean;
+                hasGhostVote: boolean;
+                reminders: unknown[];
+                isHandRaised: boolean;
+                isNominated: boolean;
+                hasUsedAbility: boolean;
+                statuses: unknown[];
+            }[];
             nightQueue: string[];
             nightCurrentIndex: number;
             voting: {
@@ -89,11 +103,11 @@ describe('createGameFlowSlice', () => {
             gameState: {
                 phase: 'SETUP',
                 candlelightEnabled: false,
-                roundInfo: { nightCount: 0, dayCount: 0, totalRounds: 0 },
+                roundInfo: { nightCount: 0, dayCount: 0, nominationCount: 0, totalRounds: 0 },
                 seats: [
-                    { id: 0, userId: 'user1', userName: '玩家1', roleId: 'washerwoman', realRoleId: 'washerwoman', isDead: false },
-                    { id: 1, userId: 'user2', userName: '玩家2', roleId: 'imp', realRoleId: 'imp', isDead: false },
-                    { id: 2, userId: 'user3', userName: '玩家3', roleId: 'empath', realRoleId: 'empath', isDead: false }
+                    { id: 0, userId: 'user1', userName: '玩家1', roleId: 'washerwoman', realRoleId: 'washerwoman', seenRoleId: 'washerwoman', isDead: false, hasGhostVote: true, reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] },
+                    { id: 1, userId: 'user2', userName: '玩家2', roleId: 'imp', realRoleId: 'imp', seenRoleId: 'imp', isDead: false, hasGhostVote: true, reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] },
+                    { id: 2, userId: 'user3', userName: '玩家3', roleId: 'empath', realRoleId: 'empath', seenRoleId: 'empath', isDead: false, hasGhostVote: true, reminders: [], isHandRaised: false, isNominated: false, hasUsedAbility: false, statuses: [] }
                 ],
                 nightQueue: [],
                 nightCurrentIndex: -1,

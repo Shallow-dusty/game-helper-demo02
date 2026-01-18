@@ -16,56 +16,78 @@ import type { Seat, GameState } from '../../../../src/types';
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 1,
-    index: 0,
-    isEmpty: false,
+    userId: null,
+    userName: '',
     isDead: false,
     hasGhostVote: true,
-    isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
-    hasUsedAbility: false,
-    notes: [],
+    roleId: null,
+    realRoleId: null,
+    seenRoleId: null,
     reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     ...overrides
   };
 }
 
+// 创建测试 GameState
+function createTestGameState(overrides: Partial<GameState> = {}): GameState {
+  return {
+    roomId: 'test-room',
+    currentScriptId: 'tb',
+    phase: 'SETUP',
+    setupPhase: 'ASSIGNING',
+    rolesRevealed: false,
+    allowWhispers: true,
+    vibrationEnabled: false,
+    seats: [
+      createTestSeat({ id: 1, userId: 'user1', userName: '玩家1', roleId: 'washerwoman', realRoleId: 'washerwoman', seenRoleId: 'washerwoman' }),
+      createTestSeat({ id: 2, userId: 'user2', userName: '玩家2', roleId: 'imp', realRoleId: 'imp', seenRoleId: 'imp' }),
+      createTestSeat({ id: 3, userId: 'user3', userName: '玩家3', roleId: 'empath', realRoleId: 'empath', seenRoleId: 'empath' })
+    ],
+    swapRequests: [],
+    messages: [],
+    gameOver: { isOver: false, winner: null, reason: '' },
+    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    nightQueue: [],
+    nightCurrentIndex: 0,
+    voting: null,
+    customScripts: {},
+    customRoles: {},
+    voteHistory: [],
+    roundInfo: {
+      dayCount: 0,
+      nightCount: 0,
+      nominationCount: 0,
+      totalRounds: 0
+    },
+    storytellerNotes: [],
+    skillDescriptionMode: 'simple',
+    aiMessages: [],
+    nightActionRequests: [],
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: [],
+    ...overrides
+  };
+}
+
+// Mock store state 类型定义
+interface MockStoreState {
+  gameState: GameState | null;
+  sync: () => void;
+}
+
 // Mock store state
 const createMockStore = () => {
-  const state: {
-    gameState: Partial<GameState> | null;
-    sync: () => void;
-  } = {
-    gameState: {
-      seats: [
-        createTestSeat({ id: 1, index: 0, userId: 'user1', roleId: 'washerwoman', realRoleId: 'washerwoman' }),
-        createTestSeat({ id: 2, index: 1, userId: 'user2', roleId: 'imp', realRoleId: 'imp' }),
-        createTestSeat({ id: 3, index: 2, userId: 'user3', roleId: 'empath', realRoleId: 'empath' })
-      ],
-      currentPhase: 'SETUP',
-      phase: 'SETUP',
-      currentScriptId: 'tb',
-      roundInfo: {
-        dayCount: 0,
-        nightCount: 0,
-        nominations: [],
-        executions: [],
-        currentNomination: null
-      },
-      nightQueue: [],
-      nightCurrentIndex: 0,
-      interactionLog: [],
-      candlelightEnabled: false,
-      messages: [],
-      isActive: true
-    } as Partial<GameState>,
+  const state: MockStoreState = {
+    gameState: createTestGameState(),
     sync: vi.fn()
   };
 
-  const set = vi.fn((fn: (state: typeof state) => typeof state) => {
+  const set = vi.fn((fn: (state: MockStoreState) => MockStoreState) => {
     fn(state);
   });
 
@@ -82,7 +104,8 @@ describe('Phase Slice', () => {
     mockStore = createMockStore();
     phaseSlice = createPhaseSlice(
       mockStore.set as never,
-      mockStore.get as never
+      mockStore.get as never,
+      {} as never
     );
   });
 
@@ -107,7 +130,8 @@ describe('Features Slice', () => {
     mockStore = createMockStore();
     featuresSlice = createFeaturesSlice(
       mockStore.set as never,
-      mockStore.get as never
+      mockStore.get as never,
+      {} as never
     );
   });
 
@@ -122,7 +146,8 @@ describe('Features Slice', () => {
     it('should call set when adding interaction log', () => {
       featuresSlice.addInteractionLog({
         type: 'phase_change',
-        description: 'Test log'
+        description: 'Test log',
+        isConfirmed: true
       });
       expect(mockStore.set).toHaveBeenCalled();
     });
@@ -137,7 +162,8 @@ describe('Lifecycle Slice', () => {
     mockStore = createMockStore();
     lifecycleSlice = createLifecycleSlice(
       mockStore.set as never,
-      mockStore.get as never
+      mockStore.get as never,
+      {} as never
     );
   });
 
@@ -242,7 +268,8 @@ describe('Combined Flow Slice', () => {
     mockStore = createMockStore();
     flowSlice = createGameFlowSlice(
       mockStore.set as never,
-      mockStore.get as never
+      mockStore.get as never,
+      {} as never
     );
   });
 

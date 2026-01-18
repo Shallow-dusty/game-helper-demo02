@@ -157,7 +157,7 @@ describe('PlayerNotebook', () => {
     fireEvent.click(addButton);
 
     expect(mockLocalStorage.player_notes).toBeDefined();
-    const savedNotes = JSON.parse(mockLocalStorage.player_notes);
+    const savedNotes = JSON.parse(mockLocalStorage.player_notes || '[]');
     expect(savedNotes).toHaveLength(1);
     expect(savedNotes[0].content).toBe('Saved note');
   });

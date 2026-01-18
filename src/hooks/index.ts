@@ -4,7 +4,7 @@ export { useSoundEffect, FOLEY_SOUNDS } from './useSoundEffect';
 export { useNomination } from './useNomination';
 export { useGameInteractions } from './useGameInteractions';
 export { useDeathEcho } from './useDeathEcho';
-export { useGhostlyVision } from './useGhostlyVision';
+export { useGhostlyVision } from '../components/game/GhostlyVisionOverlay';
 export type { FoleySoundId } from './useSoundEffect';
 export type { UseNominationReturn } from './useNomination';
 export type { UseGameInteractionsReturn } from './useGameInteractions';

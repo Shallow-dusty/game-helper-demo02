@@ -32,34 +32,31 @@ vi.mock('../../../../src/lib/supabaseService', () => ({
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 1,
-    index: 0,
-    isEmpty: false,
-    isDead: false,
-    hasGhostVote: true,
-    isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
-    hasUsedAbility: false,
-    notes: [],
-    reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
     userId: null,
     userName: '座位 1',
+    isDead: false,
+    hasGhostVote: true,
     roleId: null,
-    isVirtual: false,
+    realRoleId: null,
+    seenRoleId: null,
+    reminders: [],
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     ...overrides
   };
 }
 
 // Mock store state
 const createMockStore = () => {
-  const state: {
+  type MockStoreState = {
     gameState: Partial<GameState> | null;
     user: { id: string; name: string; roomId: string } | null;
     sync: () => void;
-  } = {
+  };
+
+  const state: MockStoreState = {
     gameState: {
       seats: [
         createTestSeat({ id: 0, userId: 'user1', userName: 'Player1' }),
@@ -72,13 +69,13 @@ const createMockStore = () => {
       phase: 'DAY',
       voteHistory: [],
       messages: [],
-      roundInfo: { dayCount: 1, nightCount: 1 }
+      roundInfo: { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 1 }
     } as Partial<GameState>,
     user: { id: 'user1', name: 'Player1', roomId: 'room123' },
     sync: vi.fn()
   };
 
-  const set = vi.fn((fn: (state: typeof state) => void) => {
+  const set = vi.fn((fn: (state: MockStoreState) => void) => {
     fn(state);
   });
 
@@ -94,7 +91,10 @@ describe('createVotingSlice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore = createMockStore();
-    votingSlice = createVotingSlice(mockStore.set, mockStore.get, {});
+    votingSlice = (createVotingSlice as any)(
+      mockStore.set,
+      mockStore.get
+    );
   });
 
   describe('startVote', () => {
@@ -324,6 +324,7 @@ describe('createVotingSlice', () => {
 
     it('should trigger game over when demon is executed', () => {
       vi.mocked(checkGameOver).mockReturnValue({
+        isOver: true,
         winner: 'GOOD',
         reason: '恶魔被处决'
       });
@@ -336,6 +337,7 @@ describe('createVotingSlice', () => {
 
     it('should add game over message', () => {
       vi.mocked(checkGameOver).mockReturnValue({
+        isOver: true,
         winner: 'GOOD',
         reason: '恶魔被处决'
       });
@@ -351,6 +353,7 @@ describe('createVotingSlice', () => {
 
     it('should show evil wins correctly', () => {
       vi.mocked(checkGameOver).mockReturnValue({
+        isOver: true,
         winner: 'EVIL',
         reason: '圣徒被处决'
       });

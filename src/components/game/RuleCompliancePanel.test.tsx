@@ -68,14 +68,15 @@ describe('RuleCompliancePanel', () => {
     userId: 'user1',
     isDead: false,
     isVirtual: false,
-    hasVoted: false,
-    ghostVotes: 1,
     isHandRaised: false,
     isNominated: false,
+    roleId: null,
     realRoleId: null,
-    shownRoleId: null,
-    canNominate: true,
-    canVote: true,
+    seenRoleId: null,
+    hasGhostVote: false,
+    hasUsedAbility: false,
+    statuses: [],
+    reminders: [],
     ...overrides,
   });
 
@@ -141,7 +142,7 @@ describe('RuleCompliancePanel', () => {
     render(<RuleCompliancePanel {...defaultProps} />);
 
     // Find the backdrop (first motion div with onClick)
-    const backdrop = screen.getAllByTestId('motion-div')[0];
+    const backdrop = screen.getAllByTestId('motion-div')[0]!;
     fireEvent.click(backdrop);
 
     expect(mockOnClose).toHaveBeenCalled();
@@ -151,7 +152,7 @@ describe('RuleCompliancePanel', () => {
     render(<RuleCompliancePanel {...defaultProps} />);
 
     // Find the panel content (second motion div)
-    const panelContent = screen.getAllByTestId('motion-div')[1];
+    const panelContent = screen.getAllByTestId('motion-div')[1]!;
     fireEvent.click(panelContent);
 
     expect(mockOnClose).not.toHaveBeenCalled();

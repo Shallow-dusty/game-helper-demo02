@@ -7,6 +7,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createGameCoreSlice } from '../../../../src/store/slices/game/core';
 import type { GameState, Seat } from '../../../../src/types';
+import type { AppState } from '../../../../src/store/types';
 
 // Mock @supabase/supabase-js to provide REALTIME_SUBSCRIBE_STATES
 vi.mock('@supabase/supabase-js', () => ({
@@ -46,31 +47,27 @@ vi.mock('../../../../src/store/slices/connection', () => ({
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 0,
-    index: 0,
-    isEmpty: false,
     isDead: false,
     hasGhostVote: true,
     isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
     statuses: [],
     hasUsedAbility: false,
-    notes: [],
     reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
     userId: null,
     userName: '座位 1',
     roleId: null,
+    realRoleId: null,
+    seenRoleId: null,
     isVirtual: false,
     isReady: false,
+    isHandRaised: false,
     ...overrides
   };
 }
 
 // Mock store state
 const createMockStore = () => {
-  const state: {
+  interface MockState {
     gameState: Partial<GameState> | null;
     user: { id: string; name: string; roomId: string; isSeated?: boolean } | null;
     connectionStatus: string;
@@ -78,7 +75,9 @@ const createMockStore = () => {
     sync: () => void;
     _setIsReceivingUpdate?: (value: boolean) => void;
     _setRealtimeChannel?: (channel: unknown) => void;
-  } = {
+  }
+
+  const state: MockState = {
     gameState: {
       seats: [
         createTestSeat({ id: 0, userId: null, userName: '座位 1' }),
@@ -97,7 +96,7 @@ const createMockStore = () => {
     _setRealtimeChannel: vi.fn()
   };
 
-  const set = vi.fn((fn: (state: typeof state) => void) => {
+  const set = vi.fn((fn: ((state: MockState) => void) | Partial<MockState>) => {
     if (typeof fn === 'function') {
       fn(state);
     } else {
@@ -117,7 +116,11 @@ describe('createGameCoreSlice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore = createMockStore();
-    coreSlice = createGameCoreSlice(mockStore.set, mockStore.get, {});
+    coreSlice = createGameCoreSlice(
+      mockStore.set as unknown as (fn: (state: AppState) => void) => void,
+      mockStore.get as unknown as () => AppState,
+      {} as unknown as any
+    );
   });
 
   describe('toggleReady', () => {
@@ -195,7 +198,6 @@ describe('createGameCoreSlice', () => {
 
   describe('removeSeat', () => {
     it('should remove the last seat', () => {
-      const initialCount = mockStore.state.gameState!.seats!.length;
       // Add more seats to allow removal
       mockStore.state.gameState!.seats = Array.from({ length: 7 }, (_, i) =>
         createTestSeat({ id: i, userName: `座位 ${i + 1}` })
@@ -376,7 +378,6 @@ describe('createGameCoreSlice', () => {
     it('should handle realtime postgres_changes callback with valid data', async () => {
       // Capture the callbacks
       let postgresChangesCallback: ((payload: unknown) => void) | null = null;
-      let subscribeCallback: ((status: string) => void) | null = null;
 
       const { supabase } = await import('../../../../src/store/slices/connection');
 
@@ -387,7 +388,6 @@ describe('createGameCoreSlice', () => {
           return mockChannel;
         }),
         subscribe: vi.fn().mockImplementation((cb: (status: string) => void) => {
-          subscribeCallback = cb;
           // Immediately call with SUBSCRIBED
           if (cb) cb('SUBSCRIBED');
           return { unsubscribe: vi.fn() };
@@ -412,7 +412,7 @@ describe('createGameCoreSlice', () => {
           }
         };
 
-        postgresChangesCallback(mockPayload);
+        (postgresChangesCallback as (payload: unknown) => void)(mockPayload);
 
         // Verify the callback processed the data
         expect(mockStore.state._setIsReceivingUpdate).toHaveBeenCalledWith(true);
@@ -443,7 +443,7 @@ describe('createGameCoreSlice', () => {
       expect(postgresChangesCallback).toBeDefined();
       if (postgresChangesCallback) {
         // Trigger callback with undefined new data
-        postgresChangesCallback({ new: undefined });
+        (postgresChangesCallback as (payload: unknown) => void)({ new: undefined });
 
         // _setIsReceivingUpdate should NOT be called when no data
         expect(mockStore.state._setIsReceivingUpdate).not.toHaveBeenCalled();
@@ -473,7 +473,7 @@ describe('createGameCoreSlice', () => {
       expect(postgresChangesCallback).toBeDefined();
       if (postgresChangesCallback) {
         // Trigger callback with new object but no data property
-        postgresChangesCallback({ new: {} });
+        (postgresChangesCallback as (payload: unknown) => void)({ new: {} });
 
         // _setIsReceivingUpdate should NOT be called when no data property
         expect(mockStore.state._setIsReceivingUpdate).not.toHaveBeenCalled();
@@ -499,7 +499,7 @@ describe('createGameCoreSlice', () => {
 
       expect(subscribeCallback).toBeDefined();
       if (subscribeCallback) {
-        subscribeCallback('SUBSCRIBED');
+        (subscribeCallback as (status: string) => void)('SUBSCRIBED');
         expect(mockStore.state.connectionStatus).toBe('connected');
         expect(mockStore.state.isOffline).toBe(false);
       }
@@ -524,7 +524,7 @@ describe('createGameCoreSlice', () => {
 
       expect(subscribeCallback).toBeDefined();
       if (subscribeCallback) {
-        subscribeCallback('CLOSED');
+        (subscribeCallback as (status: string) => void)('CLOSED');
         expect(mockStore.state.connectionStatus).toBe('disconnected');
       }
     });
@@ -548,7 +548,7 @@ describe('createGameCoreSlice', () => {
 
       expect(subscribeCallback).toBeDefined();
       if (subscribeCallback) {
-        subscribeCallback('CHANNEL_ERROR');
+        (subscribeCallback as (status: string) => void)('CHANNEL_ERROR');
         expect(mockStore.state.connectionStatus).toBe('reconnecting');
       }
     });

@@ -250,7 +250,7 @@ export const EasterEggProvider: React.FC<EasterEggProviderProps> = ({
             if (eligibleEggs.length === 0) return prev
 
             // 取最高优先级的彩蛋
-            const eggToTrigger = eligibleEggs[0]
+            const eggToTrigger = eligibleEggs[0]!
 
             const event: EasterEggEvent = {
                 eggId: eggToTrigger.id,

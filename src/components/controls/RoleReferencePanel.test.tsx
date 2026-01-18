@@ -190,12 +190,12 @@ describe('RoleReferencePanel', () => {
     const searchInput = screen.getByPlaceholderText('controls.roleReference.searchPlaceholder');
     fireEvent.change(searchInput, { target: { value: '测试' } });
 
-    expect(searchInput.value).toBe('测试');
+    expect((searchInput as HTMLInputElement).value).toBe('测试');
 
     const clearButton = screen.getAllByText('✕').find(btn => btn.closest('.absolute'));
     if (clearButton) {
       fireEvent.click(clearButton);
-      expect(searchInput.value).toBe('');
+      expect((searchInput as HTMLInputElement).value).toBe('');
     }
   });
 });

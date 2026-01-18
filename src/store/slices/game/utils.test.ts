@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { getInitialState, applyRoleAssignment, fallbackTownsfolk } from './utils';
-import { Seat, GameState } from '../../../types';
+import { Seat, GameState, SeatStatus } from '../../../types';
 
 describe('store/slices/game/utils', () => {
   describe('getInitialState', () => {
@@ -96,33 +96,15 @@ describe('store/slices/game/utils', () => {
   });
 
   describe('applyRoleAssignment', () => {
-    const createMockSeat = (id: number): Seat => ({
-      id,
-      userId: null,
-      userName: `座位 ${id + 1}`,
-      isDead: false,
-      hasGhostVote: true,
-      roleId: null,
-      realRoleId: null,
-      seenRoleId: null,
-      reminders: [],
-      isHandRaised: false,
-      isNominated: false,
-      hasUsedAbility: false,
-      statuses: [],
-      voteLocked: false,
-      isVirtual: false,
-    });
-
-    const createMockGameState = (seatCount = 5): GameState => 
+    const createMockGameState = (seatCount = 5): GameState =>
       getInitialState('TEST', seatCount, 'tb');
 
     it('should assign role to seat', () => {
       const state = createMockGameState();
-      const seat = state.seats[0];
-      
+      const seat = state.seats[0]!;
+
       applyRoleAssignment(state, seat, 'washerwoman');
-      
+
       expect(seat.realRoleId).toBe('washerwoman');
       expect(seat.seenRoleId).toBe('washerwoman');
       expect(seat.roleId).toBe('washerwoman');
@@ -130,42 +112,42 @@ describe('store/slices/game/utils', () => {
 
     it('should reset hasUsedAbility when assigning role', () => {
       const state = createMockGameState();
-      const seat = state.seats[0];
+      const seat = state.seats[0]!;
       seat.hasUsedAbility = true;
-      
+
       applyRoleAssignment(state, seat, 'chef');
-      
+
       expect(seat.hasUsedAbility).toBe(false);
     });
 
     it('should reset statuses when assigning role', () => {
       const state = createMockGameState();
-      const seat = state.seats[0];
-      seat.statuses = ['poisoned', 'drunk'];
-      
+      const seat = state.seats[0]!;
+      seat.statuses = ['POISONED', 'DRUNK'] as SeatStatus[];
+
       applyRoleAssignment(state, seat, 'empath');
-      
+
       expect(seat.statuses).toEqual([]);
     });
 
     it('should handle null role assignment', () => {
       const state = createMockGameState();
-      const seat = state.seats[0];
+      const seat = state.seats[0]!;
       seat.realRoleId = 'washerwoman';
       seat.seenRoleId = 'washerwoman';
-      
+
       applyRoleAssignment(state, seat, null);
-      
+
       expect(seat.realRoleId).toBeNull();
       expect(seat.seenRoleId).toBeNull();
     });
 
     it('should assign fake townsfolk role to drunk', () => {
       const state = createMockGameState();
-      const seat = state.seats[0];
-      
+      const seat = state.seats[0]!;
+
       applyRoleAssignment(state, seat, 'drunk');
-      
+
       expect(seat.realRoleId).toBe('drunk');
       // seenRoleId should be a townsfolk
       expect(seat.seenRoleId).not.toBe('drunk');
@@ -175,10 +157,10 @@ describe('store/slices/game/utils', () => {
     it('should assign demon role to lunatic', () => {
       const state = createMockGameState();
       state.currentScriptId = 'tb';
-      const seat = state.seats[0];
-      
+      const seat = state.seats[0]!;
+
       applyRoleAssignment(state, seat, 'lunatic');
-      
+
       expect(seat.realRoleId).toBe('lunatic');
       // seenRoleId should be a demon (imp for TB)
       expect(seat.seenRoleId).toBeDefined();
@@ -186,10 +168,10 @@ describe('store/slices/game/utils', () => {
 
     it('should assign fake townsfolk role to marionette', () => {
       const state = createMockGameState();
-      const seat = state.seats[0];
-      
+      const seat = state.seats[0]!;
+
       applyRoleAssignment(state, seat, 'marionette');
-      
+
       expect(seat.realRoleId).toBe('marionette');
       // seenRoleId should be a townsfolk
       expect(seat.seenRoleId).not.toBe('marionette');
@@ -199,14 +181,14 @@ describe('store/slices/game/utils', () => {
     it('should not reuse already assigned roles for fake assignments', () => {
       const state = createMockGameState(3);
       // Assign washerwoman to first seat
-      state.seats[0].realRoleId = 'washerwoman';
-      state.seats[0].seenRoleId = 'washerwoman';
-      
+      state.seats[0]!.realRoleId = 'washerwoman';
+      state.seats[0]!.seenRoleId = 'washerwoman';
+
       // Assign drunk to second seat
-      applyRoleAssignment(state, state.seats[1], 'drunk');
-      
+      applyRoleAssignment(state, state.seats[1]!, 'drunk');
+
       // The fake role should not be washerwoman
-      expect(state.seats[1].seenRoleId).not.toBe('washerwoman');
+      expect(state.seats[1]!.seenRoleId).not.toBe('washerwoman');
     });
 
     it('should handle undefined seat gracefully', () => {

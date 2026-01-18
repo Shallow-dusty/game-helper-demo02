@@ -25,13 +25,11 @@ vi.mock('../ui/button', () => ({
 describe('ChainReactionModal', () => {
   const mockEvent: ChainReactionEvent = {
     type: 'death',
-    description: '玩家死亡事件',
+    title: '玩家死亡事件',
     message: '玩家死亡消息',
-    seatId: 1,
-    priority: 10,
-    id: 'event-1',
-    isAutomatic: false,
+    priority: 'medium',
     affectedSeatIds: [1],
+    suggestedAction: 'mark_dead',
   };
 
   const baseProps = {

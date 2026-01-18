@@ -1,10 +1,24 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { FloatingNote } from './FloatingNote';
 import { StorytellerNote } from '../../types';
+
+// Type for FloatingNote props callbacks
+type UpdatePositionFn = (id: string, x: number, y: number) => void;
+type CloseFn = (id: string) => void;
+type ColorChangeFn = (id: string, color: string) => void;
+type ToggleCollapseFn = (id: string) => void;
+
+interface TestProps {
+  note: StorytellerNote;
+  onUpdatePosition: Mock<UpdatePositionFn>;
+  onClose: Mock<CloseFn>;
+  onColorChange: Mock<ColorChangeFn>;
+  onToggleCollapse: Mock<ToggleCollapseFn>;
+}
 
 describe('FloatingNote', () => {
   // Base note fixture for tests
@@ -20,18 +34,12 @@ describe('FloatingNote', () => {
     ...overrides,
   });
 
-  const createBaseProps = (overrides?: Partial<{
-    note: StorytellerNote;
-    onUpdatePosition: ReturnType<typeof vi.fn>;
-    onClose: ReturnType<typeof vi.fn>;
-    onColorChange: ReturnType<typeof vi.fn>;
-    onToggleCollapse: ReturnType<typeof vi.fn>;
-  }>) => ({
+  const createBaseProps = (overrides?: Partial<TestProps>): TestProps => ({
     note: createBaseNote(),
-    onUpdatePosition: vi.fn(),
-    onClose: vi.fn(),
-    onColorChange: vi.fn(),
-    onToggleCollapse: vi.fn(),
+    onUpdatePosition: vi.fn<UpdatePositionFn>(),
+    onClose: vi.fn<CloseFn>(),
+    onColorChange: vi.fn<ColorChangeFn>(),
+    onToggleCollapse: vi.fn<ToggleCollapseFn>(),
     ...overrides,
   });
 
@@ -240,9 +248,9 @@ describe('FloatingNote', () => {
     });
 
     it('does not initiate drag when clicking action buttons', () => {
-      const onUpdatePosition = vi.fn();
+      const onUpdatePosition = vi.fn<UpdatePositionFn>();
       const props = createBaseProps({ onUpdatePosition });
-      const { container } = render(<FloatingNote {...props} />);
+      render(<FloatingNote {...props} />);
 
       // Find the button container (has stopPropagation)
       const closeButton = screen.getByTitle('game.floatingNote.minimize');

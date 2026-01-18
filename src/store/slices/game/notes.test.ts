@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // Mock note type
 interface StorytellerNote {
@@ -36,8 +36,10 @@ describe('createGameNotesSlice', () => {
       });
       
       expect(state.gameState.storytellerNotes).toHaveLength(1);
-      expect(state.gameState.storytellerNotes[0].content).toBe(content);
-      expect(state.gameState.storytellerNotes[0].type).toBe('manual');
+      const note = state.gameState.storytellerNotes[0];
+      expect(note).toBeDefined();
+      expect(note!.content).toBe(content);
+      expect(note!.type).toBe('manual');
     });
   });
 
@@ -55,8 +57,10 @@ describe('createGameNotesSlice', () => {
         color,
       });
       
-      expect(state.gameState.storytellerNotes[0].type).toBe('auto');
-      expect(state.gameState.storytellerNotes[0].color).toBe('red');
+      const note = state.gameState.storytellerNotes[0];
+      expect(note).toBeDefined();
+      expect(note!.type).toBe('auto');
+      expect(note!.color).toBe('red');
     });
   });
 
@@ -72,8 +76,10 @@ describe('createGameNotesSlice', () => {
       
       const note = state.gameState.storytellerNotes.find(n => n.id === 'note1');
       if (note) note.content = '更新后的内容';
-      
-      expect(state.gameState.storytellerNotes[0].content).toBe('更新后的内容');
+
+      const updatedNote = state.gameState.storytellerNotes[0];
+      expect(updatedNote).toBeDefined();
+      expect(updatedNote!.content).toBe('更新后的内容');
     });
   });
 
@@ -86,9 +92,11 @@ describe('createGameNotesSlice', () => {
       );
       
       state.gameState.storytellerNotes = state.gameState.storytellerNotes.filter(n => n.id !== 'note1');
-      
+
       expect(state.gameState.storytellerNotes).toHaveLength(1);
-      expect(state.gameState.storytellerNotes[0].id).toBe('note2');
+      const remainingNote = state.gameState.storytellerNotes[0];
+      expect(remainingNote).toBeDefined();
+      expect(remainingNote!.id).toBe('note2');
     });
   });
 
@@ -105,8 +113,10 @@ describe('createGameNotesSlice', () => {
       
       const note = state.gameState.storytellerNotes.find(n => n.id === 'note1');
       if (note) note.isFloating = !note.isFloating;
-      
-      expect(state.gameState.storytellerNotes[0].isFloating).toBe(true);
+
+      const toggledNote = state.gameState.storytellerNotes[0];
+      expect(toggledNote).toBeDefined();
+      expect(toggledNote!.isFloating).toBe(true);
     });
 
     it('toggles floating state off', () => {
@@ -121,8 +131,10 @@ describe('createGameNotesSlice', () => {
       
       const note = state.gameState.storytellerNotes.find(n => n.id === 'note1');
       if (note) note.isFloating = !note.isFloating;
-      
-      expect(state.gameState.storytellerNotes[0].isFloating).toBe(false);
+
+      const toggledNote = state.gameState.storytellerNotes[0];
+      expect(toggledNote).toBeDefined();
+      expect(toggledNote!.isFloating).toBe(false);
     });
   });
 
@@ -135,11 +147,13 @@ describe('createGameNotesSlice', () => {
         timestamp: Date.now(),
         type: 'manual',
       });
-      
+
       const note = state.gameState.storytellerNotes.find(n => n.id === 'note1');
       if (note) note.position = { x: 100, y: 200 };
-      
-      expect(state.gameState.storytellerNotes[0].position).toEqual({ x: 100, y: 200 });
+
+      const positionedNote = state.gameState.storytellerNotes[0];
+      expect(positionedNote).toBeDefined();
+      expect(positionedNote!.position).toEqual({ x: 100, y: 200 });
     });
   });
 
@@ -152,11 +166,13 @@ describe('createGameNotesSlice', () => {
         timestamp: Date.now(),
         type: 'manual',
       });
-      
+
       const note = state.gameState.storytellerNotes.find(n => n.id === 'note1');
       if (note) note.color = 'blue';
-      
-      expect(state.gameState.storytellerNotes[0].color).toBe('blue');
+
+      const coloredNote = state.gameState.storytellerNotes[0];
+      expect(coloredNote).toBeDefined();
+      expect(coloredNote!.color).toBe('blue');
     });
   });
 
@@ -170,11 +186,13 @@ describe('createGameNotesSlice', () => {
         type: 'manual',
         isCollapsed: false,
       });
-      
+
       const note = state.gameState.storytellerNotes.find(n => n.id === 'note1');
       if (note) note.isCollapsed = !note.isCollapsed;
-      
-      expect(state.gameState.storytellerNotes[0].isCollapsed).toBe(true);
+
+      const collapsedNote = state.gameState.storytellerNotes[0];
+      expect(collapsedNote).toBeDefined();
+      expect(collapsedNote!.isCollapsed).toBe(true);
     });
   });
 });

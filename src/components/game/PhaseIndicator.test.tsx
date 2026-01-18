@@ -372,7 +372,7 @@ describe('PhaseIndicator', () => {
 
   it('renders voting phase with nominee info', () => {
     const seats = createMockSeats(8, { deadCount: 1 });
-    seats[3].userName = 'Alice';
+    seats[3]!.userName = 'Alice';
 
     vi.mocked(storeModule.useStore).mockImplementation((selector: (state: unknown) => unknown) => {
       const state = {
@@ -434,7 +434,7 @@ describe('PhaseIndicator', () => {
 
   it('renders voting phase with empty username (shows empty)', () => {
     const seats = createMockSeats(6);
-    seats[2].userName = '';
+    seats[2]!.userName = '';
 
     vi.mocked(storeModule.useStore).mockImplementation((selector: (state: unknown) => unknown) => {
       const state = {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../../store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { ChatMessage, Seat } from '../../types';
 import { InfoCard } from '../ui/InfoCard';
 import { useTranslation } from 'react-i18next';
@@ -80,12 +80,11 @@ const VIRTUAL_SCROLL_THRESHOLD = 50;
 
 // 优化选择器 - 细粒度订阅
 const useChatState = () => useStore(
-    state => ({
+    useShallow(state => ({
         messages: state.gameState?.messages ?? [],
         seats: state.gameState?.seats ?? [],
         allowWhispers: state.gameState?.allowWhispers ?? true,
-    }),
-    shallow
+    }))
 );
 
 export const Chat = () => {
@@ -174,36 +173,36 @@ export const Chat = () => {
     // 虚拟滚动相关状态
     const containerRef = useRef<HTMLDivElement>(null);
     const [listHeight, setListHeight] = useState(400);
-    
+
     // 是否启用虚拟滚动
     const useVirtualScroll = filteredMessages.length > VIRTUAL_SCROLL_THRESHOLD;
 
     // 固定行高（简化实现）
-    const rowHeight = 80;
+    const ROW_HEIGHT = 80;
 
     // 监听容器高度变化
     useEffect(() => {
         if (!containerRef.current) return;
-        
+
         const resizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 setListHeight(entry.contentRect.height);
             }
         });
-        
+
         resizeObserver.observe(containerRef.current);
         return () => resizeObserver.disconnect();
     }, []);
 
     // 虚拟列表行组件 - react-window v2 要求返回 ReactElement，不能返回 null
-    const RowComponent = useCallback(({ index, style }: { index: number; style: React.CSSProperties }) => {
+    const renderRow = useCallback(({ index, style }: { index: number; style: React.CSSProperties }) => {
         const msg = filteredMessages[index];
         if (!msg) {
             // 返回空占位符而不是 null，满足 react-window v2 的类型要求
             return <div style={style} />;
         }
         const isMe = msg.senderId === user?.id;
-        
+
         return (
             <MessageItem
                 msg={msg}
@@ -260,12 +259,12 @@ export const Chat = () => {
                 )}
 
                 {filteredMessages.length > 0 && useVirtualScroll ? (
-                    <List<Record<string, never>>
+                    <List
                         listRef={listApiRef as React.RefObject<{ scrollToRow: (params: { index: number; align?: string }) => void } | null>}
                         defaultHeight={listHeight}
                         rowCount={filteredMessages.length}
-                        rowHeight={rowHeight}
-                        rowComponent={RowComponent}
+                        rowHeight={ROW_HEIGHT}
+                        rowComponent={renderRow}
                         rowProps={{}}
                         className="scrollbar-thin h-full w-full"
                     />

@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { useStore } from './store';
 import { useSandboxStore } from './sandboxStore';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 // 加载状态组件 - 立即加载
 import {
@@ -66,42 +66,36 @@ const getViewportMetrics = () => {
 
 // 优化的 App 状态选择器
 const useAppState = () => useStore(
-  state => ({
+  useShallow(state => ({
     user: state.user,
-    hasGameState: !!state.gameState,
-    gamePhase: state.gameState?.phase,
-    gameRoomId: state.gameState?.roomId,
-  }),
-  shallow
+  }))
 );
 
 const useAppUIState = () => useStore(
-  state => ({
+  useShallow(state => ({
     isAudioBlocked: state.isAudioBlocked,
     roleReferenceMode: state.roleReferenceMode,
     isRolePanelOpen: state.isRolePanelOpen,
     isSidebarExpanded: state.isSidebarExpanded,
     isTruthRevealOpen: state.isTruthRevealOpen,
     isReportOpen: state.isReportOpen,
-  }),
-  shallow
+  }))
 );
 
 const useAppActions = () => useStore(
-  state => ({
+  useShallow(state => ({
     toggleAudioPlay: state.toggleAudioPlay,
     openRolePanel: state.openRolePanel,
     closeRolePanel: state.closeRolePanel,
     toggleSidebar: state.toggleSidebar,
     closeTruthReveal: state.closeTruthReveal,
     closeReport: state.closeReport,
-  }),
-  shallow
+  }))
 );
 
 const App = () => {
   // 使用优化的选择器
-  const { user, hasGameState, gamePhase, gameRoomId } = useAppState();
+  const { user } = useAppState();
   const {
     isAudioBlocked,
     roleReferenceMode,

@@ -19,24 +19,18 @@ import type { AbilityContext } from '../../../src/lib/roleAutomation/types';
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 0,
-    index: 0,
-    isEmpty: false,
-    isDead: false,
-    hasGhostVote: true,
-    isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
-    hasUsedAbility: false,
-    notes: [],
-    reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
     userId: 'user1',
     userName: 'Player1',
+    isDead: false,
+    hasGhostVote: true,
     roleId: null,
     realRoleId: null,
     seenRoleId: null,
+    reminders: [],
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     ...overrides
   };
 }
@@ -44,24 +38,33 @@ function createTestSeat(overrides: Partial<Seat> = {}): Seat {
 // 创建测试游戏状态
 function createTestGameState(seats: Seat[]): GameState {
   return {
-    seats,
-    phase: 'NIGHT',
-    voting: null,
+    roomId: 'test-room',
     currentScriptId: 'tb',
-    messages: [],
-    roundInfo: { dayCount: 1, nightCount: 1 },
-    voteHistory: [],
-    storytellerNotes: [],
-    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    phase: 'NIGHT',
+    setupPhase: 'READY',
+    rolesRevealed: false,
     allowWhispers: false,
+    vibrationEnabled: true,
+    seats,
+    swapRequests: [],
+    messages: [],
+    gameOver: { isOver: false, winner: null, reason: '' },
+    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    nightQueue: [],
+    nightCurrentIndex: -1,
+    voting: null,
     customScripts: {},
     customRoles: {},
-    swapRequests: [],
-    vibrationEnabled: true,
-    nightQueue: [],
-    setupPhase: 'READY',
-    rolesRevealed: false
-  } as GameState;
+    voteHistory: [],
+    roundInfo: { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 0 },
+    storytellerNotes: [],
+    skillDescriptionMode: 'simple',
+    aiMessages: [],
+    nightActionRequests: [],
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: []
+  };
 }
 
 // 默认测试上下文
@@ -97,8 +100,8 @@ describe('processPoisoner', () => {
 
       expect(result.success).toBe(true);
       expect(result.suggestions.length).toBe(1);
-      expect(result.suggestions[0].type).toBe('action');
-      expect(result.suggestions[0].title).toBe('投毒者选择目标');
+      expect(result.suggestions[0]!.type).toBe('action');
+      expect(result.suggestions[0]!.title).toBe('投毒者选择目标');
     });
 
     it('should recommend target in FULL_AUTO mode', () => {
@@ -114,7 +117,7 @@ describe('processPoisoner', () => {
       });
 
       expect(result.success).toBe(true);
-      const options = result.suggestions[0].options;
+      const options = result.suggestions[0]!.options;
       const recommendedOption = options?.find(o => o.id === 'recommended');
       expect(recommendedOption).toBeDefined();
       expect(recommendedOption?.isRecommended).toBe(true);
@@ -133,7 +136,7 @@ describe('processPoisoner', () => {
       });
 
       expect(result.success).toBe(true);
-      const options = result.suggestions[0].options;
+      const options = result.suggestions[0]!.options;
       const recommendedOption = options?.find(o => o.id === 'recommended');
       // Should recommend the fortune_teller player (seat 1)
       expect(recommendedOption?.label).toContain('2号');
@@ -149,7 +152,7 @@ describe('processPoisoner', () => {
 
       expect(result.success).toBe(true);
       // The suggestion should ask for target selection
-      expect(result.suggestions[0].type).toBe('action');
+      expect(result.suggestions[0]!.type).toBe('action');
     });
   });
 
@@ -167,7 +170,7 @@ describe('processPoisoner', () => {
 
       // Empty array means no target selected
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('action');
+      expect(result.suggestions[0]!.type).toBe('action');
     });
 
     it('should return error for non-existent target seat', () => {
@@ -199,13 +202,13 @@ describe('processPoisoner', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('effect');
-      expect(result.suggestions[0].title).toBe('投毒者投毒');
+      expect(result.suggestions[0]!.type).toBe('effect');
+      expect(result.suggestions[0]!.title).toBe('投毒者投毒');
       expect(result.statusChanges?.length).toBe(1);
-      expect(result.statusChanges?.[0].seatId).toBe(1);
-      expect(result.statusChanges?.[0].status).toBe('POISONED');
-      expect(result.statusChanges?.[0].action).toBe('add');
-      expect(result.statusChanges?.[0].source).toBe('poisoner');
+      expect(result.statusChanges?.[0]!.seatId).toBe(1);
+      expect(result.statusChanges?.[0]!.status).toBe('POISONED');
+      expect(result.statusChanges?.[0]!.action).toBe('add');
+      expect(result.statusChanges?.[0]!.source).toBe('poisoner');
     });
 
     it('should set duration to day', () => {
@@ -219,7 +222,7 @@ describe('processPoisoner', () => {
         targetSeatIds: [1]
       });
 
-      expect(result.statusChanges?.[0].duration).toBe('day');
+      expect(result.statusChanges?.[0]!.duration).toBe('day');
     });
   });
 });
@@ -358,11 +361,11 @@ describe('processScarletWoman', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('effect');
-      expect(result.suggestions[0].title).toBe('猩红女郎变形！');
+      expect(result.suggestions[0]!.type).toBe('effect');
+      expect(result.suggestions[0]!.title).toBe('猩红女郎变形！');
       expect(result.chainReactions?.length).toBe(1);
-      expect(result.chainReactions?.[0].type).toBe('scarlet_woman_transform');
-      expect(result.chainReactions?.[0].newRoleId).toBe('imp');
+      expect(result.chainReactions?.[0]!.type).toBe('scarlet_woman_transform');
+      expect(result.chainReactions?.[0]!.newRoleId).toBe('imp');
     });
 
     it('should not transform when less than 5 alive', () => {
@@ -379,8 +382,8 @@ describe('processScarletWoman', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('info');
-      expect(result.suggestions[0].title).toBe('猩红女郎状态');
+      expect(result.suggestions[0]!.type).toBe('info');
+      expect(result.suggestions[0]!.title).toBe('猩红女郎状态');
       expect(result.chainReactions).toBeUndefined();
     });
 
@@ -396,7 +399,7 @@ describe('processScarletWoman', () => {
       const result = processScarletWoman(gameState, 0, defaultContext);
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('info');
+      expect(result.suggestions[0]!.type).toBe('info');
       expect(result.chainReactions).toBeUndefined();
     });
   });
@@ -413,7 +416,7 @@ describe('processScarletWoman', () => {
       const gameState = createTestGameState(seats);
       const result = processScarletWoman(gameState, 0, defaultContext);
 
-      expect(result.suggestions[0].suggestedResult).toContain('待机中');
+      expect(result.suggestions[0]!.suggestedResult).toContain('待机中');
     });
 
     it('should show invalid status when less than 5 alive', () => {
@@ -425,8 +428,8 @@ describe('processScarletWoman', () => {
       const gameState = createTestGameState(seats);
       const result = processScarletWoman(gameState, 0, defaultContext);
 
-      expect(result.suggestions[0].suggestedResult).toContain('无效');
-      expect(result.suggestions[0].description).toContain('不足5人');
+      expect(result.suggestions[0]!.suggestedResult).toContain('无效');
+      expect(result.suggestions[0]!.description).toContain('不足5人');
     });
   });
 
@@ -446,7 +449,7 @@ describe('processScarletWoman', () => {
         additionalData: { demonDied: true }
       });
 
-      expect(result.suggestions[0].requiresConfirmation).toBe(true);
+      expect(result.suggestions[0]!.requiresConfirmation).toBe(true);
     });
 
     it('should not require confirmation in FULL_AUTO mode', () => {
@@ -464,7 +467,7 @@ describe('processScarletWoman', () => {
         additionalData: { demonDied: true }
       });
 
-      expect(result.suggestions[0].requiresConfirmation).toBe(false);
+      expect(result.suggestions[0]!.requiresConfirmation).toBe(false);
     });
   });
 });
@@ -491,9 +494,9 @@ describe('processBaron', () => {
       const result = processBaron(gameState, 0, defaultContext);
 
       expect(result.success).toBe(true);
-      expect(result.suggestions[0].type).toBe('info');
-      expect(result.suggestions[0].title).toBe('男爵效果');
-      expect(result.suggestions[0].description).toContain('+2');
+      expect(result.suggestions[0]!.type).toBe('info');
+      expect(result.suggestions[0]!.title).toBe('男爵效果');
+      expect(result.suggestions[0]!.description).toContain('+2');
     });
 
     it('should not require confirmation', () => {
@@ -503,7 +506,7 @@ describe('processBaron', () => {
       const gameState = createTestGameState(seats);
       const result = processBaron(gameState, 0, defaultContext);
 
-      expect(result.suggestions[0].requiresConfirmation).toBe(false);
+      expect(result.suggestions[0]!.requiresConfirmation).toBe(false);
     });
   });
 });

@@ -15,7 +15,7 @@ describe('Confetti', () => {
       rotate: vi.fn(),
       fillRect: vi.fn(),
       restore: vi.fn(),
-    }));
+    })) as any;
   });
 
   afterEach(() => {

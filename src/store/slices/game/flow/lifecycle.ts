@@ -1,7 +1,6 @@
 import { StoreSlice, GameSlice } from '../../../types';
 import { addSystemMessage } from '../../../utils';
 import { calculateNightQueue } from './utils';
-import { Team } from '../../../../types';
 
 export const createLifecycleSlice: StoreSlice<Pick<GameSlice, 'startGame' | 'endGame'>> = (set, get) => ({
     startGame: () => {
@@ -23,7 +22,7 @@ export const createLifecycleSlice: StoreSlice<Pick<GameSlice, 'startGame' | 'end
         get().sync();
     },
 
-    endGame: (winner: Team, reason: string) => {
+    endGame: (winner: 'GOOD' | 'EVIL', reason: string) => {
         set((state) => {
             if (state.gameState) {
                 state.gameState.gameOver = {

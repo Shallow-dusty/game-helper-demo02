@@ -8,7 +8,7 @@
 
 import { useStore } from '../store';
 import { useMemo } from 'react';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 // ============================================================
 // 选择器工具函数
@@ -93,23 +93,21 @@ export const useIsOffline = () =>
 /** 选择游戏状态中的投票信息 */
 export const useVotingState = () =>
     useStore(
-        state => ({
+        useShallow(state => ({
             voting: state.gameState?.voting,
             phase: state.gameState?.phase,
-        }),
-        shallow
+        }))
     );
 
 /** 选择夜间行动相关信息 */
 export const useNightActionState = () =>
     useStore(
-        state => ({
+        useShallow(state => ({
             phase: state.gameState?.phase,
             nightQueue: state.gameState?.nightQueue,
             nightCurrentIndex: state.gameState?.nightCurrentIndex,
             nightActionRequests: state.gameState?.nightActionRequests,
-        }),
-        shallow
+        }))
     );
 
 /** 仅选择座位列表 - 兼容旧 API */
@@ -123,39 +121,36 @@ export const useGameMessages = () =>
 /** 选择房间基本信息 */
 export const useRoomInfo = () =>
     useStore(
-        state => ({
+        useShallow(state => ({
             roomId: state.gameState?.roomId,
             phase: state.gameState?.phase,
             currentScriptId: state.gameState?.currentScriptId,
-        }),
-        shallow
+        }))
     );
 
 /** 选择玩家信息 */
 export const usePlayerInfo = () =>
     useStore(
-        state => ({
+        useShallow(state => ({
             user: state.user,
             isStoryteller: state.user?.isStoryteller,
             isSeated: state.user?.isSeated,
-        }),
-        shallow
+        }))
     );
 
 /** 选择连接状态信息 */
 export const useConnectionState = () =>
     useStore(
-        state => ({
+        useShallow(state => ({
             connectionStatus: state.connectionStatus,
             isOffline: state.isOffline,
-        }),
-        shallow
+        }))
     );
 
 /** Grimoire 组件专用选择器 */
 export const useGrimoireState = () =>
     useStore(
-        state => ({
+        useShallow(state => ({
             seats: state.gameState?.seats,
             phase: state.gameState?.phase,
             voting: state.gameState?.voting,
@@ -163,14 +158,13 @@ export const useGrimoireState = () =>
             rolesRevealed: state.gameState?.rolesRevealed,
             candlelightEnabled: state.gameState?.candlelightEnabled,
             currentScriptId: state.gameState?.currentScriptId,
-        }),
-        shallow
+        }))
     );
 
 /** App 组件专用选择器 */
 export const useAppState = () =>
     useStore(
-        state => ({
+        useShallow(state => ({
             user: state.user,
             gameState: state.gameState ? {
                 roomId: state.gameState.roomId,
@@ -182,8 +176,7 @@ export const useAppState = () =>
             isSidebarExpanded: state.isSidebarExpanded,
             isTruthRevealOpen: state.isTruthRevealOpen,
             isReportOpen: state.isReportOpen,
-        }),
-        shallow
+        }))
     );
 
 // ============================================================
@@ -302,7 +295,7 @@ export const useDeadPlayers = () => {
 /** 选择所有游戏动作 */
 export const useGameActions = () =>
     useStore(
-        state => ({
+        useShallow(state => ({
             joinSeat: state.joinSeat,
             leaveSeat: state.leaveSeat,
             toggleDead: state.toggleDead,
@@ -322,22 +315,20 @@ export const useGameActions = () =>
             closeVote: state.closeVote,
             nextClockHand: state.nextClockHand,
             toggleHand: state.toggleHand,
-        }),
-        shallow
+        }))
     );
 
 /** 选择 UI 动作 */
 export const useUIActions = () =>
     useStore(
-        state => ({
+        useShallow(state => ({
             toggleAudioPlay: state.toggleAudioPlay,
             openRolePanel: state.openRolePanel,
             closeRolePanel: state.closeRolePanel,
             toggleSidebar: state.toggleSidebar,
             closeTruthReveal: state.closeTruthReveal,
             closeReport: state.closeReport,
-        }),
-        shallow
+        }))
     );
 
 // ============================================================
@@ -372,12 +363,11 @@ const bad = useStore(state => ({
     seats: state.gameState?.seats,
     phase: state.gameState?.phase,
 }));
-// 改为使用 shallow 比较：
+// 改为使用 useShallow 比较：
 const good = useStore(
-    state => ({
+    useShallow(state => ({
         seats: state.gameState?.seats,
         phase: state.gameState?.phase,
-    }),
-    shallow
+    }))
 );
 */

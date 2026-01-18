@@ -353,7 +353,7 @@ describe('RoleRevealModal', () => {
 
     // After countdown, component returns null because role is not found
     // The isVisible check fails at line 156 (!isVisible || !role) return null
-    const { container } = render(<RoleRevealModal />);
+    render(<RoleRevealModal />);
     // Re-render shows nothing because now isVisible is true but role is null
   });
 

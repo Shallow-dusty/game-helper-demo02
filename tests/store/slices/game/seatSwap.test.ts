@@ -7,27 +7,24 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createGameSeatSwapSlice } from '../../../../src/store/slices/game/seatSwap';
 import type { GameState, Seat, SwapRequest } from '../../../../src/types';
+import type { AppState } from '../../../../src/store/types';
 
 // 创建测试座位
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 1,
-    index: 0,
-    isEmpty: false,
     isDead: false,
     hasGhostVote: true,
     isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
+    isHandRaised: false,
     hasUsedAbility: false,
-    notes: [],
+    statuses: [],
     reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
     userId: null,
     userName: '座位 1',
     roleId: null,
+    realRoleId: null,
+    seenRoleId: null,
     isVirtual: false,
     ...overrides
   };
@@ -35,11 +32,7 @@ function createTestSeat(overrides: Partial<Seat> = {}): Seat {
 
 // Mock store state
 const createMockStore = () => {
-  const state: {
-    gameState: Partial<GameState> | null;
-    user: { id: string; name: string; roomId: string } | null;
-    sync: () => void;
-  } = {
+  const state: any = {
     gameState: {
       seats: [
         createTestSeat({ id: 0, userId: 'user1', userName: 'Player1', isVirtual: false }),
@@ -48,15 +41,15 @@ const createMockStore = () => {
       ],
       swapRequests: [] as SwapRequest[]
     } as Partial<GameState>,
-    user: { id: 'user1', name: 'Player1', roomId: 'room123' },
+    user: { id: 'user1', name: 'Player1', roomId: 'room123', isStoryteller: false, isSeated: true },
     sync: vi.fn()
   };
 
-  const set = vi.fn((fn: (state: typeof state) => void) => {
+  const set = vi.fn((fn: (state: any) => void) => {
     fn(state);
   });
 
-  const get = vi.fn(() => state);
+  const get = vi.fn(() => state as AppState);
 
   return { state, set, get };
 };
@@ -68,7 +61,7 @@ describe('createGameSeatSwapSlice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore = createMockStore();
-    seatSwapSlice = createGameSeatSwapSlice(mockStore.set, mockStore.get, {});
+    seatSwapSlice = createGameSeatSwapSlice(mockStore.set, mockStore.get, {} as any);
   });
 
   describe('swapSeats', () => {
@@ -137,7 +130,7 @@ describe('createGameSeatSwapSlice', () => {
     });
 
     it('should not create request if user not seated', () => {
-      mockStore.state.user = { id: 'user99', name: 'Unseated', roomId: 'room123' };
+      mockStore.state.user = { id: 'user99', name: 'Unseated', roomId: 'room123', isStoryteller: false, isSeated: false };
 
       seatSwapSlice.requestSeatSwap(1);
 
@@ -185,7 +178,7 @@ describe('createGameSeatSwapSlice', () => {
       const seat = mockStore.state.gameState?.seats?.[0];
       expect(seat?.userId).toBe(null);
       expect(seat?.userName).toBe('座位 1');
-       
+
       expect(seat?.roleId).toBe(null);
       expect(mockStore.get().sync).toHaveBeenCalled();
     });

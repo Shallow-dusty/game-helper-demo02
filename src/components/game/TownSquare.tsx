@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { Grimoire } from './Grimoire';
 import { Confetti } from './Confetti';
 
 // 优化选择器 - 细粒度订阅，避免不必要的重渲染
 const useTownSquareState = () => useStore(
-    state => ({
+    useShallow(state => ({
         gameOver: state.gameState?.gameOver,
         hasGameState: !!state.gameState,
-    }),
-    shallow
+    }))
 );
 
 export const TownSquare = () => {

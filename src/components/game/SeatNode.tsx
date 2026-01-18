@@ -30,6 +30,7 @@ interface SeatNodeProps {
   setupPhase?: string;
   rolesRevealed?: boolean;
   votingClockHandSeatId?: number | null;
+  isHovered?: boolean;
 }
 
 const SeatNode: React.FC<SeatNodeProps> = React.memo(({

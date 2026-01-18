@@ -4,7 +4,6 @@ import type { GameState, Seat, ChatMessage, VoteRecord } from '../src/types';
 
 const makeSeat = (id: number, overrides: Partial<Seat> = {}): Seat => ({
   id,
-  seatIndex: id,
   userId: `u${id}`,
   userName: `玩家${id}`,
   roleId: null,
@@ -135,11 +134,11 @@ describe('reportGenerator extra coverage', () => {
     const state = baseGameState({ voteHistory: votes, seats });
     const report = generateAfterActionReport(state);
 
-    const voteEvents = report.timeline.filter((e) => e.type === 'vote');
+    const voteEvents = report.timeline.filter((e) => e.type === 'vote' && !!e.metadata);
     expect(voteEvents).toHaveLength(3);
     voteEvents.forEach((e, idx) => {
-      expect(e.metadata?.result).toBe(votes[idx].result);
-      expect(e.metadata?.voteCount).toBe(votes[idx].voteCount);
+      expect((e.metadata as any).result).toBe(votes[idx]!.result);
+      expect((e.metadata as any).voteCount).toBe(votes[idx]!.voteCount);
     });
   });
 
@@ -161,10 +160,10 @@ describe('reportGenerator extra coverage', () => {
     const report = generateAfterActionReport(state);
 
     const [p0, p1] = report.playerSummaries;
-    expect(p0.wasMisled).toBe(true);
-    expect(p0.wasTainted).toBe(true);
-    expect(p1.wasMisled).toBe(false);
-    expect(p1.wasTainted).toBe(true);
+    expect(p0!.wasMisled).toBe(true);
+    expect(p0!.wasTainted).toBe(true);
+    expect(p1!.wasMisled).toBe(false);
+    expect(p1!.wasTainted).toBe(true);
   });
 
   it('computes statistics for good and evil survivors', () => {

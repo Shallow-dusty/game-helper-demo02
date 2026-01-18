@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
+import type { GameState } from '../../types';
 
 // Mock i18n
 vi.mock('react-i18next', () => ({
@@ -248,15 +249,17 @@ const mockGrimoireState = {
     hasGhostVote: boolean;
     seenRoleId: string | null;
     realRoleId: string | null;
-    reminders: { id: string; text: string; icon: string }[];
+    roleId: string | null;
+    reminders: { id: string; text: string; sourceRole: string; seatId: number; icon?: string; color?: string }[];
     isHandRaised: boolean;
     isNominated: boolean;
     hasUsedAbility: boolean;
-    statuses: string[];
-    isVirtual: boolean;
-    isReady: boolean;
+    statuses: ('POISONED' | 'DRUNK' | 'PROTECTED' | 'MADNESS')[];
+    isVirtual?: boolean;
+    isReady?: boolean;
+    voteLocked?: boolean;
   }[],
-  phase: 'DAY' as const,
+  phase: 'DAY' as 'SETUP' | 'NIGHT' | 'DAY' | 'NOMINATION' | 'VOTING',
   voting: null as null | {
     nominatorSeatId: number | null;
     nomineeSeatId: number | null;
@@ -264,7 +267,7 @@ const mockGrimoireState = {
     votes: number[];
     isOpen: boolean;
   },
-  setupPhase: 'STARTED' as const,
+  setupPhase: 'STARTED' as 'ASSIGNING' | 'READY' | 'STARTED',
   rolesRevealed: true,
   candlelightEnabled: false,
   currentScriptId: 'tb',
@@ -337,13 +340,15 @@ describe('Grimoire', () => {
     hasGhostVote: boolean;
     seenRoleId: string | null;
     realRoleId: string | null;
-    reminders: { id: string; text: string; icon: string }[];
+    roleId: string | null;
+    reminders: { id: string; text: string; sourceRole: string; seatId: number; icon?: string; color?: string }[];
     isHandRaised: boolean;
     isNominated: boolean;
     hasUsedAbility: boolean;
-    statuses: string[];
+    statuses: ('POISONED' | 'DRUNK' | 'PROTECTED' | 'MADNESS')[];
     isVirtual: boolean;
     isReady: boolean;
+    voteLocked: boolean;
   }> = {}) => ({
     id: 0,
     userId: 'user-1',
@@ -352,6 +357,7 @@ describe('Grimoire', () => {
     hasGhostVote: true,
     seenRoleId: null,
     realRoleId: null,
+    roleId: null,
     reminders: [],
     isHandRaised: false,
     isNominated: false,
@@ -359,6 +365,7 @@ describe('Grimoire', () => {
     statuses: [],
     isVirtual: false,
     isReady: false,
+    voteLocked: false,
     ...overrides,
   });
 
@@ -755,11 +762,11 @@ describe('Grimoire', () => {
 
   describe('Props GameState', () => {
     it('uses propsGameState when provided', () => {
-      const propsGameState = {
+      const propsGameState: GameState = {
         roomId: 'test-room',
         currentScriptId: 'tb',
-        phase: 'DAY' as const,
-        setupPhase: 'STARTED' as const,
+        phase: 'DAY',
+        setupPhase: 'STARTED',
         rolesRevealed: true,
         candlelightEnabled: false,
         seats: [
@@ -779,7 +786,7 @@ describe('Grimoire', () => {
         voteHistory: [],
         roundInfo: { dayCount: 1, nightCount: 0, nominationCount: 0, totalRounds: 1 },
         storytellerNotes: [],
-        skillDescriptionMode: 'simple' as const,
+        skillDescriptionMode: 'simple',
         aiMessages: [],
         nightActionRequests: [],
         swapRequests: [],
@@ -794,11 +801,11 @@ describe('Grimoire', () => {
     });
 
     it('uses spectator user when propsGameState is provided', () => {
-      const propsGameState = {
+      const propsGameState: GameState = {
         roomId: 'test-room',
         currentScriptId: 'tb',
-        phase: 'DAY' as const,
-        setupPhase: 'STARTED' as const,
+        phase: 'DAY',
+        setupPhase: 'STARTED',
         rolesRevealed: true,
         candlelightEnabled: false,
         seats: [createMockSeat({ id: 0, userName: 'Test' })],
@@ -815,7 +822,7 @@ describe('Grimoire', () => {
         voteHistory: [],
         roundInfo: { dayCount: 1, nightCount: 0, nominationCount: 0, totalRounds: 1 },
         storytellerNotes: [],
-        skillDescriptionMode: 'simple' as const,
+        skillDescriptionMode: 'simple',
         aiMessages: [],
         nightActionRequests: [],
         swapRequests: [],

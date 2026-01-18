@@ -1,5 +1,5 @@
-import { StateCreator } from 'zustand';
-import { GameState, User, GamePhase, SeatStatus, NightActionRequest, GameHistory } from '../types';
+import { GameState, User, GamePhase, SeatStatus, NightActionRequest, GameHistory, Seat } from '../types';
+import type { PhaseMachineContext } from '../lib/machines/phaseMachine';
 
 // --- CONNECTION STATE TYPE ---
 export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'reconnecting';
@@ -116,7 +116,7 @@ export interface GameSlice {
     addInteractionLog: (entry: Omit<import('../types').InteractionLogEntry, 'id' | 'timestamp'>) => void;
 }
 
-export interface AppState extends GameSlice {
+export interface AppState extends GameSlice, PhaseMachineSlice {
     user: User | null;
     isAiThinking: boolean;
     isOffline: boolean;
@@ -171,4 +171,51 @@ export interface AppState extends GameSlice {
     toggleAudioCategory: (category: keyof AudioSettings['categories']) => void;
 }
 
-export type StoreSlice<T> = StateCreator<AppState, [["zustand/immer", never]], [], T>;
+// --- PHASE MACHINE SLICE ---
+/**
+ * Actor interface for sending events to the phase machine.
+ */
+interface PhaseActorInterface {
+  send: (event: {
+    type: string;
+    seats?: Seat[];
+    nomineeSeatId?: number;
+    isExecuted?: boolean;
+    winner?: 'GOOD' | 'EVIL';
+    reason?: string;
+  }) => void;
+  stop: () => void;
+  subscribe: (callback: (snapshot: { value: string; context: PhaseMachineContext }) => void) => { unsubscribe: () => void };
+  start: () => void;
+}
+
+export interface PhaseMachineSlice {
+  // XState actor instance
+  phaseActor: PhaseActorInterface | null;
+
+  // Current phase machine state
+  phaseState: 'setup' | 'night' | 'day' | 'voting' | 'gameOver';
+
+  // Current phase machine context
+  phaseContext: PhaseMachineContext;
+
+  // Actions to send events to the machine
+  phaseMachine: {
+    startGame: (seats: Seat[]) => void;
+    startNight: () => void;
+    nextNightAction: () => void;
+    prevNightAction: () => void;
+    endNight: () => void;
+    startVoting: (nomineeSeatId: number) => void;
+    closeVote: (isExecuted: boolean) => void;
+    endGame: (winner: 'GOOD' | 'EVIL', reason: string) => void;
+  };
+
+  // Initialize the phase machine actor
+  initializePhaseMachine: () => void;
+
+  // Stop the phase machine actor
+  stopPhaseMachine: () => void;
+}
+
+export type StoreSlice<T> = (set: any, get: () => AppState, api: any) => T;

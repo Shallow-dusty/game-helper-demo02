@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { GameState, Seat, User } from '../../src/types';
-import { PHASE_LABELS } from '../../src/constants';
 
 // Mock supabase
 vi.mock('../../src/store/slices/connection', () => ({

@@ -27,24 +27,18 @@ import type { AbilityContext } from '../../../src/lib/roleAutomation/types';
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
   return {
     id: 0,
-    index: 0,
-    isEmpty: false,
-    isDead: false,
-    hasGhostVote: true,
-    isNominated: false,
-    isNominatedBy: null,
-    markedForDeath: false,
-    statuses: [],
-    hasUsedAbility: false,
-    notes: [],
-    reminders: [],
-    nightReminders: [],
-    causeOfDeath: null,
     userId: 'user1',
     userName: 'Player1',
+    isDead: false,
+    hasGhostVote: true,
     roleId: null,
     realRoleId: null,
     seenRoleId: null,
+    reminders: [],
+    isHandRaised: false,
+    isNominated: false,
+    hasUsedAbility: false,
+    statuses: [],
     ...overrides
   };
 }
@@ -52,24 +46,33 @@ function createTestSeat(overrides: Partial<Seat> = {}): Seat {
 // 创建测试游戏状态
 function createTestGameState(seats: Seat[]): GameState {
   return {
-    seats,
-    phase: 'NIGHT',
-    voting: null,
+    roomId: 'test-room',
     currentScriptId: 'tb',
-    messages: [],
-    roundInfo: { dayCount: 1, nightCount: 1 },
-    voteHistory: [],
-    storytellerNotes: [],
-    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    phase: 'NIGHT',
+    setupPhase: 'READY',
+    rolesRevealed: false,
     allowWhispers: false,
+    vibrationEnabled: true,
+    seats,
+    swapRequests: [],
+    messages: [],
+    gameOver: { isOver: false, winner: null, reason: '' },
+    audio: { trackId: null, isPlaying: false, volume: 0.5 },
+    nightQueue: [],
+    nightCurrentIndex: -1,
+    voting: null,
     customScripts: {},
     customRoles: {},
-    swapRequests: [],
-    vibrationEnabled: true,
-    nightQueue: [],
-    setupPhase: 'READY',
-    rolesRevealed: false
-  } as GameState;
+    voteHistory: [],
+    roundInfo: { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 1 },
+    storytellerNotes: [],
+    skillDescriptionMode: 'simple',
+    aiMessages: [],
+    nightActionRequests: [],
+    candlelightEnabled: false,
+    dailyNominations: [],
+    interactionLog: []
+  };
 }
 
 // 默认测试上下文
@@ -100,9 +103,9 @@ describe('processWasherwoman', () => {
 
     expect(result.success).toBe(true);
     expect(result.suggestions.length).toBeGreaterThan(0);
-    expect(result.suggestions[0].roleId).toBe('washerwoman');
-    expect(result.suggestions[0].type).toBe('info');
-    expect(result.suggestions[0].title).toBe('洗衣妇信息');
+    expect(result.suggestions[0]!.roleId).toBe('washerwoman');
+    expect(result.suggestions[0]!.type).toBe('info');
+    expect(result.suggestions[0]!.title).toBe('洗衣妇信息');
   });
 
   it('should return no townsfolk message when none available', () => {
@@ -115,7 +118,7 @@ describe('processWasherwoman', () => {
     const result = processWasherwoman(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].suggestedResult).toBe('无法获取信息');
+    expect(result.suggestions[0]!.suggestedResult).toBe('无法获取信息');
   });
 
   it('should mark as tainted when poisoned', () => {
@@ -128,8 +131,8 @@ describe('processWasherwoman', () => {
     const result = processWasherwoman(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].isTainted).toBe(true);
-    expect(result.suggestions[0].description).toContain('中毒');
+    expect(result.suggestions[0]!.isTainted).toBe(true);
+    expect(result.suggestions[0]!.description).toContain('中毒');
   });
 });
 
@@ -152,7 +155,7 @@ describe('processLibrarian', () => {
     const result = processLibrarian(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].suggestedResult).toContain('没有外来者');
+    expect(result.suggestions[0]!.suggestedResult).toContain('没有外来者');
   });
 
   it('should return outsider info when outsiders exist', () => {
@@ -165,9 +168,9 @@ describe('processLibrarian', () => {
     const result = processLibrarian(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].roleId).toBe('librarian');
+    expect(result.suggestions[0]!.roleId).toBe('librarian');
     // Should mention someone is an outsider (酒鬼)
-    expect(result.suggestions[0].suggestedResult).toContain('酒鬼');
+    expect(result.suggestions[0]!.suggestedResult).toContain('酒鬼');
   });
 
   it('should give fake info when tainted', () => {
@@ -180,7 +183,7 @@ describe('processLibrarian', () => {
     const result = processLibrarian(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].isTainted).toBe(true);
+    expect(result.suggestions[0]!.isTainted).toBe(true);
   });
 });
 
@@ -203,8 +206,8 @@ describe('processInvestigator', () => {
     const result = processInvestigator(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].roleId).toBe('investigator');
-    expect(result.suggestions[0].title).toBe('调查员信息');
+    expect(result.suggestions[0]!.roleId).toBe('investigator');
+    expect(result.suggestions[0]!.title).toBe('调查员信息');
   });
 
   it('should return no minions message when none exist', () => {
@@ -217,7 +220,7 @@ describe('processInvestigator', () => {
     const result = processInvestigator(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].suggestedResult).toContain('无法获取信息');
+    expect(result.suggestions[0]!.suggestedResult).toContain('无法获取信息');
   });
 });
 
@@ -241,8 +244,8 @@ describe('processChef', () => {
     const result = processChef(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].roleId).toBe('chef');
-    expect(result.suggestions[0].title).toBe('厨师信息');
+    expect(result.suggestions[0]!.roleId).toBe('chef');
+    expect(result.suggestions[0]!.title).toBe('厨师信息');
   });
 
   it('should detect evil pairs when adjacent', () => {
@@ -256,7 +259,7 @@ describe('processChef', () => {
     const result = processChef(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].realResult).toContain('1');
+    expect(result.suggestions[0]!.realResult).toContain('1');
   });
 
   it('should give fake count when tainted', () => {
@@ -269,7 +272,7 @@ describe('processChef', () => {
     const result = processChef(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].isTainted).toBe(true);
+    expect(result.suggestions[0]!.isTainted).toBe(true);
   });
 });
 
@@ -293,10 +296,10 @@ describe('processEmpath', () => {
     const result = processEmpath(gameState, 1, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].roleId).toBe('empath');
-    expect(result.suggestions[0].title).toBe('共情者信息');
+    expect(result.suggestions[0]!.roleId).toBe('empath');
+    expect(result.suggestions[0]!.title).toBe('共情者信息');
     // Both neighbors are evil (imp and poisoner)
-    expect(result.suggestions[0].realResult).toContain('2');
+    expect(result.suggestions[0]!.realResult).toContain('2');
   });
 
   it('should return 0 for no evil neighbors', () => {
@@ -309,7 +312,7 @@ describe('processEmpath', () => {
     const result = processEmpath(gameState, 1, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].realResult).toContain('没有邪恶');
+    expect(result.suggestions[0]!.realResult).toContain('没有邪恶');
   });
 
   it('should give fake info when tainted', () => {
@@ -322,7 +325,7 @@ describe('processEmpath', () => {
     const result = processEmpath(gameState, 1, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].isTainted).toBe(true);
+    expect(result.suggestions[0]!.isTainted).toBe(true);
   });
 });
 
@@ -345,8 +348,8 @@ describe('processFortuneTeller', () => {
     const result = processFortuneTeller(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].type).toBe('action');
-    expect(result.suggestions[0].description).toContain('选择两名玩家');
+    expect(result.suggestions[0]!.type).toBe('action');
+    expect(result.suggestions[0]!.description).toContain('选择两名玩家');
   });
 
   it('should process with targets provided', () => {
@@ -363,7 +366,7 @@ describe('processFortuneTeller', () => {
     const result = processFortuneTeller(gameState, 0, contextWithTargets);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].roleId).toBe('fortune_teller');
+    expect(result.suggestions[0]!.roleId).toBe('fortune_teller');
   });
 });
 
@@ -395,7 +398,7 @@ describe('processUndertaker', () => {
     const result = processUndertaker(gameState, 0, { ...defaultContext, isFirstNight: false });
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].suggestedResult).toBe('昨天没有处决');
+    expect(result.suggestions[0]!.suggestedResult).toBe('昨天没有处决');
   });
 
   it('should return executed player role when provided', () => {
@@ -412,8 +415,8 @@ describe('processUndertaker', () => {
     const result = processUndertaker(gameState, 0, contextWithExecution);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].title).toBe('殓葬师信息');
-    expect(result.suggestions[0].suggestedResult).toContain('僧侣');
+    expect(result.suggestions[0]!.title).toBe('殓葬师信息');
+    expect(result.suggestions[0]!.suggestedResult).toContain('僧侣');
   });
 });
 
@@ -446,8 +449,8 @@ describe('processMonk', () => {
     const result = processMonk(gameState, 0, { ...defaultContext, isFirstNight: false });
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].type).toBe('action');
-    expect(result.suggestions[0].description).toContain('选择一名玩家');
+    expect(result.suggestions[0]!.type).toBe('action');
+    expect(result.suggestions[0]!.description).toContain('选择一名玩家');
   });
 
   it('should protect target when provided', () => {
@@ -464,8 +467,8 @@ describe('processMonk', () => {
     const result = processMonk(gameState, 0, contextWithTarget);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].roleId).toBe('monk');
-    expect(result.suggestions[0].title).toBe('僧侣保护');
+    expect(result.suggestions[0]!.roleId).toBe('monk');
+    expect(result.suggestions[0]!.title).toBe('僧侣保护');
   });
 });
 
@@ -499,8 +502,8 @@ describe('processRavenkeeper', () => {
     const result = processRavenkeeper(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].type).toBe('action');
-    expect(result.suggestions[0].description).toContain('选择一名玩家');
+    expect(result.suggestions[0]!.type).toBe('action');
+    expect(result.suggestions[0]!.description).toContain('选择一名玩家');
   });
 
   it('should return target role when provided', () => {
@@ -516,8 +519,8 @@ describe('processRavenkeeper', () => {
     const result = processRavenkeeper(gameState, 0, contextWithTarget);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].title).toBe('守鸦人信息');
-    expect(result.suggestions[0].suggestedResult).toContain('僧侣');
+    expect(result.suggestions[0]!.title).toBe('守鸦人信息');
+    expect(result.suggestions[0]!.suggestedResult).toContain('僧侣');
   });
 });
 
@@ -565,9 +568,9 @@ describe('processVirgin', () => {
     const result = processVirgin(gameState, 0, contextWithNominator);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].type).toBe('effect');
+    expect(result.suggestions[0]!.type).toBe('effect');
     expect(result.deaths?.length).toBe(1);
-    expect(result.deaths?.[0].seatId).toBe(1);
+    expect(result.deaths![0]!.seatId).toBe(1);
   });
 });
 
@@ -599,8 +602,8 @@ describe('processSlayer', () => {
     const result = processSlayer(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].type).toBe('action');
-    expect(result.suggestions[0].description).toContain('选择一名玩家');
+    expect(result.suggestions[0]!.type).toBe('action');
+    expect(result.suggestions[0]!.description).toContain('选择一名玩家');
   });
 
   it('should kill demon when targeted', () => {
@@ -616,7 +619,7 @@ describe('processSlayer', () => {
     const result = processSlayer(gameState, 0, contextWithTarget);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].title).toContain('命中');
+    expect(result.suggestions[0]!.title).toContain('命中');
     expect(result.deaths?.length).toBe(1);
   });
 
@@ -633,7 +636,7 @@ describe('processSlayer', () => {
     const result = processSlayer(gameState, 0, contextWithTarget);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].suggestedResult).toContain('未命中');
+    expect(result.suggestions[0]!.suggestedResult).toContain('未命中');
   });
 });
 
@@ -654,7 +657,7 @@ describe('processSoldier', () => {
     const result = processSoldier(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].suggestedResult).toContain('免疫恶魔击杀');
+    expect(result.suggestions[0]!.suggestedResult).toContain('免疫恶魔击杀');
   });
 
   it('should indicate vulnerability when tainted', () => {
@@ -665,8 +668,8 @@ describe('processSoldier', () => {
     const result = processSoldier(gameState, 0, defaultContext);
 
     expect(result.success).toBe(true);
-    expect(result.suggestions[0].suggestedResult).toContain('可被恶魔击杀');
-    expect(result.suggestions[0].isTainted).toBe(true);
+    expect(result.suggestions[0]!.suggestedResult).toContain('可被恶魔击杀');
+    expect(result.suggestions[0]!.isTainted).toBe(true);
   });
 });
 
@@ -705,7 +708,7 @@ describe('processMayor', () => {
 
     expect(result.success).toBe(true);
     expect(result.suggestions.length).toBe(1);
-    expect(result.suggestions[0].title).toContain('市长胜利条件');
-    expect(result.suggestions[0].description).toContain('好人获胜');
+    expect(result.suggestions[0]!.title).toContain('市长胜利条件');
+    expect(result.suggestions[0]!.description).toContain('好人获胜');
   });
 });

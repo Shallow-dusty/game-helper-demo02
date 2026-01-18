@@ -86,8 +86,6 @@ test.describe('沙盒模式 - 夜间流程', () => {
       await nightButton.click();
       await page.waitForTimeout(1000);
 
-      // 验证进入夜间阶段
-      const nightIndicator = page.locator('[class*="night"], [data-phase="night"]').first();
       // 这里只验证点击不会报错
     }
   });

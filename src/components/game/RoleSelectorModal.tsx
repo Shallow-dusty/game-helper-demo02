@@ -5,7 +5,6 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { X } from 'lucide-react';
@@ -25,8 +24,6 @@ const RoleSelectorModal: React.FC<RoleSelectorModalProps> = ({
   onAssignRole,
   onClose,
 }) => {
-  const { t } = useTranslation();
-
   if (seatId === null) return null;
 
   const currentScriptRoles = SCRIPTS[currentScriptId]?.roles ?? [];

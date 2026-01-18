@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   createSystemMessage,
   addSystemMessage,
@@ -35,14 +35,13 @@ describe('gameLogic extra coverage', () => {
       const state = { messages: [] } as unknown as GameState;
       addSystemMessage(state, 'hi', null);
       expect(state.messages).toHaveLength(1);
-      expect(state.messages[0].content).toBe('hi');
+      expect(state.messages[0]!.content).toBe('hi');
     });
   });
 
   describe('buildNightQueue & isFirstNight', () => {
     const baseSeat = (overrides: Partial<Seat> = {}): Seat => ({
       id: 1,
-      seatIndex: 0,
       userId: 'u1',
       userName: 'P1',
       isDead: false,
@@ -52,6 +51,9 @@ describe('gameLogic extra coverage', () => {
       roleId: null,
       realRoleId: null,
       seenRoleId: null,
+      reminders: [],
+      isHandRaised: false,
+      isNominated: false,
       ...overrides,
     });
 
@@ -66,9 +68,9 @@ describe('gameLogic extra coverage', () => {
     });
 
     it('builds queue using first-night order and ignores dead seats', () => {
-      const demonRole = Object.keys(ROLES).find((r) => ROLES[r].team === 'DEMON')!;
-      const minionRole = Object.keys(ROLES).find((r) => ROLES[r].team === 'MINION')!;
-      const townsfolkRole = Object.keys(ROLES).find((r) => ROLES[r].team === 'TOWNSFOLK')!;
+      const demonRole = Object.keys(ROLES).find((r) => ROLES[r]!.team === 'DEMON')!;
+      const minionRole = Object.keys(ROLES).find((r) => ROLES[r]!.team === 'MINION')!;
+      const townsfolkRole = Object.keys(ROLES).find((r) => ROLES[r]!.team === 'TOWNSFOLK')!;
 
       const seats: Seat[] = [
         baseSeat({ id: 1, seenRoleId: demonRole }),
@@ -90,16 +92,18 @@ describe('gameLogic extra coverage', () => {
   describe('seat helpers', () => {
     const makeSeat = (): Seat => ({
       id: 1,
-      seatIndex: 0,
       userId: 'u1',
       userName: 'P1',
       isDead: false,
       hasGhostVote: false,
       hasUsedAbility: true,
-      statuses: ['test'],
+      statuses: ['POISONED'],
       roleId: null,
       realRoleId: null,
       seenRoleId: null,
+      reminders: [],
+      isHandRaised: false,
+      isNominated: false,
     });
 
     it('applyRoleToSeat sets role-related fields and clears statuses', () => {
@@ -146,7 +150,7 @@ describe('gameLogic extra coverage', () => {
 
     beforeEach(() => {
       baseState = {
-        phase: 'LOBBY',
+        phase: 'SETUP',
         seats: [],
         messages: [],
         nightQueue: [],
@@ -161,22 +165,21 @@ describe('gameLogic extra coverage', () => {
     });
 
     it('does nothing when phase does not change', () => {
-      handlePhaseChange(baseState, 'LOBBY', 'LOBBY');
+      handlePhaseChange(baseState, 'SETUP', 'SETUP');
       expect(baseState.messages).toHaveLength(0);
     });
 
     it('adds system message when phase changes', () => {
-      handlePhaseChange(baseState, 'DAY', 'LOBBY');
+      handlePhaseChange(baseState, 'DAY', 'SETUP');
       expect(baseState.messages).toHaveLength(1);
-      expect(baseState.messages[0].content).toContain(PHASE_LABELS.DAY);
+      expect(baseState.messages[0]!.content).toContain(PHASE_LABELS.DAY);
     });
 
     it('updates counters and night queue on NIGHT', () => {
-      const demonRole = Object.keys(ROLES).find((r) => ROLES[r].team === 'DEMON')!;
+      const demonRole = Object.keys(ROLES).find((r) => ROLES[r]!.team === 'DEMON')!;
       baseState.seats = [
         {
           id: 1,
-          seatIndex: 0,
           userId: 'u1',
           userName: 'P1',
           isDead: false,
@@ -186,6 +189,9 @@ describe('gameLogic extra coverage', () => {
           roleId: demonRole,
           realRoleId: demonRole,
           seenRoleId: demonRole,
+          reminders: [],
+          isHandRaised: false,
+          isNominated: false,
         },
       ];
 
@@ -220,7 +226,6 @@ describe('gameLogic extra coverage', () => {
   describe('win conditions', () => {
     const seatWithRole = (overrides: Partial<Seat> = {}): Seat => ({
       id: 1,
-      seatIndex: 0,
       userId: 'u1',
       userName: 'P1',
       isDead: false,
@@ -230,11 +235,14 @@ describe('gameLogic extra coverage', () => {
       roleId: null,
       realRoleId: null,
       seenRoleId: null,
+      reminders: [],
+      isHandRaised: false,
+      isNominated: false,
       ...overrides,
     });
 
     it('checkGoodWin returns true when all demons are dead', () => {
-      const demon = Object.keys(ROLES).find((r) => ROLES[r].team === 'DEMON')!;
+      const demon = Object.keys(ROLES).find((r) => ROLES[r]!.team === 'DEMON')!;
       const seats: Seat[] = [
         seatWithRole({ id: 1, realRoleId: demon, isDead: true }),
         seatWithRole({ id: 2, seenRoleId: demon, isDead: true }),
@@ -243,7 +251,7 @@ describe('gameLogic extra coverage', () => {
     });
 
     it('checkGoodWin returns false when any demon alive', () => {
-      const demon = Object.keys(ROLES).find((r) => ROLES[r].team === 'DEMON')!;
+      const demon = Object.keys(ROLES).find((r) => ROLES[r]!.team === 'DEMON')!;
       const seats: Seat[] = [
         seatWithRole({ id: 1, realRoleId: demon, isDead: false }),
       ];

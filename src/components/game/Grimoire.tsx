@@ -227,13 +227,13 @@ export const Grimoire: React.FC<GrimoireProps> = ({
 
     e.cancelBubble = true;
 
-    if (seat.isVirtual && !user.isStoryteller) {
+    if (seat.isVirtual && user && !user.isStoryteller) {
       showWarning(t('game.grimoire.reservedForVirtual'));
       return;
     }
 
     // Storyteller logic
-    if (user.isStoryteller) {
+    if (user?.isStoryteller) {
       if (swapSourceId !== null) {
         if (swapSourceId === seat.id) {
           setSwapSourceId(null);
@@ -257,7 +257,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
         void joinSeat(seat.id).finally(() => setJoiningId(null));
         return;
       }
-      if (seat.userId !== user.id) {
+      if (user && seat.userId !== user.id) {
         if (window.confirm(t('game.grimoire.confirmSwapPlayer', { player: seat.userName }))) {
           requestSeatSwap(seat.id);
         }
@@ -279,7 +279,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
         return;
       }
 
-      const events = detectChainReactions(gameState, 'death', seatId);
+      const events = detectChainReactions(gameState as import('../../types').GameState, 'death', seatId);
 
       if (events.length > 0) {
         toggleDead(seatId);
@@ -330,12 +330,12 @@ export const Grimoire: React.FC<GrimoireProps> = ({
 
   // Calculate active jinxes
   const activeJinxes = React.useMemo(() => {
-    if (!user.isStoryteller) return [];
+    if (!user?.isStoryteller || !gameState?.seats) return [];
     const activeRoleIds = new Set(gameState.seats.map(s => s.realRoleId ?? s.seenRoleId).filter(Boolean));
     return JINX_DEFINITIONS.filter(
       jinx => activeRoleIds.has(jinx.role1) && activeRoleIds.has(jinx.role2)
     );
-  }, [gameState.seats, user.isStoryteller]);
+  }, [gameState?.seats, user?.isStoryteller]);
 
   // Validate state
   if (!gameState || !user) return null;
@@ -541,7 +541,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
             y={cy - 50 * baseScale}
             width={200}
             align="center"
-            text={PHASE_LABELS[gameState.phase] ?? gameState.phase}
+            text={gameState.phase ? (PHASE_LABELS[gameState.phase] ?? gameState.phase) : ''}
             fontSize={24 * baseScale}
             fill="#a8a29e"
             fontFamily="Cinzel"
@@ -705,7 +705,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
           <StorytellerMenu
             seat={seat}
             onClose={() => setContextMenu(null)}
-            currentScriptId={gameState.currentScriptId}
+            currentScriptId={gameState.currentScriptId ?? 'tb'}
             actions={{
               toggleDead: handleToggleDeadWithChainCheck,
               toggleAbilityUsed,
@@ -734,7 +734,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
       {/* Role Selector Modal */}
       <RoleSelectorModal
         seatId={roleSelectSeat}
-        currentScriptId={gameState.currentScriptId}
+        currentScriptId={gameState.currentScriptId ?? 'tb'}
         onAssignRole={assignRole}
         onClose={() => setRoleSelectSeat(null)}
       />

@@ -101,6 +101,7 @@ describe('SeatNode', () => {
     id: 0,
     userId: 'user-1',
     userName: 'TestPlayer',
+    roleId: null,
     seenRoleId: null,
     realRoleId: null,
     isDead: false,
@@ -274,11 +275,11 @@ describe('SeatNode', () => {
   });
 
   it('renders reminders for storyteller', () => {
-    const seatWithReminders = {
+    const seatWithReminders: Seat = {
       ...defaultSeat,
       reminders: [
-        { id: 'rem-1', icon: '🔮', text: 'Reminder 1' },
-        { id: 'rem-2', icon: '⚡', text: 'Reminder 2' },
+        { id: 'rem-1', icon: '🔮', text: 'Reminder 1', sourceRole: 'TEST', seatId: 0 },
+        { id: 'rem-2', icon: '⚡', text: 'Reminder 2', sourceRole: 'TEST', seatId: 0 },
       ],
     };
     const { getByText } = render(
@@ -291,9 +292,9 @@ describe('SeatNode', () => {
   });
 
   it('does not render reminders for non-storyteller', () => {
-    const seatWithReminders = {
+    const seatWithReminders: Seat = {
       ...defaultSeat,
-      reminders: [{ id: 'rem-1', icon: '🔮', text: 'Reminder' }],
+      reminders: [{ id: 'rem-1', icon: '🔮', text: 'Reminder', sourceRole: 'TEST', seatId: 0 }],
     };
     const { queryByText } = render(
       <SeatNode {...defaultProps} seat={seatWithReminders} isST={false} />

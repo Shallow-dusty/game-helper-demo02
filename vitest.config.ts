@@ -18,11 +18,11 @@ const extraExcludes = scope === 'src-logic'
   ? ['src/components/**/*.{test,spec}.{ts,tsx}']
   : [];
 
+const workerExecArgs = ['--max-old-space-size=6144', '--expose-gc'];
+
 const threadOptions = scope === 'src-ui'
   ? { minThreads: 1, maxThreads: 2, execArgv: workerExecArgs }
   : { singleThread: true, execArgv: workerExecArgs };
-
-const workerExecArgs = ['--max-old-space-size=6144', '--expose-gc'];
 
 export default defineConfig({
   plugins: [react()],
@@ -34,6 +34,7 @@ export default defineConfig({
     exclude: ['node_modules', 'dist', '.idea', '.git', '.cache', ...extraExcludes],
     // Use single threaded worker pool to avoid extra process overhead and keep memory stable
     pool: 'threads',
+    // @ts-expect-error poolOptions is available in vitest config but type definitions are incomplete
     poolOptions: {
       threads: threadOptions,
     },
@@ -60,4 +61,4 @@ export default defineConfig({
       '@': resolve(__dirname, './'),
     },
   },
-});
+} as const);

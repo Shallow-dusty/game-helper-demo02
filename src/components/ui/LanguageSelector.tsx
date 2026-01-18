@@ -7,7 +7,6 @@ import { useState, useEffect } from 'react';
  * Language Selector Component
  */
 export function LanguageSelector() {
-  const { t } = useTranslation();
   const [currentLang, setCurrentLang] = useState(getCurrentLanguage());
 
   useEffect(() => {
@@ -26,6 +25,8 @@ export function LanguageSelector() {
     setCurrentLang(lng);
   };
 
+  const activeLang = (currentLang ?? getCurrentLanguage() ?? 'zh-CN');
+
   return (
     <div className="flex items-center gap-1">
       {supportedLanguages.map((lang) => (
@@ -34,7 +35,7 @@ export function LanguageSelector() {
           onClick={() => handleChange(lang.code)}
           className={`
             px-2 py-1 rounded text-sm transition-all
-            ${currentLang === lang.code || currentLang.startsWith(lang.code.split('-')[0])
+            ${activeLang === lang.code || (activeLang).startsWith(((lang.code as string).split('-')[0] || 'zh'))
               ? 'bg-purple-600 text-white'
               : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             }

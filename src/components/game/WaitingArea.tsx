@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 // 优化选择器 - 细粒度订阅
 const useWaitingAreaState = () => useStore(
-    state => ({
+    useShallow(state => ({
         seats: state.gameState?.seats ?? [],
         roomId: state.gameState?.roomId ?? '',
         setupPhase: state.gameState?.setupPhase,
         rolesRevealed: state.gameState?.rolesRevealed ?? false,
         hasGameState: !!state.gameState,
-    }),
-    shallow
+    }))
 );
 
 export const WaitingArea: React.FC = () => {

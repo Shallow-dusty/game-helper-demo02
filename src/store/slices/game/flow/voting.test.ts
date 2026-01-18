@@ -27,8 +27,8 @@ vi.mock('../../../../lib/gameLogic', () => ({
 }));
 
 vi.mock('../../../../lib/supabaseService', () => ({
-    logExecution: vi.fn().mockReturnValue(Promise.resolve()),
-    updateNominationResult: vi.fn().mockReturnValue(Promise.resolve())
+    logExecution: vi.fn().mockResolvedValue(undefined),
+    updateNominationResult: vi.fn().mockResolvedValue(true)
 }));
 
 // Import mocked modules for assertions
@@ -127,8 +127,8 @@ describe('createVotingSlice', () => {
         mockState = createMockState();
 
         // Reset mock implementations that return promises
-        vi.mocked(logExecution).mockReturnValue(Promise.resolve());
-        vi.mocked(updateNominationResult).mockReturnValue(Promise.resolve());
+        vi.mocked(logExecution).mockReturnValue(Promise.resolve(null));
+        vi.mocked(updateNominationResult).mockReturnValue(Promise.resolve(true));
 
         slice = createVotingSlice(
             createMockSet() as unknown as Parameters<typeof createVotingSlice>[0],
@@ -236,7 +236,7 @@ describe('createVotingSlice', () => {
             vi.mocked(supabase.rpc).mockResolvedValue({
                 data: { success: true, isHandRaised: true },
                 error: null
-            } as never);
+            } as any);
 
             await slice.toggleHand();
 
@@ -255,7 +255,7 @@ describe('createVotingSlice', () => {
             vi.mocked(supabase.rpc).mockResolvedValue({
                 data: { success: true, isHandRaised: true },
                 error: null
-            } as never);
+            } as any);
 
             await slice.toggleHand();
 
@@ -270,7 +270,7 @@ describe('createVotingSlice', () => {
             vi.mocked(supabase.rpc).mockResolvedValue({
                 data: { success: true, isHandRaised: true },
                 error: null
-            } as never);
+            } as any);
 
             await slice.toggleHand();
 
@@ -285,7 +285,7 @@ describe('createVotingSlice', () => {
             vi.mocked(supabase.rpc).mockResolvedValue({
                 data: { success: true, isHandRaised: false },
                 error: null
-            } as never);
+            } as any);
 
             await slice.toggleHand();
 
@@ -312,7 +312,7 @@ describe('createVotingSlice', () => {
             vi.mocked(supabase.rpc).mockResolvedValue({
                 data: null,
                 error: new Error('RPC error')
-            } as never);
+            } as any);
 
             const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -329,7 +329,7 @@ describe('createVotingSlice', () => {
             vi.mocked(supabase.rpc).mockResolvedValue({
                 data: { success: false, error: 'Not your turn' },
                 error: null
-            } as never);
+            } as any);
 
             const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -359,15 +359,15 @@ describe('createVotingSlice', () => {
                 votes: [0, 2, 3], // 3 votes out of 5 players
                 isOpen: true
             };
-            mockState.gameState.seats[1].seenRoleId = 'imp';
+            mockState.gameState.seats[1]!.seenRoleId = 'imp';
 
             slice.closeVote();
 
-            expect(mockState.gameState.seats[1].isDead).toBe(true);
+            expect(mockState.gameState.seats[1]!.isDead).toBe(true);
             expect(mockState.gameState.voting).toBeNull();
             expect(mockState.gameState.phase).toBe('DAY');
             expect(mockState.gameState.voteHistory).toHaveLength(1);
-            expect(mockState.gameState.voteHistory[0].result).toBe('executed');
+            expect(mockState.gameState.voteHistory[0]!.result).toBe('executed');
             expect(logExecution).toHaveBeenCalled();
         });
 
@@ -382,8 +382,8 @@ describe('createVotingSlice', () => {
 
             slice.closeVote();
 
-            expect(mockState.gameState.seats[1].isDead).toBe(false);
-            expect(mockState.gameState.voteHistory[0].result).toBe('survived');
+            expect(mockState.gameState.seats[1]!.isDead).toBe(false);
+            expect(mockState.gameState.voteHistory[0]!.result).toBe('survived');
         });
 
         it('should check for game over after execution', () => {
@@ -422,7 +422,7 @@ describe('createVotingSlice', () => {
 
             expect(() => slice.closeVote()).not.toThrow();
             expect(mockState.gameState.voteHistory).toHaveLength(1);
-            expect(mockState.gameState.voteHistory[0].nomineeSeatId).toBe(-1);
+            expect(mockState.gameState.voteHistory[0]!.nomineeSeatId).toBe(-1);
         });
 
         it('should handle user being null', () => {
@@ -452,7 +452,7 @@ describe('createVotingSlice', () => {
             slice.closeVote();
 
             // Should still execute but not log
-            expect(mockState.gameState.seats[1].isDead).toBe(true);
+            expect(mockState.gameState.seats[1]!.isDead).toBe(true);
         });
 
         it('should not crash when voting is null', () => {
@@ -471,8 +471,8 @@ describe('createVotingSlice', () => {
 
             slice.closeVote();
 
-            expect(mockState.gameState.seats[1].isDead).toBe(false);
-            expect(mockState.gameState.voteHistory[0].voteCount).toBe(0);
+            expect(mockState.gameState.seats[1]!.isDead).toBe(false);
+            expect(mockState.gameState.voteHistory[0]!.voteCount).toBe(0);
         });
 
         it('should update nomination result in database', () => {
@@ -507,7 +507,7 @@ describe('createVotingSlice', () => {
 
             slice.closeVote();
 
-            expect(mockState.gameState.voteHistory[0].nominatorSeatId).toBe(-1);
+            expect(mockState.gameState.voteHistory[0]!.nominatorSeatId).toBe(-1);
         });
 
         it('should handle nominee seat not found', () => {
@@ -568,8 +568,8 @@ describe('createVotingSlice', () => {
 
         it('should include dead players in alive count correctly', () => {
             // Mark some players as dead
-            mockState.gameState.seats[3].isDead = true;
-            mockState.gameState.seats[4].isDead = true;
+            mockState.gameState.seats[3]!.isDead = true;
+            mockState.gameState.seats[4]!.isDead = true;
             // Now only 3 alive, need 2 votes (3/2 = 1.5, ceil = 2)
             mockState.gameState.voting = {
                 nominatorSeatId: 0,
@@ -581,8 +581,8 @@ describe('createVotingSlice', () => {
 
             slice.closeVote();
 
-            expect(mockState.gameState.seats[1].isDead).toBe(true);
-            expect(mockState.gameState.voteHistory[0].result).toBe('executed');
+            expect(mockState.gameState.seats[1]!.isDead).toBe(true);
+            expect(mockState.gameState.voteHistory[0]!.result).toBe('executed');
         });
     });
 });

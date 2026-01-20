@@ -11,7 +11,7 @@ interface PlayerNightActionProps {
 
 export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, onComplete }) => {
     const { t } = useTranslation();
-    const gameState = useStore(state => state.gameState);
+    const seats = useStore(state => state.gameState?.seats ?? []);
     const submitNightAction = useStore(state => state.submitNightAction);
 
     const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
@@ -20,9 +20,9 @@ export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, on
     const role = ROLES[roleId];
     const nightAction = role?.nightAction;
 
-    if (!gameState || !nightAction) return null;
+    if (!nightAction) return null;
 
-    const availableSeats = gameState.seats.filter(s => s.userId !== null || s.isVirtual);
+    const availableSeats = seats.filter(s => s.userId !== null || s.isVirtual);
 
     const handleSubmit = () => {
         let payload: NightActionPayload = {};

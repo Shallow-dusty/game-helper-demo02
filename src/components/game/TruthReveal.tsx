@@ -6,6 +6,7 @@ import type { Seat } from '../../types';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
 import { Confetti } from './Confetti';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 
 interface TruthRevealProps {
   isOpen: boolean;
@@ -22,9 +23,12 @@ interface TruthRevealProps {
  */
 export const TruthReveal: React.FC<TruthRevealProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
-  const gameState = useStore(state => state.gameState);
-  const seats = gameState?.seats || [];
-  const gameOver = gameState?.gameOver;
+  const { seats, gameOver } = useStore(
+    useShallow(state => ({
+      seats: state.gameState?.seats ?? [],
+      gameOver: state.gameState?.gameOver,
+    }))
+  );
   
   const { playSound, preloadSounds } = useSoundEffect();
   

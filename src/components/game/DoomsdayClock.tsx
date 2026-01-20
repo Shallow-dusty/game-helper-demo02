@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 
 interface DoomsdayClockProps {
   className?: string;
@@ -19,9 +20,12 @@ interface DoomsdayClockProps {
  */
 export const DoomsdayClock: React.FC<DoomsdayClockProps> = ({ className = '' }) => {
   const { t } = useTranslation();
-  const gameState = useStore(state => state.gameState);
-  const voting = gameState?.voting;
-  const seats = gameState?.seats ?? [];
+  const { voting, seats } = useStore(
+    useShallow(state => ({
+      voting: state.gameState?.voting,
+      seats: state.gameState?.seats ?? [],
+    }))
+  );
   
   const { playSound, playClockTick, preloadSounds } = useSoundEffect();
   

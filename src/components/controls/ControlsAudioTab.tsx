@@ -6,14 +6,12 @@ import { AUDIO_TRACKS, SOUND_EFFECTS } from '../../constants';
 
 export const ControlsAudioTab: React.FC = () => {
     const { t } = useTranslation();
-    const gameState = useStore(state => state.gameState);
+    const audio = useStore(state => state.gameState?.audio);
     const toggleAudioPlay = useStore(state => state.toggleAudioPlay);
     const setAudioVolume = useStore(state => state.setAudioVolume);
     const setAudioTrack = useStore(state => state.setAudioTrack);
 
-    if (!gameState) return null;
-
-    const { audio } = gameState;
+    if (!audio) return null;
 
     const playSoundEffect = (url: string) => {
         const audio = new Audio(url);

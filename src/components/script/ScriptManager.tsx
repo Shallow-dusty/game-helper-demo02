@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SCRIPTS, ROLES } from '../../constants';
 import { useStore } from '../../store';
 import { showError, showSuccess } from '../ui/Toast';
+import { useShallow } from 'zustand/react/shallow';
 
 interface ScriptManagerProps {
     onClose: () => void;
@@ -10,15 +11,17 @@ interface ScriptManagerProps {
 
 export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
     const { t } = useTranslation();
-    const gameState = useStore(state => state.gameState);
+    const { currentScriptId, customScripts } = useStore(
+        useShallow(state => ({
+            currentScriptId: state.gameState?.currentScriptId ?? 'tb',
+            customScripts: state.gameState?.customScripts ?? {},
+        }))
+    );
     const importScript = useStore(state => state.importScript);
     const [jsonInput, setJsonInput] = useState('');
     const [activeTab, setActiveTab] = useState<'view' | 'import'>('view');
 
-    if (!gameState) return null;
-
-    const currentScriptId = gameState.currentScriptId;
-    const currentScript = SCRIPTS[currentScriptId] || gameState.customScripts?.[currentScriptId];
+    const currentScript = SCRIPTS[currentScriptId] || customScripts?.[currentScriptId];
 
     const handleImport = () => {
         try {

@@ -1,18 +1,24 @@
 import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
+import { useShallow } from 'zustand/react/shallow';
 
 export const NotificationSystem = () => {
     const { t } = useTranslation();
-    const gameState = useStore(state => state.gameState);
+    const { messages, seats } = useStore(
+        useShallow(state => ({
+            messages: state.gameState?.messages ?? [],
+            seats: state.gameState?.seats ?? [],
+        }))
+    );
     const user = useStore(state => state.user);
     const [toast, setToast] = useState<{ message: string, type: 'info' | 'dead' | 'ability' } | null>(null);
     const lastMsgIdRef = useRef<string | null>(null);
 
     // Listen for system messages
     useEffect(() => {
-        if (!gameState?.messages.length) return;
-        const lastMsg = gameState.messages[gameState.messages.length - 1];
+        if (!messages.length) return;
+        const lastMsg = messages[messages.length - 1];
 
         // Only show if it's a new message and it's a system message
         if (lastMsg?.senderId === 'system' && lastMsg.id !== lastMsgIdRef.current) {
@@ -25,10 +31,10 @@ export const NotificationSystem = () => {
             }
         }
         return undefined;
-    }, [gameState?.messages]);
+    }, [messages]);
 
     // Listen for death status
-    const currentSeat = gameState?.seats.find(s => s.userId === user?.id);
+    const currentSeat = seats.find(s => s.userId === user?.id);
     const [wasDead, setWasDead] = useState(currentSeat?.isDead || false);
 
     useEffect(() => {

@@ -2,20 +2,26 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { Z_INDEX } from '../../constants';
+import { useShallow } from 'zustand/react/shallow';
 
 export const SwapRequestModal: React.FC = () => {
     const { t } = useTranslation();
     const user = useStore(state => state.user);
-    const gameState = useStore(state => state.gameState);
+    const { seats, swapRequests } = useStore(
+        useShallow(state => ({
+            seats: state.gameState?.seats ?? [],
+            swapRequests: state.gameState?.swapRequests ?? [],
+        }))
+    );
     const respondToSwapRequest = useStore(state => state.respondToSwapRequest);
 
-    if (!user || !gameState) return null;
+    if (!user) return null;
 
     // Find swap requests targeting this user
-    const currentSeat = gameState.seats.find(s => s.userId === user.id);
+    const currentSeat = seats.find(s => s.userId === user.id);
     if (!currentSeat) return null;
 
-    const incomingRequests = gameState.swapRequests.filter(
+    const incomingRequests = swapRequests.filter(
         req => req.toUserId === user.id
     );
 

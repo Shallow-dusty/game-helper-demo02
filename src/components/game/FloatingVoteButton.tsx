@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { Z_INDEX } from '../../constants';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * 移动端悬浮投票按钮
@@ -9,13 +10,19 @@ import { Z_INDEX } from '../../constants';
  */
 export const FloatingVoteButton: React.FC = () => {
     const { t } = useTranslation();
-    const gameState = useStore(state => state.gameState);
+    const { voting, seats, isModalOpen } = useStore(
+        useShallow(state => ({
+            voting: state.gameState?.voting,
+            seats: state.gameState?.seats ?? [],
+            isModalOpen: state.isModalOpen,
+        }))
+    );
     const user = useStore(state => state.user);
     const toggleHand = useStore(state => state.toggleHand);
     const [isLoading, setIsLoading] = useState(false);
 
     // 获取当前用户的座位
-    const currentSeat = gameState?.seats.find(s => s.userId === user?.id);
+    const currentSeat = seats.find(s => s.userId === user?.id);
 
     // 检查是否应该显示此按钮
     // 1. 必须是玩家（非说书人）
@@ -23,9 +30,8 @@ export const FloatingVoteButton: React.FC = () => {
     // 3. 必须已入座
     // 4. 仅在移动端显示（桌面端使用侧边栏）
     // 5. 没有打开全屏模态框
-    const isModalOpen = useStore(state => state.isModalOpen);
     const shouldShow = !user?.isStoryteller &&
-        gameState?.voting?.isOpen &&
+        voting?.isOpen &&
         currentSeat &&
         !isModalOpen;
 
@@ -98,9 +104,9 @@ export const FloatingVoteButton: React.FC = () => {
             <span className="text-xl">{content.icon}</span>
             <span className="font-cinzel tracking-wider">{content.text}</span>
             {/* 受审者信息 */}
-            {gameState.voting?.nomineeSeatId !== undefined && (
+            {voting?.nomineeSeatId !== undefined && (
                 <span className="text-xs opacity-70 ml-1">
-                    → {gameState.seats.find(s => s.id === gameState.voting?.nomineeSeatId)?.userName ?? '?'}
+                    → {seats.find(s => s.id === voting.nomineeSeatId)?.userName ?? '?'}
                 </span>
             )}
         </button>

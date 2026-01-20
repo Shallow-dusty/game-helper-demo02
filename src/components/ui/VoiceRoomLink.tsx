@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * 语音房间链接组件
@@ -9,17 +10,16 @@ import { useStore } from '../../store';
 export const VoiceRoomLink: React.FC = () => {
     const { t } = useTranslation();
     const user = useStore(state => state.user);
-    const gameState = useStore(state => state.gameState);
+    const voiceRoomUrl = useStore(state => state.gameState?.voiceRoomUrl);
     const syncToCloud = useStore(state => state.syncToCloud);
 
     const [isEditing, setIsEditing] = useState(false);
-    const [inputValue, setInputValue] = useState(gameState?.voiceRoomUrl || '');
-
-    if (!gameState) return null;
+    const [inputValue, setInputValue] = useState(voiceRoomUrl || '');
 
     const handleSave = () => {
+        const gameState = useStore.getState().gameState;
         if (!gameState) return;
-        
+
         // 更新游戏状态
         const newState = { ...gameState, voiceRoomUrl: inputValue.trim() || undefined };
         useStore.setState({ gameState: newState });
@@ -28,8 +28,9 @@ export const VoiceRoomLink: React.FC = () => {
     };
 
     const handleClear = () => {
+        const gameState = useStore.getState().gameState;
         if (!gameState) return;
-        
+
         const newState = { ...gameState, voiceRoomUrl: undefined };
         useStore.setState({ gameState: newState });
         void syncToCloud();
@@ -38,8 +39,8 @@ export const VoiceRoomLink: React.FC = () => {
     };
 
     const openVoiceRoom = () => {
-        if (gameState.voiceRoomUrl) {
-            window.open(gameState.voiceRoomUrl, '_blank', 'noopener,noreferrer');
+        if (voiceRoomUrl) {
+            window.open(voiceRoomUrl, '_blank', 'noopener,noreferrer');
         }
     };
 
@@ -54,12 +55,13 @@ export const VoiceRoomLink: React.FC = () => {
                 {isStoryteller && !isEditing && (
                     <button
                         onClick={() => {
-                            setInputValue(gameState.voiceRoomUrl || '');
+                            setInputValue(voiceRoomUrl || '');
                             setIsEditing(true);
                         }}
                         className="text-[10px] text-blue-400 hover:text-blue-300"
+                        aria-label={voiceRoomUrl ? t('ui.voiceRoomLink.edit') : t('ui.voiceRoomLink.add')}
                     >
-                        {gameState.voiceRoomUrl ? t('ui.voiceRoomLink.edit') : t('ui.voiceRoomLink.add')}
+                        {voiceRoomUrl ? t('ui.voiceRoomLink.edit') : t('ui.voiceRoomLink.add')}
                     </button>
                 )}
             </div>
@@ -78,30 +80,34 @@ export const VoiceRoomLink: React.FC = () => {
                         <button
                             onClick={handleSave}
                             className="flex-1 py-1.5 bg-blue-700 hover:bg-blue-600 text-white rounded text-xs font-bold"
+                            aria-label={t('common.save')}
                         >
                             {t('common.save')}
                         </button>
                         <button
                             onClick={() => setIsEditing(false)}
                             className="flex-1 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-400 rounded text-xs"
+                            aria-label={t('common.cancel')}
                         >
                             {t('common.cancel')}
                         </button>
-                        {gameState.voiceRoomUrl && (
+                        {voiceRoomUrl && (
                             <button
                                 onClick={handleClear}
                                 className="py-1.5 px-3 bg-red-900/30 hover:bg-red-800/50 text-red-400 rounded text-xs"
+                                aria-label={t('common.delete')}
                             >
                                 {t('common.delete')}
                             </button>
                         )}
                     </div>
                 </div>
-            ) : gameState.voiceRoomUrl ? (
+            ) : voiceRoomUrl ? (
                 <div className="flex items-center gap-2">
                     <button
                         onClick={openVoiceRoom}
                         className="flex-1 py-2 px-3 bg-green-900/30 hover:bg-green-800/50 text-green-300 rounded text-sm font-bold border border-green-800/50 transition-colors flex items-center justify-center gap-2"
+                        aria-label={t('ui.voiceRoomLink.join')}
                     >
                         <span>🔗</span>
                         <span>{t('ui.voiceRoomLink.join')}</span>
@@ -114,11 +120,11 @@ export const VoiceRoomLink: React.FC = () => {
                 </div>
             )}
 
-            {gameState.voiceRoomUrl && (
-                <p className="text-[10px] text-stone-600 mt-2 truncate" title={gameState.voiceRoomUrl}>
-                    {gameState.voiceRoomUrl.length > 40
-                        ? gameState.voiceRoomUrl.substring(0, 40) + '...'
-                        : gameState.voiceRoomUrl}
+            {voiceRoomUrl && (
+                <p className="text-[10px] text-stone-600 mt-2 truncate" title={voiceRoomUrl}>
+                    {voiceRoomUrl.length > 40
+                        ? voiceRoomUrl.substring(0, 40) + '...'
+                        : voiceRoomUrl}
                 </p>
             )}
         </div>

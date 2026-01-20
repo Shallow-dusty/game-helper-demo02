@@ -30,7 +30,7 @@ export const AfterActionReportView: React.FC<AfterActionReportViewProps> = ({ is
   const [isCapturing, setIsCapturing] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // 生成战报
+  // 生成战报 - gameState已经是细粒度订阅，保持useMemo优化
   const report = useMemo(() => {
     if (!gameState) return null;
     return generateAfterActionReport(gameState);

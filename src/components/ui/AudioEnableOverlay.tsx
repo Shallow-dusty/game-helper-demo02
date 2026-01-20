@@ -10,7 +10,7 @@ export const AudioEnableOverlay = () => {
     const { t } = useTranslation();
     const isAudioBlocked = useStore(state => state.isAudioBlocked);
     const setAudioBlocked = useStore(state => state.setAudioBlocked);
-    const gameState = useStore(state => state.gameState);
+    const hasGameState = useStore(state => !!state.gameState);
 
     const [isVisible, setIsVisible] = useState(false);
     const [hasInteracted, setHasInteracted] = useState(false);
@@ -18,7 +18,7 @@ export const AudioEnableOverlay = () => {
     // 检查是否需要显示引导
     useEffect(() => {
         // 只在游戏房间中且音频被阻止时显示
-        if (gameState && isAudioBlocked && !hasInteracted) {
+        if (hasGameState && isAudioBlocked && !hasInteracted) {
             // 延迟显示，避免闪烁
             const timer = setTimeout(() => {
                 setIsVisible(true);
@@ -28,7 +28,7 @@ export const AudioEnableOverlay = () => {
             setIsVisible(false);
         }
         return undefined;
-    }, [gameState, isAudioBlocked, hasInteracted]);
+    }, [hasGameState, isAudioBlocked, hasInteracted]);
 
     const handleClick = () => {
         setHasInteracted(true);

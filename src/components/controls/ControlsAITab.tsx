@@ -7,7 +7,7 @@ import { AiProvider } from '../../store/types';
 export const ControlsAITab: React.FC = () => {
   const { t } = useTranslation();
     const user = useStore(state => state.user);
-    const gameState = useStore(state => state.gameState);
+    const aiMessages = useStore(state => state.gameState?.aiMessages ?? []);
     const askAi = useStore(state => state.askAi);
     const isAiThinking = useStore(state => state.isAiThinking);
     const aiProvider = useStore(state => state.aiProvider);
@@ -17,7 +17,7 @@ export const ControlsAITab: React.FC = () => {
 
   const [aiPrompt, setAiPrompt] = useState('');
 
-  if (!user || !gameState) return null;
+  if (!user) return null;
 
   const handleAiSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,14 +34,14 @@ export const ControlsAITab: React.FC = () => {
     <div className="h-full flex flex-col p-4">
       <div className="flex-1 overflow-y-auto space-y-4 mb-4 scrollbar-thin">
         {/* AI Messages */}
-        {gameState.aiMessages.length === 0 && (
+        {aiMessages.length === 0 && (
           <div className="text-center text-stone-500 py-8">
             <div className="text-3xl mb-2">🤖</div>
             <p className="text-sm">{t('controls.ai.ready')}</p>
             <p className="text-xs text-stone-600 mt-1">{t('controls.ai.subtitle')}</p>
           </div>
         )}
-        {gameState.aiMessages.map(msg => (
+        {aiMessages.map(msg => (
           <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
             <div className={`max-w-[85%] p-3 rounded-lg text-sm whitespace-pre-wrap ${msg.role === 'user'
               ? 'bg-stone-800 text-stone-200'

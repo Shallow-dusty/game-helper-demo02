@@ -1,11 +1,30 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore, ConnectionStatus } from '../../store';
+import { useShallow } from 'zustand/react/shallow';
 import { SCRIPTS } from '../../constants';
+
+// 细粒度订阅
+const usePhaseIndicatorState = () => useStore(
+    useShallow(state => ({
+        phase: state.gameState?.phase,
+        setupPhase: state.gameState?.setupPhase,
+        currentScriptId: state.gameState?.currentScriptId ?? 'tb',
+        customScripts: state.gameState?.customScripts ?? {},
+        seats: state.gameState?.seats ?? [],
+        gameOver: state.gameState?.gameOver,
+        roundInfo: state.gameState?.roundInfo,
+        nightCurrentIndex: state.gameState?.nightCurrentIndex ?? -1,
+        nightQueue: state.gameState?.nightQueue ?? [],
+        voting: state.gameState?.voting,
+        roomId: state.gameState?.roomId ?? '',
+        hasGameState: !!state.gameState,
+    }))
+);
 
 export const PhaseIndicator: React.FC = () => {
     const { t } = useTranslation();
-    const gameState = useStore(state => state.gameState);
+    const { phase, setupPhase, currentScriptId, customScripts, seats, gameOver, roundInfo, nightCurrentIndex, nightQueue, voting, roomId, hasGameState } = usePhaseIndicatorState();
     const user = useStore(state => state.user);
     const isOffline = useStore(state => state.isOffline);
     const connectionStatus = useStore(state => state.connectionStatus);
@@ -18,7 +37,7 @@ export const PhaseIndicator: React.FC = () => {
         disconnected: { text: t('connection.disconnected'), className: 'text-red-400' },
     };
 
-    if (!gameState || !user) return null;
+    if (!hasGameState || !user) return null;
 
     const isStoryteller = user.isStoryteller;
 
@@ -29,62 +48,61 @@ export const PhaseIndicator: React.FC = () => {
     let subMessage = '';
 
     // Get script name
-    const scriptName = SCRIPTS[gameState.currentScriptId]?.name ??
-                       gameState.customScripts?.[gameState.currentScriptId]?.name ??
+    const scriptName = SCRIPTS[currentScriptId]?.name ??
+                       customScripts?.[currentScriptId]?.name ??
                        t('scripts.custom');
 
     // Get alive player count
-    const aliveCount = gameState.seats.filter(s => !s.isDead && (s.userId ?? s.isVirtual)).length;
-    const totalPlayers = gameState.seats.filter(s => s.userId ?? s.isVirtual).length;
+    const aliveCount = seats.filter(s => !s.isDead && (s.userId ?? s.isVirtual)).length;
+    const totalPlayers = seats.filter(s => s.userId ?? s.isVirtual).length;
 
-    if (gameState.gameOver?.isOver) {
-        message = gameState.gameOver.winner === 'GOOD' ? t('phase.goodWin') : t('phase.evilWin');
-        bgColor = gameState.gameOver.winner === 'GOOD' ? 'bg-green-900/90' : 'bg-red-900/90';
-        icon = gameState.gameOver.winner === 'GOOD' ? '🎉' : '💀';
-        subMessage = gameState.gameOver.reason;
-    } else if (gameState.setupPhase === 'ASSIGNING') {
+    if (gameOver?.isOver) {
+        message = gameOver.winner === 'GOOD' ? t('phase.goodWin') : t('phase.evilWin');
+        bgColor = gameOver.winner === 'GOOD' ? 'bg-green-900/90' : 'bg-red-900/90';
+        icon = gameOver.winner === 'GOOD' ? '🎉' : '💀';
+        subMessage = gameOver.reason ?? '';
+    } else if (setupPhase === 'ASSIGNING') {
         message = isStoryteller ? t('phase.assigning') : t('phase.waitingForST');
         bgColor = 'bg-amber-900/90';
         icon = '📝';
         subMessage = `${scriptName} · ${String(totalPlayers)} ${t('phase.playerCount')}`;
-    } else if (gameState.setupPhase === 'READY') {
+    } else if (setupPhase === 'READY') {
         message = t('phase.rolesAssigned');
         bgColor = 'bg-green-900/90';
         icon = '✅';
         subMessage = isStoryteller ? t('phase.readyToStart') : t('phase.checkRuleBook');
-    } else if (gameState.phase !== 'SETUP') {
+    } else if (phase !== 'SETUP') {
         // Game in progress (setupPhase is 'STARTED' at this point)
-        const roundInfo = gameState.roundInfo;
 
-        if (gameState.phase === 'NIGHT') {
-            message = t('phase.night', { count: roundInfo.nightCount });
+        if (phase === 'NIGHT') {
+            message = t('phase.night', { count: roundInfo?.nightCount ?? 1 });
             bgColor = 'bg-indigo-900/90';
             icon = '🌙';
             // Show current night action role for ST
-            if (isStoryteller && gameState.nightCurrentIndex >= 0 && gameState.nightQueue[gameState.nightCurrentIndex]) {
-                const currentRoleId = gameState.nightQueue[gameState.nightCurrentIndex];
-                subMessage = `${t('phase.current')}: ${String(currentRoleId)} · ${String(aliveCount)}/${String(totalPlayers)} ${t('phase.alive')}`;
+            if (isStoryteller && nightCurrentIndex >= 0 && nightQueue[nightCurrentIndex]) {
+                const currentRoleId = nightQueue[nightCurrentIndex];
+                subMessage = `${t('phase.current')}: ${currentRoleId} · ${String(aliveCount)}/${String(totalPlayers)} ${t('phase.alive')}`;
             } else {
                 subMessage = `${String(aliveCount)}/${String(totalPlayers)} ${t('phase.alive')}`;
             }
-        } else if (gameState.phase === 'DAY') {
-            message = t('phase.day', { count: roundInfo.dayCount });
+        } else if (phase === 'DAY') {
+            message = t('phase.day', { count: roundInfo?.dayCount ?? 1 });
             bgColor = 'bg-amber-800/90';
             icon = '☀️';
             subMessage = `${String(aliveCount)}/${String(totalPlayers)} ${t('phase.alive')} · ${t('phase.discussionPhase')}`;
-        } else if (gameState.phase === 'NOMINATION') {
-            message = t('phase.nomination', { count: roundInfo.dayCount });
+        } else if (phase === 'NOMINATION') {
+            message = t('phase.nomination', { count: roundInfo?.dayCount ?? 1 });
             bgColor = 'bg-emerald-900/90';
             icon = '⚖️';
-            subMessage = `${t('phase.nominationCount')}: ${String(roundInfo.nominationCount)} · ${String(aliveCount)} ${t('phase.alive')}`;
-        } else if (gameState.voting && gameState.voting.nomineeSeatId !== null) {
+            subMessage = `${t('phase.nominationCount')}: ${String(roundInfo?.nominationCount ?? 0)} · ${String(aliveCount)} ${t('phase.alive')}`;
+        } else if (voting && voting.nomineeSeatId !== null) {
             // phase is 'VOTING' at this point
-            const nominee = gameState.seats[gameState.voting.nomineeSeatId];
-            const nomineeName = nominee?.userName ?? `${t('nightAction.panel.seat')} ${String(gameState.voting.nomineeSeatId + 1)}`;
+            const nominee = seats[voting.nomineeSeatId];
+            const nomineeName = nominee?.userName ?? `${t('nightAction.panel.seat')} ${String(voting.nomineeSeatId + 1)}`;
             message = t('phase.voting');
             bgColor = 'bg-red-900/90';
             icon = '📊';
-            subMessage = `${t('phase.nominee')}: ${nomineeName} · ${t('phase.current')} ${String(gameState.voting.votes.length)} ${t('phase.votes')}`;
+            subMessage = `${t('phase.nominee')}: ${nomineeName} · ${t('phase.current')} ${String(voting.votes.length)} ${t('phase.votes')}`;
         }
     }
 
@@ -143,7 +161,7 @@ export const PhaseIndicator: React.FC = () => {
                 {/* Right: Room Code */}
                 <div className="flex items-center gap-2 min-w-[70px] justify-end">
                     <span className="text-xs font-mono text-stone-400 bg-stone-800/50 px-2 py-0.5 rounded">
-                        #{gameState.roomId}
+                        #{roomId}
                     </span>
                 </div>
             </div>

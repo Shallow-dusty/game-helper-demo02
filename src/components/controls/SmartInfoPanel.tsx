@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
+import { useShallow } from 'zustand/react/shallow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateInfoForRole, getInfoRolesForNight, InfoGenerationResult } from '../../lib/infoGeneration';
 import { Brain, RefreshCw, ChevronDown, ChevronUp, Copy, Check, AlertTriangle, Sparkles, Target } from 'lucide-react';
@@ -8,7 +9,7 @@ import { ROLES } from '../../constants/roles';
 
 /**
  * SmartInfoPanel - 智能信息生成面板
- * 
+ *
  * 为 ST 提供信息类角色（共情者、厨师、占卜师等）的信息建议
  * - 自动检测当前夜晚需要处理的信息角色
  * - 生成真实信息和伪造信息（中毒/醉酒状态）
@@ -24,12 +25,24 @@ interface SmartInfoPanelProps {
 // 需要额外参数的角色
 const ROLES_NEED_PARAMS = ['fortune_teller', 'undertaker'];
 
+// 细粒度订阅 - 只订阅需要的字段
+const useSmartInfoState = () => useStore(
+  useShallow(state => ({
+    seats: state.gameState?.seats ?? [],
+    roundInfo: state.gameState?.roundInfo,
+    nightQueue: state.gameState?.nightQueue ?? [],
+    nightCurrentIndex: state.gameState?.nightCurrentIndex ?? -1,
+    phase: state.gameState?.phase ?? 'SETUP',
+    hasGameState: !!state.gameState,
+  }))
+);
+
 export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
   isExpanded = false,
   onToggle
 }) => {
   const { t } = useTranslation();
-  const gameState = useStore(state => state.gameState);
+  const { seats, roundInfo, phase, hasGameState } = useSmartInfoState();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [generatedResults, setGeneratedResults] = useState<Map<number, InfoGenerationResult>>(new Map());
 
@@ -38,21 +51,23 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
 
   // 检测当前夜晚的信息角色
   const infoRoles = useMemo(() => {
+    if (!hasGameState) return [];
+    const gameState = useStore.getState().gameState;
     if (!gameState) return [];
-    const isFirstNight = gameState.roundInfo?.nightCount === 1;
+    const isFirstNight = roundInfo?.nightCount === 1;
     return getInfoRolesForNight(gameState, isFirstNight);
-  }, [gameState]);
+  }, [hasGameState, roundInfo?.nightCount, seats]);
 
   // 获取存活玩家列表（用于占卜师目标选择）
   const alivePlayers = useMemo(() => {
-    if (!gameState) return [];
-    return gameState.seats.filter(s => !s.isDead);
-  }, [gameState]);
+    return seats.filter(s => !s.isDead);
+  }, [seats]);
 
   // 生成单个角色的信息
   const generateInfo = (seatId: number, roleId: string, additionalParams?: { target1SeatId?: number; target2SeatId?: number; executedSeatId?: number }) => {
+    const gameState = useStore.getState().gameState;
     if (!gameState) return;
-    
+
     const result = generateInfoForRole(gameState, roleId, seatId, additionalParams);
     if (result) {
       setGeneratedResults(prev => {
@@ -65,13 +80,14 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
 
   // 生成所有信息（跳过需要参数的角色）
   const generateAllInfo = () => {
+    const gameState = useStore.getState().gameState;
     if (!gameState) return;
-    
+
     const newResults = new Map<number, InfoGenerationResult>();
     infoRoles.forEach(({ seatId, roleId }) => {
       // 跳过需要额外参数的角色
       if (ROLES_NEED_PARAMS.includes(roleId)) return;
-      
+
       const result = generateInfoForRole(gameState, roleId, seatId);
       if (result) {
         newResults.set(seatId, result);
@@ -110,7 +126,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
     });
   };
 
-  if (gameState?.phase !== 'NIGHT') {
+  if (phase !== 'NIGHT') {
     return null;
   }
 
@@ -167,7 +183,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                   <div className="space-y-2">
                     {infoRoles.map(({ seatId, roleId, roleName }) => {
                       const result = generatedResults.get(seatId);
-                      const seat = gameState.seats[seatId];
+                      const seat = seats[seatId];
                       const isTainted = seat?.statuses.includes('POISONED') || seat?.statuses.includes('DRUNK');
                       const needsParams = ROLES_NEED_PARAMS.includes(roleId);
                       const ftTargets = fortuneTellerTargets.get(seatId);

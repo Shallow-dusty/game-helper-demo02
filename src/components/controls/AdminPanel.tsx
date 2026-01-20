@@ -6,8 +6,12 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// 简单的管理员密码验证（生产环境应使用更安全的方式）
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD ?? 'grimoire_admin_2024';
+// 管理员密码验证 - 必须通过环境变量配置
+// 不提供默认值以确保生产环境安全
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
+
+// 如果未配置密码，禁用管理面板
+const ADMIN_PANEL_ENABLED = !!ADMIN_PASSWORD;
 
 interface RoomInfo {
     room_code: string;
@@ -111,6 +115,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
             return 'UNKNOWN';
         }
     };
+
+    // 如果未配置管理员密码，显示禁用提示
+    if (!ADMIN_PANEL_ENABLED) {
+        return (
+            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] backdrop-blur-sm" onClick={onClose}>
+                <div className="bg-stone-900 rounded-lg border border-stone-700 p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <h2 className="text-xl font-bold text-stone-200 mb-4 flex items-center gap-2">
+                        <span>⚠️</span> 管理面板未启用
+                    </h2>
+                    <p className="text-stone-400 text-sm mb-4">
+                        管理面板需要配置环境变量 <code className="bg-stone-800 px-2 py-1 rounded text-amber-500">VITE_ADMIN_PASSWORD</code> 才能使用。
+                    </p>
+                    <p className="text-stone-500 text-xs mb-4">
+                        请在 <code className="bg-stone-800 px-1 rounded">.env.local</code> 文件中设置密码后重启应用。
+                    </p>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="w-full bg-stone-700 hover:bg-stone-600 text-stone-200 py-2 rounded font-bold"
+                    >
+                        关闭
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     if (!isAuthenticated) {
         return (

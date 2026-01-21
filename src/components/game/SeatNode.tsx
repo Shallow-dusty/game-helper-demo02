@@ -1,10 +1,3 @@
-/**
- * SeatNode - 单个座位节点组件
- *
- * 座位圆形界面中的单个玩家令牌
- * 功能: 显示玩家信息、角色、状态、动画、交互
- */
-
 import React, { useRef, useEffect } from 'react';
 import { Group, Circle, Text, Rect, Ring, Arc, RegularPolygon } from 'react-konva';
 import { Seat } from '../../types';

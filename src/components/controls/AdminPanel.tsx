@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useTranslation } from 'react-i18next';
+import { AlertTriangle, Lock, Crown, RefreshCw, Loader2, Home } from 'lucide-react';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -122,7 +123,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
             <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] backdrop-blur-sm" onClick={onClose}>
                 <div className="bg-stone-900 rounded-lg border border-stone-700 p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
                     <h2 className="text-xl font-bold text-stone-200 mb-4 flex items-center gap-2">
-                        <span>⚠️</span> 管理面板未启用
+                        <AlertTriangle className="w-5 h-5 text-amber-500" />
+                        管理面板未启用
                     </h2>
                     <p className="text-stone-400 text-sm mb-4">
                         管理面板需要配置环境变量 <code className="bg-stone-800 px-2 py-1 rounded text-amber-500">VITE_ADMIN_PASSWORD</code> 才能使用。
@@ -133,7 +135,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="w-full bg-stone-700 hover:bg-stone-600 text-stone-200 py-2 rounded font-bold"
+                        className="w-full bg-stone-700 hover:bg-stone-600 text-stone-200 py-2 rounded font-bold cursor-pointer"
                     >
                         关闭
                     </button>
@@ -147,7 +149,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
             <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] backdrop-blur-sm" onClick={onClose}>
                 <div className="bg-stone-900 rounded-lg border border-stone-700 p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
                     <h2 className="text-xl font-bold text-stone-200 mb-4 flex items-center gap-2">
-                        <span>🔐</span> {t('controls.admin.title')}
+                        <Lock className="w-5 h-5 text-amber-500" />
+                        {t('controls.admin.title')}
                     </h2>
                     <form onSubmit={handleLogin}>
                         <input
@@ -162,14 +165,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                         <div className="flex gap-2">
                             <button
                                 type="submit"
-                                className="flex-1 bg-amber-700 hover:bg-amber-600 text-white py-2 rounded font-bold"
+                                className="flex-1 bg-amber-700 hover:bg-amber-600 text-white py-2 rounded font-bold cursor-pointer"
                             >
                                 {t('common.submit')}
                             </button>
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded"
+                                className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded cursor-pointer"
                             >
                                 {t('common.cancel')}
                             </button>
@@ -186,7 +189,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                 {/* Header */}
                 <div className="p-4 border-b border-stone-700 bg-stone-950 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <span className="text-2xl">👑</span>
+                        <Crown className="w-6 h-6 text-amber-500" />
                         <div>
                             <h2 className="text-lg font-bold text-amber-400">{t('controls.admin.title')}</h2>
                             <p className="text-xs text-stone-500">{t('controls.admin.title')}</p>
@@ -195,11 +198,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => void fetchRooms()}
-                            className="px-3 py-1 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded text-sm"
+                            className="px-3 py-1 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded text-sm cursor-pointer flex items-center gap-2"
                         >
-                            🔄 {t('ui.updateNotification.refresh')}
+                            <RefreshCw className="w-4 h-4" />
+                            {t('ui.updateNotification.refresh')}
                         </button>
-                        <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl">✕</button>
+                        <button onClick={onClose} className="text-stone-500 hover:text-stone-300 text-2xl cursor-pointer">✕</button>
                     </div>
                 </div>
 
@@ -213,12 +217,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
 
                     {loading ? (
                         <div className="text-center py-8 text-stone-500">
-                            <div className="animate-spin text-3xl mb-2">⏳</div>
+                            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                             {t('common.loading')}
                         </div>
                     ) : rooms.length === 0 ? (
                         <div className="text-center py-8 text-stone-500">
-                            <div className="text-3xl mb-2">🏚️</div>
+                            <Home className="w-12 h-12 mx-auto mb-2 opacity-20" />
                             {t('ui.empty.noData')}
                         </div>
                     ) : (
@@ -263,7 +267,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                                         </div>
                                         <button
                                             onClick={() => void closeRoom(room.room_code)}
-                                            className="px-3 py-1 bg-red-900/50 hover:bg-red-800 text-red-300 rounded text-sm border border-red-800/50 transition-colors"
+                                            className="px-3 py-1 bg-red-900/50 hover:bg-red-800 text-red-300 rounded text-sm border border-red-800/50 transition-colors cursor-pointer"
                                         >
                                             {t('common.close')}
                                         </button>

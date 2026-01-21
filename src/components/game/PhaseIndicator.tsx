@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore, ConnectionStatus } from '../../store';
 import { useShallow } from 'zustand/react/shallow';
 import { SCRIPTS } from '../../constants';
+import { PartyPopper, Skull, FileEdit, CheckCircle, Moon, Sun, Scale, BarChart3 } from 'lucide-react';
 
 // 细粒度订阅
 const usePhaseIndicatorState = () => useStore(
@@ -78,7 +79,6 @@ export const PhaseIndicator: React.FC = () => {
             message = t('phase.night', { count: roundInfo?.nightCount ?? 1 });
             bgColor = 'bg-indigo-900/90';
             icon = '🌙';
-            // Show current night action role for ST
             if (isStoryteller && nightCurrentIndex >= 0 && nightQueue[nightCurrentIndex]) {
                 const currentRoleId = nightQueue[nightCurrentIndex];
                 subMessage = `${t('phase.current')}: ${currentRoleId} · ${String(aliveCount)}/${String(totalPlayers)} ${t('phase.alive')}`;
@@ -96,7 +96,6 @@ export const PhaseIndicator: React.FC = () => {
             icon = '⚖️';
             subMessage = `${t('phase.nominationCount')}: ${String(roundInfo?.nominationCount ?? 0)} · ${String(aliveCount)} ${t('phase.alive')}`;
         } else if (voting && voting.nomineeSeatId !== null) {
-            // phase is 'VOTING' at this point
             const nominee = seats[voting.nomineeSeatId];
             const nomineeName = nominee?.userName ?? `${t('nightAction.panel.seat')} ${String(voting.nomineeSeatId + 1)}`;
             message = t('phase.voting');
@@ -146,7 +145,15 @@ export const PhaseIndicator: React.FC = () => {
                 {/* Center: Phase Info */}
                 <div className="flex flex-col items-center">
                     <div className="flex items-center gap-2">
-                        <span className="text-lg md:text-xl">{icon}</span>
+                        {icon === '🎉' ? <PartyPopper className="w-5 h-5 md:w-6 md:h-6" /> :
+                         icon === '💀' ? <Skull className="w-5 h-5 md:w-6 md:h-6" /> :
+                         icon === '📝' ? <FileEdit className="w-5 h-5 md:w-6 md:h-6" /> :
+                         icon === '✅' ? <CheckCircle className="w-5 h-5 md:w-6 md:h-6" /> :
+                         icon === '🌙' ? <Moon className="w-5 h-5 md:w-6 md:h-6" /> :
+                         icon === '☀️' ? <Sun className="w-5 h-5 md:w-6 md:h-6" /> :
+                         icon === '⚖️' ? <Scale className="w-5 h-5 md:w-6 md:h-6" /> :
+                         icon === '📊' ? <BarChart3 className="w-5 h-5 md:w-6 md:h-6" /> :
+                         <span className="text-lg md:text-xl">{icon}</span>}
                         <span className="text-stone-100 font-semibold text-sm md:text-base font-cinzel tracking-wide">
                             {message}
                         </span>

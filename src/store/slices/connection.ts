@@ -1,6 +1,6 @@
 /**
  * Connection Slice - 处理网络连接和 Supabase 通信
- * 
+ *
  * 重命名自 createConnectionSlice.ts，遵循新的命名规范
  */
 import { StoreSlice, ConnectionStatus } from '../types';
@@ -8,16 +8,11 @@ import { User, GameState } from '../../types';
 import { createClient, RealtimeChannel, REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
 import { addSystemMessage, splitGameState, mergeGameState, type SecretState } from '../utils';
 import { generateShortId } from '../../lib/random';
+import { env } from '../../config/env';
 
 // --- SUPABASE CONFIG ---
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("Missing Supabase URL or Key in .env.local");
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// 使用经过运行时校验的环境变量配置
+export const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
 // Global variables for subscription (kept here for now, but encapsulated)
 let realtimeChannel: RealtimeChannel | null = null;

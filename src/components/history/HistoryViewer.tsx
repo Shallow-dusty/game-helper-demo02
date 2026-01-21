@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { ChatMessage, VoteRecord, Seat } from '../../types';
 import { VotingChart } from '../game/VotingChart';
 import { useTranslation } from 'react-i18next';
-
-// Initialize Supabase client locally for this component
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from '../../store/slices/connection';
 
 interface HistoryPlayer {
     name: string;

@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Lock, Crown, RefreshCw, Loader2, Home } from 'lucide-react';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from '../../store/slices/connection';
+import { env } from '../../config/env';
 
 // 管理员密码验证 - 必须通过环境变量配置
 // 不提供默认值以确保生产环境安全
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
+const ADMIN_PASSWORD = env.ADMIN_PASSWORD;
 
 // 如果未配置密码，禁用管理面板
 const ADMIN_PANEL_ENABLED = !!ADMIN_PASSWORD;

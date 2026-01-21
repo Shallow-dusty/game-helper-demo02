@@ -291,12 +291,33 @@ export const checkGameOver = (seats: Seat[], executedSeatId?: number): {
     // Only check if executedSeatId is provided (meaning this was an execution)
     if (executedSeatId !== undefined) {
         const executedSeat = seats.find(s => s.id === executedSeatId);
+
+        // 圣徒被处决检查
         if (executedSeat?.realRoleId === 'saint') {
             return {
                 isOver: true,
                 winner: 'EVIL',
                 reason: '圣徒被处决，邪恶胜利！'
             };
+        }
+
+        // Bug#11 fix: 市长特殊胜利规则
+        // 官方规则：当场上只剩3人且市长存活时，处决任何人好人立即获胜
+        const aliveSeats = seats.filter(s => !s.isDead);
+        if (aliveSeats.length === 3) {
+            const mayorAlive = aliveSeats.some(s => s.realRoleId === 'mayor');
+            // 市长必须没有中毒/醉酒才能生效
+            const mayorSeat = aliveSeats.find(s => s.realRoleId === 'mayor');
+            const mayorIsPoisonedOrDrunk = mayorSeat?.statuses?.some(
+                status => status === 'POISONED' || status === 'DRUNK'
+            );
+            if (mayorAlive && !mayorIsPoisonedOrDrunk) {
+                return {
+                    isOver: true,
+                    winner: 'GOOD',
+                    reason: '市长特殊胜利！剩余3人时处决成功，好人获胜！'
+                };
+            }
         }
     }
 

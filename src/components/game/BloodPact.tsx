@@ -11,6 +11,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSoundEffect } from '../../hooks/useSoundEffect';
 import { useTranslation } from 'react-i18next';
+import { Skull, Flame } from 'lucide-react';
 
 interface BloodPactProps {
     isActive: boolean;
@@ -117,13 +118,13 @@ const DemonTotem: React.FC<{
             />
             
             {/* 恶魔符号 */}
-            <div 
-                className="absolute inset-0 flex items-center justify-center text-4xl"
+            <div
+                className="absolute inset-0 flex items-center justify-center"
                 style={{
                     filter: 'drop-shadow(0 0 10px rgba(255, 50, 50, 0.8))',
                 }}
             >
-                👿
+                <Skull className="w-10 h-10 text-red-500" />
             </div>
             
             {/* 符文圆环 */}
@@ -210,13 +211,13 @@ const MinionMark: React.FC<{
             />
             
             {/* 爪牙符号 */}
-            <div 
-                className="absolute inset-0 flex items-center justify-center text-2xl"
+            <div
+                className="absolute inset-0 flex items-center justify-center"
                 style={{
                     filter: 'drop-shadow(0 0 5px rgba(255, 100, 100, 0.8))',
                 }}
             >
-                🔥
+                <Flame className="w-6 h-6 text-orange-500" />
             </div>
         </motion.div>
     );

@@ -16,7 +16,7 @@ import { showWarning } from '../ui/Toast';
 import { StorytellerMenu } from './StorytellerMenu';
 import { ChainReactionModal } from './ChainReactionModal';
 import { detectChainReactions, type ChainReactionEvent } from '../../lib/chainReaction';
-import { Lock, Unlock } from 'lucide-react';
+import { Lock, Unlock, Loader2, Flame } from 'lucide-react';
 import { CandlelightOverlay } from './CandlelightOverlay';
 import SeatNode from './SeatNode';
 import RoleSelectorModal from './RoleSelectorModal';
@@ -344,7 +344,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
     return (
       <div className="w-full h-full flex items-center justify-center text-stone-400">
         <div className="text-center">
-          <div className="text-4xl mb-4 animate-spin">⏳</div>
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
           <p>{t('game.grimoire.loadingGrimoire')}</p>
         </div>
       </div>
@@ -426,7 +426,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
             <button
               onClick={() => setIsPrivacyMode(!isPrivacyMode)}
               className={`
-                w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-md transition-all
+                w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-md transition-all cursor-pointer
                 ${
                   isPrivacyMode
                     ? 'bg-stone-800 border-stone-600 text-stone-400'
@@ -435,7 +435,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
               `}
               title={isPrivacyMode ? t('game.grimoire.disablePrivacy') : t('game.grimoire.enablePrivacy')}
             >
-              <span className="text-xl">🕯️</span>
+              <Flame className="w-5 h-5" />
             </button>
           )}
         </div>

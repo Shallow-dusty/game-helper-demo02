@@ -4,6 +4,7 @@ import { useStore } from '../../store';
 import { useShallow } from 'zustand/react/shallow';
 import { ROLES } from '../../constants';
 import { NightActionRequest } from '../../types';
+import { Moon, HelpCircle, Wine, AlertTriangle } from 'lucide-react';
 
 // 优化选择器 - 细粒度订阅
 const useNightActionManagerState = () => useStore(
@@ -87,7 +88,7 @@ export const NightActionManager: React.FC = () => {
     return (
         <div className="bg-indigo-950/30 border border-indigo-800/50 rounded-lg p-4 mb-4 animate-fade-in">
             <div className="flex items-center gap-2 mb-3 border-b border-indigo-900/50 pb-2">
-                <span className="text-xl">🌙</span>
+                <Moon className="w-5 h-5 text-indigo-400" />
                 <h3 className="text-sm font-bold text-indigo-300 uppercase tracking-wider">
                     {t('nightAction.manager.title')}
                 </h3>
@@ -121,14 +122,19 @@ export const NightActionManager: React.FC = () => {
                                 onClick={() => setExpandedRequest(isExpanded ? null : request.id)}
                             >
                                 <div className="flex items-center gap-3">
-                                    <span className="text-2xl">{role?.icon ?? '❓'}</span>
+                                    {role?.icon ? (
+                                        <span className="text-2xl">{role.icon}</span>
+                                    ) : (
+                                        <HelpCircle className="w-6 h-6 text-stone-500" />
+                                    )}
                                     <div>
                                         <div className="font-bold text-stone-200 flex items-center gap-2">
                                             {seat?.userName} ({role?.name ?? request.roleId})
                                             {/* 酒鬼/疯子标记 */}
                                             {isFakeRole && (
-                                                <span className="text-xs bg-amber-900/50 text-amber-300 px-1.5 py-0.5 rounded border border-amber-700" title={`真实角色: ${realRole?.name ?? '未知'}`}>
-                                                    🍷 {realRole?.name === 'drunk' ? t('nightAction.manager.drunkLabel') : t('nightAction.manager.disguiseLabel')}
+                                                <span className="text-xs bg-amber-900/50 text-amber-300 px-1.5 py-0.5 rounded border border-amber-700 flex items-center gap-1" title={`真实角色: ${realRole?.name ?? '未知'}`}>
+                                                    <Wine className="w-3 h-3" />
+                                                    {realRole?.name === 'drunk' ? t('nightAction.manager.drunkLabel') : t('nightAction.manager.disguiseLabel')}
                                                 </span>
                                             )}
                                         </div>
@@ -151,8 +157,9 @@ export const NightActionManager: React.FC = () => {
                                 <div className="p-3 pt-0 border-t border-stone-700/50">
                                     {/* 酒鬼提示 */}
                                     {isFakeRole && (
-                                        <div className="mb-2 p-2 bg-amber-950/30 border border-amber-800/50 rounded text-xs text-amber-300">
-                                            ⚠️ {t('nightAction.manager.drunkWarning')} <strong>{realRole?.name}</strong>，{t('nightAction.manager.drunkEffect')}
+                                        <div className="mb-2 p-2 bg-amber-950/30 border border-amber-800/50 rounded text-xs text-amber-300 flex items-start gap-2">
+                                            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                            <span>{t('nightAction.manager.drunkWarning')} <strong>{realRole?.name}</strong>，{t('nightAction.manager.drunkEffect')}</span>
                                         </div>
                                     )}
                                     {/* 快捷回复 */}
@@ -164,7 +171,7 @@ export const NightActionManager: React.FC = () => {
                                                     ...prev,
                                                     [request.id]: reply
                                                 }))}
-                                                className="px-2 py-1 text-xs bg-stone-800 hover:bg-indigo-900/50 text-stone-400 hover:text-indigo-300 border border-stone-700 hover:border-indigo-600 rounded transition-colors"
+                                                className="px-2 py-1 text-xs bg-stone-800 hover:bg-indigo-900/50 text-stone-400 hover:text-indigo-300 border border-stone-700 hover:border-indigo-600 rounded transition-colors cursor-pointer"
                                             >
                                                 {reply}
                                             </button>
@@ -187,7 +194,7 @@ export const NightActionManager: React.FC = () => {
                                     <div className="flex gap-2 mt-2">
                                         <button
                                             onClick={() => handleResolve(request)}
-                                            className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded text-sm transition-colors"
+                                            className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded text-sm transition-colors cursor-pointer"
                                         >
                                             {t('nightAction.manager.sendReply')}
                                         </button>
@@ -195,7 +202,7 @@ export const NightActionManager: React.FC = () => {
                                             onClick={() => {
                                                 resolveNightAction(request.id, '（无信息）');
                                             }}
-                                            className="px-3 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded text-sm transition-colors"
+                                            className="px-3 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded text-sm transition-colors cursor-pointer"
                                         >
                                             {t('nightAction.manager.skipAction')}
                                         </button>

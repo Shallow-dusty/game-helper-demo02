@@ -4,6 +4,7 @@ import { SCRIPTS, ROLES } from '../../constants';
 import { useStore } from '../../store';
 import { showError, showSuccess } from '../ui/Toast';
 import { useShallow } from 'zustand/react/shallow';
+import { HelpCircle } from 'lucide-react';
 
 interface ScriptManagerProps {
     onClose: () => void;
@@ -59,20 +60,20 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
                 {/* Header */}
                 <div className="p-4 border-b border-stone-700 flex justify-between items-center bg-stone-950 rounded-t-lg">
                     <h2 className="text-xl font-bold text-amber-500 font-cinzel">{t('script.manager.title')}</h2>
-                    <button onClick={onClose} className="text-stone-400 hover:text-white transition-colors text-2xl leading-none">&times;</button>
+                    <button onClick={onClose} className="text-stone-400 hover:text-white transition-colors text-2xl leading-none cursor-pointer">&times;</button>
                 </div>
 
                 {/* Tabs */}
                 <div className="flex border-b border-stone-700 bg-stone-900">
                     <button
                         onClick={() => setActiveTab('view')}
-                        className={`flex-1 py-3 text-sm font-bold transition-colors ${activeTab === 'view' ? 'bg-stone-800 text-amber-500 border-b-2 border-amber-500' : 'text-stone-500 hover:text-stone-300'}`}
+                        className={`flex-1 py-3 text-sm font-bold transition-colors cursor-pointer ${activeTab === 'view' ? 'bg-stone-800 text-amber-500 border-b-2 border-amber-500' : 'text-stone-500 hover:text-stone-300'}`}
                     >
                         {t('script.manager.currentScript')}
                     </button>
                     <button
                         onClick={() => setActiveTab('import')}
-                        className={`flex-1 py-3 text-sm font-bold transition-colors ${activeTab === 'import' ? 'bg-stone-800 text-amber-500 border-b-2 border-amber-500' : 'text-stone-500 hover:text-stone-300'}`}
+                        className={`flex-1 py-3 text-sm font-bold transition-colors cursor-pointer ${activeTab === 'import' ? 'bg-stone-800 text-amber-500 border-b-2 border-amber-500' : 'text-stone-500 hover:text-stone-300'}`}
                     >
                         {t('script.manager.importScript')}
                     </button>
@@ -101,7 +102,7 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
                                                 a.click();
                                                 URL.revokeObjectURL(url);
                                             }}
-                                            className="px-3 py-1 bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs rounded border border-stone-600"
+                                            className="px-3 py-1 bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs rounded border border-stone-600 cursor-pointer"
                                         >
                                             {t('script.manager.exportJson')}
                                         </button>
@@ -113,7 +114,11 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
                                             if (!role) return null;
                                             return (
                                                 <div key={rid} className="flex items-center gap-2 p-2 bg-stone-950/50 rounded border border-stone-800">
-                                                    <span className="text-lg">{role.icon || '❓'}</span>
+                                                    {role.icon ? (
+                                                        <span className="text-lg">{role.icon}</span>
+                                                    ) : (
+                                                        <HelpCircle className="w-5 h-5 text-stone-500" />
+                                                    )}
                                                     <div className="overflow-hidden">
                                                         <div className="text-xs font-bold text-stone-300 truncate">{role.name}</div>
                                                         <div className="text-[10px] text-stone-500 truncate">{role.team}</div>
@@ -177,7 +182,7 @@ export const ScriptManager: React.FC<ScriptManagerProps> = ({ onClose }) => {
                             <button
                                 onClick={handleImport}
                                 disabled={!jsonInput.trim()}
-                                className="w-full py-3 bg-amber-700 hover:bg-amber-600 disabled:bg-stone-800 disabled:text-stone-600 text-white font-bold rounded transition-colors"
+                                className="w-full py-3 bg-amber-700 hover:bg-amber-600 disabled:bg-stone-800 disabled:text-stone-600 text-white font-bold rounded transition-colors cursor-pointer disabled:cursor-not-allowed"
                             >
                                 {t('script.manager.confirmImport')}
                             </button>

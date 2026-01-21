@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { Z_INDEX } from '../../constants';
 import { useShallow } from 'zustand/react/shallow';
+import { RefreshCw, X, Check } from 'lucide-react';
 
 export const SwapRequestModal: React.FC = () => {
     const { t } = useTranslation();
@@ -36,7 +37,8 @@ export const SwapRequestModal: React.FC = () => {
         >
             <div className="bg-stone-900 border border-amber-600 rounded-lg p-6 max-w-md w-full shadow-2xl">
                 <h2 className="text-2xl font-bold text-amber-500 mb-4 flex items-center gap-2 font-cinzel">
-                    <span>🔄</span> {t('game.swapRequestModal.title')}
+                    <RefreshCw className="w-6 h-6" />
+                    {t('game.swapRequestModal.title')}
                 </h2>
 
                 <div className="mb-6 p-4 bg-stone-950 rounded border border-stone-700">
@@ -52,15 +54,17 @@ export const SwapRequestModal: React.FC = () => {
                 <div className="flex gap-3">
                     <button
                         onClick={() => request && respondToSwapRequest(request.id, false)}
-                        className="flex-1 py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded border border-stone-600 transition-colors font-bold"
+                        className="flex-1 py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded border border-stone-600 transition-colors font-bold cursor-pointer flex items-center justify-center gap-2"
                     >
-                        ❌ {t('game.swapRequestModal.reject')}
+                        <X className="w-5 h-5" />
+                        {t('game.swapRequestModal.reject')}
                     </button>
                     <button
                         onClick={() => request && respondToSwapRequest(request.id, true)}
-                        className="flex-1 py-3 bg-amber-700 hover:bg-amber-600 text-white rounded border border-amber-600 transition-colors font-bold shadow-lg"
+                        className="flex-1 py-3 bg-amber-700 hover:bg-amber-600 text-white rounded border border-amber-600 transition-colors font-bold shadow-lg cursor-pointer flex items-center justify-center gap-2"
                     >
-                        ✅ {t('game.swapRequestModal.accept')}
+                        <Check className="w-5 h-5" />
+                        {t('game.swapRequestModal.accept')}
                     </button>
                 </div>
 

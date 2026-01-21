@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { ROLES, Z_INDEX } from '../../constants';
 import type { NightActionPayload } from '../../types';
+import { Moon, Skull } from 'lucide-react';
 
 interface NightActionPanelProps {
     roleId: string;
@@ -72,7 +73,11 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                 {/* Header */}
                 <div className="flex items-center gap-5 mb-6 border-b border-stone-800 pb-5 relative z-10">
                     <div className="w-16 h-16 rounded-full bg-[#2a0a2a] border-2 border-purple-900/50 flex items-center justify-center shadow-[0_0_20px_rgba(88,28,135,0.3)]">
-                        <span className="text-4xl filter drop-shadow-lg transform scale-110">{role.icon || '🌙'}</span>
+                        {role.icon ? (
+                            <span className="text-4xl filter drop-shadow-lg transform scale-110">{role.icon}</span>
+                        ) : (
+                            <Moon className="w-8 h-8 text-purple-300" />
+                        )}
                     </div>
                     <div>
                         <h3 className="text-2xl font-bold text-purple-100 font-cinzel tracking-wide drop-shadow-md">{role.name}</h3>
@@ -97,7 +102,7 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                                 <button
                                     key={seat.id}
                                     onClick={() => togglePlayerSelection(seat.id)}
-                                    className={`w-full px-4 py-3 rounded-sm border transition-all duration-300 text-left relative overflow-hidden group ${isSelected
+                                    className={`w-full px-4 py-3 rounded-sm border transition-all duration-300 text-left relative overflow-hidden group cursor-pointer ${isSelected
                                         ? 'bg-purple-950/40 border-purple-500/50 text-purple-100 shadow-[inset_0_0_20px_rgba(147,51,234,0.1)]'
                                         : 'bg-[#2a2725] border-stone-800 text-stone-400 hover:bg-stone-800 hover:border-stone-600 hover:text-stone-200'
                                         }`}
@@ -114,7 +119,12 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                                                 )}
                                             </div>
                                         </div>
-                                        {seat.isDead && <span className="text-[10px] font-bold text-red-500 bg-red-950/20 px-2 py-0.5 rounded-sm border border-red-900/30 font-cinzel">💀 {t('nightAction.panel.dead')}</span>}
+                                        {seat.isDead && (
+                                            <span className="text-[10px] font-bold text-red-500 bg-red-950/20 px-2 py-0.5 rounded-sm border border-red-900/30 font-cinzel flex items-center gap-1">
+                                                <Skull className="w-3 h-3" />
+                                                {t('nightAction.panel.dead')}
+                                            </span>
+                                        )}
                                     </div>
                                     {isSelected && <div className="absolute inset-0 bg-gradient-to-r from-purple-900/10 to-transparent pointer-events-none"></div>}
                                 </button>
@@ -133,7 +143,7 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                                     performNightAction({ roleId, payload: { choice: idx } });
                                     onComplete();
                                 }}
-                                className="px-4 py-4 bg-[#2a2725] hover:bg-purple-900/20 border border-stone-700 hover:border-purple-500/50 rounded-sm text-stone-300 hover:text-purple-100 transition-all font-bold text-lg shadow-lg hover:shadow-[0_0_15px_rgba(147,51,234,0.15)] font-cinzel tracking-wider"
+                                className="px-4 py-4 bg-[#2a2725] hover:bg-purple-900/20 border border-stone-700 hover:border-purple-500/50 rounded-sm text-stone-300 hover:text-purple-100 transition-all font-bold text-lg shadow-lg hover:shadow-[0_0_15px_rgba(147,51,234,0.15)] font-cinzel tracking-wider cursor-pointer"
                             >
                                 {option}
                             </button>
@@ -147,14 +157,14 @@ export const NightActionPanel: React.FC<NightActionPanelProps> = ({ roleId, onCo
                         <button
                             onClick={handleSubmit}
                             disabled={!canSubmit}
-                            className="flex-1 bg-purple-900 hover:bg-purple-800 disabled:bg-stone-800 disabled:text-stone-600 text-purple-100 font-bold py-3 rounded-sm transition-all shadow-lg disabled:shadow-none border border-purple-700 disabled:border-stone-700 font-cinzel tracking-widest uppercase"
+                            className="flex-1 bg-purple-900 hover:bg-purple-800 disabled:bg-stone-800 disabled:text-stone-600 text-purple-100 font-bold py-3 rounded-sm transition-all shadow-lg disabled:shadow-none border border-purple-700 disabled:border-stone-700 font-cinzel tracking-widest uppercase cursor-pointer disabled:cursor-not-allowed"
                         >
                             {t('nightAction.panel.confirmSubmit')}
                         </button>
                     )}
                     <button
                         onClick={onComplete}
-                        className="px-6 py-3 bg-transparent hover:bg-stone-800 border border-stone-700 text-stone-500 hover:text-stone-300 rounded-sm transition-all font-cinzel tracking-widest uppercase"
+                        className="px-6 py-3 bg-transparent hover:bg-stone-800 border border-stone-700 text-stone-500 hover:text-stone-300 rounded-sm transition-all font-cinzel tracking-widest uppercase cursor-pointer"
                     >
                         {t('nightAction.skip')}
                     </button>

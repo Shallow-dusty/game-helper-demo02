@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { useShallow } from 'zustand/react/shallow';
-import { Check, Clock, Users, ChevronDown } from 'lucide-react';
+import { Check, Clock, Users, ChevronDown, User, Armchair, Bot } from 'lucide-react';
 import { Icon } from '../ui/Icon';
 
 // 优化选择器 - 细粒度订阅
@@ -116,12 +116,12 @@ export const WaitingArea: React.FC = () => {
                     >
                         {currentSeat.isReady ? (
                             <>
-                                <span className="text-2xl">✓</span>
+                                <Check className="w-6 h-6" />
                                 <span>{t('game.waitingArea.readyStatus')}</span>
                             </>
                         ) : (
                             <>
-                                <span className="text-2xl">⏳</span>
+                                <Clock className="w-6 h-6" />
                                 <span>{t('game.waitingArea.notReadyStatus')}</span>
                             </>
                         )}
@@ -177,14 +177,20 @@ export const WaitingArea: React.FC = () => {
                                         : 'border-amber-900/50 bg-stone-900 hover:bg-amber-900/20 hover:border-amber-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] cursor-pointer'}
                             `}
                         >
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow-inner transition-transform group-hover:scale-110
+                            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-inner transition-transform group-hover:scale-110
                                 ${isJoining
                                     ? 'bg-amber-900 text-amber-200 border border-amber-600'
                                     : isTaken
                                         ? 'bg-stone-800 text-stone-600'
                                         : 'bg-gradient-to-br from-amber-900 to-stone-900 text-amber-200 border border-amber-800'}
                             `}>
-                                {isJoining ? '⏳' : isTaken ? (seat.isVirtual ? '🤖' : '👤') : '🪑'}
+                                {isJoining ? (
+                                    <Clock className="w-8 h-8 animate-pulse" />
+                                ) : isTaken ? (
+                                    seat.isVirtual ? <Bot className="w-8 h-8" /> : <User className="w-8 h-8" />
+                                ) : (
+                                    <Armchair className="w-8 h-8" />
+                                )}
                             </div>
 
                             <div className="flex flex-col items-center">

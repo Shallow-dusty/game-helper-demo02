@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
-import { Flame, FlameKindling } from 'lucide-react';
+import { Flame, FlameKindling, Moon, Sun, ScrollText, Vibrate, VolumeX, Gamepad2 } from 'lucide-react';
 import { CollapsibleSection } from './CollapsibleSection';
 import type { GamePhase } from '@/types';
 
@@ -30,7 +30,12 @@ export const STGameFlowControls = React.memo<STGameFlowControlsProps>(({
 
     return (
         <CollapsibleSection
-            title={`🎮 ${t('controls.st.gameFlow')}`}
+            title={
+                <span className="flex items-center gap-2">
+                    <Gamepad2 className="w-4 h-4" />
+                    {t('controls.st.gameFlow')}
+                </span>
+            }
             isCollapsed={isCollapsed}
             onToggle={onToggle}
         >
@@ -39,35 +44,38 @@ export const STGameFlowControls = React.memo<STGameFlowControlsProps>(({
                 {phase === 'SETUP' || phase === 'DAY' ? (
                     <button
                         onClick={() => useStore.getState().startGame()}
-                        className="w-full bg-indigo-900 hover:bg-indigo-800 text-indigo-100 py-3 px-3 rounded text-sm border border-indigo-700 transition-colors flex items-center justify-center gap-2 font-bold shadow-lg"
+                        className="w-full bg-indigo-900 hover:bg-indigo-800 text-indigo-100 py-3 px-3 rounded text-sm border border-indigo-700 transition-colors flex items-center justify-center gap-2 font-bold shadow-lg cursor-pointer"
                     >
-                        <span>🌙</span> {phase === 'SETUP' ? t('controls.st.startGame') : t('controls.st.enterNight')}
+                        <Moon className="w-5 h-5" />
+                        {phase === 'SETUP' ? t('controls.st.startGame') : t('controls.st.enterNight')}
                     </button>
                 ) : (
                     <button
                         onClick={() => onSetPhase('DAY')}
-                        className="w-full bg-amber-700 hover:bg-amber-600 text-white py-3 px-3 rounded text-sm border border-amber-600 transition-colors flex items-center justify-center gap-2 font-bold shadow-lg"
+                        className="w-full bg-amber-700 hover:bg-amber-600 text-white py-3 px-3 rounded text-sm border border-amber-600 transition-colors flex items-center justify-center gap-2 font-bold shadow-lg cursor-pointer"
                     >
-                        <span>☀</span> {t('controls.st.enterDay')}
+                        <Sun className="w-5 h-5" />
+                        {t('controls.st.enterDay')}
                     </button>
                 )}
 
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         onClick={onShowHistory}
-                        className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1"
+                        className="bg-stone-800 hover:bg-stone-700 text-stone-300 py-2 px-3 rounded text-xs border border-stone-600 transition-colors flex items-center justify-center gap-1 cursor-pointer"
                     >
-                        <span>📜</span> {t('controls.st.history')}
+                        <ScrollText className="w-4 h-4" />
+                        {t('controls.st.history')}
                     </button>
                     <button
                         onClick={() => useStore.getState().toggleVibration()}
-                        className={`py-2 px-3 rounded text-xs border transition-colors flex items-center justify-center gap-1 ${
+                        className={`py-2 px-3 rounded text-xs border transition-colors flex items-center justify-center gap-1 cursor-pointer ${
                             vibrationEnabled
                                 ? 'bg-green-900/50 border-green-700 text-green-300 hover:bg-green-800/50'
                                 : 'bg-stone-800 border-stone-600 text-stone-400 hover:bg-stone-700'
                         }`}
                     >
-                        <span>{vibrationEnabled ? '📳' : '🔇'}</span>
+                        {vibrationEnabled ? <Vibrate className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                         {vibrationEnabled ? t('controls.st.vibrationOn') : t('controls.st.vibrationOff')}
                     </button>
                 </div>

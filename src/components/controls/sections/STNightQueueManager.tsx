@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { ROLES } from '@/constants';
 import type { GamePhase } from '@/types';
+import { Moon, Sun, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface STNightQueueManagerProps {
     nightQueue: string[];
@@ -34,18 +35,18 @@ export const STNightQueueManager = React.memo<STNightQueueManagerProps>(({
             <div className="flex items-center justify-between mb-3 bg-indigo-950/30 p-2 rounded border border-indigo-900/30">
                 <button
                     onClick={nightPrev}
-                    className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400"
+                    className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400 cursor-pointer transition-colors"
                 >
-                    &lt;
+                    <ChevronLeft className="w-5 h-5" />
                 </button>
                 <span className={`font-serif text-lg font-bold ${currentRoleId ? 'text-indigo-200' : 'text-stone-600'}`}>
                     {currentRole?.name || (nightCurrentIndex >= 0 ? t('controls.st.dawn') : t('controls.st.dusk'))}
                 </span>
                 <button
                     onClick={nightNext}
-                    className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400"
+                    className="w-8 h-8 flex items-center justify-center bg-stone-800 rounded hover:bg-stone-700 text-stone-400 cursor-pointer transition-colors"
                 >
-                    &gt;
+                    <ChevronRight className="w-5 h-5" />
                 </button>
             </div>
             <div className="text-[10px] text-stone-500 flex flex-wrap gap-1.5">
@@ -69,9 +70,10 @@ export const STNightQueueManager = React.memo<STNightQueueManagerProps>(({
             {currentRoleId && currentRole?.nightAction && (
                 <button
                     onClick={() => onShowNightAction(currentRoleId)}
-                    className="mt-3 w-full py-2 bg-purple-900/50 hover:bg-purple-800/50 border border-purple-700 text-purple-200 rounded font-bold text-sm transition-all shadow-lg"
+                    className="mt-3 w-full py-2 bg-purple-900/50 hover:bg-purple-800/50 border border-purple-700 text-purple-200 rounded font-bold text-sm transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2"
                 >
-                    🌙 {t('controls.st.executeNightAction')}
+                    <Moon className="w-4 h-4" />
+                    {t('controls.st.executeNightAction')}
                 </button>
             )}
 
@@ -82,9 +84,10 @@ export const STNightQueueManager = React.memo<STNightQueueManagerProps>(({
                         onSetPhase('DAY');
                     }
                 }}
-                className="mt-3 w-full py-2 bg-amber-900/30 hover:bg-amber-800/50 text-amber-500 rounded text-xs border border-amber-900/50 transition-colors flex items-center justify-center gap-2"
+                className="mt-3 w-full py-2 bg-amber-900/30 hover:bg-amber-800/50 text-amber-500 rounded text-xs border border-amber-900/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
-                <span>☀</span> {t('controls.st.forceDawn')}
+                <Sun className="w-4 h-4" />
+                {t('controls.st.forceDawn')}
             </button>
         </div>
     );

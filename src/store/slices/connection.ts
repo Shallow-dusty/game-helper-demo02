@@ -24,6 +24,131 @@ let syncDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingSync = false;
 const SYNC_DEBOUNCE_MS = 300; // 300ms 防抖延迟
 
+// ============================================================================
+// 自动重连机制
+// ============================================================================
+
+interface ReconnectState {
+    isReconnecting: boolean;
+    attemptCount: number;
+    maxAttempts: number;
+    baseDelayMs: number;
+    maxDelayMs: number;
+    timer: ReturnType<typeof setTimeout> | null;
+}
+
+const reconnectState: ReconnectState = {
+    isReconnecting: false,
+    attemptCount: 0,
+    maxAttempts: 10,
+    baseDelayMs: 1000,  // 初始延迟 1 秒
+    maxDelayMs: 30000,  // 最大延迟 30 秒
+    timer: null,
+};
+
+/**
+ * 计算指数退避延迟
+ * 公式: min(maxDelay, baseDelay * 2^attempt) + 随机抖动
+ */
+function calculateBackoffDelay(attempt: number): number {
+    const exponentialDelay = reconnectState.baseDelayMs * Math.pow(2, attempt);
+    const cappedDelay = Math.min(exponentialDelay, reconnectState.maxDelayMs);
+    // 添加 0-25% 的随机抖动，避免雷群效应
+    const jitter = cappedDelay * Math.random() * 0.25;
+    return Math.floor(cappedDelay + jitter);
+}
+
+/**
+ * 重置重连状态
+ */
+function resetReconnectState(): void {
+    reconnectState.isReconnecting = false;
+    reconnectState.attemptCount = 0;
+    if (reconnectState.timer) {
+        clearTimeout(reconnectState.timer);
+        reconnectState.timer = null;
+    }
+}
+
+/**
+ * 尝试重新连接到房间
+ */
+async function attemptReconnect(
+    roomCode: string,
+    joinGameFn: (code: string) => Promise<void>,
+    setStatus: (status: ConnectionStatus) => void
+): Promise<boolean> {
+    try {
+        reconnectState.attemptCount++;
+        const attempt = reconnectState.attemptCount;
+
+        console.info(`[Reconnect] 尝试重连 #${attempt}/${reconnectState.maxAttempts} - 房间: ${roomCode}`);
+
+        await joinGameFn(roomCode);
+
+        // 如果成功连接，重置状态
+        resetReconnectState();
+        console.info('[Reconnect] 重连成功！');
+        return true;
+    } catch (error) {
+        console.warn('[Reconnect] 重连失败:', error);
+        return false;
+    }
+}
+
+/**
+ * 启动自动重连流程
+ */
+function startReconnect(
+    roomCode: string,
+    joinGameFn: (code: string) => Promise<void>,
+    setStatus: (status: ConnectionStatus) => void,
+    onMaxAttemptsReached: () => void
+): void {
+    if (reconnectState.isReconnecting) {
+        console.info('[Reconnect] 已经在重连中，跳过');
+        return;
+    }
+
+    reconnectState.isReconnecting = true;
+    reconnectState.attemptCount = 0;
+    setStatus('reconnecting');
+
+    const scheduleNextAttempt = () => {
+        if (reconnectState.attemptCount >= reconnectState.maxAttempts) {
+            console.error(`[Reconnect] 达到最大重试次数 (${reconnectState.maxAttempts})，停止重连`);
+            resetReconnectState();
+            setStatus('disconnected');
+            onMaxAttemptsReached();
+            return;
+        }
+
+        const delay = calculateBackoffDelay(reconnectState.attemptCount);
+        console.info(`[Reconnect] 将在 ${delay}ms 后进行第 ${reconnectState.attemptCount + 1} 次重连尝试`);
+
+        reconnectState.timer = setTimeout(() => {
+            void attemptReconnect(roomCode, joinGameFn, setStatus).then((success) => {
+                if (!success && reconnectState.isReconnecting) {
+                    scheduleNextAttempt();
+                }
+            });
+        }, delay);
+    };
+
+    // 立即开始第一次重连尝试
+    scheduleNextAttempt();
+}
+
+/**
+ * 停止自动重连
+ */
+function stopReconnect(): void {
+    if (reconnectState.isReconnecting) {
+        console.info('[Reconnect] 手动停止重连');
+        resetReconnectState();
+    }
+}
+
 // Helper functions for managing realtime state (exported for use in other slices)
 export const setIsReceivingUpdate = (val: boolean): void => { isReceivingUpdate = val; };
 export const setRealtimeChannel = (channel: RealtimeChannel | null): void => { realtimeChannel = channel; };
@@ -121,11 +246,41 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 )
                 .subscribe((status) => {
                     if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) {
+                        // 连接成功，重置重连状态
+                        resetReconnectState();
                         set({ connectionStatus: 'connected', isOffline: false });
                     } else if (status === REALTIME_SUBSCRIBE_STATES.CLOSED) {
                         set({ connectionStatus: 'disconnected' });
+                        // 尝试自动重连
+                        const currentUser = get().user;
+                        if (currentUser?.roomId && !currentUser.isObserver) {
+                            startReconnect(
+                                currentUser.roomId,
+                                get().joinGame,
+                                (s) => set({ connectionStatus: s }),
+                                () => {
+                                    void getToastFunctions().then(({ showError }) =>
+                                        showError('连接已断开，请手动重新加入房间')
+                                    );
+                                }
+                            );
+                        }
                     } else if (status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR) {
                         set({ connectionStatus: 'reconnecting' });
+                        // 尝试自动重连
+                        const currentUser = get().user;
+                        if (currentUser?.roomId && !currentUser.isObserver) {
+                            startReconnect(
+                                currentUser.roomId,
+                                get().joinGame,
+                                (s) => set({ connectionStatus: s }),
+                                () => {
+                                    void getToastFunctions().then(({ showError }) =>
+                                        showError('连接失败，请检查网络后重试')
+                                    );
+                                }
+                            );
+                        }
                     }
                 });
 
@@ -236,8 +391,15 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                         set({ connectionStatus: 'connected', isOffline: false });
                     } else if (status === REALTIME_SUBSCRIBE_STATES.CLOSED) {
                         set({ connectionStatus: 'disconnected' });
+                        // 观察者断开连接时显示提示
+                        void getToastFunctions().then(({ showError }) =>
+                            showError('观察连接已断开')
+                        );
                     } else if (status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR) {
-                        set({ connectionStatus: 'reconnecting' });
+                        set({ connectionStatus: 'disconnected' });
+                        void getToastFunctions().then(({ showError }) =>
+                            showError('观察连接出错')
+                        );
                     }
                 });
 
@@ -265,6 +427,9 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
     },
 
     leaveGame: () => {
+        // 停止任何正在进行的重连尝试
+        stopReconnect();
+
         const user = get().user;
         const state = get().gameState;
 

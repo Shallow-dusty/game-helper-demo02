@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { Z_INDEX } from '../../constants';
 import { useShallow } from 'zustand/react/shallow';
+import { Icon } from '../ui/Icon';
 
 /**
  * 移动端悬浮投票按钮
@@ -73,13 +74,13 @@ export const FloatingVoteButton: React.FC = () => {
 
     // 获取按钮图标和文本
     const getButtonContent = () => {
-        if (isGhostVoteUsed) return { icon: '👻', text: t('game.floatingVote.voteUsed') };
-        if (isLocked) return { icon: '🔒', text: t('game.floatingVote.locked') };
-        if (isLoading) return { icon: '⏳', text: '...' };
-        if (isRaised) return { icon: '✋', text: t('game.floatingVote.alreadyVoted') };
+        if (isGhostVoteUsed) return { icon: 'Ghost' as const, text: t('game.floatingVote.voteUsed') };
+        if (isLocked) return { icon: 'Lock' as const, text: t('game.floatingVote.locked') };
+        if (isLoading) return { icon: 'Hourglass' as const, text: '...' };
+        if (isRaised) return { icon: 'Hand' as const, text: t('game.floatingVote.alreadyVoted') };
         return isDead
-            ? { icon: '👻', text: t('game.floatingVote.ghostVote') }
-            : { icon: '🗳️', text: t('game.floatingVote.voteButton') };
+            ? { icon: 'Ghost' as const, text: t('game.floatingVote.ghostVote') }
+            : { icon: 'Vote' as const, text: t('game.floatingVote.voteButton') };
     };
 
     const content = getButtonContent();
@@ -92,8 +93,8 @@ export const FloatingVoteButton: React.FC = () => {
                 md:hidden fixed bottom-20 left-1/2 -translate-x-1/2
                 px-6 py-3 rounded-full border-2 font-bold
                 flex items-center gap-2 backdrop-blur-sm
-                transition-all duration-200 active:scale-95
-                ${isDisabled ? 'cursor-not-allowed opacity-70' : 'animate-bounce'}
+                transition-all duration-200 active:scale-95 cursor-pointer
+                ${isDisabled ? 'cursor-not-allowed opacity-70' : 'animate-bounce hover:scale-105'}
                 ${getButtonStyle()}
             `}
             style={{
@@ -101,7 +102,7 @@ export const FloatingVoteButton: React.FC = () => {
                 marginBottom: 'env(safe-area-inset-bottom, 0px)'
             }}
         >
-            <span className="text-xl">{content.icon}</span>
+            <Icon icon={content.icon} size="lg" variant={isRaised ? (isDead ? 'ghost' : 'holy') : 'default'} />
             <span className="font-cinzel tracking-wider">{content.text}</span>
             {/* 受审者信息 */}
             {voting?.nomineeSeatId !== undefined && (

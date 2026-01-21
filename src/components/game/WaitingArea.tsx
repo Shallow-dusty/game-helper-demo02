@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { useShallow } from 'zustand/react/shallow';
+import { Check, Clock, Users, ChevronDown } from 'lucide-react';
+import { Icon } from '../ui/Icon';
 
 // 优化选择器 - 细粒度订阅
 const useWaitingAreaState = () => useStore(
@@ -83,10 +85,10 @@ export const WaitingArea: React.FC = () => {
                     {/* Minimize Button */}
                     <button
                         onClick={() => setIsMinimized(true)}
-                        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-stone-500 hover:text-stone-200 hover:bg-stone-800 transition-colors"
+                        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-stone-500 hover:text-stone-200 hover:bg-stone-800 transition-colors cursor-pointer"
                         title={t('game.waitingArea.minimize')}
                     >
-                        <span className="text-xl font-bold mb-1">−</span>
+                        <ChevronDown className="w-5 h-5" />
                     </button>
 
                     <h1 className="text-3xl font-cinzel text-amber-500 mb-2 tracking-widest drop-shadow-lg">
@@ -127,7 +129,7 @@ export const WaitingArea: React.FC = () => {
 
                     <button
                         onClick={() => void leaveSeat()}
-                        className="w-full py-2 rounded-lg text-sm font-bold text-stone-500 hover:text-red-400 hover:bg-red-950/30 border border-transparent hover:border-red-900/50 transition-all"
+                        className="w-full py-2 rounded-lg text-sm font-bold text-stone-500 hover:text-red-400 hover:bg-red-950/30 border border-transparent hover:border-red-900/50 transition-all cursor-pointer"
                     >
                         {t('game.waitingArea.leaveSeat')}
                     </button>

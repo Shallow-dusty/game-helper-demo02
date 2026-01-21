@@ -16,7 +16,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose, embedded = false 
                     <h2 className="text-xl font-bold text-stone-200 font-cinzel flex items-center gap-2">
                         {t('ui.helpModal.title')}
                     </h2>
-                    <button onClick={onClose} className="text-stone-500 hover:text-stone-300 transition-colors">
+                    <button onClick={onClose} className="text-stone-500 hover:text-stone-300 transition-colors cursor-pointer">
                         ✕
                     </button>
                 </div>

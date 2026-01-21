@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { generateShortId } from '../../lib/random';
+import { BookOpen, Plus } from 'lucide-react';
+import { Icon } from '../ui/Icon';
 
 interface Note {
     id: string;
@@ -52,7 +54,7 @@ export const PlayerNotebook: React.FC = () => {
     return (
         <div className="bg-stone-900 p-4 rounded-lg border border-stone-700 h-full flex flex-col shadow-inner">
             <h3 className="text-amber-600 font-cinzel mb-4 flex items-center gap-2 border-b border-stone-800 pb-2">
-                <span>📓</span> {t('player.notebook.title')}
+                <BookOpen className="w-5 h-5" /> {t('player.notebook.title')}
             </h3>
 
             <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 scrollbar-thin scrollbar-thumb-stone-700 scrollbar-track-transparent">
@@ -68,7 +70,7 @@ export const PlayerNotebook: React.FC = () => {
                         <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                             <button
                                 onClick={() => deleteNote(note.id)}
-                                className="text-stone-500 hover:text-red-500 p-1 rounded hover:bg-stone-700 transition-colors"
+                                className="text-stone-500 hover:text-red-500 p-1 rounded hover:bg-stone-700 transition-colors cursor-pointer"
                                 title={t('player.notebook.deleteNote')}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -83,7 +85,7 @@ export const PlayerNotebook: React.FC = () => {
                 ))}
                 {notes.length === 0 && (
                     <div className="text-stone-600 text-center italic text-sm py-8 flex flex-col items-center gap-2">
-                        <span className="text-2xl opacity-20">📝</span>
+                        <Icon icon="FileText" size="xl" variant="muted" className="opacity-20" />
                         <span>{t('player.notebook.emptyState')}</span>
                     </div>
                 )}
@@ -101,8 +103,9 @@ export const PlayerNotebook: React.FC = () => {
                 <button
                     onClick={addNote}
                     disabled={!newNote.trim()}
-                    className="bg-amber-900 hover:bg-amber-800 disabled:opacity-50 disabled:cursor-not-allowed text-amber-100 px-4 py-2 rounded text-sm transition-colors font-bold shadow-lg"
+                    className="bg-amber-900 hover:bg-amber-800 disabled:opacity-50 disabled:cursor-not-allowed text-amber-100 px-4 py-2 rounded text-sm transition-colors font-bold shadow-lg cursor-pointer flex items-center gap-2"
                 >
+                    <Plus className="w-4 h-4" />
                     {t('player.notebook.addButton')}
                 </button>
             </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { AlertTriangle, Trash2 } from 'lucide-react';
 
 interface ConfirmModalProps {
     isOpen: boolean;
@@ -33,9 +34,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 {/* Header */}
                 <div className="p-4 border-b border-stone-800 flex justify-between items-center bg-stone-950">
                     <h2 className="text-xl font-bold text-stone-200 font-cinzel flex items-center gap-2">
-                        <span>⚠️</span> {title}
+                        <AlertTriangle className="w-5 h-5 text-amber-500" /> {title}
                     </h2>
-                    <button onClick={onCancel} className="text-stone-500 hover:text-stone-300 transition-colors">
+                    <button onClick={onCancel} className="text-stone-500 hover:text-stone-300 transition-colors cursor-pointer">
                         ✕
                     </button>
                 </div>
@@ -51,18 +52,18 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 <div className="p-4 border-t border-stone-800 bg-stone-950/50 flex justify-end gap-3">
                     <button
                         onClick={onCancel}
-                        className="px-4 py-2 rounded text-stone-400 hover:text-stone-200 hover:bg-stone-800 transition-colors text-sm font-bold"
+                        className="px-4 py-2 rounded text-stone-400 hover:text-stone-200 hover:bg-stone-800 transition-colors text-sm font-bold cursor-pointer"
                     >
                         {cancelText || t('ui.confirmModal.defaultCancel')}
                     </button>
                     <button
                         onClick={onConfirm}
-                        className={`px-4 py-2 rounded text-white shadow-lg transition-all transform active:scale-95 text-sm font-bold flex items-center gap-2 ${isDangerous
+                        className={`px-4 py-2 rounded text-white shadow-lg transition-all transform active:scale-95 text-sm font-bold flex items-center gap-2 cursor-pointer ${isDangerous
                             ? 'bg-red-700 hover:bg-red-600 border border-red-600'
                             : 'bg-amber-700 hover:bg-amber-600 border border-amber-600'
                             }`}
                     >
-                        {isDangerous && <span>🗑️</span>}
+                        {isDangerous && <Trash2 className="w-4 h-4" />}
                         {confirmText || t('ui.confirmModal.defaultConfirm')}
                     </button>
                 </div>

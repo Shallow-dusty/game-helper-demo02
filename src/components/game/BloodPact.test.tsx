@@ -185,7 +185,9 @@ describe('BloodPact', () => {
     // Should still render without crashing
     expect(screen.getByText('game.bloodPact.title')).toBeInTheDocument();
     // No fire emojis for minions
-    expect(container.textContent).not.toContain('🔥');
+    // Component should not be visible, so no SVG icons rendered
+    const allSvgs = container.querySelectorAll('svg');
+    expect(allSvgs.length).toBe(0);
   });
 
   it('handles seatPositions not matching minionSeatIds', () => {

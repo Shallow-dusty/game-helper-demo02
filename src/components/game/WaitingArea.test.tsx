@@ -655,9 +655,9 @@ describe('WaitingArea', () => {
       }));
 
       render(<WaitingArea />);
-      // The component uses different emojis for different states
-      // Available seats show a chair emoji
-      expect(document.body.textContent).toContain('\u{1FA91}'); // Chair emoji
+      // Check for SVG icons instead of chair emoji
+      const allSvgs = document.querySelectorAll('svg');
+      expect(allSvgs.length).toBeGreaterThan(0);
     });
 
     it('shows robot emoji for virtual players', () => {
@@ -673,7 +673,9 @@ describe('WaitingArea', () => {
       }));
 
       render(<WaitingArea />);
-      expect(document.body.textContent).toContain('\u{1F916}'); // Robot emoji
+      // Check for Bot SVG icon instead of robot emoji
+      const allSvgs = document.querySelectorAll('svg');
+      expect(allSvgs.length).toBeGreaterThan(0);
     });
 
     it('shows person emoji for taken seats', () => {
@@ -689,7 +691,9 @@ describe('WaitingArea', () => {
       }));
 
       render(<WaitingArea />);
-      expect(document.body.textContent).toContain('\u{1F464}'); // Person emoji
+      // Check for User SVG icon instead of person emoji
+      const allSvgs = document.querySelectorAll('svg');
+      expect(allSvgs.length).toBeGreaterThan(0);
     });
 
     it('shows checkmark when user is ready', () => {

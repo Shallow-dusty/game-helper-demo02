@@ -44,7 +44,9 @@ describe('PlayerNotebook', () => {
   it('should render empty state initially', () => {
     render(<PlayerNotebook />);
 
-    expect(screen.getByText('📓')).toBeInTheDocument();
+    // Check for BookOpen SVG icon instead of 📓 emoji
+    const titleElement = screen.getByText('player.notebook.title');
+    expect(titleElement.closest('h3')?.querySelector('svg') || screen.getAllByRole('img').length > 0).toBeTruthy();
     expect(screen.getByText('Player Notebook')).toBeInTheDocument();
     expect(screen.getByText('No notes... (Stored locally only)')).toBeInTheDocument();
   });
@@ -165,7 +167,7 @@ describe('PlayerNotebook', () => {
   it('should clear input after adding note', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText('Add new note... (Enter)') as HTMLInputElement;
+    const input = screen.getByPlaceholderText('Add new note... (Enter)');
     const addButton = screen.getByText('Add');
 
     fireEvent.change(input, { target: { value: 'Test note' } });

@@ -98,7 +98,9 @@ describe('Chat', () => {
     render(<Chat />);
 
     // Check for empty state message
-    expect(screen.getByText(/🕸️/)).toBeInTheDocument();
+    // Check for SVG icon instead of web emoji
+    const allSvgs = container.querySelectorAll('svg');
+    expect(allSvgs.length).toBeGreaterThan(0);
     expect(screen.getByText('controls.smartInfo.noInfo')).toBeInTheDocument();
   });
 

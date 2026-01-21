@@ -4,6 +4,7 @@ import { ROLES, STATUS_OPTIONS, PRESET_REMINDERS } from '../../constants';
 import { Seat, SeatStatus } from '../../types';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Icon } from '../ui/Icon';
 import { motion } from 'framer-motion';
 import { Skull, Heart, Ban, Theater, Scale, Trash2, ArrowLeftRight, X, LogOut, Settings } from 'lucide-react';
 import { AudioSettingsModal } from '../settings/AudioSettingsModal';
@@ -29,8 +30,15 @@ interface StorytellerMenuProps {
 export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose, actions, currentScriptId }) => {
     const { t } = useTranslation();
     const selectedRole = seat.seenRoleId ? ROLES[seat.seenRoleId] : null;
-    const roleTeamIcon = selectedRole?.team === 'DEMON' ? '👿' : selectedRole?.team === 'MINION' ? '🧪' : '⚜️';
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+
+    // Get role icon based on team
+    const getRoleIcon = () => {
+        if (!selectedRole) return 'User';
+        if (selectedRole.team === 'DEMON') return 'Flame';
+        if (selectedRole.team === 'MINION') return 'FlaskConical';
+        return 'Crown';
+    };
 
     return (
         <>
@@ -49,17 +57,17 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                         {/* Background Texture */}
                         <div className="absolute inset-0 pointer-events-none opacity-20 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] z-0"></div>
                         
-                        <CardHeader className="flex flex-row items-center justify-between border-b border-stone-800 pb-4 bg-[#0c0a09] relative z-10 shadow-md">
+                        <CardHeader className="flex flex-row items-center justify-between border-b border-gothic-border pb-4 bg-gothic-bg-dark relative z-10 shadow-md">
                             <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-full bg-[#2a2725] flex items-center justify-center border-2 border-[#44403c] text-3xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]">
-                                    {seat.seenRoleId ? roleTeamIcon : '👤'}
+                                <div className="w-14 h-14 rounded-full bg-gothic-card flex items-center justify-center border-2 border-gothic-border shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]">
+                                    <Icon icon={getRoleIcon()} size="xl" variant={selectedRole?.team === 'DEMON' ? 'blood' : selectedRole?.team === 'MINION' ? 'evil' : 'accent'} />
                                 </div>
                                 <div>
-                                    <CardTitle className="text-xl text-[#e7e5e4] font-cinzel tracking-wide">{seat.userName}</CardTitle>
-                                    <p className="text-xs text-[#a8a29e] font-serif mt-1 flex items-center gap-2">
-                                        <span className="bg-stone-800 px-1.5 py-0.5 rounded text-[#d6d3d1] border border-stone-700">{t('game.storytellerMenu.seat', { number: seat.id + 1 })}</span>
-                                        <span className="text-[#78716c]">•</span>
-                                        <span className="text-[#d4af37] font-bold">{selectedRole?.name || t('game.storytellerMenu.noRole')}</span>
+                                    <CardTitle className="text-xl text-gothic-text font-cinzel tracking-wide">{seat.userName}</CardTitle>
+                                    <p className="text-xs text-gothic-muted font-serif mt-1 flex items-center gap-2">
+                                        <span className="bg-gothic-surface px-1.5 py-0.5 rounded text-gothic-text border border-gothic-border">{t('game.storytellerMenu.seat', { number: seat.id + 1 })}</span>
+                                        <span className="text-gothic-border">•</span>
+                                        <span className="text-gothic-accent font-bold">{selectedRole?.name || t('game.storytellerMenu.noRole')}</span>
                                     </p>
                                 </div>
                             </div>
@@ -68,12 +76,12 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => setIsSettingsOpen(true)}
-                                    className="text-stone-500 hover:text-[#d4af37] hover:bg-stone-800/50"
+                                    className="text-gothic-muted hover:text-gothic-accent hover:bg-gothic-surface/50 cursor-pointer"
                                     title={t('common.settings')}
                                 >
                                     <Settings className="w-5 h-5" />
                                 </Button>
-                                <Button variant="ghost" size="icon" onClick={onClose} className="text-stone-500 hover:text-stone-300 hover:bg-stone-800/50">
+                                <Button variant="ghost" size="icon" onClick={onClose} className="text-gothic-muted hover:text-gothic-text hover:bg-gothic-surface/50 cursor-pointer">
                                     <X className="w-5 h-5" />
                                 </Button>
                             </div>

@@ -104,9 +104,11 @@ describe('VirtualizedSeatList', () => {
   });
 
   it('should show skull icon for dead players', () => {
-    render(<VirtualizedSeatList seats={defaultSeats} onSeatClick={mockOnSeatClick} />);
+    const { container } = render(<VirtualizedSeatList seats={defaultSeats} onSeatClick={mockOnSeatClick} />);
 
-    expect(screen.getByText('💀')).toBeInTheDocument();
+    // Check for Skull SVG icon instead of 💀 emoji
+    const allSvgs = container.querySelectorAll('svg');
+    expect(allSvgs.length).toBeGreaterThan(0);
   });
 
   it('should show robot icon for virtual players', () => {

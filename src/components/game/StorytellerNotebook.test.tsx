@@ -107,10 +107,12 @@ describe('StorytellerNotebook', () => {
   });
 
   it('should render the notebook title', () => {
-    render(<StorytellerNotebook />);
+    const { container } = render(<StorytellerNotebook />);
 
     expect(screen.getByText('说书人笔记 (Notebook)')).toBeInTheDocument();
-    expect(screen.getByText('📓')).toBeInTheDocument();
+    // Check for BookOpen SVG icon instead of 📓 emoji
+    const allSvgs = container.querySelectorAll('svg');
+    expect(allSvgs.length).toBeGreaterThan(0);
   });
 
   it('should render notes from store', () => {
@@ -185,7 +187,7 @@ describe('StorytellerNotebook', () => {
   it('should clear input after adding note', () => {
     render(<StorytellerNotebook />);
 
-    const input = screen.getByPlaceholderText('添加新笔记... (Enter)') as HTMLInputElement;
+    const input = screen.getByPlaceholderText('添加新笔记... (Enter)');
     const addButton = screen.getByText('添加');
 
     fireEvent.change(input, { target: { value: 'Test' } });

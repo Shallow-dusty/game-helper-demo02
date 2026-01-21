@@ -165,10 +165,9 @@ describe('RoleSelectorModal', () => {
   it('should display team icons correctly', () => {
     render(<RoleSelectorModal {...defaultProps} />);
 
-    // Check for team emojis
-    expect(screen.getAllByText('⚜️').length).toBeGreaterThan(0); // Townsfolk
-    expect(screen.getAllByText('⚡').length).toBeGreaterThan(0); // Outsider
-    expect(screen.getAllByText('🧪').length).toBeGreaterThan(0); // Minion
-    expect(screen.getAllByText('👿').length).toBeGreaterThan(0); // Demon
+    // Check for SVG icons instead of emoji (⚜️⚡🧪👿)
+    const allSvgs = document.querySelectorAll('svg');
+    // Should have multiple SVG icons for different team types (Townsfolk, Outsider, Minion, Demon)
+    expect(allSvgs.length).toBeGreaterThan(10);
   });
 });

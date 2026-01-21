@@ -30,7 +30,9 @@ describe('ConfirmModal', () => {
   it('renders warning icon', () => {
     render(<ConfirmModal {...defaultProps} />);
 
-    expect(screen.getByText('⚠️')).toBeInTheDocument();
+    // Check for AlertTriangle SVG icon instead of ⚠️
+    const titleElement = screen.getByText(defaultProps.title).closest('h2');
+    expect(titleElement?.querySelector('svg')).toBeInTheDocument();
   });
 
   it('renders close button', () => {

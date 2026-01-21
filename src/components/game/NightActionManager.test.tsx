@@ -446,7 +446,7 @@ describe('NightActionManager', () => {
       fireEvent.click(quickReply);
 
       // Check textarea value
-      const textarea = screen.getByPlaceholderText('输入回复给玩家的结果...') as HTMLTextAreaElement;
+      const textarea = screen.getByPlaceholderText('输入回复给玩家的结果...');
       expect(textarea.value).toBe('无效果');
     });
   });
@@ -673,7 +673,7 @@ describe('NightActionManager', () => {
       fireEvent.click(firstRequest!);
 
       // Type in textarea
-      const textarea = screen.getByPlaceholderText('输入回复给玩家的结果...') as HTMLTextAreaElement;
+      const textarea = screen.getByPlaceholderText('输入回复给玩家的结果...');
       fireEvent.change(textarea, { target: { value: 'Test input' } });
 
       expect(textarea.value).toBe('Test input');
@@ -685,20 +685,20 @@ describe('NightActionManager', () => {
       // Expand first request and type
       const firstRequest = findRequestCard(container, 'Alice');
       fireEvent.click(firstRequest!);
-      const textarea1 = screen.getByPlaceholderText('输入回复给玩家的结果...') as HTMLTextAreaElement;
+      const textarea1 = screen.getByPlaceholderText('输入回复给玩家的结果...');
       fireEvent.change(textarea1, { target: { value: 'Input for Alice' } });
 
       // Expand second request
       const secondRequest = findRequestCard(container, 'Bob');
       fireEvent.click(secondRequest!);
-      const textarea2 = screen.getByPlaceholderText('输入回复给玩家的结果...') as HTMLTextAreaElement;
+      const textarea2 = screen.getByPlaceholderText('输入回复给玩家的结果...');
 
       // Second request should have empty input
       expect(textarea2.value).toBe('');
 
       // Go back to first request
       fireEvent.click(firstRequest!);
-      const textarea1Again = screen.getByPlaceholderText('输入回复给玩家的结果...') as HTMLTextAreaElement;
+      const textarea1Again = screen.getByPlaceholderText('输入回复给玩家的结果...');
 
       // First request should retain its input
       expect(textarea1Again.value).toBe('Input for Alice');
@@ -724,7 +724,9 @@ describe('NightActionManager', () => {
       // Should show role ID as fallback
       expect(screen.getByText(/non_existent_role/)).toBeInTheDocument();
       // Should show question mark icon as fallback
-      expect(screen.getByText('❓')).toBeInTheDocument();
+      // Check for HelpCircle SVG icon instead of ❓ emoji
+      const requestElement = screen.getByText(/Test User/i).closest('div');
+      expect(requestElement?.querySelector('svg')).toBeInTheDocument();
     });
 
     it('should handle empty seats array', () => {

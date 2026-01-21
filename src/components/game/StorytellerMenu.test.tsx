@@ -197,7 +197,9 @@ describe('StorytellerMenu', () => {
       />
     );
     // Demon should show 👿 icon
-    expect(screen.getByText('👿')).toBeInTheDocument();
+    // Check for SVG icon instead of emoji
+    const menuElement = screen.getByText(/DEMON/i).closest('div');
+    expect(menuElement?.querySelector('svg')).toBeInTheDocument();
   });
 
   it('displays placeholder when no role assigned', () => {
@@ -662,7 +664,9 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    expect(screen.getByText('🧪')).toBeInTheDocument();
+    // Check for SVG icon instead of emoji
+    const menuElement = screen.getByText(/MINION/i).closest('div');
+    expect(menuElement?.querySelector('svg')).toBeInTheDocument();
   });
 
   it('displays townsfolk icon for townsfolk role', () => {
@@ -675,7 +679,9 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    expect(screen.getByText('⚜️')).toBeInTheDocument();
+    // Check for SVG icon instead of emoji
+    const menuElement = screen.getByText(/TOWNSFOLK/i).closest('div');
+    expect(menuElement?.querySelector('svg')).toBeInTheDocument();
   });
 
   it('displays role name when role is assigned', () => {

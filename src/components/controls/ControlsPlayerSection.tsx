@@ -6,11 +6,12 @@ import { RoleDef, Seat, GamePhase } from '../../types';
 import { ROLES, TEAM_COLORS } from '../../constants';
 import { VoteButton } from '../game/VoteButton';
 import { DoomsdayClock } from '../game/DoomsdayClock';
+import { Target, Candle, Palette, UserCircle2, MessageCircle, Ban, Zap } from 'lucide-react';
 
 const ACTIVE_ABILITY_ROLES: Record<string, {
     name: string;
     buttonText: string;
-    icon: string;
+    icon: React.ComponentType<{ className?: string }>;
     phase: 'DAY' | 'ANY';
     requiresTarget: boolean;
     description: string;
@@ -18,7 +19,7 @@ const ACTIVE_ABILITY_ROLES: Record<string, {
     slayer: {
         name: '杀手',
         buttonText: '发动杀手技能',
-        icon: '🏹',
+        icon: Target,
         phase: 'DAY',
         requiresTarget: true,
         description: '选择一名玩家，若为恶魔则立即死亡'
@@ -26,7 +27,7 @@ const ACTIVE_ABILITY_ROLES: Record<string, {
     virgin: {
         name: '处女',
         buttonText: '声明处女身份',
-        icon: '🕯️',
+        icon: Candle,
         phase: 'DAY',
         requiresTarget: false,
         description: '若被镇民提名，提名者立即死亡'
@@ -34,7 +35,7 @@ const ACTIVE_ABILITY_ROLES: Record<string, {
     artist: {
         name: '艺术家',
         buttonText: '向ST提问',
-        icon: '🎨',
+        icon: Palette,
         phase: 'DAY',
         requiresTarget: false,
         description: '向说书人提一个是非题'
@@ -42,7 +43,7 @@ const ACTIVE_ABILITY_ROLES: Record<string, {
     juggler: {
         name: '杂耍艺人',
         buttonText: '猜测角色',
-        icon: '🤹',
+        icon: UserCircle2,
         phase: 'DAY',
         requiresTarget: true,
         description: '第一天猜测最多5人的角色'
@@ -50,7 +51,7 @@ const ACTIVE_ABILITY_ROLES: Record<string, {
     gossip: {
         name: '造谣者',
         buttonText: '发表造谣',
-        icon: '💬',
+        icon: MessageCircle,
         phase: 'DAY',
         requiresTarget: false,
         description: '公开声明一个陈述，若为真则当晚死一人'
@@ -80,7 +81,7 @@ const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, g
         return (
             <div className="mt-3 pt-3 border-t border-stone-800">
                 <div className="text-xs text-stone-600 italic flex items-center gap-2">
-                    <span>🚫</span>
+                    <Ban className="w-4 h-4" />
                     <span>{t('game.activeAbility.abilityUsed')}</span>
                 </div>
             </div>

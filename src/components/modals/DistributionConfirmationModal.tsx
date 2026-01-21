@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { DistributionAnalysisResult } from '../../lib/distributionAnalysis';
 import { useTranslation } from 'react-i18next';
+import { AlertTriangle, ArrowRight } from 'lucide-react';
 
 interface DistributionConfirmationModalProps {
     isOpen: boolean;
@@ -103,7 +104,7 @@ export const DistributionConfirmationModal: React.FC<DistributionConfirmationMod
                         <div className="bg-red-950/20 border border-red-900/50 rounded p-3 space-y-1">
                             {warnings.map((w, i) => (
                                 <div key={i} className="flex items-start gap-2 text-xs text-red-400">
-                                    <span>⚠️</span>
+                                    <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                                     <span>{w}</span>
                                 </div>
                             ))}
@@ -121,16 +122,16 @@ export const DistributionConfirmationModal: React.FC<DistributionConfirmationMod
                 <div className="p-4 bg-stone-950 border-t border-stone-800 flex gap-3">
                     <button
                         onClick={onClose}
-                        className="flex-1 py-3 rounded bg-stone-900 hover:bg-stone-800 text-stone-400 font-bold text-sm transition-colors border border-stone-700"
+                        className="flex-1 py-3 rounded bg-stone-900 hover:bg-stone-800 text-stone-400 font-bold text-sm transition-colors border border-stone-700 cursor-pointer"
                     >
                         {t('game.distributionConfirm.backToEdit')}
                     </button>
                     <button
                         onClick={onConfirm}
-                        className="flex-[2] py-3 rounded bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold text-sm transition-all shadow-lg border border-amber-500 flex items-center justify-center gap-2 group"
+                        className="flex-[2] py-3 rounded bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold text-sm transition-all shadow-lg border border-amber-500 flex items-center justify-center gap-2 group cursor-pointer"
                     >
                         <span>{t('game.distributionConfirm.confirmDistribute')}</span>
-                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
             </motion.div>

@@ -5,18 +5,19 @@ import { ROLES, SCRIPTS } from '../../constants';
 import { getStandardComposition } from '../../lib/distributionAnalysis';
 import { shuffle, randomInt } from '../../lib/random';
 import type { RoleDef } from '../../types';
+import { AlertTriangle } from 'lucide-react';
 
 // 错误边界内容组件
 const ErrorBoundaryContent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const { t } = useTranslation();
     return (
         <div className="text-center">
-            <span className="text-4xl">⚠️</span>
+            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-red-400 mt-2">{t('script.composition.errorLoading')}</h3>
             <p className="text-stone-400 text-sm mt-2">{t('script.composition.loadFailed')}</p>
             <button
                 onClick={onClose}
-                className="mt-4 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded"
+                className="mt-4 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded cursor-pointer"
             >
                 {t('common.close')}
             </button>

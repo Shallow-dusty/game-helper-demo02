@@ -95,15 +95,14 @@ const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, g
         if (abilityConfig.requiresTarget) {
             setShowModal(true);
         } else {
-            // Send activation message to chat
-            sendMessage(`⚡ 【${role.name}】发动技能: ${abilityConfig.description}`, null);
+            sendMessage(`【${role.name}】发动技能: ${abilityConfig.description}`, null);
             setShowModal(false);
         }
     };
 
     const handleSubmitTarget = () => {
         if (targetInput.trim()) {
-            sendMessage(`⚡ 【${role.name}】发动技能 → 目标: ${targetInput}`, null);
+            sendMessage(`【${role.name}】发动技能 → 目标: ${targetInput}`, null);
             setTargetInput('');
             setShowModal(false);
         }
@@ -115,12 +114,12 @@ const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, g
                 <button
                     onClick={handleActivate}
                     disabled={!canUse}
-                    className={`w-full py-2 px-3 rounded text-sm font-bold flex items-center justify-center gap-2 transition-all ${canUse
+                    className={`w-full py-2 px-3 rounded text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${canUse
                         ? 'bg-amber-900/50 hover:bg-amber-800/50 text-amber-200 border border-amber-700 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
                         : 'bg-stone-800 text-stone-600 border border-stone-700 cursor-not-allowed'
                         }`}
                 >
-                    <span>{abilityConfig.icon}</span>
+                    <abilityConfig.icon className="w-4 h-4" />
                     <span>{abilityConfig.buttonText}</span>
                 </button>
                 {!canUse && (
@@ -135,7 +134,7 @@ const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, g
                 <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
                     <div className="bg-stone-900 border border-stone-700 rounded-lg p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
                         <h3 className="text-lg font-bold text-amber-500 mb-2 flex items-center gap-2">
-                            <span>{abilityConfig.icon}</span>
+                            <abilityConfig.icon className="w-5 h-5" />
                             {role.name}
                         </h3>
                         <p className="text-sm text-stone-400 mb-4">{abilityConfig.description}</p>
@@ -292,9 +291,10 @@ export const ControlsPlayerSection: React.FC<ControlsPlayerSectionProps> = ({
                     {currentSeat?.seenRoleId === nightQueue[nightCurrentIndex] && (
                         <button
                             onClick={onShowNightAction}
-                            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold shadow-lg animate-pulse border border-indigo-400 flex items-center justify-center gap-2"
+                            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold shadow-lg animate-pulse border border-indigo-400 flex items-center justify-center gap-2 cursor-pointer"
                         >
-                            <span>⚡</span> {t('nightAction.panel.nightAction')}
+                            <Zap className="w-5 h-5" />
+                            {t('nightAction.panel.nightAction')}
                         </button>
                     )}
 

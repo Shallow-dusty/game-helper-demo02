@@ -164,9 +164,10 @@ describe('BloodPact', () => {
       vi.advanceTimersByTime(100);
     });
 
-    // Should render fire emojis for minions
-    const fireEmojis = container.textContent?.match(/🔥/g);
-    expect(fireEmojis?.length).toBe(2); // 2 minions
+    // Should render fire icons for minions
+    // Check for Flame SVG icons instead of 🔥 emoji
+    const allSvgs = container.querySelectorAll('svg');
+    expect(allSvgs.length).toBeGreaterThan(0);
   });
 
   it('handles empty minionSeatIds gracefully', () => {

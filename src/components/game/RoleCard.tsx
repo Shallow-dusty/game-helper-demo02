@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { RoleDef } from '../../types';
+import { Icon } from '../ui/Icon';
 
 interface RoleCardProps {
     role: RoleDef;
@@ -18,6 +19,14 @@ const TEAM_COLORS: Record<string, string> = {
     FABLED: 'yellow'
 };
 
+const ROLE_ICONS: Record<string, keyof typeof import('lucide-react')> = {
+    fortune_teller: 'Eye',
+    investigator: 'Search',
+    monk: 'HandMetal',
+    imp: 'Flame',
+    default: 'Theater'
+};
+
 export const RoleCard: React.FC<RoleCardProps> = React.memo(({
     role,
     isPlayerRole = false,
@@ -27,6 +36,7 @@ export const RoleCard: React.FC<RoleCardProps> = React.memo(({
     const { t } = useTranslation();
     const color = TEAM_COLORS[role.team] ?? 'stone';
     const teamName = t(`game.roleCard.teams.${role.team}`, { defaultValue: role.team });
+    const iconName = ROLE_ICONS[role.id] || ROLE_ICONS.default;
 
     // Size classes
     const sizeClasses = {
@@ -43,26 +53,22 @@ export const RoleCard: React.FC<RoleCardProps> = React.memo(({
 
     if (isPlayerRole) {
         return (
-            <div className={`relative ${sizeClasses.large} rounded-xl border-4 border-yellow-500 bg-gradient-to-br from-stone-950 to-stone-900 shadow-2xl animate-pulse-glow animate-float`}>
+            <div className={`relative ${sizeClasses.large} rounded-xl border-4 border-gothic-holy bg-gradient-to-br from-gothic-bg to-gothic-surface shadow-2xl animate-pulse-glow animate-float`}>
                 {/* Hero Badge */}
-                <div className="absolute -top-3 -right-3 bg-yellow-500 text-stone-950 px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                <div className="absolute -top-3 -right-3 bg-gothic-holy text-gothic-bg-dark px-3 py-1 rounded-full text-xs font-bold shadow-lg font-cinzel">
                     {t('game.roleCard.yourRole')}
                 </div>
 
                 {/* Role Icon/Name */}
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center text-3xl">
-                        {role.id === 'fortune_teller' && '🔮'}
-                        {role.id === 'investigator' && '🔍'}
-                        {role.id === 'monk' && '🙏'}
-                        {role.id === 'imp' && '👹'}
-                        {!['fortune_teller', 'investigator', 'monk', 'imp'].includes(role.id) && '🎭'}
+                    <div className="w-12 h-12 bg-gothic-holy/20 rounded-full flex items-center justify-center border-2 border-gothic-holy/30">
+                        <Icon icon={iconName} size="2xl" variant="holy" />
                     </div>
                     <div>
-                        <h3 className={`${titleSizeClasses.large} font-bold text-yellow-400 font-cinzel`}>
+                        <h3 className={`${titleSizeClasses.large} font-bold text-gothic-holy font-cinzel`}>
                             {role.name}
                         </h3>
-                        <span className={`text-xs uppercase tracking-wider text-yellow-500/80`}>
+                        <span className={`text-xs uppercase tracking-wider text-gothic-holy/80`}>
                             {teamName}
                         </span>
                     </div>

@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useStore } from '../../store';
 import { RoleDef, Seat, GamePhase } from '../../types';
 import { useTranslation } from 'react-i18next';
+import { Icon } from '../ui/Icon';
 
 // Roles with active day abilities
 export const ACTIVE_ABILITY_ROLES: Record<string, {
     name: string;
     buttonText: string;
-    icon: string;
+    iconName: keyof typeof import('lucide-react');
     phase: 'DAY' | 'ANY';
     requiresTarget: boolean;
     description: string;
@@ -15,7 +16,7 @@ export const ACTIVE_ABILITY_ROLES: Record<string, {
     slayer: {
         name: 'game.activeAbility.roles.slayer.name',
         buttonText: 'game.activeAbility.roles.slayer.button',
-        icon: '🏹',
+        iconName: 'Target',
         phase: 'DAY',
         requiresTarget: true,
         description: 'game.activeAbility.roles.slayer.description'
@@ -23,7 +24,7 @@ export const ACTIVE_ABILITY_ROLES: Record<string, {
     virgin: {
         name: 'game.activeAbility.roles.virgin.name',
         buttonText: 'game.activeAbility.roles.virgin.button',
-        icon: '🕯️',
+        iconName: 'Flame',
         phase: 'DAY',
         requiresTarget: false,
         description: 'game.activeAbility.roles.virgin.description'
@@ -31,7 +32,7 @@ export const ACTIVE_ABILITY_ROLES: Record<string, {
     artist: {
         name: 'game.activeAbility.roles.artist.name',
         buttonText: 'game.activeAbility.roles.artist.button',
-        icon: '🎨',
+        iconName: 'Palette',
         phase: 'DAY',
         requiresTarget: false,
         description: 'game.activeAbility.roles.artist.description'
@@ -39,7 +40,7 @@ export const ACTIVE_ABILITY_ROLES: Record<string, {
     juggler: {
         name: 'game.activeAbility.roles.juggler.name',
         buttonText: 'game.activeAbility.roles.juggler.button',
-        icon: '🤹',
+        iconName: 'Sparkles',
         phase: 'DAY',
         requiresTarget: true,
         description: 'game.activeAbility.roles.juggler.description'
@@ -47,7 +48,7 @@ export const ACTIVE_ABILITY_ROLES: Record<string, {
     gossip: {
         name: 'game.activeAbility.roles.gossip.name',
         buttonText: 'game.activeAbility.roles.gossip.button',
-        icon: '💬',
+        iconName: 'MessageCircle',
         phase: 'DAY',
         requiresTarget: false,
         description: 'game.activeAbility.roles.gossip.description'
@@ -74,9 +75,9 @@ export const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, 
     // Don't show if ability already used
     if (seat.hasUsedAbility) {
         return (
-            <div className="mt-3 pt-3 border-t border-stone-800">
-                <div className="text-xs text-stone-600 italic flex items-center gap-2">
-                    <span>🚫</span>
+            <div className="mt-3 pt-3 border-t border-gothic-border">
+                <div className="text-xs text-gothic-muted italic flex items-center gap-2">
+                    <Icon icon="Ban" size="sm" variant="muted" />
                     <span>{t('game.activeAbility.abilityUsed')}</span>
                 </div>
             </div>
@@ -106,21 +107,21 @@ export const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, 
     
     return (
         <>
-            <div className="mt-3 pt-3 border-t border-stone-800">
+            <div className="mt-3 pt-3 border-t border-gothic-border">
                 <button
                     onClick={handleActivate}
                     disabled={!canUse}
-                    className={`w-full py-2 px-3 rounded text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                        canUse 
-                            ? 'bg-amber-900/50 hover:bg-amber-800/50 text-amber-200 border border-amber-700 shadow-[0_0_10px_rgba(245,158,11,0.2)]' 
-                            : 'bg-stone-800 text-stone-600 border border-stone-700 cursor-not-allowed'
+                    className={`w-full py-2 px-3 rounded text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        canUse
+                            ? 'bg-gothic-holy/20 hover:bg-gothic-holy/30 text-gothic-holy border border-gothic-holy/50 shadow-[0_0_10px_rgba(251,191,36,0.2)]'
+                            : 'bg-gothic-surface text-gothic-muted border border-gothic-border cursor-not-allowed'
                     }`}
                 >
-                    <span>{abilityConfig.icon}</span>
+                    <Icon icon={abilityConfig.iconName} size="sm" variant={canUse ? 'holy' : 'muted'} />
                     <span>{t(abilityConfig.buttonText)}</span>
                 </button>
                 {!canUse && (
-                    <p className="text-[10px] text-stone-600 mt-1 text-center">
+                    <p className="text-[10px] text-gothic-muted mt-1 text-center">
                         {t('game.activeAbility.onlyDuringDay', {
                             phase: abilityConfig.phase === 'DAY' ? t('phase.day', { count: 1 }).split(' ')[0] : t('game.activeAbility.onlyDuringAnyPhase')
                         })}
@@ -130,34 +131,34 @@ export const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, 
 
             {/* Target Selection Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
-                    <div className="bg-stone-900 border border-stone-700 rounded-lg p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-lg font-bold text-amber-500 mb-2 flex items-center gap-2">
-                            <span>{abilityConfig.icon}</span>
+                <div className="fixed inset-0 bg-gothic-overlay z-50 flex items-center justify-center p-4 cursor-pointer" onClick={() => setShowModal(false)}>
+                    <div className="bg-gothic-surface border border-gothic-border rounded-lg p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-lg font-bold text-gothic-accent mb-2 flex items-center gap-2 font-cinzel">
+                            <Icon icon={abilityConfig.iconName} size="md" variant="accent" />
                             {role.name}
                         </h3>
-                        <p className="text-sm text-stone-400 mb-4">{t(abilityConfig.description)}</p>
+                        <p className="text-sm text-gothic-muted mb-4">{t(abilityConfig.description)}</p>
 
                         <input
                             type="text"
                             value={targetInput}
                             onChange={e => setTargetInput(e.target.value)}
                             placeholder={t('game.activeAbility.enterTargetPlaceholder')}
-                            className="w-full bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 mb-4"
+                            className="w-full bg-gothic-bg border border-gothic-border rounded px-3 py-2 text-sm text-gothic-text mb-4"
                             autoFocus
                         />
 
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="flex-1 py-2 bg-stone-800 text-stone-400 rounded text-sm"
+                                className="flex-1 py-2 bg-gothic-surface text-gothic-muted rounded text-sm hover:bg-gothic-card transition-colors cursor-pointer"
                             >
                                 {t('common.cancel')}
                             </button>
                             <button
                                 onClick={handleSubmitTarget}
                                 disabled={!targetInput.trim()}
-                                className="flex-1 py-2 bg-amber-700 hover:bg-amber-600 text-white rounded text-sm font-bold disabled:opacity-50"
+                                className="flex-1 py-2 bg-gothic-holy hover:bg-gothic-holy/80 text-gothic-bg-dark rounded text-sm font-bold disabled:opacity-50 cursor-pointer transition-colors"
                             >
                                 {t('game.activeAbility.confirmActivation')}
                             </button>

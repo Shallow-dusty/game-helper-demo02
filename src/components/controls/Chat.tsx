@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import { useShallow } from 'zustand/react/shallow';
 import { ChatMessage, Seat } from '../../types';
 import { InfoCard } from '../ui/InfoCard';
+import { Icon } from '../ui/Icon';
 import { useTranslation } from 'react-i18next';
 import * as ReactWindow from 'react-window';
 // @ts-expect-error react-window types may not match at runtime
@@ -32,10 +33,10 @@ const MessageItem: React.FC<MessageItemProps> = ({ msg, isMe, seats, style }) =>
     if (isSystem) {
         return (
             <div style={style} className="px-4 py-2">
-                <div className="flex items-start gap-3 my-1 text-stone-400 border-l-2 border-stone-800 pl-3 py-2 bg-[#0c0a09]/50 rounded-r-sm font-serif relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-stone-900/50 to-transparent pointer-events-none" />
-                    <span className="text-sm mt-0.5 relative z-10 opacity-70">📜</span>
-                    <span className="text-xs leading-relaxed relative z-10 text-stone-300/90">{msg.content}</span>
+                <div className="flex items-start gap-3 my-1 text-stone-400 border-l-2 border-gothic-border pl-3 py-2 bg-gothic-bg-dark/50 rounded-r-sm font-serif relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-gothic-surface/50 to-transparent pointer-events-none" />
+                    <Icon icon="ScrollText" size="sm" variant="muted" className="mt-0.5 relative z-10 opacity-70" />
+                    <span className="text-xs leading-relaxed relative z-10 text-gothic-text/90">{msg.content}</span>
                 </div>
             </div>
         );

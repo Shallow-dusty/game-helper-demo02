@@ -705,7 +705,9 @@ describe('WaitingArea', () => {
       }));
 
       render(<WaitingArea />);
-      expect(document.body.textContent).toContain('\u2713'); // Checkmark
+      // Check for Check SVG icon instead of emoji
+      const readyButton = screen.getByText('game.waitingArea.readyStatus');
+      expect(readyButton.closest('button')?.querySelector('svg')).toBeInTheDocument();
     });
 
     it('shows hourglass when user is not ready', () => {
@@ -721,7 +723,9 @@ describe('WaitingArea', () => {
       }));
 
       render(<WaitingArea />);
-      expect(document.body.textContent).toContain('\u23F3'); // Hourglass emoji
+      // Check for Clock SVG icon instead of hourglass emoji
+      const notReadyButton = screen.getByText('game.waitingArea.notReadyStatus');
+      expect(notReadyButton.closest('button')?.querySelector('svg')).toBeInTheDocument();
     });
   });
 

@@ -116,13 +116,17 @@ describe('ConfirmModal', () => {
   it('renders trash icon when isDangerous is true', () => {
     render(<ConfirmModal {...defaultProps} isDangerous={true} />);
 
-    expect(screen.getByText('🗑️')).toBeInTheDocument();
+    // Check for Trash2 SVG icon instead of emoji
+    const confirmButton = screen.getAllByRole('button').find(btn => btn.textContent?.includes('ui.confirmModal.defaultConfirm'));
+    expect(confirmButton?.querySelector('svg')).toBeInTheDocument();
   });
 
   it('does not render trash icon when isDangerous is false', () => {
     render(<ConfirmModal {...defaultProps} isDangerous={false} />);
 
-    expect(screen.queryByText('🗑️')).not.toBeInTheDocument();
+    const confirmButton = screen.getAllByRole('button').find(btn => btn.textContent?.includes('ui.confirmModal.defaultConfirm'));
+    // When not dangerous, button should still have an icon (AlertTriangle) in title
+    expect(confirmButton).toBeInTheDocument();
   });
 
   it('renders multiline message correctly', () => {

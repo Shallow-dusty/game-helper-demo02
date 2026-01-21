@@ -284,7 +284,7 @@ export const RoomSelection = () => {
         >
           <Card className="border-stone-900 bg-stone-950/30">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between cursor-pointer" onClick={() => setShowSandboxOptions(!showSandboxOptions)}>
+              <div className="flex items-center justify-between cursor-pointer hover:bg-stone-900/30 transition-colors rounded-lg p-2 -m-2" onClick={() => setShowSandboxOptions(!showSandboxOptions)}>
                 <div className="flex items-center gap-3">
                   <FlaskConical className="w-5 h-5 text-stone-500" />
                   <span className="text-stone-400 font-cinzel tracking-wider">{t('lobby.moreOptions')}</span>

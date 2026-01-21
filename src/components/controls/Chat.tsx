@@ -234,19 +234,21 @@ export const Chat = () => {
             <div className="flex border-b border-stone-800 bg-[#0c0a09] relative z-10">
                 <button
                     onClick={() => setActiveChannel('CHAT')}
-                    className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-all ${activeChannel === 'CHAT'
+                    className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2 ${activeChannel === 'CHAT'
                         ? 'bg-[#1c1917] text-amber-500 border-b-2 border-amber-600 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.5)]'
                         : 'text-stone-600 hover:text-stone-400 hover:bg-[#151312]'}`}
                 >
-                    💬 {t('controls.chat.publicChannel')}
+                    <Icon icon="MessageCircle" size="sm" variant={activeChannel === 'CHAT' ? 'accent' : 'muted'} />
+                    {t('controls.chat.publicChannel')}
                 </button>
                 <button
                     onClick={() => setActiveChannel('LOG')}
-                    className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-all ${activeChannel === 'LOG'
+                    className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2 ${activeChannel === 'LOG'
                         ? 'bg-[#1c1917] text-amber-200 border-b-2 border-amber-800 shadow-[inset_0_-10px_20px_rgba(0,0,0,0.5)]'
                         : 'text-stone-600 hover:text-stone-400 hover:bg-[#151312]'}`}
                 >
-                    📜 {t('controls.chat.logChannel')}
+                    <Icon icon="ScrollText" size="sm" variant={activeChannel === 'LOG' ? 'accent' : 'muted'} />
+                    {t('controls.chat.logChannel')}
                 </button>
             </div>
 
@@ -254,7 +256,7 @@ export const Chat = () => {
             <div ref={containerRef} className="flex-1 overflow-hidden relative z-10 bg-[#1c1917]/90 backdrop-blur-sm">
                 {filteredMessages.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-full text-stone-700 opacity-50">
-                        <span className="text-4xl mb-2">🕸️</span>
+                        <Icon icon="MessagesSquare" size="xl" variant="muted" className="mb-2 opacity-30" />
                         <span className="text-sm italic font-serif">{t('controls.smartInfo.noInfo')}</span>
                     </div>
                 )}
@@ -306,7 +308,7 @@ export const Chat = () => {
                                     <option value="">{t('controls.chat.publicChannel')}</option>
                                     {availableRecipients.map(s => (
                                         <option key={s.userId} value={s.userId ?? ''}>
-                                            🕵️ {s.userName} ({s.id + 1}{t('lobby.roomCode')})
+                                            👤 {s.userName} ({s.id + 1}{t('lobby.roomCode')})
                                         </option>
                                     ))}
                                 </select>
@@ -314,7 +316,7 @@ export const Chat = () => {
                             </div>
                         ) : (
                             <div className="text-xs text-red-900/80 flex items-center gap-2 border border-red-900/20 bg-red-950/10 px-3 py-1 rounded-sm w-full">
-                                <span>🔒</span>
+                                <Icon icon="Lock" size="sm" variant="blood" />
                                 <span className="font-serif italic">{t('controls.chat.whispersDisabled')}</span>
                             </div>
                         )}
@@ -333,11 +335,11 @@ export const Chat = () => {
                         <button
                             type="submit"
                             disabled={!input.trim()}
-                            className={`absolute right-1.5 top-1.5 bottom-1.5 w-9 flex items-center justify-center rounded-sm text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed ${recipientId
+                            className={`absolute right-1.5 top-1.5 bottom-1.5 w-9 flex items-center justify-center rounded-sm text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer ${recipientId
                                 ? 'bg-purple-900 hover:bg-purple-800 border border-purple-700'
                                 : 'bg-stone-800 hover:bg-amber-900 border border-stone-700 hover:border-amber-700'}`}
                         >
-                            <span className="text-xs transform group-hover:translate-x-0.5 transition-transform">➤</span>
+                            <Icon icon="Send" size="sm" className="transform group-hover:translate-x-0.5 transition-transform" />
                         </button>
                     </div>
                 </form>

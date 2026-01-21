@@ -135,7 +135,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
       {/* Header */}
       <button
         onClick={onToggle}
-        className="w-full p-3 flex items-center justify-between bg-indigo-950/30 hover:bg-indigo-950/50 transition-colors"
+        className="w-full p-3 flex items-center justify-between bg-indigo-950/30 hover:bg-indigo-950/50 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-2">
           <Brain className="w-4 h-4 text-indigo-400" />
@@ -173,7 +173,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                   {/* 批量生成按钮 */}
                   <button
                     onClick={generateAllInfo}
-                    className="w-full flex items-center justify-center gap-2 py-2 bg-indigo-900/50 hover:bg-indigo-800/50 rounded text-sm text-indigo-200 transition-colors"
+                    className="w-full flex items-center justify-center gap-2 py-2 bg-indigo-900/50 hover:bg-indigo-800/50 rounded text-sm text-indigo-200 transition-colors cursor-pointer"
                   >
                     <Sparkles className="w-4 h-4" />
                     {t('controls.smartInfo.generateAll')}
@@ -200,7 +200,7 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
                           {/* 角色标题 */}
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-lg">{ROLES[roleId]?.icon ?? '❓'}</span>
+                              <Icon icon="HelpCircle" size="lg" variant="muted" />
                               <div>
                                 <p className="text-sm font-bold text-stone-200">
                                   {seat?.userName ?? `${t('controls.smartInfo.seat')} ${String(seatId + 1)}`}
@@ -348,8 +348,9 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
               )}
 
               {/* 帮助提示 */}
-              <div className="text-[10px] text-stone-600 bg-stone-800/50 p-2 rounded">
-                💡 {t('controls.smartInfo.helpText')}
+              <div className="text-[10px] text-stone-600 bg-stone-800/50 p-2 rounded flex items-start gap-2">
+                <Icon icon="Lightbulb" size="sm" variant="accent" className="flex-shrink-0 mt-0.5" />
+                <span>{t('controls.smartInfo.helpText')}</span>
               </div>
             </div>
           </motion.div>

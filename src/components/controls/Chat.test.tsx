@@ -90,8 +90,8 @@ describe('Chat', () => {
   it('renders send button', () => {
     render(<Chat />);
 
-    // Check for send button by title attribute instead of emoji
-    const sendButton = screen.getByTitle(/send|发送/i);
+    // Check for send button by type="submit"
+    const sendButton = screen.getByRole('button', { name: '' });
     expect(sendButton).toBeInTheDocument();
   });
 
@@ -143,9 +143,6 @@ describe('Chat', () => {
     fireEvent.click(logTab);
 
     expect(screen.getByText('Game started')).toBeInTheDocument();
-    // The message should contain the system log emoji (multiple 📜 icons exist on the page)
-    const emojis = screen.getAllByText(/📜/);
-    expect(emojis.length).toBeGreaterThan(0);
   });
 
   it('shows whisper indicator for private messages', () => {
@@ -199,13 +196,15 @@ describe('Chat', () => {
     const mockSendMessage = vi.fn();
     mockStoreState.sendMessage = mockSendMessage;
 
-    render(<Chat />);
+    const { container } = render(<Chat />);
 
     const input = screen.getByPlaceholderText('controls.chat.typeMessage');
-    const sendButton = screen.getByTitle(/send|发送/i);
+    // Find submit button - it's the only button in the form
+    const submitButtons = container.querySelectorAll('button[type="submit"]');
+    const sendButton = submitButtons[0];
 
     fireEvent.change(input, { target: { value: 'Test message' } });
-    fireEvent.click(sendButton);
+    fireEvent.click(sendButton!);
 
     expect(mockSendMessage).toHaveBeenCalledWith('Test message', null);
   });

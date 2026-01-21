@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Moon, Check, X } from 'lucide-react';
 import { useStore } from '../../store';
 import { ROLES, Z_INDEX } from '../../constants';
+import { ICON_MAP } from '../../config/iconMap';
 import type { NightActionPayload } from '../../types';
 
 interface PlayerNightActionProps {
@@ -77,17 +79,25 @@ export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, on
                 
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-4 border-b border-indigo-900/50 pb-3 mt-2">
-                    <span className="text-3xl md:text-4xl animate-pulse">{role.icon || '🌙'}</span>
+                    <div className="text-3xl md:text-4xl animate-pulse">
+                        {role.icon && ICON_MAP[role.icon as keyof typeof ICON_MAP] ? (
+                            React.createElement(ICON_MAP[role.icon as keyof typeof ICON_MAP], {
+                                className: "w-8 h-8 md:w-10 md:h-10 text-indigo-400"
+                            })
+                        ) : (
+                            <Moon className="w-8 h-8 md:w-10 md:h-10 text-indigo-400" />
+                        )}
+                    </div>
                     <div className="flex-1">
                         <h3 className="text-xl md:text-2xl font-bold text-indigo-300 font-cinzel">{role.name}</h3>
                         <p className="text-[10px] md:text-xs text-indigo-400 uppercase tracking-widest">{t('nightAction.player.yourTurn')}</p>
                     </div>
                     <button
                         onClick={onComplete}
-                        className="p-2 text-stone-500 hover:text-stone-300 transition-colors"
+                        className="p-2 text-stone-500 hover:text-stone-300 transition-colors cursor-pointer hover:bg-stone-800 rounded"
                         aria-label={t('nightAction.player.close')}
                     >
-                        ✕
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
@@ -117,7 +127,7 @@ export const PlayerNightAction: React.FC<PlayerNightActionProps> = ({ roleId, on
                                         <span className="font-bold group-hover:text-stone-200 transition-colors">{seat.userName}</span>
                                         <span className="text-[10px] opacity-60">{t('nightAction.panel.seat')} {seat.id + 1}</span>
                                     </div>
-                                    {isSelected && <span className="text-indigo-400 text-xl">✓</span>}
+                                    {isSelected && <Check className="w-6 h-6 text-indigo-400" />}
                                     {seat.isDead && <span className="text-xs text-red-900 bg-red-950/30 px-1 rounded border border-red-900/50">{t('nightAction.panel.dead')}</span>}
                                 </button>
                             );

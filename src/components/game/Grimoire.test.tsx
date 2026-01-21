@@ -154,6 +154,12 @@ vi.mock('lucide-react', () => ({
   Unlock: function MockUnlock() {
     return React.createElement('span', { 'data-testid': 'unlock-icon' }, 'Unlock');
   },
+  Loader2: function MockLoader2() {
+    return React.createElement('span', { 'data-testid': 'loader-icon' }, 'Loading');
+  },
+  Flame: function MockFlame() {
+    return React.createElement('span', { 'data-testid': 'flame-icon' }, 'Flame');
+  },
 }));
 
 // Mock child components

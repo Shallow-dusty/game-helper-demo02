@@ -72,9 +72,9 @@ describe('Chat', () => {
   it('renders chat tabs', () => {
     render(<Chat />);
 
-    // Check for channel tabs - emojis are rendered as text, translation keys follow
-    const publicTab = screen.getByRole('button', { name: /💬.*controls\.chat\.publicChannel/ });
-    const logTab = screen.getByRole('button', { name: /📜.*controls\.chat\.logChannel/ });
+    // Check for channel tabs - now using SVG icons instead of emoji
+    const publicTab = screen.getByRole('button', { name: /controls\.chat\.publicChannel/ });
+    const logTab = screen.getByRole('button', { name: /controls\.chat\.logChannel/ });
     expect(publicTab).toBeInTheDocument();
     expect(logTab).toBeInTheDocument();
   });
@@ -90,12 +90,13 @@ describe('Chat', () => {
   it('renders send button', () => {
     render(<Chat />);
 
-    const sendButton = screen.getByRole('button', { name: /➤/ });
+    // Check for send button by title attribute instead of emoji
+    const sendButton = screen.getByTitle(/send|发送/i);
     expect(sendButton).toBeInTheDocument();
   });
 
   it('shows empty state when no messages', () => {
-    render(<Chat />);
+    const { container } = render(<Chat />);
 
     // Check for empty state message
     // Check for SVG icon instead of web emoji
@@ -137,8 +138,8 @@ describe('Chat', () => {
 
     render(<Chat />);
 
-    // Switch to LOG tab to see system messages
-    const logTab = screen.getByRole('button', { name: /📜.*controls\.chat\.logChannel/ });
+    // Switch to LOG tab to see system messages - use text match without emoji
+    const logTab = screen.getByRole('button', { name: /controls\.chat\.logChannel/ });
     fireEvent.click(logTab);
 
     expect(screen.getByText('Game started')).toBeInTheDocument();
@@ -201,7 +202,7 @@ describe('Chat', () => {
     render(<Chat />);
 
     const input = screen.getByPlaceholderText('controls.chat.typeMessage');
-    const sendButton = screen.getByRole('button', { name: /➤/ });
+    const sendButton = screen.getByTitle(/send|发送/i);
 
     fireEvent.change(input, { target: { value: 'Test message' } });
     fireEvent.click(sendButton);
@@ -212,7 +213,7 @@ describe('Chat', () => {
   it('switches between chat and log tabs', () => {
     render(<Chat />);
 
-    const logTab = screen.getByRole('button', { name: /📜.*controls\.chat\.logChannel/ });
+    const logTab = screen.getByRole('button', { name: /controls\.chat\.logChannel/ });
     fireEvent.click(logTab);
 
     // Input area should not be visible in log tab

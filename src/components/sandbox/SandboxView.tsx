@@ -5,6 +5,7 @@ import { ToastContainer, useToasts } from '../ui/Toast';
 import { RoleReferencePanel } from '../controls/RoleReferencePanel';
 import { SCRIPTS, ROLES } from '../../constants';
 import { RoleDef } from '../../types';
+import { FlaskConical } from 'lucide-react';
 
 /**
  * 沙盒模式视图
@@ -109,13 +110,13 @@ export const SandboxView: React.FC = () => {
       {/* Sandbox Mode Banner */}
       <div className="bg-emerald-900/80 border-b border-emerald-700 px-4 py-2 flex items-center justify-between z-50">
         <div className="flex items-center gap-3">
-          <span className="text-xl">🧪</span>
+          <FlaskConical className="w-5 h-5 text-emerald-300" />
           <span className="text-emerald-200 font-bold font-cinzel">{t('sandbox.title')}</span>
           <span className="text-emerald-400/70 text-sm hidden sm:inline">{t('sandbox.localPractice')}</span>
         </div>
         <button
           onClick={exitSandbox}
-          className="px-3 py-1 bg-emerald-800 hover:bg-emerald-700 text-emerald-200 text-sm rounded border border-emerald-600 transition-colors"
+          className="px-3 py-1 bg-emerald-800 hover:bg-emerald-700 text-emerald-200 text-sm rounded border border-emerald-600 transition-colors cursor-pointer"
         >
           {t('sandbox.exitSandbox')}
         </button>

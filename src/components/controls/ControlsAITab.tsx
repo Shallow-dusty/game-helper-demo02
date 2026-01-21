@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { AI_CONFIG } from '../../store/aiConfig';
 import { AiProvider } from '../../store/types';
+import { Bot } from 'lucide-react';
 
 export const ControlsAITab: React.FC = () => {
   const { t } = useTranslation();
@@ -36,7 +37,7 @@ export const ControlsAITab: React.FC = () => {
         {/* AI Messages */}
         {aiMessages.length === 0 && (
           <div className="text-center text-stone-500 py-8">
-            <div className="text-3xl mb-2">🤖</div>
+            <Bot className="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p className="text-sm">{t('controls.ai.ready')}</p>
             <p className="text-xs text-stone-600 mt-1">{t('controls.ai.subtitle')}</p>
           </div>
@@ -54,7 +55,7 @@ export const ControlsAITab: React.FC = () => {
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[10px] text-stone-600">{new Date(msg.timestamp).toLocaleTimeString()}</span>
               {user.isStoryteller && msg.role !== 'user' && (
-                <button onClick={() => deleteAiMessage(msg.id)} className="text-[10px] text-red-900 hover:text-red-500">{t('controls.ai.delete')}</button>
+                <button onClick={() => deleteAiMessage(msg.id)} className="text-[10px] text-red-900 hover:text-red-500 cursor-pointer">{t('controls.ai.delete')}</button>
               )}
             </div>
           </div>
@@ -76,13 +77,13 @@ export const ControlsAITab: React.FC = () => {
           placeholder={t('controls.ai.placeholder')}
           className="flex-1 bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-300 focus:border-amber-600 focus:outline-none"
         />
-        <button type="submit" disabled={!aiPrompt.trim() || isAiThinking} className="bg-amber-700 hover:bg-amber-600 disabled:opacity-50 text-white px-3 py-2 rounded">
+        <button type="submit" disabled={!aiPrompt.trim() || isAiThinking} className="bg-amber-700 hover:bg-amber-600 disabled:opacity-50 text-white px-3 py-2 rounded cursor-pointer disabled:cursor-not-allowed">
           {t('controls.ai.send')}
         </button>
       </form>
       {user.isStoryteller && (
         <div className="mt-2 flex justify-between items-center">
-          <button onClick={clearAiMessages} className="text-xs text-stone-500 hover:text-stone-300">{t('controls.ai.clearHistory')}</button>
+          <button onClick={clearAiMessages} className="text-xs text-stone-500 hover:text-stone-300 cursor-pointer">{t('controls.ai.clearHistory')}</button>
           <select
             value={aiProvider}
             onChange={(e) => setAiProvider(e.target.value as AiProvider)}

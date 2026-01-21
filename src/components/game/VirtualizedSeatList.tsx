@@ -1,17 +1,10 @@
-/**
- * VirtualizedSeatList - 虚拟化座位列表组件
- *
- * 使用 react-window 实现虚拟滚动
- * 性能优化：仅渲染可见的座位，大幅减少 DOM 节点
- * 支持：100+ 玩家无卡顿
- */
-
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { List } from 'react-window';
 import { Seat } from '../../types';
 import { cn } from '../../lib/utils';
 import { ROLES } from '../../constants';
+import { Hand, Skull, Bot } from 'lucide-react';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function -- Intentional noop for default callback
 const noop = () => {};
@@ -87,11 +80,11 @@ const SeatItem = React.memo<CustomRowProps & { index: number; style: React.CSSPr
                     {/* 状态指示器 */}
                     <div className="flex gap-1">
                         {seat.isHandRaised && (
-                            <span title={t('game.virtualizedSeatList.handRaised')} className="text-lg">✋</span>
+                            <Hand className="w-5 h-5 text-amber-400" title={t('game.virtualizedSeatList.handRaised')} />
                         )}
-                        {seat.isDead && <span title={t('game.virtualizedSeatList.dead')} className="text-lg">💀</span>}
+                        {seat.isDead && <Skull className="w-5 h-5 text-red-500" title={t('game.virtualizedSeatList.dead')} />}
                         {seat.isVirtual && (
-                            <span title={t('game.virtualizedSeatList.virtual')} className="text-lg">🤖</span>
+                            <Bot className="w-5 h-5 text-stone-500" title={t('game.virtualizedSeatList.virtual')} />
                         )}
                     </div>
                 </div>

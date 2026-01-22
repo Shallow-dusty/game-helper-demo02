@@ -719,14 +719,14 @@ describe('NightActionManager', () => {
       ];
       mockGetPendingNightActions.mockReturnValue(unknownRequest);
 
-      render(<NightActionManager />);
+      const { container } = render(<NightActionManager />);
 
       // Should show role ID as fallback
       expect(screen.getByText(/non_existent_role/)).toBeInTheDocument();
-      // Should show question mark icon as fallback
-      // Check for HelpCircle SVG icon instead of ❓ emoji
-      const requestElement = screen.getByText(/Test User/i).closest('div');
-      expect(requestElement?.querySelector('svg')).toBeInTheDocument();
+      // Should show HelpCircle SVG icon as fallback for unknown roles
+      // The SVG is rendered by lucide-react's HelpCircle component (class: lucide-circle-question-mark)
+      const svgIcon = container.querySelector('svg.lucide-circle-question-mark');
+      expect(svgIcon).toBeInTheDocument();
     });
 
     it('should handle empty seats array', () => {

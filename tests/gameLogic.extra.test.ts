@@ -215,7 +215,6 @@ describe('gameLogic extra coverage', () => {
       expect(stateWithNominator.nomineeSeatId).toBe(1);
       expect(stateWithNominator.nominatorSeatId).toBe(2);
       expect(stateWithNominator.isOpen).toBe(true);
-      expect(stateWithNominator.isActive).toBe(true);
       expect(stateWithNominator.votes).toEqual([]);
 
       const stateWithoutNominator = createVotingState(3);

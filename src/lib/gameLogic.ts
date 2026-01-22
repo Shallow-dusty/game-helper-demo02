@@ -8,6 +8,7 @@
 import { GameState, Seat, GamePhase, ChatMessage } from '../types';
 import { getNightOrder, NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '../constants/nightOrder';
 import { ROLES, PHASE_LABELS, SCRIPTS } from '../constants';
+import { GAME_RULES } from '../constants/gameRules';
 import { generateShortId, shuffle } from './random';
 
 // ==================== 消息创建 ====================
@@ -261,13 +262,13 @@ export const checkGoodWin = (seats: Seat[]): boolean => {
 };
 
 /**
- * 检查邪恶胜利条件（存活人数 <= 2）
+ * 检查邪恶胜利条件（存活人数 <= EVIL_WIN_THRESHOLD）
  * @param seats 座位列表
  * @returns 是否满足邪恶胜利条件
  */
 export const checkEvilWin = (seats: Seat[]): boolean => {
     const aliveCount = seats.filter(s => !s.isDead).length;
-    return aliveCount <= 2;
+    return aliveCount <= GAME_RULES.EVIL_WIN_THRESHOLD;
 };
 
 /**
@@ -311,9 +312,9 @@ export const checkGameOver = (seats: Seat[], executedSeatId?: number): {
         }
 
         // Bug#11 fix: 市长特殊胜利规则
-        // 官方规则：当场上只剩3人且市长存活时，处决任何人好人立即获胜
+        // 官方规则：当场上只剩MAYOR_TRIGGER_COUNT人且市长存活时，处决任何人好人立即获胜
         const aliveSeats = seats.filter(s => !s.isDead);
-        if (aliveSeats.length === 3) {
+        if (aliveSeats.length === GAME_RULES.MAYOR_TRIGGER_COUNT) {
             const mayorAlive = aliveSeats.some(s => s.realRoleId === 'mayor');
             // 市长必须没有中毒/醉酒才能生效
             const mayorSeat = aliveSeats.find(s => s.realRoleId === 'mayor');

@@ -1,4 +1,5 @@
 import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '@/constants';
+import { GAME_RULES } from '@/constants/gameRules';
 import { Seat } from '@/types';
 
 /**
@@ -20,7 +21,7 @@ export function calculateNightQueue(seats: Seat[], isFirstNight: boolean): strin
 
 /**
  * Calculate voting result based on vote count and alive players
- * Blood on the Clocktower requires STRICT MAJORITY (more than half)
+ * Blood on the Clocktower requires STRICT MAJORITY (more than EXECUTION_VOTE_RATIO)
  * - 5 players: need 3 votes (>2.5)
  * - 6 players: need 4 votes (>3)
  * - 7 players: need 4 votes (>3.5)
@@ -29,5 +30,5 @@ export function calculateNightQueue(seats: Seat[], isFirstNight: boolean): strin
  * @returns Whether the nominee should be executed
  */
 export function calculateVoteResult(voteCount: number, aliveCount: number): boolean {
-    return voteCount > (aliveCount / 2) && voteCount > 0;
+    return voteCount > (aliveCount * GAME_RULES.EXECUTION_VOTE_RATIO) && voteCount > 0;
 }

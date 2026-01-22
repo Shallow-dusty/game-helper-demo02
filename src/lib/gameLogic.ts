@@ -213,6 +213,11 @@ export const handlePhaseChange = (
         gameState.roundInfo.nightCount++;
         gameState.roundInfo.totalRounds++;
 
+        // 重置每日处决标记（每日一次处决规则）
+        gameState.dailyExecutionCompleted = false;
+        // 清空每日提名记录
+        gameState.dailyNominations = [];
+
         // 构建夜间队列
         const firstNight = isFirstNight(gameState.seats);
         gameState.nightQueue = buildNightQueue(gameState.seats, firstNight);
@@ -237,8 +242,7 @@ export const createVotingState = (
     nomineeSeatId,
     clockHandSeatId: null,
     votes: [] as number[],
-    isOpen: true,
-    isActive: true
+    isOpen: true
 });
 
 // ==================== 游戏结束检测 ====================

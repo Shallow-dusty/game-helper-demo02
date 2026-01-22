@@ -54,6 +54,7 @@ export const getInitialState = (roomId: string, seatCount: number, currentScript
     // v2.0 新增字段
     candlelightEnabled: false,
     dailyNominations: [],
+    dailyExecutionCompleted: false,
     interactionLog: [],
 });
 

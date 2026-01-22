@@ -15,6 +15,20 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
     startVote: (nomineeId, nominatorId) => {
         set((state: Draft<AppState>) => {
             if (state.gameState) {
+                // 检查今日是否已处决过（每日一次处决规则）
+                if (state.gameState.dailyExecutionCompleted) {
+                    state.gameState.messages.push({
+                        id: `sys-${Date.now()}`,
+                        senderId: 'system',
+                        senderName: '系统',
+                        recipientId: null,
+                        content: '今日已处决过玩家，无法再次进行投票处决',
+                        timestamp: Date.now(),
+                        type: 'system',
+                    });
+                    return;
+                }
+
                 state.gameState.voting = {
                     nominatorSeatId: nominatorId ?? null,
                     nomineeSeatId: nomineeId,
@@ -123,6 +137,8 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                     addSystemMessage(state.gameState, `投票取消：被提名者已死亡`);
                 } else if (isExecuted) {
                     result = 'executed';
+                    // 标记今日已完成处决（每日一次处决规则）
+                    state.gameState.dailyExecutionCompleted = true;
                     if (nomineeSeat) {
                         nomineeSeat.isDead = true;
                         addSystemMessage(state.gameState, `${nomineeSeat.userName} 被处决了 (票数: ${String(votes.length)})`);

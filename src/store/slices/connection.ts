@@ -9,6 +9,7 @@ import { createClient, RealtimeChannel, REALTIME_SUBSCRIBE_STATES } from '@supab
 import { addSystemMessage, splitGameState, mergeGameState, type SecretState } from '../utils';
 import { generateShortId } from '../../lib/random';
 import { env } from '../../config/env';
+import { connectionLogger as logger } from '../../lib/logger';
 
 // --- SUPABASE CONFIG ---
 // 使用经过运行时校验的环境变量配置
@@ -82,16 +83,15 @@ async function attemptReconnect(
         reconnectState.attemptCount++;
         const attempt = reconnectState.attemptCount;
 
-        console.info(`[Reconnect] 尝试重连 #${attempt}/${reconnectState.maxAttempts} - 房间: ${roomCode}`);
+        logger.info(`尝试重连 #${attempt}/${reconnectState.maxAttempts} - 房间: ${roomCode}`);
 
         await joinGameFn(roomCode);
 
-        // 如果成功连接，重置状态
         resetReconnectState();
-        console.info('[Reconnect] 重连成功！');
+        logger.info('重连成功！');
         return true;
     } catch (error) {
-        console.warn('[Reconnect] 重连失败:', error);
+        logger.warn('重连失败:', error);
         return false;
     }
 }
@@ -106,7 +106,7 @@ function startReconnect(
     onMaxAttemptsReached: () => void
 ): void {
     if (reconnectState.isReconnecting) {
-        console.info('[Reconnect] 已经在重连中，跳过');
+        logger.debug('已经在重连中，跳过');
         return;
     }
 
@@ -116,7 +116,7 @@ function startReconnect(
 
     const scheduleNextAttempt = () => {
         if (reconnectState.attemptCount >= reconnectState.maxAttempts) {
-            console.error(`[Reconnect] 达到最大重试次数 (${reconnectState.maxAttempts})，停止重连`);
+            logger.error(`达到最大重试次数 (${reconnectState.maxAttempts})，停止重连`);
             resetReconnectState();
             setStatus('disconnected');
             onMaxAttemptsReached();
@@ -124,7 +124,7 @@ function startReconnect(
         }
 
         const delay = calculateBackoffDelay(reconnectState.attemptCount);
-        console.info(`[Reconnect] 将在 ${delay}ms 后进行第 ${reconnectState.attemptCount + 1} 次重连尝试`);
+        logger.info(`将在 ${delay}ms 后进行第 ${reconnectState.attemptCount + 1} 次重连尝试`);
 
         reconnectState.timer = setTimeout(() => {
             void attemptReconnect(roomCode, joinGameFn, setStatus).then((success) => {
@@ -144,7 +144,7 @@ function startReconnect(
  */
 function stopReconnect(): void {
     if (reconnectState.isReconnecting) {
-        console.info('[Reconnect] 手动停止重连');
+        logger.info('手动停止重连');
         resetReconnectState();
     }
 }
@@ -345,7 +345,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             }, 100);
 
         } catch (error) {
-            console.error("Join Game Error:", error);
+            logger.error('加入房间失败:', error);
             set({ connectionStatus: 'disconnected' });
             localStorage.removeItem('grimoire_last_room');
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -419,7 +419,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             });
 
         } catch (error) {
-            console.error("Spectate Game Error:", error);
+            logger.error('观察游戏失败:', error);
             set({ connectionStatus: 'disconnected' });
             const errorMessage = error instanceof Error ? error.message : String(error);
             void getToastFunctions().then(({ showError }) => showError(`连接失败: ${errorMessage}`));
@@ -495,7 +495,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 .eq('room_code', currentGameState.roomId);
 
             if (publicError) {
-                console.warn("Sync Public Error:", publicError.message);
+                logger.warn('同步公共状态失败:', publicError.message);
             }
 
             if (get().user?.isStoryteller) {
@@ -505,11 +505,11 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                     .upsert({ room_code: currentGameState.roomId, data: secretState, updated_at: new Date() }, { onConflict: 'room_code' });
 
                 if (secretError) {
-                    console.warn("Sync Secret Error:", secretError.message);
+                    logger.warn('同步私密状态失败:', secretError.message);
                 }
             }
         } catch (e) {
-            console.error('DEBUG: syncToCloud ERROR:', e);
+            logger.error('syncToCloud 异常:', e);
         }
     },
 
@@ -525,7 +525,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 .single();
 
             if (error) {
-                console.error('refreshFromCloud error:', error);
+                logger.error('refreshFromCloud 失败:', error);
                 return;
             }
 
@@ -550,7 +550,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 isReceivingUpdate = false;
             }
         } catch (err) {
-            console.error('refreshFromCloud error:', err);
+            logger.error('refreshFromCloud 异常:', err);
         }
     },
 

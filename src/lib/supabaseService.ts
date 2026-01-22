@@ -1,11 +1,12 @@
 /**
  * Supabase Service Layer for Grimoire Web v2.0
- * 
+ *
  * This module provides typed functions to interact with the database
  * for interaction logging and nomination tracking.
  */
 
 import { supabase } from '../store/slices/connection';
+import { supabaseLogger as logger } from './logger';
 
 // ============================================================================
 // Types
@@ -99,13 +100,13 @@ export async function logInteraction(input: InteractionLogInput): Promise<string
         });
 
         if (response.error) {
-            console.error('Failed to log interaction:', response.error);
+            logger.error('记录交互失败:', response.error);
             return null;
         }
 
         return response.data as string;
     } catch (err) {
-        console.error('Error logging interaction:', err);
+        logger.error('记录交互异常:', err);
         return null;
     }
 }
@@ -226,13 +227,13 @@ export async function getGameInteractions(
         });
 
         if (response.error) {
-            console.error('Failed to get game interactions:', response.error);
+            logger.error('获取游戏交互记录失败:', response.error);
             return [];
         }
 
         return (response.data ?? []) as InteractionLog[];
     } catch (err) {
-        console.error('Error getting game interactions:', err);
+        logger.error('获取游戏交互记录异常:', err);
         return [];
     }
 }
@@ -257,13 +258,13 @@ export async function checkNominationEligibility(
         });
 
         if (response.error) {
-            console.error('Failed to check nomination eligibility:', response.error);
+            logger.error('检查提名资格失败:', response.error);
             return { canNominate: true, reason: null, previousNominee: null };
         }
 
         return response.data as NominationEligibility;
     } catch (err) {
-        console.error('Error checking nomination eligibility:', err);
+        logger.error('检查提名资格异常:', err);
         return { canNominate: true, reason: null, previousNominee: null };
     }
 }
@@ -286,13 +287,13 @@ export async function recordNomination(
         });
 
         if (response.error) {
-            console.error('Failed to record nomination:', response.error);
+            logger.error('记录提名失败:', response.error);
             return { success: false, error: response.error.message, nominationId: null };
         }
 
         return response.data as NominationResult;
     } catch (err) {
-        console.error('Error recording nomination:', err);
+        logger.error('记录提名异常:', err);
         return { success: false, error: 'Unknown error', nominationId: null };
     }
 }
@@ -319,13 +320,13 @@ export async function updateNominationResult(
         });
 
         if (response.error) {
-            console.error('Failed to update nomination result:', response.error);
+            logger.error('更新提名结果失败:', response.error);
             return false;
         }
 
         return response.data as boolean;
     } catch (err) {
-        console.error('Error updating nomination result:', err);
+        logger.error('更新提名结果异常:', err);
         return false;
     }
 }
@@ -344,13 +345,13 @@ export async function getNominationHistory(
         });
 
         if (response.error) {
-            console.error('Failed to get nomination history:', response.error);
+            logger.error('获取提名历史失败:', response.error);
             return [];
         }
 
         return (response.data ?? []) as NominationRecord[];
     } catch (err) {
-        console.error('Error getting nomination history:', err);
+        logger.error('获取提名历史异常:', err);
         return [];
     }
 }

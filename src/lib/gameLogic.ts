@@ -6,7 +6,8 @@
  */
 
 import { GameState, Seat, GamePhase, ChatMessage } from '../types';
-import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER, ROLES, PHASE_LABELS, SCRIPTS } from '../constants';
+import { getNightOrder, NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '../constants/nightOrder';
+import { ROLES, PHASE_LABELS, SCRIPTS } from '../constants';
 import { generateShortId, shuffle } from './random';
 
 // ==================== 消息创建 ====================
@@ -41,17 +42,21 @@ export const addSystemMessage = (gameState: GameState, content: string, recipien
  * 构建夜间行动队列
  * @param seats 座位列表
  * @param isFirstNight 是否为首夜
+ * @param scriptId 剧本ID（可选，用于获取剧本特定顺序）
  * @returns 按顺序排列的角色ID列表
  */
-export const buildNightQueue = (seats: Seat[], isFirstNight: boolean): string[] => {
+export const buildNightQueue = (seats: Seat[], isFirstNight: boolean, scriptId?: string): string[] => {
     // Bug#7 fix: Use realRoleId (true identity) for night actions, not seenRoleId
     const availableRoles = seats
         .filter((s): s is Seat & { realRoleId: string } => s.realRoleId != null && !s.isDead)
         .map(s => s.realRoleId);
 
-    const order = isFirstNight ? NIGHT_ORDER_FIRST : NIGHT_ORDER_OTHER;
+    // 使用剧本特定顺序，如果提供了 scriptId
+    const order = scriptId
+        ? getNightOrder(scriptId, isFirstNight)
+        : (isFirstNight ? NIGHT_ORDER_FIRST : NIGHT_ORDER_OTHER);
 
-    return order.filter(role => {
+    return [...order].filter(role => {
         const hasRole = availableRoles.includes(role);
         const def = ROLES[role];
         if (!def) return false;

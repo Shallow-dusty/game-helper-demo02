@@ -6,7 +6,7 @@ import { RoleDef, Seat, GamePhase } from '../../types';
 import { ROLES, TEAM_COLORS } from '../../constants';
 import { VoteButton } from '../game/VoteButton';
 import { DoomsdayClock } from '../game/DoomsdayClock';
-import { Target, Candle, Palette, UserCircle2, MessageCircle, Ban, Zap } from 'lucide-react';
+import { Target, Flame, Palette, UserCircle2, MessageCircle, Ban, Zap } from 'lucide-react';
 
 const ACTIVE_ABILITY_ROLES: Record<string, {
     name: string;
@@ -27,7 +27,7 @@ const ACTIVE_ABILITY_ROLES: Record<string, {
     virgin: {
         name: '处女',
         buttonText: '声明处女身份',
-        icon: Candle,
+        icon: Flame,
         phase: 'DAY',
         requiresTarget: false,
         description: '若被镇民提名，提名者立即死亡'

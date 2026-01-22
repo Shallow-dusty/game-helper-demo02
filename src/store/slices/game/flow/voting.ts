@@ -15,6 +15,21 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
     startVote: (nomineeId, nominatorId) => {
         set((state: Draft<AppState>) => {
             if (state.gameState) {
+                // 检查被提名者是否存活
+                const nomineeSeat = state.gameState.seats.find(s => s.id === nomineeId);
+                if (nomineeSeat?.isDead) {
+                    state.gameState.messages.push({
+                        id: `sys-${Date.now()}`,
+                        senderId: 'system',
+                        senderName: '系统',
+                        recipientId: null,
+                        content: '无法提名：该玩家已死亡',
+                        timestamp: Date.now(),
+                        type: 'system',
+                    });
+                    return;
+                }
+
                 // 检查今日是否已处决过（每日一次处决规则）
                 if (state.gameState.dailyExecutionCompleted) {
                     state.gameState.messages.push({
@@ -115,6 +130,11 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
 
         } catch (error: unknown) {
             console.error('Toggle hand error:', error);
+            set((state: Draft<AppState>) => {
+                if (state.gameState) {
+                    addSystemMessage(state.gameState, '投票失败，请检查网络连接');
+                }
+            });
         }
     },
 

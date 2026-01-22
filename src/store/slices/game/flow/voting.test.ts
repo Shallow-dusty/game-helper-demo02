@@ -348,6 +348,56 @@ describe('createVotingSlice', () => {
 
             expect(supabase.rpc).not.toHaveBeenCalled();
         });
+
+        it('should consume ghost vote when dead player votes', async () => {
+            mockState.gameState.seats[0]!.isDead = true;
+            mockState.gameState.seats[0]!.hasGhostVote = true;
+            mockState.gameState.voting!.clockHandSeatId = 0;
+            mockState.user.id = 'user0';
+
+            vi.mocked(supabase.rpc).mockResolvedValue({
+                data: { success: true, isHandRaised: true },
+                error: null
+            } as any);
+
+            await slice.toggleHand();
+
+            expect(mockState.gameState.seats[0]!.hasGhostVote).toBe(false);
+            expect(mockState.gameState.voting!.votes).toContain(0);
+        });
+
+        it('should prevent dead player without ghost vote from voting', async () => {
+            mockState.gameState.seats[0]!.isDead = true;
+            mockState.gameState.seats[0]!.hasGhostVote = false;
+            mockState.gameState.voting!.clockHandSeatId = 0;
+            mockState.user.id = 'user0';
+
+            const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            await slice.toggleHand();
+
+            expect(supabase.rpc).not.toHaveBeenCalled();
+            expect(consoleWarn).toHaveBeenCalledWith('Dead player without ghost vote cannot vote');
+            consoleWarn.mockRestore();
+        });
+
+        it('should not consume ghost vote when dead player lowers hand', async () => {
+            mockState.gameState.seats[0]!.isDead = true;
+            mockState.gameState.seats[0]!.hasGhostVote = true;
+            mockState.gameState.voting!.clockHandSeatId = 0;
+            mockState.gameState.voting!.votes = [0]; // Already voted
+            mockState.user.id = 'user0';
+
+            vi.mocked(supabase.rpc).mockResolvedValue({
+                data: { success: true, isHandRaised: false },
+                error: null
+            } as any);
+
+            await slice.toggleHand();
+
+            // Ghost vote should still be available when lowering hand
+            expect(mockState.gameState.seats[0]!.hasGhostVote).toBe(true);
+            expect(mockState.gameState.voting!.votes).toEqual([]);
+        });
     });
 
     describe('closeVote', () => {

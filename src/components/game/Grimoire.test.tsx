@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import type { GameState } from '../../types';
 
@@ -593,7 +594,7 @@ describe('Grimoire', () => {
       expect(screen.queryByTestId('storyteller-menu')).not.toBeInTheDocument();
     });
 
-    it('player can join empty seat', () => {
+    it('player can join empty seat', async () => {
       mockGrimoireState.seats = [
         createMockSeat({ id: 0, userId: null, userName: '' }),
         createMockSeat({ id: 1, userId: 'user-2', userName: 'Player 2' }),
@@ -602,7 +603,10 @@ describe('Grimoire', () => {
       render(<Grimoire {...defaultProps} />);
 
       const emptySeat = screen.getByTestId('seat-node-0');
-      fireEvent.click(emptySeat);
+
+      await act(async () => {
+        fireEvent.click(emptySeat);
+      });
 
       expect(mockGameActions.joinSeat).toHaveBeenCalledWith(0);
     });

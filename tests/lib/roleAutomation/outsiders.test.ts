@@ -141,6 +141,17 @@ describe('processButler', () => {
     expect(result.suggestions[0]!.type).toBe('action');
   });
 
+  it('should return error when targetSeatIds[0] is explicitly undefined', () => {
+    // Create an array with undefined as first element
+    const targetSeatIds: (number | undefined)[] = [undefined];
+    context.targetSeatIds = targetSeatIds as number[];
+
+    const result = processButler(gameState, 0, context);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('未指定主人');
+  });
+
   it('should provide random recommendation in FULL_AUTO mode', () => {
     context.automationLevel = 'FULL_AUTO';
 

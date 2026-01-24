@@ -11,12 +11,17 @@ interface JudgmentZoneProps {
 }
 
 // 时钟表盘组件
-const ClockFace: React.FC<{ 
-    width: number; 
-    height: number; 
+const ClockFace: React.FC<{
+    width: number;
+    height: number;
     voteProgress: number; // 0-1，表示投票进度
     isOverHalf: boolean;
 }> = ({ width, height, voteProgress, isOverHalf }) => {
+    // 防御性检查：确保width和height是有效数值
+    if (!width || !height || isNaN(width) || isNaN(height)) {
+        return null;
+    }
+
     const centerX = width / 2;
     const centerY = height / 2;
     const clockRadius = Math.min(width, height) * 0.4;
@@ -160,7 +165,7 @@ const ClockFace: React.FC<{
     );
 };
 
-export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height = 300 }) => {
+export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 800, height = 600 }) => {
     const { t } = useTranslation();
     const sceneRef = useRef<HTMLDivElement>(null);
     const engineRef = useRef<Matter.Engine | null>(null);
@@ -330,7 +335,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 300, height 
 
     // 计算投票进度和是否超过半数
     const { voteProgress, isOverHalf } = useMemo(() => {
-        const totalPlayers = gameState?.seats.filter(s => s.seenRoleId && !s.isDead).length ?? 1;
+        const totalPlayers = Math.max(gameState?.seats.filter(s => s.seenRoleId && !s.isDead).length ?? 0, 1);
         const requiredVotes = Math.ceil(totalPlayers / 2);
         const currentVoteCount = currentVotes.length;
         const progress = Math.min(currentVoteCount / totalPlayers, 1);

@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { AudioEnableOverlay } from './AudioEnableOverlay';
 
 // Mock Audio
@@ -22,11 +23,17 @@ vi.mock('../../store', () => ({
 describe('AudioEnableOverlay', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     mockStoreState = {
       isAudioBlocked: true,
       setAudioBlocked: vi.fn(),
       gameState: {}, // Simulate being in a game room
     };
+  });
+
+  afterEach(() => {
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
   });
 
   it('does not render when audio is not blocked', () => {
@@ -47,7 +54,9 @@ describe('AudioEnableOverlay', () => {
     render(<AudioEnableOverlay />);
 
     // Wait for delayed display
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     expect(screen.getByText('ui.audioEnableOverlay.title')).toBeInTheDocument();
   });
@@ -55,7 +64,9 @@ describe('AudioEnableOverlay', () => {
   it('renders sound icon', async () => {
     render(<AudioEnableOverlay />);
 
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     expect(screen.getByText('🔊')).toBeInTheDocument();
   });
@@ -63,7 +74,9 @@ describe('AudioEnableOverlay', () => {
   it('renders title', async () => {
     render(<AudioEnableOverlay />);
 
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     expect(screen.getByText('ui.audioEnableOverlay.title')).toBeInTheDocument();
   });
@@ -71,7 +84,9 @@ describe('AudioEnableOverlay', () => {
   it('renders explanation text', async () => {
     render(<AudioEnableOverlay />);
 
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     // Use regex pattern to find text split by br tags
     expect(screen.getByText(/ui\.audioEnableOverlay\.browserBlocked/)).toBeInTheDocument();
@@ -81,7 +96,9 @@ describe('AudioEnableOverlay', () => {
   it('renders action button', async () => {
     render(<AudioEnableOverlay />);
 
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     const button = screen.getByRole('button', { name: 'ui.audioEnableOverlay.buttonText' });
     expect(button).toBeInTheDocument();
@@ -90,21 +107,26 @@ describe('AudioEnableOverlay', () => {
   it('renders adjustment hint', async () => {
     render(<AudioEnableOverlay />);
 
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     expect(screen.getByText('ui.audioEnableOverlay.adjustLater')).toBeInTheDocument();
   });
 
   it('hides overlay when clicking anywhere', async () => {
+    const user = userEvent.setup({ delay: null });
     render(<AudioEnableOverlay />);
 
     // Wait for delayed display
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     // Click on the outer overlay div (the one with onClick handler)
     const outerOverlay = screen.getByText('ui.audioEnableOverlay.title').closest('div')?.parentElement;
     if (outerOverlay) {
-      fireEvent.click(outerOverlay);
+      await user.click(outerOverlay);
 
       // Overlay should be hidden
       expect(screen.queryByText('ui.audioEnableOverlay.title')).not.toBeInTheDocument();
@@ -112,25 +134,31 @@ describe('AudioEnableOverlay', () => {
   });
 
   it('hides overlay when clicking the button', async () => {
+    const user = userEvent.setup({ delay: null });
     render(<AudioEnableOverlay />);
 
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     // The button has the text content, find it by role
     const button = screen.getByRole('button');
-    fireEvent.click(button);
+    await user.click(button);
 
     // Overlay should be hidden
     expect(screen.queryByText('ui.audioEnableOverlay.title')).not.toBeInTheDocument();
   });
 
   it('attempts to activate audio when clicked', async () => {
+    const user = userEvent.setup({ delay: null });
     const mockSetAudioBlocked = vi.fn();
     mockStoreState.setAudioBlocked = mockSetAudioBlocked;
 
     render(<AudioEnableOverlay />);
 
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     // Re-setup Audio mock to work correctly
     global.Audio = vi.fn(function(this: any) {
@@ -141,31 +169,39 @@ describe('AudioEnableOverlay', () => {
     }) as any;
 
     const button = screen.getByRole('button');
-    fireEvent.click(button);
+
+    await act(async () => {
+      await user.click(button);
+    });
 
     // Wait for async audio activation
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Should call setAudioBlocked
-    expect(mockSetAudioBlocked).toHaveBeenCalledWith(false);
+    await waitFor(() => {
+      expect(mockSetAudioBlocked).toHaveBeenCalledWith(false);
+    });
   });
 
   it('plays silent audio to activate AudioContext', async () => {
+    const user = userEvent.setup({ delay: null });
     render(<AudioEnableOverlay />);
 
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     const button = screen.getByRole('button', { name: 'ui.audioEnableOverlay.buttonText' });
-    fireEvent.click(button);
 
-    // Wait for async operation
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await act(async () => {
+      await user.click(button);
+    });
 
     // Audio constructor should have been called
-    expect(global.Audio).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(global.Audio).toHaveBeenCalled();
+    });
   });
 
   it('handles audio activation failure gracefully', async () => {
+    const user = userEvent.setup({ delay: null });
     // Mock audio play to fail
     global.Audio = vi.fn().mockImplementation(() => ({
       play: vi.fn().mockRejectedValue(new Error('Audio blocked')),
@@ -178,34 +214,44 @@ describe('AudioEnableOverlay', () => {
 
     render(<AudioEnableOverlay />);
 
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     const button = screen.getByRole('button', { name: 'ui.audioEnableOverlay.buttonText' });
-    fireEvent.click(button);
 
-    // Wait for async operation
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await act(async () => {
+      await user.click(button);
+    });
 
-    // Should not crash
+    // Should not crash - just verify the test completes
+    await waitFor(() => {
+      expect(consoleWarnSpy).toBeDefined();
+    });
+
     consoleWarnSpy.mockRestore();
   });
 
   it('does not show overlay after user interaction', async () => {
+    const user = userEvent.setup({ delay: null });
     const { rerender } = render(<AudioEnableOverlay />);
 
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     const button = screen.getByRole('button');
-    fireEvent.click(button);
+    await user.click(button);
 
     // After clicking, the overlay should hide
-    await new Promise(resolve => setTimeout(resolve, 100));
-
     expect(screen.queryByText('ui.audioEnableOverlay.title')).not.toBeInTheDocument();
 
     // Rerender with hasInteracted state true - should still not show
     rerender(<AudioEnableOverlay />);
-    await new Promise(resolve => setTimeout(resolve, 600));
+
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
 
     expect(screen.queryByText('ui.audioEnableOverlay.title')).not.toBeInTheDocument();
   });

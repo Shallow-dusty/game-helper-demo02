@@ -154,10 +154,30 @@ describe('processPoisoner', () => {
       // The suggestion should ask for target selection
       expect(result.suggestions[0]!.type).toBe('action');
     });
+
+    it('should randomly select target when no info roles in FULL_AUTO mode', () => {
+      // No info roles among targets
+      const seats = [
+        createTestSeat({ id: 0, realRoleId: 'poisoner', userId: 'user0' }),
+        createTestSeat({ id: 1, realRoleId: 'butler', userId: 'user1' }), // Not an info role
+        createTestSeat({ id: 2, realRoleId: 'drunk', userId: 'user2' })   // Not an info role
+      ];
+      const gameState = createTestGameState(seats);
+      const result = processPoisoner(gameState, 0, {
+        ...defaultContext,
+        automationLevel: 'FULL_AUTO'
+      });
+
+      expect(result.success).toBe(true);
+      const options = result.suggestions[0]!.options;
+      const recommendedOption = options?.find(o => o.id === 'recommended');
+      // Should still have a recommended option (randomly selected)
+      expect(recommendedOption).toBeDefined();
+    });
   });
 
   describe('target validation', () => {
-    it('should return error when targetSeatIds[0] is undefined', () => {
+    it('should ask for target when targetSeatIds is empty array', () => {
       const seats = [
         createTestSeat({ id: 0, realRoleId: 'poisoner', userId: 'user0' }),
         createTestSeat({ id: 1, realRoleId: 'monk', userId: 'user1' })
@@ -171,6 +191,23 @@ describe('processPoisoner', () => {
       // Empty array means no target selected
       expect(result.success).toBe(true);
       expect(result.suggestions[0]!.type).toBe('action');
+    });
+
+    it('should return error when targetSeatIds[0] is undefined', () => {
+      const seats = [
+        createTestSeat({ id: 0, realRoleId: 'poisoner', userId: 'user0' }),
+        createTestSeat({ id: 1, realRoleId: 'monk', userId: 'user1' })
+      ];
+      const gameState = createTestGameState(seats);
+      // Create an array with undefined as first element
+      const targetSeatIds: (number | undefined)[] = [undefined];
+      const result = processPoisoner(gameState, 0, {
+        ...defaultContext,
+        targetSeatIds: targetSeatIds as number[]
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('未指定目标');
     });
 
     it('should return error for non-existent target seat', () => {

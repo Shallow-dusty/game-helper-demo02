@@ -176,6 +176,47 @@ describe('processImp', () => {
       // Should recommend the fortune_teller player (seat 1)
       expect(recommendedOption?.label).toContain('2号');
     });
+
+    it('should handle empty unprotected list in FULL_AUTO mode', () => {
+      // All non-imp players are protected
+      const seats = [
+        createTestSeat({ id: 0, realRoleId: 'imp', userId: 'user0' }),
+        createTestSeat({ id: 1, realRoleId: 'monk', userId: 'user1', statuses: ['PROTECTED'] }),
+        createTestSeat({ id: 2, realRoleId: 'empath', userId: 'user2', statuses: ['PROTECTED'] })
+      ];
+      const gameState = createTestGameState(seats);
+      const result = processImp(gameState, 0, {
+        ...defaultContext,
+        automationLevel: 'FULL_AUTO'
+      });
+
+      expect(result.success).toBe(true);
+      // Should still return action without a recommended option
+      expect(result.suggestions[0]!.type).toBe('action');
+      const options = result.suggestions[0]!.options;
+      // No recommended option when all are protected
+      const recommendedOption = options?.find(o => o.id === 'recommended');
+      expect(recommendedOption).toBeUndefined();
+    });
+
+    it('should randomly select target in FULL_AUTO mode when no dangerous roles', () => {
+      const seats = [
+        createTestSeat({ id: 0, realRoleId: 'imp', userId: 'user0' }),
+        createTestSeat({ id: 1, realRoleId: 'butler', userId: 'user1' }), // Not dangerous
+        createTestSeat({ id: 2, realRoleId: 'drunk', userId: 'user2' })  // Not dangerous
+      ];
+      const gameState = createTestGameState(seats);
+      const result = processImp(gameState, 0, {
+        ...defaultContext,
+        automationLevel: 'FULL_AUTO'
+      });
+
+      expect(result.success).toBe(true);
+      const options = result.suggestions[0]!.options;
+      const recommendedOption = options?.find(o => o.id === 'recommended');
+      // Should still have a recommended option (randomly selected)
+      expect(recommendedOption).toBeDefined();
+    });
   });
 
   describe('target validation', () => {
@@ -193,6 +234,23 @@ describe('processImp', () => {
       // Empty array means no target selected, should ask for target
       expect(result.success).toBe(true);
       expect(result.suggestions[0]!.type).toBe('action');
+    });
+
+    it('should return error when targetSeatIds[0] is undefined', () => {
+      const seats = [
+        createTestSeat({ id: 0, realRoleId: 'imp', userId: 'user0' }),
+        createTestSeat({ id: 1, realRoleId: 'monk', userId: 'user1' })
+      ];
+      const gameState = createTestGameState(seats);
+      // Create an array with undefined as first element
+      const targetSeatIds: (number | undefined)[] = [undefined];
+      const result = processImp(gameState, 0, {
+        ...defaultContext,
+        targetSeatIds: targetSeatIds as number[]
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('未指定目标');
     });
 
     it('should return error for non-existent target seat', () => {

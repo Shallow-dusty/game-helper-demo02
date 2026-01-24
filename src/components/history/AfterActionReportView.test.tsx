@@ -1,16 +1,39 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { AfterActionReportView } from './AfterActionReportView';
 
-// Mock framer-motion
-vi.mock('framer-motion', () => ({
-  motion: {
-    div: (props: any) => React.createElement('div', props, props.children),
-    button: (props: any) => React.createElement('button', props, props.children),
-  },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
-}));
+// Mock framer-motion with proper prop filtering
+vi.mock('framer-motion', () => {
+  const filterMotionProps = (props: any) => {
+    const motionPropsSet = new Set([
+      'initial', 'animate', 'exit', 'transition',
+      'whileHover', 'whileTap', 'whileDrag', 'whileFocus', 'whileInView',
+      'variants', 'drag', 'dragConstraints', 'dragElastic',
+      'layoutId', 'layout', 'onAnimationStart', 'onAnimationComplete',
+    ]);
+    return Object.fromEntries(
+      Object.entries(props).filter(([key]) => !motionPropsSet.has(key))
+    );
+  };
+
+  return {
+    motion: {
+      div: (props: any) => {
+        const { children, ...restProps } = props;
+        const filteredProps = filterMotionProps(restProps);
+        return React.createElement('div', filteredProps, children);
+      },
+      button: (props: any) => {
+        const { children, ...restProps } = props;
+        const filteredProps = filterMotionProps(restProps);
+        return React.createElement('button', filteredProps, children);
+      },
+    },
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  };
+});
 
 // Mock @radix-ui/react-slot
 vi.mock('@radix-ui/react-slot', () => ({
@@ -212,12 +235,14 @@ describe('AfterActionReportView', () => {
 
     const copyButton = screen.getByText('Copy').closest('button');
     if (copyButton) {
-      fireEvent.click(copyButton);
+      await act(async () => {
+        fireEvent.click(copyButton);
+      });
 
-      // Wait for async operation
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      expect(navigator.clipboard.writeText).toHaveBeenCalled();
+      // Wait for async clipboard operation
+      await waitFor(() => {
+        expect(navigator.clipboard.writeText).toHaveBeenCalled();
+      });
     }
   });
 

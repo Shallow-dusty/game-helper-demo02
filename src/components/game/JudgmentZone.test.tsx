@@ -69,7 +69,7 @@ describe('JudgmentZone', () => {
   });
 
   it('没有投票历史时正常渲染 | renders normally without vote history', () => {
-    const { container } = render(<JudgmentZone />);
+    const { container } = render(<JudgmentZone width={800} height={600} />);
     expect(container.firstChild).toBeTruthy();
   });
 
@@ -93,7 +93,7 @@ describe('JudgmentZone', () => {
       },
     };
 
-    const { container } = render(<JudgmentZone />);
+    const { container } = render(<JudgmentZone width={800} height={600} />);
     expect(container.firstChild).toBeTruthy();
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 import { TruthReveal } from './TruthReveal';
 
 // Mock store with stable reference to avoid rerunning effects on every render
@@ -44,15 +44,31 @@ describe('TruthReveal', () => {
         vi.clearAllMocks();
     });
 
-    it('should not render main content when closed', () => {
-        const { container } = render(<TruthReveal isOpen={false} onClose={vi.fn()} />);
+    it('should not render main content when closed', async () => {
+        let container: HTMLElement;
+        await act(async () => {
+            const result = render(<TruthReveal isOpen={false} onClose={vi.fn()} />);
+            container = result.container;
+        });
+
+        // Advance timers to trigger all effects
+        await act(async () => {
+            vi.runAllTimers();
+        });
 
         // When closed, should return empty or hidden
-        expect(container.textContent).toBe('');
+        expect(container!.textContent).toBe('');
     });
 
-    it('should render content when open', () => {
-        render(<TruthReveal isOpen={true} onClose={vi.fn()} />);
+    it('should render content when open', async () => {
+        await act(async () => {
+            render(<TruthReveal isOpen={true} onClose={vi.fn()} />);
+        });
+
+        // Advance timers to trigger all effects
+        await act(async () => {
+            vi.runAllTimers();
+        });
 
         // Should have some rendered content
         expect(document.body.textContent?.length).toBeGreaterThan(0);

@@ -102,34 +102,40 @@ describe('useNomination', () => {
     describe('checkSeatEligibility', () => {
         it('应该检查指定座位的资格', async () => {
             const { result } = renderHook(() => useNomination());
-            
+
             await waitFor(() => {
                 expect(result.current.isCheckingEligibility).toBe(false);
             });
-            
+
             vi.mocked(supabaseService.checkNominationEligibility).mockResolvedValue({
                 canNominate: true,
                 reason: null,
                 previousNominee: null
             });
-            
-            const eligibility = await result.current.checkSeatEligibility(2);
-            
+
+            let eligibility: any;
+            await act(async () => {
+                eligibility = await result.current.checkSeatEligibility(2);
+            });
+
             expect(supabaseService.checkNominationEligibility).toHaveBeenCalledWith(123, 1, 2);
             expect(eligibility.canNominate).toBe(true);
         });
 
         it('API 失败时应该返回默认允许', async () => {
             const { result } = renderHook(() => useNomination());
-            
+
             await waitFor(() => {
                 expect(result.current.isCheckingEligibility).toBe(false);
             });
-            
+
             vi.mocked(supabaseService.checkNominationEligibility).mockRejectedValue(new Error('Error'));
-            
-            const eligibility = await result.current.checkSeatEligibility(2);
-            
+
+            let eligibility: any;
+            await act(async () => {
+                eligibility = await result.current.checkSeatEligibility(2);
+            });
+
             expect(eligibility.canNominate).toBe(true);
         });
     });
@@ -137,26 +143,31 @@ describe('useNomination', () => {
     describe('makeNomination', () => {
         it('提名成功应该返回 true', async () => {
             const { result } = renderHook(() => useNomination());
-            
+
             await waitFor(() => {
                 expect(result.current.isCheckingEligibility).toBe(false);
             });
-            
-            const success = await result.current.makeNomination(0, 1);
-            
+
+            let success = false;
+            await act(async () => {
+                success = await result.current.makeNomination(0, 1);
+            });
+
             expect(success).toBe(true);
             expect(supabaseService.recordNomination).toHaveBeenCalledWith(123, 1, 0, 1);
         });
 
         it('提名成功应该启动投票', async () => {
             const { result } = renderHook(() => useNomination());
-            
+
             await waitFor(() => {
                 expect(result.current.isCheckingEligibility).toBe(false);
             });
-            
-            await result.current.makeNomination(0, 1);
-            
+
+            await act(async () => {
+                await result.current.makeNomination(0, 1);
+            });
+
             expect(mockStartVote).toHaveBeenCalledWith(1);
         });
 
@@ -185,29 +196,35 @@ describe('useNomination', () => {
                 error: '提名失败',
                 nominationId: null
             });
-            
+
             const { result } = renderHook(() => useNomination());
-            
+
             await waitFor(() => {
                 expect(result.current.isCheckingEligibility).toBe(false);
             });
-            
-            const success = await result.current.makeNomination(0, 1);
-            
+
+            let success = true;
+            await act(async () => {
+                success = await result.current.makeNomination(0, 1);
+            });
+
             expect(success).toBe(false);
         });
 
         it('API 异常应该返回 false', async () => {
             vi.mocked(supabaseService.recordNomination).mockRejectedValue(new Error('Error'));
-            
+
             const { result } = renderHook(() => useNomination());
-            
+
             await waitFor(() => {
                 expect(result.current.isCheckingEligibility).toBe(false);
             });
-            
-            const success = await result.current.makeNomination(0, 1);
-            
+
+            let success = true;
+            await act(async () => {
+                success = await result.current.makeNomination(0, 1);
+            });
+
             expect(success).toBe(false);
         });
     });

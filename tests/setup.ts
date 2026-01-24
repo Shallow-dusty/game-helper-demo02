@@ -45,6 +45,21 @@ vi.mock('@supabase/supabase-js', () => ({
       single: vi.fn(),
     })),
     rpc: vi.fn(),
+    // Add Edge Functions support for AI testing
+    functions: {
+      invoke: vi.fn((functionName: string, options?: unknown) => {
+        if (functionName === 'ask-ai') {
+          return Promise.resolve({
+            data: { reply: 'Mock AI Response from Edge Function' },
+            error: null,
+          });
+        }
+        return Promise.resolve({
+          data: null,
+          error: { message: `Unknown function: ${functionName}` },
+        });
+      }),
+    },
   })),
 }));
 
@@ -58,47 +73,42 @@ vi.mock('@radix-ui/react-slot', () => ({
   }),
 }));
 
+// Helper function to filter out motion-specific props
+const filterMotionProps = (props: Record<string, unknown>): Record<string, unknown> => {
+  const motionPropsSet = new Set([
+    'initial', 'animate', 'exit', 'transition',
+    'whileHover', 'whileTap', 'whileDrag', 'whileFocus', 'whileInView',
+    'variants', 'drag', 'dragConstraints', 'dragElastic', 'dragMomentum',
+    'layoutId', 'layout', 'layoutDependency', 'layoutScroll',
+    'onAnimationStart', 'onAnimationComplete', 'onUpdate',
+    'onDrag', 'onDragStart', 'onDragEnd',
+    'onHoverStart', 'onHoverEnd', 'onTap', 'onTapStart', 'onTapCancel',
+    'onPan', 'onPanStart', 'onPanEnd',
+    'style', // framer-motion 会增强 style，需要过滤
+  ]);
+
+  return Object.fromEntries(
+    Object.entries(props).filter(([key]) => !motionPropsSet.has(key))
+  );
+};
+
 // Mock framer-motion 全局
 vi.mock('framer-motion', () => ({
-  motion: {
-    div: React.forwardRef(({ children, ...props }: React.PropsWithChildren<object>, ref) => 
-      React.createElement('div', { ...props, ref }, children)),
-    button: React.forwardRef(({ children, ...props }: React.PropsWithChildren<object>, ref) => 
-      React.createElement('button', { ...props, ref }, children)),
-    span: React.forwardRef(({ children, ...props }: React.PropsWithChildren<object>, ref) => 
-      React.createElement('span', { ...props, ref }, children)),
-    path: (props: object) => React.createElement('path', props),
-    svg: ({ children, ...props }: React.PropsWithChildren<object>) => 
-      React.createElement('svg', props, children),
-    g: ({ children, ...props }: React.PropsWithChildren<object>) => 
-      React.createElement('g', props, children),
-    circle: (props: object) => React.createElement('circle', props),
-    rect: (props: object) => React.createElement('rect', props),
-    line: (props: object) => React.createElement('line', props),
-    p: ({ children, ...props }: React.PropsWithChildren<object>) => 
-      React.createElement('p', props, children),
-    h1: ({ children, ...props }: React.PropsWithChildren<object>) => 
-      React.createElement('h1', props, children),
-    h2: ({ children, ...props }: React.PropsWithChildren<object>) => 
-      React.createElement('h2', props, children),
-    h3: ({ children, ...props }: React.PropsWithChildren<object>) => 
-      React.createElement('h3', props, children),
-    section: ({ children, ...props }: React.PropsWithChildren<object>) => 
-      React.createElement('section', props, children),
-    article: ({ children, ...props }: React.PropsWithChildren<object>) => 
-      React.createElement('article', props, children),
-    ul: ({ children, ...props }: React.PropsWithChildren<object>) => 
-      React.createElement('ul', props, children),
-    li: ({ children, ...props }: React.PropsWithChildren<object>) => 
-      React.createElement('li', props, children),
-    img: (props: object) => React.createElement('img', props),
-    a: ({ children, ...props }: React.PropsWithChildren<object>) => 
-      React.createElement('a', props, children),
-  },
+  motion: new Proxy({}, {
+    get: (_, element: string) => {
+      return React.forwardRef((props: React.PropsWithChildren<Record<string, unknown>>, ref) => {
+        const { children, ...restProps } = props;
+        const filteredProps = filterMotionProps(restProps);
+        return React.createElement(element, { ...filteredProps, ref }, children);
+      });
+    },
+  }),
   AnimatePresence: ({ children }: React.PropsWithChildren<object>) => React.createElement(React.Fragment, null, children),
-  useAnimation: () => ({ start: vi.fn(), stop: vi.fn() }),
+  useAnimation: () => ({ start: vi.fn(), stop: vi.fn(), set: vi.fn() }),
   useMotionValue: () => ({ get: () => 0, set: vi.fn() }),
   useTransform: () => 0,
+  useSpring: () => ({ get: () => 0, set: vi.fn() }),
+  useScroll: () => ({ scrollYProgress: { get: () => 0, set: vi.fn() } }),
 }));
 
 // Mock window.matchMedia
@@ -123,16 +133,56 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }));
 
-// Mock AudioContext
+// Mock Audio constructor
+global.Audio = vi.fn().mockImplementation(function(this: HTMLAudioElement) {
+  return {
+    play: vi.fn().mockResolvedValue(undefined),
+    pause: vi.fn(),
+    load: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+    volume: 1,
+    currentTime: 0,
+    duration: 0,
+    paused: true,
+    ended: false,
+    muted: false,
+    src: '',
+  } as unknown as HTMLAudioElement;
+}) as unknown as typeof Audio;
+
+// Mock AudioContext with proper resume implementation
 global.AudioContext = vi.fn().mockImplementation(() => ({
   createGain: vi.fn(() => ({
     connect: vi.fn(),
-    gain: { value: 1 },
+    disconnect: vi.fn(),
+    gain: {
+      value: 1,
+      setValueAtTime: vi.fn(),
+      linearRampToValueAtTime: vi.fn(),
+      exponentialRampToValueAtTime: vi.fn(),
+    },
   })),
   createMediaElementSource: vi.fn(() => ({
     connect: vi.fn(),
+    disconnect: vi.fn(),
   })),
-  resume: vi.fn(),
-  suspend: vi.fn(),
+  createOscillator: vi.fn(() => ({
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    start: vi.fn(),
+    stop: vi.fn(),
+    frequency: { value: 440 },
+  })),
+  resume: vi.fn().mockResolvedValue(undefined),
+  suspend: vi.fn().mockResolvedValue(undefined),
+  close: vi.fn().mockResolvedValue(undefined),
   state: 'running',
-}));
+  destination: {} as AudioDestinationNode,
+  currentTime: 0,
+  sampleRate: 44100,
+})) as unknown as typeof AudioContext;
+
+// Also mock webkitAudioContext for Safari compatibility
+(global as typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext = global.AudioContext;

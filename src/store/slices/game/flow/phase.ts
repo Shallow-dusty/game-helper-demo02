@@ -20,14 +20,23 @@ const resolveDailyExecution = (state: Draft<AppState>): void => {
             addSystemMessage(gameState, `游戏结束！${gameOver.winner === 'GOOD' ? '好人' : '邪恶'} 获胜 - ${gameOver.reason}`);
         }
     };
+
+    const getSeatRoleId = (seat: { realRoleId?: string | null; seenRoleId?: string | null; roleId?: string | null }): string | null => {
+        return seat.realRoleId ?? seat.seenRoleId ?? seat.roleId ?? null;
+    };
+    const hasVoudon = gameState.seats.some(seat => {
+        const roleId = getSeatRoleId(seat);
+        return !seat.isDead && roleId === 'voudon';
+    });
+
     if (dayVotes.length === 0) {
         applyNoExecutionResult();
         return;
     }
 
     const aliveCount = gameState.seats.filter(seat => !seat.isDead).length;
-    const requiredVotes = getVoteThreshold(aliveCount);
-    const eligibleVotes = dayVotes.filter(vote => vote.voteCount >= requiredVotes);
+    const requiredVotes = hasVoudon ? 0 : getVoteThreshold(aliveCount);
+    const eligibleVotes = hasVoudon ? dayVotes : dayVotes.filter(vote => vote.voteCount >= requiredVotes);
     if (eligibleVotes.length === 0) {
         applyNoExecutionResult();
         return;

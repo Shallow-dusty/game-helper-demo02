@@ -19,7 +19,7 @@ export const GAME_RULES = {
 
   /**
    * 处决所需的投票比例
-   * 需要超过存活人数的一半才能处决
+   * 需要达到存活人数的一半（至少 50%）才能处决
    */
   EXECUTION_VOTE_RATIO: 0.5,
 } as const;

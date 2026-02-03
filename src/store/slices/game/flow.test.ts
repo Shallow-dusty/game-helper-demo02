@@ -332,6 +332,28 @@ describe('createGameFlowSlice', () => {
             expect(latestVote?.result).toBe('executed');
         });
 
+        it('巫毒师在场时应按最高票处决（不需过半）', () => {
+            mockState.gameState!.seats[0]!.isDead = true;
+            mockState.gameState!.seats[1]!.roleId = 'voudon';
+            mockState.gameState!.seats[1]!.realRoleId = 'voudon';
+            mockState.gameState!.seats[1]!.seenRoleId = 'voudon';
+            mockState.gameState!.voting = {
+                nominatorSeatId: 0,
+                nomineeSeatId: 2,
+                clockHandSeatId: 2,
+                votes: [0],
+                isOpen: true
+            };
+            mockState.gameState!.roundInfo.dayCount = 1;
+
+            slice.closeVote();
+
+            slice.setPhase('NIGHT');
+            expect(mockState.gameState?.seats[2]?.isDead).toBe(true);
+            const latestVote = mockState.gameState?.voteHistory[0] as { result?: string } | undefined;
+            expect(latestVote?.result).toBe('executed');
+        });
+
         it('票数不足时不应处决', () => {
             mockState.gameState!.voting = {
                 nominatorSeatId: 0,

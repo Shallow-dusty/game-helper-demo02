@@ -49,7 +49,6 @@ export const addSystemMessage = (gameState: GameState, content: string, recipien
 export const buildNightQueue = (seats: Seat[], isFirstNight: boolean, scriptId?: string): string[] => {
     const order = getNightOrder(scriptId ?? 'tb', isFirstNight);
     const roleCounts = new Map<string, { alive: number; dead: number }>();
-    const deathTriggerRoles = new Set(['ravenkeeper', 'sage']);
 
     seats.forEach((seat) => {
         const roleId = seat.realRoleId;
@@ -65,9 +64,7 @@ export const buildNightQueue = (seats: Seat[], isFirstNight: boolean, scriptId?:
 
     return order.filter((roleId) => {
         const counts = roleCounts.get(roleId);
-        if (!counts) return false;
-        if (counts.alive > 0) return true;
-        return counts.dead > 0 && deathTriggerRoles.has(roleId);
+        return counts ? counts.alive > 0 : false;
     });
 };
 

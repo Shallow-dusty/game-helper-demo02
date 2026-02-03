@@ -1,8 +1,6 @@
 import { getNightOrder } from '@/constants/nightOrder';
 import { Seat } from '@/types';
 
-const DEATH_TRIGGER_ROLES = new Set(['ravenkeeper', 'sage']);
-
 const getRequiredVotes = (aliveCount: number): number => {
     return aliveCount > 0 ? Math.ceil(aliveCount / 2) : 0;
 };
@@ -32,10 +30,7 @@ export function calculateNightQueue(seats: Seat[], isFirstNight: boolean, script
 
     return orderList.filter((roleId) => {
         const counts = roleCounts.get(roleId);
-        if (!counts) return false;
-        if (counts.alive > 0) return true;
-        // Allow death-trigger roles to appear even if dead (ST can skip if not applicable)
-        return counts.dead > 0 && DEATH_TRIGGER_ROLES.has(roleId);
+        return counts ? counts.alive > 0 : false;
     });
 }
 

@@ -129,6 +129,7 @@ export const applyPhaseChange = (state: Draft<AppState>, phase: GamePhase): void
 
     if (phase === 'DAY' && oldPhase !== 'DAY') {
         gameState.roundInfo.dayCount++;
+        gameState.roundInfo.nominationCount = 0;
         gameState.candlelightEnabled = false;
         gameState.dailyNominations = [];
     }

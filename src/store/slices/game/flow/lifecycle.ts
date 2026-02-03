@@ -9,6 +9,7 @@ export const createLifecycleSlice: StoreSlice<Pick<GameSlice, 'startGame' | 'end
                 // Ensure counters start clean
                 state.gameState.roundInfo.nightCount = 0;
                 state.gameState.roundInfo.dayCount = 0;
+                state.gameState.roundInfo.nominationCount = 0;
                 state.gameState.roundInfo.totalRounds = 0;
                 state.gameState.dailyExecutionCompleted = false;
                 state.gameState.dailyNominations = [];

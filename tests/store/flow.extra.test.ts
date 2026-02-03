@@ -241,6 +241,14 @@ describe('createGameFlowSlice extra', () => {
   describe('startVote', () => {
     it('creates voting state and sets phase to VOTING', () => {
       const store = createTestStore();
+      store.setState((state) => {
+        if (state.gameState) {
+          state.gameState.phase = 'DAY';
+          state.gameState.roundInfo.dayCount = 1;
+          state.gameState.seats[2]!.userId = 'u2';
+          state.gameState.seats[2]!.userName = '玩家2';
+        }
+      });
       store.getState().startVote(2);
       expect(store.getState().gameState!.voting).toMatchObject({
         nomineeSeatId: 2,

@@ -7,7 +7,13 @@ import * as supabaseService from '../lib/supabaseService';
 const mockStartVote = vi.fn();
 const mockUser = { id: 'test-user', roomId: 123 };
 const mockGameState = {
-    seats: [{ id: 0, userId: 'test-user' }, { id: 1, userId: 'other-user' }],
+    phase: 'DAY',
+    dailyExecutionCompleted: false,
+    dailyNominations: [],
+    seats: [
+        { id: 0, userId: 'test-user', isDead: false },
+        { id: 1, userId: 'other-user', isDead: false }
+    ],
     roundInfo: { dayCount: 1 }
 };
 
@@ -86,7 +92,7 @@ describe('useNomination', () => {
             expect(result.current.previousNominee).toBe(3);
         });
 
-        it('资格检查失败时应该默认允许提名', async () => {
+        it('资格检查失败时应该默认禁止提名', async () => {
             vi.mocked(supabaseService.checkNominationEligibility).mockRejectedValue(new Error('Network error'));
             
             const { result } = renderHook(() => useNomination());
@@ -95,7 +101,7 @@ describe('useNomination', () => {
                 expect(result.current.isCheckingEligibility).toBe(false);
             });
             
-            expect(result.current.canNominate).toBe(true);
+            expect(result.current.canNominate).toBe(false);
         });
     });
 
@@ -115,14 +121,14 @@ describe('useNomination', () => {
 
             let eligibility: any;
             await act(async () => {
-                eligibility = await result.current.checkSeatEligibility(2);
+                eligibility = await result.current.checkSeatEligibility(0);
             });
 
-            expect(supabaseService.checkNominationEligibility).toHaveBeenCalledWith(123, 1, 2);
+            expect(supabaseService.checkNominationEligibility).toHaveBeenCalledWith(123, 1, 0);
             expect(eligibility.canNominate).toBe(true);
         });
 
-        it('API 失败时应该返回默认允许', async () => {
+        it('API 失败时应该返回默认禁止', async () => {
             const { result } = renderHook(() => useNomination());
 
             await waitFor(() => {
@@ -133,10 +139,10 @@ describe('useNomination', () => {
 
             let eligibility: any;
             await act(async () => {
-                eligibility = await result.current.checkSeatEligibility(2);
+                eligibility = await result.current.checkSeatEligibility(0);
             });
 
-            expect(eligibility.canNominate).toBe(true);
+            expect(eligibility.canNominate).toBe(false);
         });
     });
 

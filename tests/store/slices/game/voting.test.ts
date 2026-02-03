@@ -68,6 +68,8 @@ const createMockStore = () => {
       voting: null,
       phase: 'DAY',
       voteHistory: [],
+      dailyNominations: [],
+      dailyExecutionCompleted: false,
       messages: [],
       roundInfo: { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 1 }
     } as Partial<GameState>,
@@ -107,6 +109,8 @@ describe('createVotingSlice', () => {
       expect(mockStore.state.gameState?.voting?.votes).toEqual([]);
       expect(mockStore.state.gameState?.voting?.isOpen).toBe(true);
       expect(mockStore.state.gameState?.phase).toBe('VOTING');
+      expect(mockStore.state.gameState?.dailyNominations?.length).toBe(1);
+      expect(mockStore.state.gameState?.roundInfo?.nominationCount).toBe(1);
       expect(mockStore.get().sync).toHaveBeenCalled();
     });
 
@@ -118,7 +122,7 @@ describe('createVotingSlice', () => {
       expect(mockStore.get().sync).toHaveBeenCalled();
     });
 
-    it('should reset previous voting state', () => {
+    it('should not start a new vote while another vote is active', () => {
       mockStore.state.gameState!.voting = {
         nominatorSeatId: 0,
         nomineeSeatId: 1,
@@ -129,8 +133,8 @@ describe('createVotingSlice', () => {
 
       votingSlice.startVote(3);
 
-      expect(mockStore.state.gameState?.voting?.nomineeSeatId).toBe(3);
-      expect(mockStore.state.gameState?.voting?.votes).toEqual([]);
+      expect(mockStore.state.gameState?.voting?.nomineeSeatId).toBe(1);
+      expect(mockStore.state.gameState?.voting?.votes).toEqual([0, 2, 3]);
     });
   });
 

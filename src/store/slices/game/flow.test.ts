@@ -262,6 +262,8 @@ describe('createGameFlowSlice', () => {
 
     describe('startVote', () => {
         it('应该开始投票并设置被提名者', () => {
+            mockState.gameState!.phase = 'DAY';
+            mockState.gameState!.roundInfo.dayCount = 1;
             slice.startVote(1);
             
             expect(mockState.gameState?.voting).toEqual({
@@ -271,6 +273,8 @@ describe('createGameFlowSlice', () => {
                 votes: [],
                 isOpen: true
             });
+            expect(mockState.gameState?.dailyNominations).toHaveLength(1);
+            expect(mockState.gameState?.roundInfo.nominationCount).toBe(1);
             expect(mockState.gameState?.phase).toBe('VOTING');
         });
     });

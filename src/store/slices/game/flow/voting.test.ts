@@ -88,6 +88,8 @@ function createMockState() {
                 nominationCount: 0,
                 totalRounds: 1
             },
+            dailyNominations: [],
+            dailyExecutionCompleted: false,
             gameOver: null
         } as unknown as GameState,
         user: {
@@ -155,6 +157,8 @@ describe('createVotingSlice', () => {
                 votes: [],
                 isOpen: true
             });
+            expect(mockState.gameState.dailyNominations).toHaveLength(1);
+            expect(mockState.gameState.roundInfo.nominationCount).toBe(1);
             expect(mockState.gameState.phase).toBe('VOTING');
             expect(mockSync).toHaveBeenCalled();
         });

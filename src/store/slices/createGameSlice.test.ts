@@ -170,6 +170,20 @@ describe('createGameSlice', () => {
       it('should execute player if votes > half alive players', async () => {
           await store.getState().createGame(5);
           store.getState().assignRoles();
+          store.setState((state) => {
+              if (!state.gameState) return state;
+              state.gameState.seats.forEach((seat, index) => {
+                  seat.userId = `user-${String(index)}`;
+                  seat.userName = `Player ${String(index + 1)}`;
+              });
+              return state;
+          });
+          store.setState((state) => {
+              if (state.gameState) {
+                  state.gameState.phase = 'DAY';
+                  state.gameState.roundInfo.dayCount = 1;
+              }
+          });
           // 5 players alive, need 3 votes to execute
           const nomineeId = 0;
           store.getState().startVote(nomineeId);
@@ -201,6 +215,20 @@ describe('createGameSlice', () => {
       it('should NOT execute if votes <= half alive players', async () => {
         await store.getState().createGame(5);
         store.getState().assignRoles();
+        store.setState((state) => {
+            if (!state.gameState) return state;
+            state.gameState.seats.forEach((seat, index) => {
+                seat.userId = `user-${String(index)}`;
+                seat.userName = `Player ${String(index + 1)}`;
+            });
+            return state;
+        });
+        store.setState((state) => {
+            if (state.gameState) {
+                state.gameState.phase = 'DAY';
+                state.gameState.roundInfo.dayCount = 1;
+            }
+        });
         // 5 players alive, need 3 votes. We give 2.
         const nomineeId = 0;
         store.getState().startVote(nomineeId);

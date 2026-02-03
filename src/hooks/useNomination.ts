@@ -48,6 +48,56 @@ export function useNomination(): UseNominationReturn {
     // Find current user's seat
     const userSeat = gameState?.seats.find(s => s.userId === user?.id);
     const userSeatId = userSeat?.id;
+
+    const getSeatRoleId = (seat?: { realRoleId?: string | null; seenRoleId?: string | null; roleId?: string | null }) => {
+        if (!seat) return null;
+        return seat.realRoleId ?? seat.seenRoleId ?? seat.roleId ?? null;
+    };
+
+    const getLocalNominationStatus = useCallback((nominatorSeatId: number, nomineeSeatId?: number): NominationEligibility => {
+        if (!gameState) {
+            return { canNominate: false, reason: '未找到游戏状态', previousNominee: null };
+        }
+
+        if (gameState.phase !== 'DAY') {
+            return { canNominate: false, reason: '只能在白天提名', previousNominee: null };
+        }
+
+        if (gameState.dailyExecutionCompleted) {
+            return { canNominate: false, reason: '今日已处决', previousNominee: null };
+        }
+
+        const nominatorSeat = gameState.seats.find(s => s.id === nominatorSeatId);
+        if (!nominatorSeat?.userId) {
+            return { canNominate: false, reason: '提名者未入座', previousNominee: null };
+        }
+        if (nominatorSeat.isDead) {
+            return { canNominate: false, reason: '死亡玩家不能提名', previousNominee: null };
+        }
+
+        const todaysNominations = gameState.dailyNominations.filter(n => n.round === gameDay);
+        const nominationLimit = getSeatRoleId(nominatorSeat) === 'butcher' ? 2 : 1;
+        const nominatorHistory = todaysNominations.filter(n => n.nominatorSeatId === nominatorSeatId);
+        if (nominatorHistory.length >= nominationLimit) {
+            const lastNominee = nominatorHistory[nominatorHistory.length - 1]?.nomineeSeatId ?? null;
+            return { canNominate: false, reason: '今日已提名', previousNominee: lastNominee };
+        }
+
+        if (nomineeSeatId !== undefined) {
+            const nomineeSeat = gameState.seats.find(s => s.id === nomineeSeatId);
+            if (!nomineeSeat?.userId) {
+                return { canNominate: false, reason: '被提名者未入座', previousNominee: null };
+            }
+            if (nomineeSeat.isDead) {
+                return { canNominate: false, reason: '被提名者已死亡', previousNominee: null };
+            }
+            if (todaysNominations.some(n => n.nomineeSeatId === nomineeSeatId)) {
+                return { canNominate: false, reason: '该玩家今日已被提名', previousNominee: null };
+            }
+        }
+
+        return { canNominate: true, reason: null, previousNominee: null };
+    }, [gameState, gameDay]);
     
     // Check current user's eligibility on mount and when day changes
     useEffect(() => {
@@ -56,20 +106,26 @@ export function useNomination(): UseNominationReturn {
         const checkEligibility = async () => {
             setIsCheckingEligibility(true);
             try {
+                const localEligibility = getLocalNominationStatus(userSeatId);
+                if (!localEligibility.canNominate) {
+                    setCanNominate(false);
+                    setPreviousNominee(localEligibility.previousNominee);
+                    return;
+                }
                 const result = await checkNominationEligibility(roomId, gameDay, userSeatId);
                 setCanNominate(result.canNominate);
                 setPreviousNominee(result.previousNominee);
             } catch (err) {
                 console.error('Failed to check nomination eligibility:', err);
-                // Default to allowing nomination if check fails
-                setCanNominate(true);
+                // Fail closed on error
+                setCanNominate(false);
             } finally {
                 setIsCheckingEligibility(false);
             }
         };
         
         void checkEligibility();
-    }, [roomId, gameDay, userSeatId]);
+    }, [roomId, gameDay, userSeatId, getLocalNominationStatus]);
     
     // Fetch today's nominations
     useEffect(() => {
@@ -88,20 +144,34 @@ export function useNomination(): UseNominationReturn {
     }, [roomId, gameDay]);
     
     const checkSeatEligibility = useCallback(async (seatId: number): Promise<NominationEligibility> => {
-        if (!roomId) {
-            return { canNominate: true, reason: null, previousNominee: null };
+        if (!roomId || !gameState) {
+            return { canNominate: false, reason: '未找到房间信息', previousNominee: null };
+        }
+
+        const localEligibility = getLocalNominationStatus(seatId);
+        if (!localEligibility.canNominate) {
+            return localEligibility;
         }
         
         try {
             return await checkNominationEligibility(roomId, gameDay, seatId);
         } catch (err) {
             console.error('Failed to check seat eligibility:', err);
-            return { canNominate: true, reason: null, previousNominee: null };
+            return { canNominate: false, reason: '资格检查失败', previousNominee: null };
         }
-    }, [roomId, gameDay]);
+    }, [roomId, gameDay, gameState, getLocalNominationStatus]);
     
     const makeNomination = useCallback(async (nominatorSeat: number, nomineeSeat: number): Promise<boolean> => {
-        if (!roomId) return false;
+        if (!roomId || !gameState) return false;
+
+        const localEligibility = getLocalNominationStatus(nominatorSeat, nomineeSeat);
+        if (!localEligibility.canNominate) {
+            if (nominatorSeat === userSeatId) {
+                setCanNominate(false);
+                setPreviousNominee(localEligibility.previousNominee);
+            }
+            return false;
+        }
         
         try {
             const result = await recordNomination(roomId, gameDay, nominatorSeat, nomineeSeat);
@@ -129,22 +199,34 @@ export function useNomination(): UseNominationReturn {
             console.error('Error making nomination:', err);
             return false;
         }
-    }, [roomId, gameDay, userSeatId, startVote]);
+    }, [roomId, gameDay, userSeatId, startVote, gameState, getLocalNominationStatus]);
     
     const refresh = useCallback(async () => {
-        if (!roomId) return;
+        if (!roomId || !gameState) return;
         
         // Re-check eligibility
         if (userSeatId !== undefined) {
-            const eligibility = await checkNominationEligibility(roomId, gameDay, userSeatId);
-            setCanNominate(eligibility.canNominate);
-            setPreviousNominee(eligibility.previousNominee);
+            try {
+                const localEligibility = getLocalNominationStatus(userSeatId);
+                if (!localEligibility.canNominate) {
+                    setCanNominate(false);
+                    setPreviousNominee(localEligibility.previousNominee);
+                } else {
+                    const eligibility = await checkNominationEligibility(roomId, gameDay, userSeatId);
+                    setCanNominate(eligibility.canNominate);
+                    setPreviousNominee(eligibility.previousNominee);
+                }
+            } catch (err) {
+                console.error('Failed to refresh nomination eligibility:', err);
+                setCanNominate(false);
+                setPreviousNominee(null);
+            }
         }
         
         // Refresh nominations
         const nominations = await getNominationHistory(roomId, gameDay);
         setTodayNominations(nominations);
-    }, [roomId, gameDay, userSeatId]);
+    }, [roomId, gameDay, userSeatId, gameState, getLocalNominationStatus]);
     
     return {
         canNominate,

@@ -227,6 +227,7 @@ export const handlePhaseChange = (
         gameState.nightCurrentIndex = 0;
     } else if (newPhase === 'DAY') {
         gameState.roundInfo.dayCount++;
+        gameState.roundInfo.nominationCount = 0;
     }
 };
 

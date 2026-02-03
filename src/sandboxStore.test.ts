@@ -116,6 +116,7 @@ describe('sandboxStore', () => {
     it('should handle voting', () => {
         act(() => {
             useSandboxStore.getState().startSandbox(5);
+            useSandboxStore.getState().setPhase('DAY');
             useSandboxStore.getState().startVote(1);
         });
 

@@ -231,9 +231,37 @@ export const useSandboxStore = create<SandboxState>()(
         startVote: (nomineeId) => {
             set((state) => {
                 if (!state.gameState) return;
+                if (state.gameState.phase !== 'DAY') {
+                    addSystemMessage(state.gameState, '只能在白天进行提名。');
+                    return;
+                }
                 const nominee = state.gameState.seats.find(s => s.id === nomineeId);
-                if (!nominee) return;
+                if (!nominee?.userId) {
+                    addSystemMessage(state.gameState, '无法提名：座位未入座。');
+                    return;
+                }
+                if (nominee.isDead) {
+                    addSystemMessage(state.gameState, '无法提名：该玩家已死亡。');
+                    return;
+                }
+                if (state.gameState.dailyExecutionCompleted) {
+                    addSystemMessage(state.gameState, '今日已处决过玩家，无法再次进行投票处决。');
+                    return;
+                }
+                const day = state.gameState.roundInfo.dayCount;
+                if (state.gameState.dailyNominations.some(n => n.round === day && n.nomineeSeatId === nomineeId)) {
+                    addSystemMessage(state.gameState, '无法提名：该玩家今日已被提名。');
+                    return;
+                }
                 state.gameState.voting = createVotingState(nomineeId);
+                state.gameState.phase = 'VOTING';
+                state.gameState.dailyNominations.push({
+                    nominatorSeatId: -1,
+                    nomineeSeatId: nomineeId,
+                    round: state.gameState.roundInfo.dayCount,
+                    timestamp: Date.now()
+                });
+                state.gameState.roundInfo.nominationCount += 1;
                 addSystemMessage(state.gameState, `开始对 ${nominee.userName} 进行投票。`);
             });
         },

@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface CollapsibleSectionProps {
-    title: string;
+    title: React.ReactNode;
     isCollapsed: boolean;
     onToggle: () => void;
     children: React.ReactNode;

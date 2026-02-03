@@ -6,7 +6,7 @@
  */
 
 import { GameState, Seat, GamePhase, ChatMessage } from '../types';
-import { getNightOrder, NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '../constants/nightOrder';
+import { getNightOrder } from '../constants/nightOrder';
 import { ROLES, PHASE_LABELS, SCRIPTS } from '../constants';
 import { GAME_RULES } from '../constants/gameRules';
 import { generateShortId, shuffle } from './random';
@@ -47,23 +47,13 @@ export const addSystemMessage = (gameState: GameState, content: string, recipien
  * @returns 按顺序排列的角色ID列表
  */
 export const buildNightQueue = (seats: Seat[], isFirstNight: boolean, scriptId?: string): string[] => {
-    // Bug#7 fix: Use realRoleId (true identity) for night actions, not seenRoleId
     const availableRoles = seats
         .filter((s): s is Seat & { realRoleId: string } => s.realRoleId != null && !s.isDead)
         .map(s => s.realRoleId);
 
-    // 使用剧本特定顺序，如果提供了 scriptId
-    const order = scriptId
-        ? getNightOrder(scriptId, isFirstNight)
-        : (isFirstNight ? NIGHT_ORDER_FIRST : NIGHT_ORDER_OTHER);
+    const order = getNightOrder(scriptId ?? 'tb', isFirstNight);
 
-    return [...order].filter(role => {
-        const hasRole = availableRoles.includes(role);
-        const def = ROLES[role];
-        if (!def) return false;
-        // 包括场上存在的角色，以及恶魔/爪牙（即使已死也可能需要处理）
-        return hasRole || def.team === 'MINION' || def.team === 'DEMON';
-    });
+    return [...order].filter(role => availableRoles.includes(role));
 };
 
 /**
@@ -71,8 +61,8 @@ export const buildNightQueue = (seats: Seat[], isFirstNight: boolean, scriptId?:
  * @param seats 座位列表
  * @returns 如果没有死亡玩家则为首夜
  */
-export const isFirstNight = (seats: Seat[]): boolean => {
-    return !seats.some(s => s.isDead);
+export const isFirstNight = (nightCount: number): boolean => {
+    return nightCount === 1;
 };
 
 // ==================== 角色分配 ====================
@@ -220,8 +210,8 @@ export const handlePhaseChange = (
         gameState.dailyNominations = [];
 
         // 构建夜间队列
-        const firstNight = isFirstNight(gameState.seats);
-        gameState.nightQueue = buildNightQueue(gameState.seats, firstNight);
+        const firstNight = isFirstNight(gameState.roundInfo.nightCount);
+        gameState.nightQueue = buildNightQueue(gameState.seats, firstNight, gameState.currentScriptId);
         gameState.nightCurrentIndex = 0;
     } else if (newPhase === 'DAY') {
         gameState.roundInfo.dayCount++;
@@ -277,7 +267,10 @@ export const checkEvilWin = (seats: Seat[]): boolean => {
  * @param executedSeatId 本次被处决的座位ID（可选，用于圣徒检查）
  * @returns 游戏结束状态，null 表示未结束
  */
-export const checkGameOver = (seats: Seat[], executedSeatId?: number): {
+export const checkGameOver = (
+    seats: Seat[],
+    options?: { executedSeatId?: number; executionOccurred?: boolean }
+): {
     isOver: boolean;
     winner: 'GOOD' | 'EVIL' | null;
     reason: string;
@@ -297,9 +290,11 @@ export const checkGameOver = (seats: Seat[], executedSeatId?: number): {
         };
     }
 
-    // Bug#8 fix: Saint only triggers evil win when EXECUTED, not killed at night
-    // Only check if executedSeatId is provided (meaning this was an execution)
-    if (executedSeatId !== undefined) {
+    const executedSeatId = options?.executedSeatId;
+    const executionOccurred = options?.executionOccurred ?? false;
+
+    // Saint only triggers evil win when EXECUTED, not killed at night
+    if (executionOccurred && executedSeatId !== undefined) {
         const executedSeat = seats.find(s => s.id === executedSeatId);
 
         // 圣徒被处决检查
@@ -310,22 +305,21 @@ export const checkGameOver = (seats: Seat[], executedSeatId?: number): {
                 reason: '圣徒被处决，邪恶胜利！'
             };
         }
+    }
 
-        // Bug#11 fix: 市长特殊胜利规则
-        // 官方规则：当场上只剩MAYOR_TRIGGER_COUNT人且市长存活时，处决任何人好人立即获胜
+    // Bug#11 fix: Mayor wins if 3 alive and NO execution occurs
+    if (!executionOccurred) {
         const aliveSeats = seats.filter(s => !s.isDead);
         if (aliveSeats.length === GAME_RULES.MAYOR_TRIGGER_COUNT) {
-            const mayorAlive = aliveSeats.some(s => s.realRoleId === 'mayor');
-            // 市长必须没有中毒/醉酒才能生效
             const mayorSeat = aliveSeats.find(s => s.realRoleId === 'mayor');
             const mayorIsPoisonedOrDrunk = mayorSeat?.statuses?.some(
                 status => status === 'POISONED' || status === 'DRUNK'
             );
-            if (mayorAlive && !mayorIsPoisonedOrDrunk) {
+            if (mayorSeat && !mayorIsPoisonedOrDrunk) {
                 return {
                     isOver: true,
                     winner: 'GOOD',
-                    reason: '市长特殊胜利！剩余3人时处决成功，好人获胜！'
+                    reason: '市长特殊胜利！仅剩3名玩家且无人被处决，好人获胜！'
                 };
             }
         }

@@ -184,6 +184,20 @@
       "afterDistribute": "Players will see their role cards after distribution.",
       "backToEdit": "Back to Edit",
       "confirmDistribute": "Confirm Distribution"
+    },
+    "votingChart": {
+      "noVotes": "No voting records",
+      "latestVote": "Latest Vote",
+      "passed": "Passed",
+      "notPassed": "Not Passed",
+      "onTheBlock": "On the Block",
+      "tied": "Tied",
+      "executed": "Executed",
+      "cancelled": "Cancelled",
+      "nominator": "Nominator",
+      "nominee": "Nominee",
+      "requiredVotes": "Required votes: {{count}}",
+      "seatNumber": "Seat {{number}}"
     }
   },
   "grimoire": {

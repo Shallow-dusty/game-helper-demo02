@@ -43,7 +43,13 @@ export const STGameFlowControls = React.memo<STGameFlowControlsProps>(({
                 {/* Phase Switch Button */}
                 {phase === 'SETUP' || phase === 'DAY' ? (
                     <button
-                        onClick={() => useStore.getState().startGame()}
+                        onClick={() => {
+                            if (phase === 'SETUP') {
+                                useStore.getState().startGame();
+                            } else {
+                                onSetPhase('NIGHT');
+                            }
+                        }}
                         className="w-full bg-indigo-900 hover:bg-indigo-800 text-indigo-100 py-3 px-3 rounded text-sm border border-indigo-700 transition-colors flex items-center justify-center gap-2 font-bold shadow-lg cursor-pointer"
                     >
                         <Moon className="w-5 h-5" />

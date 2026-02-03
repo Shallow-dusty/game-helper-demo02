@@ -1,19 +1,19 @@
 import { StoreSlice, GameSlice } from '@/store/types';
 import { addSystemMessage } from '@/store/utils';
-import { calculateNightQueue } from './utils';
+import { applyPhaseChange } from './phase';
 
 export const createLifecycleSlice: StoreSlice<Pick<GameSlice, 'startGame' | 'endGame'>> = (set, get) => ({
     startGame: () => {
         set((state) => {
             if (state.gameState) {
-                state.gameState.phase = 'NIGHT';
-                state.gameState.roundInfo.nightCount = 1;
+                // Ensure counters start clean
+                state.gameState.roundInfo.nightCount = 0;
+                state.gameState.roundInfo.dayCount = 0;
+                state.gameState.roundInfo.totalRounds = 0;
+                state.gameState.dailyExecutionCompleted = false;
+                state.gameState.dailyNominations = [];
 
-                // Initialize night queue for first night
-                const queue = calculateNightQueue(state.gameState.seats, true);
-
-                state.gameState.nightQueue = queue;
-                state.gameState.nightCurrentIndex = -1;
+                applyPhaseChange(state, 'NIGHT');
 
                 // 烛光模式由 ST 手动控制，不自动开启
                 // state.gameState.candlelightEnabled = true;

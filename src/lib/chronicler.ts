@@ -376,7 +376,7 @@ export class AIChronicler {
                     actor: vote.nominatorSeatId,
                     target: vote.nomineeSeatId,
                     result: vote.result,
-                    details: `${nominator?.userName ?? '?'} 提名 ${nominee?.userName ?? '?'}，${String(vote.voteCount)}票，${vote.result}`,
+                    details: `${nominator?.userName ?? '?'} 提名 ${nominee?.userName ?? '?'}，${String(vote.voteCount)}票，${vote.result === 'on_the_block' ? '处决候选' : vote.result === 'tied' ? '平票' : vote.result}`,
                     metadata: { voteCount: vote.voteCount, result: vote.result }
                 });
             }

@@ -35,7 +35,7 @@ export interface VoteRecord {
   votes: number[];        // 投票者的座位ID列表
   voteCount: number;      // 投票数
   timestamp: number;
-  result: 'executed' | 'survived' | 'cancelled';
+  result: 'executed' | 'survived' | 'cancelled' | 'on_the_block' | 'tied';
 }
 
 // 夜间行动请求载荷类型

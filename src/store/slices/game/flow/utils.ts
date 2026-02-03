@@ -1,6 +1,12 @@
-import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '@/constants';
+import { getNightOrder } from '@/constants/nightOrder';
 import { GAME_RULES } from '@/constants/gameRules';
 import { Seat } from '@/types';
+
+const DEATH_TRIGGER_ROLES = new Set(['ravenkeeper', 'sage']);
+
+const getRequiredVotes = (aliveCount: number): number => {
+    return aliveCount > 0 ? Math.floor(aliveCount / 2) + 1 : 0;
+};
 
 /**
  * Calculate night action queue based on alive roles
@@ -9,14 +15,29 @@ import { Seat } from '@/types';
  * @param isFirstNight Whether this is the first night
  * @returns Array of role IDs in execution order
  */
-export function calculateNightQueue(seats: Seat[], isFirstNight: boolean): string[] {
-    const orderList = isFirstNight ? NIGHT_ORDER_FIRST : NIGHT_ORDER_OTHER;
+export function calculateNightQueue(seats: Seat[], isFirstNight: boolean, scriptId?: string): string[] {
+    const orderList = getNightOrder(scriptId ?? 'tb', isFirstNight);
 
-    const activeRoleIds = seats
-        .filter(s => s.realRoleId && !s.isDead)
-        .map(s => s.realRoleId!);
+    const roleCounts = new Map<string, { alive: number; dead: number }>();
+    seats.forEach((seat) => {
+        const roleId = seat.realRoleId;
+        if (!roleId) return;
+        const entry = roleCounts.get(roleId) ?? { alive: 0, dead: 0 };
+        if (seat.isDead) {
+            entry.dead += 1;
+        } else {
+            entry.alive += 1;
+        }
+        roleCounts.set(roleId, entry);
+    });
 
-    return orderList.filter(roleId => activeRoleIds.includes(roleId));
+    return orderList.filter((roleId) => {
+        const counts = roleCounts.get(roleId);
+        if (!counts) return false;
+        if (counts.alive > 0) return true;
+        // Allow death-trigger roles to appear even if dead (ST can skip if not applicable)
+        return counts.dead > 0 && DEATH_TRIGGER_ROLES.has(roleId);
+    });
 }
 
 /**
@@ -30,5 +51,10 @@ export function calculateNightQueue(seats: Seat[], isFirstNight: boolean): strin
  * @returns Whether the nominee should be executed
  */
 export function calculateVoteResult(voteCount: number, aliveCount: number): boolean {
-    return voteCount > (aliveCount * GAME_RULES.EXECUTION_VOTE_RATIO) && voteCount > 0;
+    const requiredVotes = getRequiredVotes(aliveCount);
+    return voteCount >= requiredVotes && voteCount > 0;
+}
+
+export function getVoteThreshold(aliveCount: number): number {
+    return getRequiredVotes(aliveCount);
 }

@@ -1,4 +1,5 @@
 import { StoreSlice, GameSlice } from '@/store/types';
+import { applyPhaseChange } from './phase';
 
 export const createNightSlice: StoreSlice<Pick<GameSlice, 'nightNext' | 'nightPrev'>> = (set, get) => ({
     nightNext: () => {
@@ -8,9 +9,8 @@ export const createNightSlice: StoreSlice<Pick<GameSlice, 'nightNext' | 'nightPr
                 if (state.gameState.nightCurrentIndex < queue.length - 1) {
                     state.gameState.nightCurrentIndex++;
                 } else {
-                    state.gameState.phase = 'DAY';
+                    applyPhaseChange(state, 'DAY');
                     state.gameState.nightCurrentIndex = -1;
-                    state.gameState.roundInfo.dayCount++;
                 }
             }
         });

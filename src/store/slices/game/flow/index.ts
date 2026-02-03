@@ -45,4 +45,4 @@ export { createNightSlice } from './night';
 export { createVotingSlice } from './voting';
 export { createLifecycleSlice } from './lifecycle';
 export { createFeaturesSlice } from './features';
-export { calculateNightQueue, calculateVoteResult } from './utils';
+export { calculateNightQueue, calculateVoteResult, getVoteThreshold } from './utils';

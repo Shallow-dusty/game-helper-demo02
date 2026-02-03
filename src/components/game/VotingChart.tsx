@@ -37,6 +37,15 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
     const totalVotes = latestVote.votes.length;
     const requiredVotes = activeSeatCount > 0 ? Math.floor(activeSeatCount / 2) + 1 : 0;
     const isPassed = requiredVotes > 0 && totalVotes >= requiredVotes;
+    const statusLabel = latestVote.result === 'on_the_block'
+        ? t('game.votingChart.onTheBlock')
+        : latestVote.result === 'tied'
+            ? t('game.votingChart.tied')
+            : latestVote.result === 'executed'
+                ? t('game.votingChart.executed')
+                : latestVote.result === 'cancelled'
+                    ? t('game.votingChart.cancelled')
+                    : (isPassed ? t('game.votingChart.passed') : t('game.votingChart.notPassed'));
     const progressBase = Math.max(activeSeatCount, 1);
 
     return (
@@ -44,7 +53,7 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
             <h3 className="text-xs font-bold text-stone-400 mb-2 uppercase tracking-wider flex justify-between items-center">
                 <span>{t('game.votingChart.latestVote')}</span>
                 <span className={`px-1.5 py-0.5 rounded text-[10px] ${isPassed ? 'bg-red-900/30 text-red-400 border border-red-900' : 'bg-stone-800 text-stone-500'}`}>
-                    {isPassed ? t('game.votingChart.passed') : t('game.votingChart.notPassed')}
+                    {statusLabel}
                 </span>
             </h3>
 
@@ -89,7 +98,6 @@ export const VotingChart: React.FC<VotingChartProps> = ({ voteHistory: propVoteH
         </div>
     );
 };
-
 
 
 

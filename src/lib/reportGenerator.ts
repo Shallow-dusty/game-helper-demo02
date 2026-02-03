@@ -65,7 +65,7 @@ function extractVoteEvents(voteHistory: VoteRecord[], seats: Seat[]): TimelineEv
       timestamp: vote.timestamp,
       type: 'vote' as const,
       title: `第 ${String(vote.round)} 轮投票`,
-      description: `${nominator?.userName ?? '未知'} 提名 ${nominee?.userName ?? '未知'}，获得 ${String(vote.voteCount)} 票，${vote.result === 'executed' ? '处决' : vote.result === 'survived' ? '存活' : '取消'}`,
+      description: `${nominator?.userName ?? '未知'} 提名 ${nominee?.userName ?? '未知'}，获得 ${String(vote.voteCount)} 票，${vote.result === 'executed' ? '处决' : vote.result === 'survived' ? '存活' : vote.result === 'on_the_block' ? '处决候选' : vote.result === 'tied' ? '平票' : '取消'}`,
       involvedSeats: [vote.nominatorSeatId, vote.nomineeSeatId, ...vote.votes],
       metadata: {
         result: vote.result,

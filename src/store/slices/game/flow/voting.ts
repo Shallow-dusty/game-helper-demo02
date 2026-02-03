@@ -3,12 +3,10 @@ import { StoreSlice, GameSlice } from '@/store/types';
 import type { AppState } from '@/store/types';
 import { addSystemMessage } from '@/store/utils';
 import { supabase } from '../../connection';
-import { checkGameOver } from '@/lib/gameLogic';
 import {
-    logExecution,
     updateNominationResult
 } from '@/lib/supabaseService';
-import { calculateVoteResult } from './utils';
+import { calculateVoteResult, getVoteThreshold } from './utils';
 
 export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote'>> = (set, get) => ({
     // Bug#10 fix: Accept nominatorId to properly record in vote history
@@ -142,74 +140,73 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
         const { user } = get();
 
         set((state: Draft<AppState>) => {
-            if (state.gameState?.voting) {
-                const { nomineeSeatId, nominatorSeatId, votes } = state.gameState.voting;
-                const aliveCount = state.gameState.seats.filter(s => !s.isDead).length;
-                const isExecuted = calculateVoteResult(votes.length, aliveCount);
+            if (!state.gameState?.voting) return;
 
-                let result: 'executed' | 'survived' | 'cancelled' = 'survived';
+            const { nomineeSeatId, nominatorSeatId, votes } = state.gameState.voting;
+            const aliveCount = state.gameState.seats.filter(s => !s.isDead).length;
+            const requiredVotes = getVoteThreshold(aliveCount);
+            const meetsThreshold = calculateVoteResult(votes.length, aliveCount);
 
-                const nomineeSeat = state.gameState.seats.find(s => s.id === nomineeSeatId);
+            let result: 'executed' | 'survived' | 'cancelled' | 'on_the_block' | 'tied' = 'survived';
 
-                // Bug#4 fix: Validate nominee is alive before execution
-                if (nomineeSeat?.isDead) {
-                    result = 'cancelled';
-                    addSystemMessage(state.gameState, `投票取消：被提名者已死亡`);
-                } else if (isExecuted) {
-                    result = 'executed';
-                    // 标记今日已完成处决（每日一次处决规则）
-                    state.gameState.dailyExecutionCompleted = true;
-                    if (nomineeSeat) {
-                        nomineeSeat.isDead = true;
-                        addSystemMessage(state.gameState, `${nomineeSeat.userName} 被处决了 (票数: ${String(votes.length)})`);
+            const nomineeSeat = state.gameState.seats.find(s => s.id === nomineeSeatId);
 
-                        // v2.0: Log execution to database (async, non-blocking)
-                        if (user?.roomId && nomineeSeatId !== null) {
-                            logExecution(
-                                user.roomId,
-                                state.gameState.roundInfo.dayCount,
-                                nomineeSeatId,
-                                nomineeSeat.seenRoleId ?? 'unknown',
-                                votes.length
-                            ).catch(console.error);
+            if (nomineeSeat?.isDead) {
+                result = 'cancelled';
+                addSystemMessage(state.gameState, `投票取消：被提名者已死亡`);
+            } else if (!meetsThreshold) {
+                addSystemMessage(state.gameState, `票数不足 (${String(votes.length)}/${String(requiredVotes)}), 无人被处决`);
+            } else {
+                const dayVotes = state.gameState.voteHistory.filter(vote => vote.round === state.gameState!.roundInfo.dayCount);
+                const eligibleVotes = dayVotes.filter(vote => vote.voteCount >= requiredVotes && vote.result !== 'cancelled');
+                const leadingCount = eligibleVotes.length > 0
+                    ? Math.max(...eligibleVotes.map(vote => vote.voteCount))
+                    : 0;
+
+                if (votes.length > leadingCount) {
+                    eligibleVotes.forEach(vote => {
+                        if (vote.result === 'on_the_block' || vote.result === 'tied') {
+                            vote.result = 'survived';
                         }
-
-                        // Bug#8 fix: Pass executedSeatId for Saint check
-                        const gameOver = checkGameOver(state.gameState.seats, nomineeSeatId ?? undefined);
-                        if (gameOver) {
-                            state.gameState.gameOver = gameOver;
-                            addSystemMessage(state.gameState, `游戏结束！${gameOver.winner === 'GOOD' ? '好人' : '邪恶'} 获胜 - ${gameOver.reason}`);
+                    });
+                    result = 'on_the_block';
+                    addSystemMessage(state.gameState, `${nomineeSeat?.userName ?? '被提名者'} 获得 ${String(votes.length)} 票，成为当前处决候选`);
+                } else if (votes.length === leadingCount && leadingCount > 0) {
+                    eligibleVotes.forEach(vote => {
+                        if (vote.voteCount === leadingCount) {
+                            vote.result = 'tied';
                         }
-                    }
+                    });
+                    result = 'tied';
+                    addSystemMessage(state.gameState, `投票出现平票，暂无处决候选`);
                 } else {
-                    addSystemMessage(state.gameState, `票数不足 (${String(votes.length)}), 无人被处决`);
+                    addSystemMessage(state.gameState, `票数不足 (${String(votes.length)}/${String(requiredVotes)}), 无人被处决`);
                 }
-
-                // v2.0: Update nomination result in database (async, non-blocking)
-                if (user?.roomId && nomineeSeatId !== null) {
-                    updateNominationResult(
-                        user.roomId,
-                        state.gameState.roundInfo.dayCount,
-                        nomineeSeatId,
-                        votes.length > 0,
-                        votes.length,
-                        isExecuted
-                    ).catch(console.error);
-                }
-
-                state.gameState.voteHistory.push({
-                    round: state.gameState.roundInfo.dayCount,
-                    nominatorSeatId: nominatorSeatId ?? -1,
-                    nomineeSeatId: nomineeSeatId ?? -1,
-                    votes: votes,
-                    voteCount: votes.length,
-                    timestamp: Date.now(),
-                    result: result
-                });
-
-                state.gameState.voting = null;
-                state.gameState.phase = 'DAY';
             }
+
+            if (user?.roomId && nomineeSeatId !== null) {
+                updateNominationResult(
+                    user.roomId,
+                    state.gameState.roundInfo.dayCount,
+                    nomineeSeatId,
+                    votes.length > 0,
+                    votes.length,
+                    false
+                ).catch(console.error);
+            }
+
+            state.gameState.voteHistory.push({
+                round: state.gameState.roundInfo.dayCount,
+                nominatorSeatId: nominatorSeatId ?? -1,
+                nomineeSeatId: nomineeSeatId ?? -1,
+                votes: votes,
+                voteCount: votes.length,
+                timestamp: Date.now(),
+                result: result
+            });
+
+            state.gameState.voting = null;
+            state.gameState.phase = 'DAY';
         });
         get().sync();
     }

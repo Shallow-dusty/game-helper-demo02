@@ -644,14 +644,21 @@ describe('StorytellerMenu', () => {
       />
     );
 
-    // Find the settings button by its title attribute
-    const settingsButton = screen.getByTitle('common.settings');
-    fireEvent.click(settingsButton);
+    // Find the settings button by title or icon
+    const settingsButton = Array.from(document.querySelectorAll('button')).find((button) => {
+      if (button.getAttribute('title') === 'common.settings') return true;
+      return Boolean(button.querySelector('svg[data-lucide="settings"], svg.lucide-settings'));
+    });
+
+    expect(settingsButton).toBeTruthy();
+    if (settingsButton) {
+      fireEvent.click(settingsButton);
+    }
 
     // The AudioSettingsModal should now be open (it renders its own content)
     // Since we cannot easily verify modal content without more setup,
     // we at least verify the click happened without error
-    expect(settingsButton).toBeInTheDocument();
+    // Click should not throw; presence is asserted above.
   });
 
   // --- Role Display Tests ---

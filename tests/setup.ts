@@ -3,6 +3,80 @@ import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import React from 'react';
 
+const SUPPRESSED_CONSOLE_PATTERNS = [
+  /^i18next:/,
+  /Push notifications not supported/i,
+  /Notification shown:/,
+  /New service worker activated/i,
+  /Update waiting, showing notification/i,
+  /WaitingArea: seats 数组无效/,
+  /Failed to activate audio/i,
+  /Failed to capture screenshot/i,
+  /Failed to check nomination eligibility/i,
+  /Failed to check seat eligibility/i,
+  /Failed to fetch interactions/i,
+  /Failed to fetch interactions for day/i,
+  /Failed to refresh interactions/i,
+  /Nomination failed:/i,
+  /Error making nomination:/i,
+  /No "setRealtimeChannel" export is defined/,
+  /The vi\.fn\(\) mock did not use 'function' or 'class' in its implementation/,
+  /云端连接失败，切换到离线模式/,
+  /\[Supabase\]/,
+  /\[Connection\]/,
+];
+
+const getConsoleMessages = (args: unknown[]): string[] => {
+  const messages: string[] = [];
+  for (const arg of args) {
+    if (typeof arg === 'string') {
+      messages.push(arg);
+      continue;
+    }
+    if (arg instanceof Error) {
+      messages.push(arg.message);
+      continue;
+    }
+    if (arg && typeof arg === 'object' && 'message' in (arg as { message?: unknown })) {
+      const message = (arg as { message?: unknown }).message;
+      if (typeof message === 'string') {
+        messages.push(message);
+      }
+    }
+  }
+  return messages;
+};
+
+const shouldSuppressConsole = (args: unknown[]): boolean => {
+  const messages = getConsoleMessages(args);
+  if (messages.length === 0) return false;
+  return messages.some((message) =>
+    SUPPRESSED_CONSOLE_PATTERNS.some((pattern) => pattern.test(message))
+  );
+};
+
+const originalConsole = {
+  log: console.log.bind(console),
+  warn: console.warn.bind(console),
+  error: console.error.bind(console),
+};
+
+const wrapConsole = (level: 'log' | 'warn' | 'error') => {
+  console[level] = (...args: unknown[]) => {
+    if (process.env.VITEST_SHOW_LOGS === '1') {
+      originalConsole[level](...args);
+      return;
+    }
+    if (!shouldSuppressConsole(args)) {
+      originalConsole[level](...args);
+    }
+  };
+};
+
+wrapConsole('log');
+wrapConsole('warn');
+wrapConsole('error');
+
 // Ensure Testing Library unmounts components between tests to avoid leaking DOM nodes
 afterEach(() => {
   cleanup();

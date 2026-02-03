@@ -77,6 +77,19 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                         addSystemMessage(state.gameState, '检测到旅行者投票/处决相关规则，部分效果需要手动处理。');
                     }
                 }
+
+                const hasVoudon = state.gameState.seats.some(seat => {
+                    const roleId = getSeatRoleId(seat);
+                    return !seat.isDead && roleId === 'voudon';
+                });
+                if (hasVoudon) {
+                    const hasNotice = state.gameState.messages.some(
+                        message => message.type === 'system' && message.content.includes('巫毒师在场')
+                    );
+                    if (!hasNotice) {
+                        addSystemMessage(state.gameState, '巫毒师在场：仅死者与巫毒师可以投票，最高票决定处决候选。');
+                    }
+                }
             }
         });
         get().sync();
@@ -115,23 +128,24 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
             return !s.isDead && roleId === 'voudon';
         });
 
-        if (seat.isDead && hasVoudon) {
+        const seatRoleId = getSeatRoleId(seat);
+        if (hasVoudon && !seat.isDead && seatRoleId !== 'voudon') {
             set((state: Draft<AppState>) => {
                 if (state.gameState) {
-                    addSystemMessage(state.gameState, '巫毒师在场，死者不能投票');
+                    addSystemMessage(state.gameState, '巫毒师在场，活人不能投票（巫毒师除外）');
                 }
             });
             return;
         }
 
         // Bug#6 fix: Check if dead player can vote (must have ghost vote)
-        if (seat.isDead && !seat.hasGhostVote) {
+        if (seat.isDead && !hasVoudon && !seat.hasGhostVote) {
             console.warn('Dead player without ghost vote cannot vote');
             return;
         }
 
         // If dead player uses ghost vote, consume it
-        const willConsumeGhostVote = seat.isDead && seat.hasGhostVote;
+        const willConsumeGhostVote = seat.isDead && seat.hasGhostVote && !hasVoudon;
 
         try {
             const { data, error } = await supabase.rpc('toggle_hand', {
@@ -191,13 +205,15 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
             const effectiveVotes = hasVoudon
                 ? votes.filter((voteId) => {
                     const seat = state.gameState!.seats.find(s => s.id === voteId);
-                    return seat ? !seat.isDead : false;
+                    if (!seat) return false;
+                    const roleId = getSeatRoleId(seat);
+                    return seat.isDead || roleId === 'voudon';
                 })
                 : votes;
 
             const aliveCount = state.gameState.seats.filter(s => !s.isDead).length;
-            const requiredVotes = getVoteThreshold(aliveCount);
-            const meetsThreshold = calculateVoteResult(effectiveVotes.length, aliveCount);
+            const requiredVotes = hasVoudon ? 0 : getVoteThreshold(aliveCount);
+            const meetsThreshold = hasVoudon ? effectiveVotes.length > 0 : calculateVoteResult(effectiveVotes.length, aliveCount);
 
             let result: 'executed' | 'survived' | 'cancelled' | 'on_the_block' | 'tied' = 'survived';
 
@@ -207,10 +223,16 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 result = 'cancelled';
                 addSystemMessage(state.gameState, `投票取消：被提名者已死亡`);
             } else if (!meetsThreshold) {
-                addSystemMessage(state.gameState, `票数不足 (${String(effectiveVotes.length)}/${String(requiredVotes)}), 无人被处决`);
+                if (hasVoudon) {
+                    addSystemMessage(state.gameState, '无人投票，暂无处决候选');
+                } else {
+                    addSystemMessage(state.gameState, `票数不足 (${String(effectiveVotes.length)}/${String(requiredVotes)}), 无人被处决`);
+                }
             } else {
                 const dayVotes = state.gameState.voteHistory.filter(vote => vote.round === state.gameState!.roundInfo.dayCount);
-                const eligibleVotes = dayVotes.filter(vote => vote.voteCount >= requiredVotes && vote.result !== 'cancelled');
+                const eligibleVotes = hasVoudon
+                    ? dayVotes.filter(vote => vote.result !== 'cancelled')
+                    : dayVotes.filter(vote => vote.voteCount >= requiredVotes && vote.result !== 'cancelled');
                 const leadingCount = eligibleVotes.length > 0
                     ? Math.max(...eligibleVotes.map(vote => vote.voteCount))
                     : 0;
@@ -232,7 +254,11 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                     result = 'tied';
                     addSystemMessage(state.gameState, `投票出现平票，暂无处决候选`);
                 } else {
-                    addSystemMessage(state.gameState, `票数不足 (${String(effectiveVotes.length)}/${String(requiredVotes)}), 无人被处决`);
+                    if (hasVoudon) {
+                        addSystemMessage(state.gameState, '票数不足，暂无处决候选');
+                    } else {
+                        addSystemMessage(state.gameState, `票数不足 (${String(effectiveVotes.length)}/${String(requiredVotes)}), 无人被处决`);
+                    }
                 }
             }
 

@@ -25,7 +25,7 @@ vi.mock('./utils', () => ({
 vi.mock('../../../lib/gameLogic', () => ({
     generateRoleAssignment: vi.fn().mockReturnValue(['washerwoman', 'imp', 'empath', 'drunk', 'scarlet_woman']),
     checkGameOver: vi.fn(),
-    countAlivePlayers: vi.fn((seats) => seats.filter((seat: { isDead?: boolean }) => !seat.isDead).length),
+    countAlivePlayers: vi.fn((seats) => seats.filter((seat: { isDead?: boolean; userId?: string | null }) => seat.userId && !seat.isDead).length),
 }));
 
 // Import after mocks

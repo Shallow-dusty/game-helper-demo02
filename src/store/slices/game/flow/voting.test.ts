@@ -366,6 +366,37 @@ describe('createVotingSlice', () => {
             expect(mockState.gameState.voting!.votes).toContain(0);
         });
 
+        it('should allow dead player to vote without ghost vote when Voudon is alive', async () => {
+            mockState.gameState.seats[0]!.isDead = true;
+            mockState.gameState.seats[0]!.hasGhostVote = false;
+            mockState.gameState.seats[1]!.roleId = 'voudon';
+            mockState.gameState.seats[1]!.realRoleId = 'voudon';
+            mockState.gameState.voting!.clockHandSeatId = 0;
+            mockState.user.id = 'user0';
+
+            vi.mocked(supabase.rpc).mockResolvedValue({
+                data: { success: true, isHandRaised: true },
+                error: null
+            } as any);
+
+            await slice.toggleHand();
+
+            expect(mockState.gameState.voting!.votes).toContain(0);
+            expect(mockState.gameState.seats[0]!.hasGhostVote).toBe(false);
+        });
+
+        it('should block alive non-Voudon from voting when Voudon is alive', async () => {
+            mockState.gameState.seats[1]!.roleId = 'voudon';
+            mockState.gameState.seats[1]!.realRoleId = 'voudon';
+            mockState.gameState.voting!.clockHandSeatId = 0;
+            mockState.user.id = 'user0';
+
+            await slice.toggleHand();
+
+            expect(supabase.rpc).not.toHaveBeenCalled();
+            expect(mockState.gameState.voting!.votes).toEqual([]);
+        });
+
         it('should prevent dead player without ghost vote from voting', async () => {
             mockState.gameState.seats[0]!.isDead = true;
             mockState.gameState.seats[0]!.hasGhostVote = false;
@@ -434,6 +465,26 @@ describe('createVotingSlice', () => {
 
             expect(mockState.gameState.seats[1]!.isDead).toBe(false);
             expect(mockState.gameState.voteHistory[0]!.result).toBe('survived');
+        });
+
+        it('should count only dead and Voudon votes when Voudon is alive', () => {
+            mockState.gameState.seats[0]!.isDead = true;
+            mockState.gameState.seats[0]!.hasGhostVote = false;
+            mockState.gameState.seats[1]!.roleId = 'voudon';
+            mockState.gameState.seats[1]!.realRoleId = 'voudon';
+            mockState.gameState.voting = {
+                nominatorSeatId: 0,
+                nomineeSeatId: 2,
+                clockHandSeatId: 2,
+                votes: [0, 3],
+                isOpen: true
+            };
+
+            slice.closeVote();
+
+            expect(mockState.gameState.voteHistory[0]!.votes).toEqual([0]);
+            expect(mockState.gameState.voteHistory[0]!.voteCount).toBe(1);
+            expect(mockState.gameState.voteHistory[0]!.result).toBe('on_the_block');
         });
 
         it('should not check for game over during closeVote', () => {

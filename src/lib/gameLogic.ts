@@ -277,7 +277,7 @@ export const isTravelerSeat = (seat: Seat): boolean => {
 };
 
 export const countAlivePlayers = (seats: Seat[]): number => {
-    return seats.filter(seat => !seat.isDead && !isTravelerSeat(seat)).length;
+    return seats.filter(seat => seat.userId && !seat.isDead && !isTravelerSeat(seat)).length;
 };
 
 /**
@@ -338,7 +338,7 @@ export const checkGameOver = (
 
     // Bug#11 fix: Mayor wins if 3 alive and NO execution occurs
     if (executionOccurred === false) {
-        const aliveSeats = seats.filter(s => !s.isDead && !isTravelerSeat(s));
+        const aliveSeats = seats.filter(s => s.userId && !s.isDead);
         if (aliveSeats.length === GAME_RULES.MAYOR_TRIGGER_COUNT) {
             const mayorSeat = aliveSeats.find(s => s.realRoleId === 'mayor');
             const mayorIsPoisonedOrDrunk = mayorSeat?.statuses?.some(

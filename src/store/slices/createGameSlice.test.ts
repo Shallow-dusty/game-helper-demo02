@@ -18,7 +18,7 @@ vi.mock('../utils', async (importOriginal) => {
 vi.mock('../../lib/gameLogic', () => ({
   generateRoleAssignment: vi.fn(() => ['washerwoman', 'librarian', 'investigator', 'chef', 'empath']),
   checkGameOver: vi.fn(), // Add mocked checkGameOver
-  countAlivePlayers: vi.fn((seats) => seats.filter((seat: { isDead?: boolean }) => !seat.isDead).length),
+  countAlivePlayers: vi.fn((seats) => seats.filter((seat: { isDead?: boolean; userId?: string | null }) => seat.userId && !seat.isDead).length),
 }));
 
 // Use hoisted mock to avoid temporal dead zone during module mock evaluation

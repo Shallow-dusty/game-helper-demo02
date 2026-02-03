@@ -622,7 +622,7 @@ export const TRAVELERS: Record<string, RoleDef> = {
   butcher: { id: 'butcher', name: '屠夫', team: 'TRAVELER', ability: '每晚可以提名两次。', detailedDescription: '你每天可以提名两次。' },
   apprentice: { id: 'apprentice', name: '学徒', team: 'TRAVELER', ability: '获得一个镇民或爪牙能力。', detailedDescription: '在游戏开始时，你获得一个镇民或爪牙的能力。' },
   matron: { id: 'matron', name: '保姆', team: 'TRAVELER', ability: '你可以取消处决。', detailedDescription: '每天，你可以决定今天的处决是否生效。' },
-  voudon: { id: 'voudon', name: '巫毒师', team: 'TRAVELER', ability: '死者不能投票。', detailedDescription: '只有活着的玩家可以投票。' },
+  voudon: { id: 'voudon', name: '巫毒师', team: 'TRAVELER', ability: '只有死者和你可以投票。', detailedDescription: '只有死亡玩家和你可以投票，投票以最高票数决定处决候选。' },
   judge: { id: 'judge', name: '法官', team: 'TRAVELER', ability: '限一次，强制处决。', detailedDescription: '游戏中一次，在白天，你可以强制处决一名被提名的玩家。' },
   bishop: { id: 'bishop', name: '主教', team: 'TRAVELER', ability: '被提名的好人玩家不死。', detailedDescription: '只有邪恶玩家可以被处决。' },
 };

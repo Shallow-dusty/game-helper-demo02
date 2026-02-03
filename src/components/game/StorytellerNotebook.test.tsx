@@ -143,7 +143,7 @@ describe('StorytellerNotebook', () => {
   it('should add a new note when add button is clicked', () => {
     render(<StorytellerNotebook />);
 
-    const input = screen.getByPlaceholderText('添加新笔记... (Enter)');
+    const input = screen.getByPlaceholderText<HTMLInputElement>('添加新笔记... (Enter)');
     const addButton = screen.getByText('添加');
 
     fireEvent.change(input, { target: { value: 'New test note' } });
@@ -155,7 +155,7 @@ describe('StorytellerNotebook', () => {
   it('should add note on Enter key press', () => {
     render(<StorytellerNotebook />);
 
-    const input = screen.getByPlaceholderText('添加新笔记... (Enter)');
+    const input = screen.getByPlaceholderText<HTMLInputElement>('添加新笔记... (Enter)');
 
     fireEvent.change(input, { target: { value: 'Enter key note' } });
     fireEvent.keyDown(input, { key: 'Enter' });
@@ -175,7 +175,7 @@ describe('StorytellerNotebook', () => {
   it('should not add whitespace-only note', () => {
     render(<StorytellerNotebook />);
 
-    const input = screen.getByPlaceholderText('添加新笔记... (Enter)');
+    const input = screen.getByPlaceholderText<HTMLInputElement>('添加新笔记... (Enter)');
     const addButton = screen.getByText('添加');
 
     fireEvent.change(input, { target: { value: '   ' } });
@@ -187,7 +187,7 @@ describe('StorytellerNotebook', () => {
   it('should clear input after adding note', () => {
     render(<StorytellerNotebook />);
 
-    const input = screen.getByPlaceholderText('添加新笔记... (Enter)');
+    const input = screen.getByPlaceholderText<HTMLInputElement>('添加新笔记... (Enter)');
     const addButton = screen.getByText('添加');
 
     fireEvent.change(input, { target: { value: 'Test' } });

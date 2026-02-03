@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { useShallow } from 'zustand/react/shallow';
-import { Check, Clock, Users, ChevronDown, User, Armchair, Bot } from 'lucide-react';
-import { Icon } from '../ui/Icon';
+import { Check, Clock, ChevronDown, User, Armchair, Bot } from 'lucide-react';
 
 // 优化选择器 - 细粒度订阅
 const useWaitingAreaState = () => useStore(
@@ -228,7 +227,6 @@ export const WaitingArea: React.FC = () => {
         </div>
     );
 };
-
 
 
 

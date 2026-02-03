@@ -2,9 +2,14 @@ import React from 'react';
 import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+type LucideIconComponent = React.ComponentType<LucideIcons.LucideProps>;
+export type LucideIconName = {
+  [K in keyof typeof LucideIcons]: typeof LucideIcons[K] extends LucideIconComponent ? K : never
+}[keyof typeof LucideIcons];
+
 interface IconProps {
   /** Lucide 图标名称或组件 */
-  icon: keyof typeof LucideIcons | React.ComponentType<LucideIcons.LucideProps>;
+  icon: LucideIconName | LucideIconComponent;
   /** 尺寸变体 */
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   /** 颜色变体（基于哥特式暗黑主题）*/
@@ -50,7 +55,7 @@ export const Icon: React.FC<IconProps> = ({
   animated = false,
   clickable = false,
 }) => {
-  const IconComponent = typeof icon === 'string' ? LucideIcons[icon] : icon;
+  const IconComponent = typeof icon === 'string' ? (LucideIcons[icon] as LucideIconComponent) : icon;
 
   if (!IconComponent) {
     console.warn(`Icon "${String(icon)}" not found in Lucide icons`);
@@ -91,7 +96,7 @@ export const EmojiIcon: React.FC<Omit<IconProps, 'icon'> & { emoji: string }> = 
     '👻': 'Ghost',
     '🔒': 'Lock',
     '⏳': 'Hourglass',
-  }[emoji] as keyof typeof LucideIcons;
+  }[emoji] as LucideIconName | undefined;
 
   if (!iconName) {
     return <span className={cn('text-sm', props.className)}>{emoji}</span>;

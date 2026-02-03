@@ -76,6 +76,7 @@ const getInitialSandboxState = (seatCount: number, scriptId = 'tb'): GameState =
     nightActionRequests: [],
     swapRequests: [],
     candlelightEnabled: false,
+    dailyExecutionCompleted: false,
     dailyNominations: [],
     interactionLog: []
 });

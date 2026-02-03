@@ -60,6 +60,7 @@ function createTestGameState(overrides: Partial<GameState> = {}): GameState {
     aiMessages: [],
     nightActionRequests: [],
     candlelightEnabled: false,
+    dailyExecutionCompleted: false,
     dailyNominations: [],
     interactionLog: [],
     ...overrides

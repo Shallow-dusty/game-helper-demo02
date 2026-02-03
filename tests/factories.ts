@@ -140,6 +140,7 @@ export const createMockGameState = (
     aiMessages: [],
     nightActionRequests: [],
     candlelightEnabled: false,
+    dailyExecutionCompleted: false,
     dailyNominations: [],
     interactionLog: [],
     ...overrides,

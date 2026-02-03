@@ -80,11 +80,19 @@ const SeatItem = React.memo<CustomRowProps & { index: number; style: React.CSSPr
                     {/* 状态指示器 */}
                     <div className="flex gap-1">
                         {seat.isHandRaised && (
-                            <Hand className="w-5 h-5 text-amber-400" title={t('game.virtualizedSeatList.handRaised')} />
+                            <span title={t('game.virtualizedSeatList.handRaised')}>
+                                <Hand className="w-5 h-5 text-amber-400" aria-hidden="true" />
+                            </span>
                         )}
-                        {seat.isDead && <Skull className="w-5 h-5 text-red-500" title={t('game.virtualizedSeatList.dead')} />}
+                        {seat.isDead && (
+                            <span title={t('game.virtualizedSeatList.dead')}>
+                                <Skull className="w-5 h-5 text-red-500" aria-hidden="true" />
+                            </span>
+                        )}
                         {seat.isVirtual && (
-                            <Bot className="w-5 h-5 text-stone-500" title={t('game.virtualizedSeatList.virtual')} />
+                            <span title={t('game.virtualizedSeatList.virtual')}>
+                                <Bot className="w-5 h-5 text-stone-500" aria-hidden="true" />
+                            </span>
                         )}
                     </div>
                 </div>

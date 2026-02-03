@@ -189,6 +189,8 @@ describe('createGameSlice', () => {
           });
           
           store.getState().closeVote();
+          // Resolve end-of-day execution
+          store.getState().setPhase('NIGHT');
           
           const newState = store.getState();
           expect(newState.gameState!.seats[nomineeId]!.isDead).toBe(true);
@@ -218,6 +220,7 @@ describe('createGameSlice', () => {
         });
         
         store.getState().closeVote();
+        store.getState().setPhase('NIGHT');
         
         const newState = store.getState();
         expect(newState.gameState!.seats[nomineeId]!.isDead).toBe(false);

@@ -102,7 +102,7 @@ describe('gameLogic', () => {
           createMockSeat(2, 'washerwoman', false),
           createMockSeat(3, 'chef', false),
         ];
-        const result = checkGameOver(seats, 0); // executedSeatId = 0 (saint)
+        const result = checkGameOver(seats, { executedSeatId: 0, executionOccurred: true }); // executedSeatId = 0 (saint)
         expect(result).not.toBeNull();
         expect(result?.winner).toBe('EVIL');
         expect(result?.reason).toContain('圣徒被处决');
@@ -115,14 +115,14 @@ describe('gameLogic', () => {
           createMockSeat(2, 'washerwoman', false),
           createMockSeat(3, 'chef', false),
         ];
-        // No executedSeatId means it was a night kill, not execution
-        const result = checkGameOver(seats);
+        // executionOccurred=false means it was a night kill, not execution
+        const result = checkGameOver(seats, { executedSeatId: 0, executionOccurred: false });
         expect(result).toBeNull();
       });
     });
 
     describe('Mayor special victory rule (Bug#11)', () => {
-      it('should return good win when Mayor is alive, 3 players remain, and someone is executed', () => {
+      it('should return good win when Mayor is alive, 3 players remain, and no one is executed', () => {
         const seats = [
           createMockSeat(0, 'mayor', false), // Mayor alive
           createMockSeat(1, 'imp', false),   // Demon alive
@@ -130,8 +130,8 @@ describe('gameLogic', () => {
           createMockSeat(3, 'washerwoman', true), // Dead (executed this turn)
           createMockSeat(4, 'chef', true),   // Dead
         ];
-        // 3 alive: mayor, imp, poisoner; washerwoman was just executed
-        const result = checkGameOver(seats, 3); // executedSeatId = 3
+        // 3 alive: mayor, imp, poisoner; no execution occurred
+        const result = checkGameOver(seats, { executionOccurred: false });
         expect(result).not.toBeNull();
         expect(result?.winner).toBe('GOOD');
         expect(result?.reason).toContain('市长特殊胜利');
@@ -145,7 +145,7 @@ describe('gameLogic', () => {
           createMockSeat(3, 'washerwoman', true),
           createMockSeat(4, 'chef', true),
         ];
-        const result = checkGameOver(seats, 3);
+        const result = checkGameOver(seats, { executionOccurred: false });
         // Mayor is poisoned, so Mayor ability should not trigger
         // Game should not end (demon still alive, more than 2 players)
         expect(result).toBeNull();
@@ -159,7 +159,7 @@ describe('gameLogic', () => {
           createMockSeat(3, 'washerwoman', true),
           createMockSeat(4, 'chef', true),
         ];
-        const result = checkGameOver(seats, 3);
+        const result = checkGameOver(seats, { executionOccurred: false });
         expect(result).toBeNull();
       });
 
@@ -171,7 +171,7 @@ describe('gameLogic', () => {
           createMockSeat(3, 'washerwoman', false), // 4 players alive
           createMockSeat(4, 'chef', true), // This one was executed
         ];
-        const result = checkGameOver(seats, 4);
+        const result = checkGameOver(seats, { executionOccurred: false });
         expect(result).toBeNull();
       });
 
@@ -183,7 +183,7 @@ describe('gameLogic', () => {
           createMockSeat(3, 'washerwoman', false),
           createMockSeat(4, 'chef', true), // Executed
         ];
-        const result = checkGameOver(seats, 4);
+        const result = checkGameOver(seats, { executionOccurred: false });
         expect(result).toBeNull();
       });
     });

@@ -209,10 +209,10 @@ describe('createGameFlowSlice', () => {
         it('进入夜晚应该计算夜间行动队列', () => {
             slice.setPhase('NIGHT');
             
-            // 第一夜顺序应该包含存活角色
+            // 第一夜顺序应该包含存活且在首夜顺序中的角色
             expect(mockState.gameState?.nightQueue).toContain('washerwoman');
             expect(mockState.gameState?.nightQueue).toContain('empath');
-            expect(mockState.gameState?.nightQueue).toContain('imp');
+            expect(mockState.gameState?.nightQueue).not.toContain('imp');
             expect(mockState.gameState?.nightCurrentIndex).toBe(-1);
         });
     });
@@ -304,7 +304,7 @@ describe('createGameFlowSlice', () => {
     });
 
     describe('closeVote', () => {
-        it('票数足够时应该处决被提名者', () => {
+        it('票数足够时应该进入处决候选并在入夜时执行', () => {
             mockState.gameState!.voting = {
                 nominatorSeatId: 0,
                 nomineeSeatId: 1,
@@ -317,14 +317,18 @@ describe('createGameFlowSlice', () => {
             slice.closeVote();
             
             const seat = mockState.gameState?.seats[1];
-            expect(seat?.isDead).toBe(true);
+            expect(seat?.isDead).toBe(false);
             expect(mockState.gameState?.voting).toBeNull();
             expect(mockState.gameState?.phase).toBe('DAY');
             expect(mockState.gameState?.voteHistory).toHaveLength(1);
             expect(mockState.gameState?.voteHistory[0]).toMatchObject({
-                result: 'executed',
+                result: 'on_the_block',
                 voteCount: 2
             });
+
+            slice.setPhase('NIGHT');
+            expect(mockState.gameState?.seats[1]?.isDead).toBe(true);
+            expect(mockState.gameState?.voteHistory[0]?.result).toBe('executed');
         });
 
         it('票数不足时不应处决', () => {
@@ -345,6 +349,9 @@ describe('createGameFlowSlice', () => {
                 result: 'survived',
                 voteCount: 1
             });
+
+            slice.setPhase('NIGHT');
+            expect(mockState.gameState?.seats[1]?.isDead).toBe(false);
         });
 
         it('0票时不应处决', () => {

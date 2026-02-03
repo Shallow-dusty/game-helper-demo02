@@ -1,7 +1,6 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 import type { GameState } from '../../types';
 
@@ -800,6 +799,7 @@ describe('Grimoire', () => {
         aiMessages: [],
         nightActionRequests: [],
         swapRequests: [],
+        dailyExecutionCompleted: false,
         dailyNominations: [],
         interactionLog: [],
       };
@@ -836,6 +836,7 @@ describe('Grimoire', () => {
         aiMessages: [],
         nightActionRequests: [],
         swapRequests: [],
+        dailyExecutionCompleted: false,
         dailyNominations: [],
         interactionLog: [],
       };

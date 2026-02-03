@@ -56,21 +56,12 @@ let currentConfig: LoggerConfig = { ...defaultConfig };
 // 格式化函数
 // ============================================================================
 
-const LEVEL_COLORS: Record<LogLevel, string> = {
-  debug: '\x1b[36m', // Cyan
-  info: '\x1b[32m',  // Green
-  warn: '\x1b[33m',  // Yellow
-  error: '\x1b[31m', // Red
-};
-
 const LEVEL_ICONS: Record<LogLevel, string> = {
   debug: '🔍',
   info: 'ℹ️',
   warn: '⚠️',
   error: '❌',
 };
-
-const RESET_COLOR = '\x1b[0m';
 
 function formatLogMessage(entry: LogEntry): string {
   const parts: string[] = [];

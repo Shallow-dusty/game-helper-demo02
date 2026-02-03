@@ -291,10 +291,10 @@ export const checkGameOver = (
     }
 
     const executedSeatId = options?.executedSeatId;
-    const executionOccurred = options?.executionOccurred ?? false;
+    const executionOccurred = options?.executionOccurred;
 
     // Saint only triggers evil win when EXECUTED, not killed at night
-    if (executionOccurred && executedSeatId !== undefined) {
+    if (executionOccurred === true && executedSeatId !== undefined) {
         const executedSeat = seats.find(s => s.id === executedSeatId);
 
         // 圣徒被处决检查
@@ -308,7 +308,7 @@ export const checkGameOver = (
     }
 
     // Bug#11 fix: Mayor wins if 3 alive and NO execution occurs
-    if (!executionOccurred) {
+    if (executionOccurred === false) {
         const aliveSeats = seats.filter(s => !s.isDead);
         if (aliveSeats.length === GAME_RULES.MAYOR_TRIGGER_COUNT) {
             const mayorSeat = aliveSeats.find(s => s.realRoleId === 'mayor');

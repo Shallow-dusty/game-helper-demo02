@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { RoleDef } from '../../types';
-import { Icon } from '../ui/Icon';
+import { Icon, type LucideIconName } from '../ui/Icon';
 
 interface RoleCardProps {
     role: RoleDef;
@@ -19,7 +19,7 @@ const TEAM_COLORS: Record<string, string> = {
     FABLED: 'yellow'
 };
 
-const ROLE_ICONS: Record<string, keyof typeof import('lucide-react')> = {
+const ROLE_ICONS: Record<string, LucideIconName> = {
     fortune_teller: 'Eye',
     investigator: 'Search',
     monk: 'HandMetal',
@@ -36,7 +36,7 @@ export const RoleCard: React.FC<RoleCardProps> = React.memo(({
     const { t } = useTranslation();
     const color = TEAM_COLORS[role.team] ?? 'stone';
     const teamName = t(`game.roleCard.teams.${role.team}`, { defaultValue: role.team });
-    const iconName = ROLE_ICONS[role.id] || ROLE_ICONS.default;
+    const iconName = (ROLE_ICONS[role.id] ?? ROLE_ICONS.default)!;
 
     // Size classes
     const sizeClasses = {
@@ -201,7 +201,4 @@ export const RoleCard: React.FC<RoleCardProps> = React.memo(({
         prevProps.size === nextProps.size &&
         prevProps.showDetails === nextProps.showDetails;
 });
-
-
-
 

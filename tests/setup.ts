@@ -121,7 +121,7 @@ vi.mock('@supabase/supabase-js', () => ({
     rpc: vi.fn(),
     // Add Edge Functions support for AI testing
     functions: {
-      invoke: vi.fn((functionName: string, options?: unknown) => {
+      invoke: vi.fn((functionName: string, _options?: unknown) => {
         if (functionName === 'ask-ai') {
           return Promise.resolve({
             data: { reply: 'Mock AI Response from Edge Function' },

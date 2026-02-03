@@ -48,7 +48,7 @@ describe('VotingChart', () => {
     expect(screen.getByText(/game\.votingChart\.latestVote/)).toBeInTheDocument();
   });
 
-  it('shows passed status when votes meet threshold', () => {
+  it('shows executed status when vote result is executed', () => {
     const voteHistory = [{
       id: 'vote1',
       round: 1,
@@ -68,6 +68,6 @@ describe('VotingChart', () => {
     ];
 
     render(<VotingChart voteHistory={voteHistory} seats={seats as any} />);
-    expect(screen.getByText('game.votingChart.passed')).toBeInTheDocument();
+    expect(screen.getByText('game.votingChart.executed')).toBeInTheDocument();
   });
 });

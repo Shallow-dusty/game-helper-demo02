@@ -401,7 +401,7 @@ describe('createVotingSlice', () => {
     });
 
     describe('closeVote', () => {
-        it('should execute nominee when majority votes', () => {
+        it('should mark nominee on the block when majority votes', () => {
             mockState.gameState.voting = {
                 nominatorSeatId: 0,
                 nomineeSeatId: 1,
@@ -413,12 +413,12 @@ describe('createVotingSlice', () => {
 
             slice.closeVote();
 
-            expect(mockState.gameState.seats[1]!.isDead).toBe(true);
+            expect(mockState.gameState.seats[1]!.isDead).toBe(false);
             expect(mockState.gameState.voting).toBeNull();
             expect(mockState.gameState.phase).toBe('DAY');
             expect(mockState.gameState.voteHistory).toHaveLength(1);
-            expect(mockState.gameState.voteHistory[0]!.result).toBe('executed');
-            expect(logExecution).toHaveBeenCalled();
+            expect(mockState.gameState.voteHistory[0]!.result).toBe('on_the_block');
+            expect(logExecution).not.toHaveBeenCalled();
         });
 
         it('should not execute nominee when insufficient votes', () => {
@@ -436,7 +436,7 @@ describe('createVotingSlice', () => {
             expect(mockState.gameState.voteHistory[0]!.result).toBe('survived');
         });
 
-        it('should check for game over after execution', () => {
+        it('should not check for game over during closeVote', () => {
             mockState.gameState.voting = {
                 nominatorSeatId: 0,
                 nomineeSeatId: 1,
@@ -453,12 +453,7 @@ describe('createVotingSlice', () => {
 
             slice.closeVote();
 
-            expect(checkGameOver).toHaveBeenCalledWith(mockState.gameState.seats, 1);
-            expect(mockState.gameState.gameOver).toEqual({
-                isOver: true,
-                winner: 'GOOD',
-                reason: 'Demon executed'
-            });
+            expect(checkGameOver).not.toHaveBeenCalled();
         });
 
         it('should handle nomineeSeatId being null', () => {
@@ -501,8 +496,9 @@ describe('createVotingSlice', () => {
 
             slice.closeVote();
 
-            // Should still execute but not log
-            expect(mockState.gameState.seats[1]!.isDead).toBe(true);
+            // Should still record vote but not log
+            expect(mockState.gameState.seats[1]!.isDead).toBe(false);
+            expect(mockState.gameState.voteHistory[0]!.result).toBe('on_the_block');
         });
 
         it('should not crash when voting is null', () => {
@@ -631,8 +627,8 @@ describe('createVotingSlice', () => {
 
             slice.closeVote();
 
-            expect(mockState.gameState.seats[1]!.isDead).toBe(true);
-            expect(mockState.gameState.voteHistory[0]!.result).toBe('executed');
+            expect(mockState.gameState.seats[1]!.isDead).toBe(false);
+            expect(mockState.gameState.voteHistory[0]!.result).toBe('on_the_block');
         });
     });
 });

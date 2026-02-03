@@ -243,12 +243,13 @@ describe('createVotingSlice', () => {
       expect(mockStore.state.gameState?.voteHistory?.[0]?.voteCount).toBe(3);
     });
 
-    it('should execute nominee with enough votes', () => {
-      // 3 votes with 5 alive players should execute
+    it('should mark nominee on the block with enough votes', () => {
+      // 3 votes with 5 alive players should put nominee on the block
       votingSlice.closeVote();
 
       const nominee = mockStore.state.gameState?.seats?.find(s => s.id === 1);
-      expect(nominee?.isDead).toBe(true);
+      expect(nominee?.isDead).toBe(false);
+      expect(mockStore.state.gameState?.voteHistory?.[0]?.result).toBe('on_the_block');
     });
 
     it('should not execute with insufficient votes', () => {
@@ -260,11 +261,11 @@ describe('createVotingSlice', () => {
       expect(nominee?.isDead).toBe(false);
     });
 
-    it('should add appropriate system message for execution', () => {
+    it('should add appropriate system message for nomination lead', () => {
       votingSlice.closeVote();
 
       const sysMsg = mockStore.state.gameState?.messages?.find(m =>
-        m.type === 'system' && m.content.includes('处决')
+        m.type === 'system' && m.content.includes('处决候选')
       );
       expect(sysMsg).toBeDefined();
     });
@@ -292,7 +293,7 @@ describe('createVotingSlice', () => {
       votingSlice.closeVote();
 
       const history = mockStore.state.gameState?.voteHistory?.[0];
-      expect(history?.result).toBe('executed');
+      expect(history?.result).toBe('on_the_block');
       expect(history?.votes).toEqual([0, 2, 3]);
       // nominatorSeatId: when it's 0, code correctly preserves 0 using nullish coalescing (??)
       expect(history?.nominatorSeatId).toBe(0);
@@ -322,7 +323,7 @@ describe('createVotingSlice', () => {
       mockStore.state.gameState!.seats![1]!.realRoleId = 'imp';
     });
 
-    it('should trigger game over when demon is executed', () => {
+    it('should not trigger game over during closeVote', () => {
       vi.mocked(checkGameOver).mockReturnValue({
         isOver: true,
         winner: 'GOOD',
@@ -331,11 +332,11 @@ describe('createVotingSlice', () => {
 
       votingSlice.closeVote();
 
-      expect(mockStore.state.gameState?.gameOver).toBeDefined();
-      expect(mockStore.state.gameState?.gameOver?.winner).toBe('GOOD');
+      expect(checkGameOver).not.toHaveBeenCalled();
+      expect(mockStore.state.gameState?.gameOver).toBeUndefined();
     });
 
-    it('should add game over message', () => {
+    it('should not add game over message during closeVote', () => {
       vi.mocked(checkGameOver).mockReturnValue({
         isOver: true,
         winner: 'GOOD',
@@ -347,11 +348,10 @@ describe('createVotingSlice', () => {
       const gameOverMsg = mockStore.state.gameState?.messages?.find(m =>
         m.type === 'system' && m.content.includes('游戏结束')
       );
-      expect(gameOverMsg).toBeDefined();
-      expect(gameOverMsg?.content).toContain('好人');
+      expect(gameOverMsg).toBeUndefined();
     });
 
-    it('should show evil wins correctly', () => {
+    it('should not show evil wins during closeVote', () => {
       vi.mocked(checkGameOver).mockReturnValue({
         isOver: true,
         winner: 'EVIL',
@@ -363,7 +363,7 @@ describe('createVotingSlice', () => {
       const gameOverMsg = mockStore.state.gameState?.messages?.find(m =>
         m.type === 'system' && m.content.includes('游戏结束')
       );
-      expect(gameOverMsg?.content).toContain('邪恶');
+      expect(gameOverMsg).toBeUndefined();
     });
 
     it('should not set game over when game continues', () => {

@@ -78,6 +78,7 @@ function createFullGameState(playerCount: number, customSeats?: Partial<Seat>[])
     aiMessages: [],
     nightActionRequests: [],
     candlelightEnabled: false,
+    dailyExecutionCompleted: false,
     dailyNominations: [],
     interactionLog: []
   };

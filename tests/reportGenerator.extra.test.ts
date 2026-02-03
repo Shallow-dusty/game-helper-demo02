@@ -44,6 +44,7 @@ const baseGameState = (overrides: Partial<GameState> = {}): GameState => ({
   nightActionRequests: [],
   swapRequests: [],
   candlelightEnabled: false,
+  dailyExecutionCompleted: false,
   dailyNominations: [],
   interactionLog: [],
   ...overrides,

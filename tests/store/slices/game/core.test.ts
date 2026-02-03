@@ -120,7 +120,7 @@ describe('createGameCoreSlice', () => {
     vi.clearAllMocks();
     mockStore = createMockStore();
     coreSlice = createGameCoreSlice(
-      mockStore.set as any,
+      mockStore.set,
       mockStore.get as unknown as () => AppState,
       {} as unknown as any
     );

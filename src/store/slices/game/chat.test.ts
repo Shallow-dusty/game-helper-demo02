@@ -64,6 +64,7 @@ const createMockGameState = (seatCount = 5): GameState => ({
     aiMessages: [],
     nightActionRequests: [],
     candlelightEnabled: false,
+    dailyExecutionCompleted: false,
     dailyNominations: [],
     interactionLog: [],
 });

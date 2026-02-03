@@ -34,8 +34,10 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
             if (state.gameState) {
                 const seat = state.gameState.seats.find(s => s.id === seatId);
                 if (seat) {
+                    const aliveCountBeforeDeath = state.gameState.seats.filter(s => !s.isDead).length;
+                    const wasAlive = !seat.isDead;
                     seat.isDead = !seat.isDead;
-                    if (seat.isDead) {
+                    if (seat.isDead && wasAlive) {
                          addSystemMessage(state.gameState, `${seat.userName} 死亡了`);
 
                          // Bug#3 fix: Check if the dying seat is a demon (not just 'imp')
@@ -44,7 +46,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
 
                          if (isDemon) {
                              const scarletWoman = state.gameState.seats.find(s => s.realRoleId === 'scarlet_woman' && !s.isDead);
-                             if (scarletWoman) {
+                             if (scarletWoman && aliveCountBeforeDeath >= 5) {
                                  // Inherit the demon's role
                                  const demonRoleId = seat.realRoleId!;
                                  scarletWoman.realRoleId = demonRoleId;

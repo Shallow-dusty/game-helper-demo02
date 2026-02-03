@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { aiSlice } from './ai';
 import { AI_CONFIG } from '../aiConfig';
-import type { GameState, ChatMessage } from '../../types';
+import type { GameState } from '../../types';
 
 // Mock supabase - use vi.hoisted to ensure mockInvoke is available during hoisting
 const { mockInvoke } = vi.hoisted(() => ({
@@ -85,6 +85,7 @@ describe('AI Slice', () => {
       aiMessages: [],
       nightActionRequests: [],
       swapRequests: [],
+      dailyExecutionCompleted: false,
       dailyNominations: [],
       interactionLog: [],
     };
@@ -187,8 +188,9 @@ describe('AI Slice', () => {
     it('should include game state context (phase, dayCount, script)', async () => {
       await slice.askAi('What phase is it?');
 
-      const callArgs = mockInvoke.mock.calls[0][1];
-      const gameContext = callArgs.body.gameContext;
+      const callArgs = mockInvoke.mock.calls[0]?.[1] as { body: { gameContext: any } } | undefined;
+      expect(callArgs).toBeDefined();
+      const gameContext = callArgs!.body.gameContext;
 
       expect(gameContext.phase).toBe('DAY');
       expect(gameContext.dayCount).toBe(3);
@@ -212,8 +214,9 @@ describe('AI Slice', () => {
 
       await slice.askAi('New prompt');
 
-      const callArgs = mockInvoke.mock.calls[0][1];
-      const previousMessages = callArgs.body.gameContext.previousMessages;
+      const callArgs = mockInvoke.mock.calls[0]?.[1] as { body: { gameContext: any } } | undefined;
+      expect(callArgs).toBeDefined();
+      const previousMessages = callArgs!.body.gameContext.previousMessages;
 
       // After adding user message "New prompt", we have 16 messages total
       // slice(-10) takes the last 10, which includes the newly added "New prompt"
@@ -241,7 +244,6 @@ describe('AI Slice', () => {
     it('should include AI provider name in AI message', async () => {
       await slice.askAi('Test prompt');
 
-      const state = mockGet();
       const config = AI_CONFIG.sf_deepseek_v3_2;
 
       // Verify the AI message would include provider name
@@ -366,16 +368,16 @@ describe('AI Slice', () => {
 
   describe('AI provider management', () => {
     it('should switch AI provider', () => {
-      slice.setAiProvider('openai');
+      slice.setAiProvider('deepseek');
 
-      expect(mockSet).toHaveBeenCalledWith({ aiProvider: 'openai' });
+      expect(mockSet).toHaveBeenCalledWith({ aiProvider: 'deepseek' });
     });
 
     it('should use correct AI_CONFIG for provider', async () => {
       mockGet.mockReturnValue({
         gameState: mockGameState,
         isAiThinking: false,
-        aiProvider: 'openai'
+        aiProvider: 'deepseek'
       });
 
       mockInvoke.mockResolvedValue({
@@ -385,8 +387,9 @@ describe('AI Slice', () => {
 
       await slice.askAi('Test');
 
-      const callArgs = mockInvoke.mock.calls[0][1];
-      expect(callArgs.body.aiProvider).toBe('openai');
+      const callArgs = mockInvoke.mock.calls[0]?.[1] as { body: { aiProvider: string } } | undefined;
+      expect(callArgs).toBeDefined();
+      expect(callArgs!.body.aiProvider).toBe('deepseek');
     });
   });
 

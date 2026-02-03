@@ -75,7 +75,7 @@ describe('PlayerNotebook', () => {
   it('should add a new note', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const input = screen.getByPlaceholderText<HTMLInputElement>('Add new note... (Enter)');
     const addButton = screen.getByText('Add');
 
     fireEvent.change(input, { target: { value: 'New test note' } });
@@ -88,7 +88,7 @@ describe('PlayerNotebook', () => {
   it('should add note on Enter key press', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const input = screen.getByPlaceholderText<HTMLInputElement>('Add new note... (Enter)');
 
     fireEvent.change(input, { target: { value: 'Enter key note' } });
     fireEvent.keyDown(input, { key: 'Enter' });
@@ -108,7 +108,7 @@ describe('PlayerNotebook', () => {
   it('should not add whitespace-only note', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const input = screen.getByPlaceholderText<HTMLInputElement>('Add new note... (Enter)');
     const addButton = screen.getByText('Add');
 
     fireEvent.change(input, { target: { value: '   ' } });
@@ -151,7 +151,7 @@ describe('PlayerNotebook', () => {
   it('should save notes to localStorage when notes change', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const input = screen.getByPlaceholderText<HTMLInputElement>('Add new note... (Enter)');
     const addButton = screen.getByText('Add');
 
     fireEvent.change(input, { target: { value: 'Saved note' } });
@@ -166,7 +166,7 @@ describe('PlayerNotebook', () => {
   it('should clear input after adding note', () => {
     render(<PlayerNotebook />);
 
-    const input = screen.getByPlaceholderText('Add new note... (Enter)');
+    const input = screen.getByPlaceholderText<HTMLInputElement>('Add new note... (Enter)');
     const addButton = screen.getByText('Add');
 
     fireEvent.change(input, { target: { value: 'Test note' } });

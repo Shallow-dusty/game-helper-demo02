@@ -112,6 +112,7 @@ export function createTestGameState(overrides: Partial<GameState> = {}): GameSta
     aiMessages: [],
     nightActionRequests: [],
     candlelightEnabled: false,
+    dailyExecutionCompleted: false,
     dailyNominations: [],
     interactionLog: [],
     ...overrides

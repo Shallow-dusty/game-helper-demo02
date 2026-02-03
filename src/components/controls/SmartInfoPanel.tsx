@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateInfoForRole, getInfoRolesForNight, InfoGenerationResult } from '../../lib/infoGeneration';
 import { Brain, RefreshCw, ChevronDown, ChevronUp, Copy, Check, AlertTriangle, Sparkles, Target } from 'lucide-react';
-import { ROLES } from '../../constants/roles';
+import { Icon } from '../ui/Icon';
 
 /**
  * SmartInfoPanel - 智能信息生成面板

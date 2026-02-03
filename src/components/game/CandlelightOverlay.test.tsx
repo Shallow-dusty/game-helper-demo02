@@ -30,7 +30,6 @@ vi.mock('lucide-react', () => ({
 describe('CandlelightOverlay', () => {
   let rafCallbacks: ((time: number) => void)[];
   let rafId: number;
-  let mockCanvas: HTMLCanvasElement;
   let mockContext: any;
 
   beforeEach(() => {
@@ -204,7 +203,7 @@ describe('CandlelightOverlay', () => {
 
   describe('指针移动和平滑跟随', () => {
     it('updates target position on pointer move', () => {
-      const { container } = render(<CandlelightOverlay width={800} height={600} isActive />);
+      render(<CandlelightOverlay width={800} height={600} isActive />);
 
       // Simulate pointer move event
       const pointerEvent = new PointerEvent('pointermove', {
@@ -352,7 +351,8 @@ describe('CandlelightOverlay', () => {
 
       // Should have triggered a sound from AMBIENT_SOUNDS array
       expect(mockPlaySound).toHaveBeenCalled();
-      const soundArg = mockPlaySound.mock.calls[0][0];
+      const soundArg = mockPlaySound.mock.calls[0]?.[0];
+      expect(soundArg).toBeDefined();
       expect(['ghost_whisper', 'wind_howl', 'crow_caw']).toContain(soundArg);
 
       randomSpy.mockRestore();
@@ -576,7 +576,7 @@ describe('CandlelightOverlay', () => {
     it('handles getBoundingClientRect returning null rect', () => {
       HTMLCanvasElement.prototype.getBoundingClientRect = vi.fn(() => null as any);
 
-      const { container } = render(<CandlelightOverlay width={800} height={600} isActive />);
+      render(<CandlelightOverlay width={800} height={600} isActive />);
 
       // Should not crash when dispatching pointer event
       expect(() => {

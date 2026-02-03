@@ -57,34 +57,35 @@ describe('gameLogic extra coverage', () => {
       ...overrides,
     });
 
-    it('detects first night when no one is dead', () => {
-      const seats = [baseSeat(), baseSeat({ id: 2 })];
-      expect(isFirstNight(seats)).toBe(true);
+    it('detects first night when nightCount is 1', () => {
+      expect(isFirstNight(1)).toBe(true);
     });
 
-    it('detects non-first night when someone is dead', () => {
-      const seats = [baseSeat(), baseSeat({ id: 2, isDead: true })];
-      expect(isFirstNight(seats)).toBe(false);
+    it('detects non-first night when nightCount is greater than 1', () => {
+      expect(isFirstNight(2)).toBe(false);
     });
 
     it('builds queue using first-night order and ignores dead seats', () => {
-      const demonRole = Object.keys(ROLES).find((r) => ROLES[r]!.team === 'DEMON')!;
-      const minionRole = Object.keys(ROLES).find((r) => ROLES[r]!.team === 'MINION')!;
-      const townsfolkRole = Object.keys(ROLES).find((r) => ROLES[r]!.team === 'TOWNSFOLK')!;
-
       const seats: Seat[] = [
-        baseSeat({ id: 1, seenRoleId: demonRole }),
-        baseSeat({ id: 2, seenRoleId: minionRole, isDead: true }),
-        baseSeat({ id: 3, seenRoleId: townsfolkRole }),
+        baseSeat({ id: 1, realRoleId: 'washerwoman' }),
+        baseSeat({ id: 2, realRoleId: 'poisoner', isDead: true }),
+        baseSeat({ id: 3, realRoleId: 'empath' }),
+        baseSeat({ id: 4, realRoleId: 'imp' }),
       ];
 
-      const queue = buildNightQueue(seats, true);
+      const queue = buildNightQueue(seats, true, 'tb');
 
-      // 包含场上存在的角色，以及恶魔/爪牙（即使已死）
-      expect(queue.length).toBeGreaterThan(0);
+      // 仅包含存活且在首夜顺序中的角色
+      expect(queue).toContain('washerwoman');
+      expect(queue).toContain('empath');
+      expect(queue).not.toContain('poisoner');
+      expect(queue).not.toContain('imp');
       // 队列中的角色都应该在首夜顺序表内
       queue.forEach((role) => {
-        expect(NIGHT_ORDER_FIRST.includes(role) || NIGHT_ORDER_OTHER.includes(role)).toBe(true);
+        expect(
+          NIGHT_ORDER_FIRST.includes(role as (typeof NIGHT_ORDER_FIRST)[number]) ||
+            NIGHT_ORDER_OTHER.includes(role as (typeof NIGHT_ORDER_OTHER)[number])
+        ).toBe(true);
       });
     });
   });
@@ -108,10 +109,10 @@ describe('gameLogic extra coverage', () => {
 
     it('applyRoleToSeat sets role-related fields and clears statuses', () => {
       const seat = makeSeat();
-      applyRoleToSeat(seat, 'someRole');
-      expect(seat.roleId).toBe('someRole');
-      expect(seat.realRoleId).toBe('someRole');
-      expect(seat.seenRoleId).toBe('someRole');
+      applyRoleToSeat(seat, 'washerwoman');
+      expect(seat.roleId).toBe('washerwoman');
+      expect(seat.realRoleId).toBe('washerwoman');
+      expect(seat.seenRoleId).toBe('washerwoman');
       expect(seat.hasUsedAbility).toBe(false);
       expect(seat.statuses).toEqual([]);
     });
@@ -176,7 +177,6 @@ describe('gameLogic extra coverage', () => {
     });
 
     it('updates counters and night queue on NIGHT', () => {
-      const demonRole = Object.keys(ROLES).find((r) => ROLES[r]!.team === 'DEMON')!;
       baseState.seats = [
         {
           id: 1,
@@ -186,9 +186,9 @@ describe('gameLogic extra coverage', () => {
           hasGhostVote: false,
           hasUsedAbility: false,
           statuses: [],
-          roleId: demonRole,
-          realRoleId: demonRole,
-          seenRoleId: demonRole,
+          roleId: 'washerwoman',
+          realRoleId: 'washerwoman',
+          seenRoleId: 'washerwoman',
           reminders: [],
           isHandRaised: false,
           isNominated: false,

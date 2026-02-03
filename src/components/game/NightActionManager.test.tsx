@@ -446,7 +446,7 @@ describe('NightActionManager', () => {
       fireEvent.click(quickReply);
 
       // Check textarea value
-      const textarea = screen.getByPlaceholderText('输入回复给玩家的结果...');
+      const textarea = screen.getByPlaceholderText<HTMLTextAreaElement>('输入回复给玩家的结果...');
       expect(textarea.value).toBe('无效果');
     });
   });
@@ -673,7 +673,7 @@ describe('NightActionManager', () => {
       fireEvent.click(firstRequest!);
 
       // Type in textarea
-      const textarea = screen.getByPlaceholderText('输入回复给玩家的结果...');
+      const textarea = screen.getByPlaceholderText<HTMLTextAreaElement>('输入回复给玩家的结果...');
       fireEvent.change(textarea, { target: { value: 'Test input' } });
 
       expect(textarea.value).toBe('Test input');
@@ -685,20 +685,20 @@ describe('NightActionManager', () => {
       // Expand first request and type
       const firstRequest = findRequestCard(container, 'Alice');
       fireEvent.click(firstRequest!);
-      const textarea1 = screen.getByPlaceholderText('输入回复给玩家的结果...');
+      const textarea1 = screen.getByPlaceholderText<HTMLTextAreaElement>('输入回复给玩家的结果...');
       fireEvent.change(textarea1, { target: { value: 'Input for Alice' } });
 
       // Expand second request
       const secondRequest = findRequestCard(container, 'Bob');
       fireEvent.click(secondRequest!);
-      const textarea2 = screen.getByPlaceholderText('输入回复给玩家的结果...');
+      const textarea2 = screen.getByPlaceholderText<HTMLTextAreaElement>('输入回复给玩家的结果...');
 
       // Second request should have empty input
       expect(textarea2.value).toBe('');
 
       // Go back to first request
       fireEvent.click(firstRequest!);
-      const textarea1Again = screen.getByPlaceholderText('输入回复给玩家的结果...');
+      const textarea1Again = screen.getByPlaceholderText<HTMLTextAreaElement>('输入回复给玩家的结果...');
 
       // First request should retain its input
       expect(textarea1Again.value).toBe('Input for Alice');

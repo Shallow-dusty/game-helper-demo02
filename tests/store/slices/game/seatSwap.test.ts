@@ -61,7 +61,7 @@ describe('createGameSeatSwapSlice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore = createMockStore();
-    seatSwapSlice = createGameSeatSwapSlice(mockStore.set as any, mockStore.get, {} as any);
+    seatSwapSlice = createGameSeatSwapSlice(mockStore.set, mockStore.get, {} as any);
   });
 
   describe('swapSeats', () => {

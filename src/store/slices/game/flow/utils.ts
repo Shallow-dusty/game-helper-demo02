@@ -1,5 +1,4 @@
 import { getNightOrder } from '@/constants/nightOrder';
-import { GAME_RULES } from '@/constants/gameRules';
 import { Seat } from '@/types';
 
 const DEATH_TRIGGER_ROLES = new Set(['ravenkeeper', 'sage']);

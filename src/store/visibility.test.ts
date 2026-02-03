@@ -32,6 +32,7 @@ const createMockState = (): GameState => ({
     nightActionRequests: [],
     swapRequests: [],
     candlelightEnabled: false,
+    dailyExecutionCompleted: false,
     dailyNominations: [],
     interactionLog: []
 });

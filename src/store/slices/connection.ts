@@ -77,7 +77,7 @@ function resetReconnectState(): void {
 async function attemptReconnect(
     roomCode: string,
     joinGameFn: (code: string) => Promise<void>,
-    setStatus: (status: ConnectionStatus) => void
+    _setStatus: (status: ConnectionStatus) => void
 ): Promise<boolean> {
     try {
         reconnectState.attemptCount++;

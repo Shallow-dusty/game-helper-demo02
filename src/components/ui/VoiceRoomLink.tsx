@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
-import { useShallow } from 'zustand/react/shallow';
 
 /**
  * 语音房间链接组件
@@ -130,6 +129,5 @@ export const VoiceRoomLink: React.FC = () => {
         </div>
     );
 };
-
 
 

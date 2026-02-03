@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useStore } from '../../store';
 import { RoleDef, Seat, GamePhase } from '../../types';
 import { useTranslation } from 'react-i18next';
-import { Icon } from '../ui/Icon';
+import { Icon, type LucideIconName } from '../ui/Icon';
 
 // Roles with active day abilities
 export const ACTIVE_ABILITY_ROLES: Record<string, {
     name: string;
     buttonText: string;
-    iconName: keyof typeof import('lucide-react');
+    iconName: LucideIconName;
     phase: 'DAY' | 'ANY';
     requiresTarget: boolean;
     description: string;
@@ -169,7 +169,6 @@ export const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, 
         </>
     );
 };
-
 
 
 

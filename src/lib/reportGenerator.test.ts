@@ -89,6 +89,7 @@ const createMockGameState = (seatOverrides: Partial<Seat>[] = []): GameState => 
         nightActionRequests: [],
         swapRequests: [],
         candlelightEnabled: false,
+        dailyExecutionCompleted: false,
         dailyNominations: [],
         interactionLog: []
     } as GameState;

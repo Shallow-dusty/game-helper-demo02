@@ -8,6 +8,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RoleAutomationEngine } from '../../../src/lib/roleAutomation/engine';
 import * as troubleBrewingModule from '../../../src/lib/roleAutomation/troubleBrewing';
 import type { GameState, Seat } from '../../../src/types';
+import type { DeathEvent } from '../../../src/lib/roleAutomation/types';
 
 // 创建测试座位
 function createTestSeat(overrides: Partial<Seat> = {}): Seat {
@@ -56,6 +57,7 @@ function createTestGameState(seats: Seat[]): GameState {
     aiMessages: [],
     nightActionRequests: [],
     candlelightEnabled: false,
+    dailyExecutionCompleted: false,
     dailyNominations: [],
     interactionLog: []
   };
@@ -193,7 +195,9 @@ describe('RoleAutomationEngine', () => {
         }],
         deaths: [{
           seatId: 1,
-          source: 'imp',
+          cause: 'demon_kill',
+          killerRoleId: 'imp',
+          isPreventable: true,
           wasPrevented: false
         }]
       });
@@ -719,7 +723,7 @@ describe('RoleAutomationEngine', () => {
       expect(result.deaths![0]!.wasPrevented).not.toBe(true);
 
       // Manually add deaths to pending (simulating processNightPhase behavior)
-      (autoEngine as unknown as { pendingDeaths: { seatId: number; source: string; wasPrevented: boolean }[] }).pendingDeaths.push(...result.deaths!);
+      (autoEngine as unknown as { pendingDeaths: DeathEvent[] }).pendingDeaths.push(...result.deaths!);
 
       // Apply the pending deaths
       const { seats: updatedSeats, deadSeats } = autoEngine.applyDeaths(testState.seats);
@@ -745,9 +749,11 @@ describe('RoleAutomationEngine', () => {
       const testState = createTestGameState(seats);
 
       // Manually add a prevented death
-      (autoEngine as unknown as { pendingDeaths: { seatId: number; source: string; wasPrevented: boolean }[] }).pendingDeaths.push({
+      (autoEngine as unknown as { pendingDeaths: DeathEvent[] }).pendingDeaths.push({
         seatId: 1,
-        source: 'imp',
+        cause: 'demon_kill',
+        killerRoleId: 'imp',
+        isPreventable: true,
         wasPrevented: true
       });
 

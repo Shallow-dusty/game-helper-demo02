@@ -6,13 +6,22 @@ import { PHASE_LABELS } from '@/constants';
 import { calculateNightQueue, getVoteThreshold } from './utils';
 import { checkGameOver } from '@/lib/gameLogic';
 import { logExecution } from '@/lib/supabaseService';
+import type { GamePhase } from '@/types';
 
 const resolveDailyExecution = (state: Draft<AppState>): void => {
     if (!state.gameState) return;
     const gameState = state.gameState;
     const day = gameState.roundInfo.dayCount;
     const dayVotes = gameState.voteHistory.filter(vote => vote.round === day && vote.result !== 'cancelled');
+    const applyNoExecutionResult = () => {
+        const gameOver = checkGameOver(gameState.seats, { executionOccurred: false });
+        if (gameOver) {
+            gameState.gameOver = gameOver;
+            addSystemMessage(gameState, `游戏结束！${gameOver.winner === 'GOOD' ? '好人' : '邪恶'} 获胜 - ${gameOver.reason}`);
+        }
+    };
     if (dayVotes.length === 0) {
+        applyNoExecutionResult();
         return;
     }
 
@@ -20,6 +29,7 @@ const resolveDailyExecution = (state: Draft<AppState>): void => {
     const requiredVotes = getVoteThreshold(aliveCount);
     const eligibleVotes = dayVotes.filter(vote => vote.voteCount >= requiredVotes);
     if (eligibleVotes.length === 0) {
+        applyNoExecutionResult();
         return;
     }
 
@@ -31,14 +41,17 @@ const resolveDailyExecution = (state: Draft<AppState>): void => {
             vote.result = 'tied';
         });
         addSystemMessage(gameState, '投票出现平票，本日无人被处决');
+        applyNoExecutionResult();
         return;
     }
 
     const winningVote = topVotes[0];
+    if (!winningVote) return;
     const nomineeSeat = gameState.seats.find(seat => seat.id === winningVote.nomineeSeatId);
     if (!nomineeSeat || nomineeSeat.isDead) {
         winningVote.result = 'cancelled';
         addSystemMessage(gameState, '投票取消：被提名者已死亡');
+        applyNoExecutionResult();
         return;
     }
 
@@ -65,7 +78,7 @@ const resolveDailyExecution = (state: Draft<AppState>): void => {
     }
 };
 
-export const applyPhaseChange = (state: Draft<AppState>, phase: GameSlice['phase']): void => {
+export const applyPhaseChange = (state: Draft<AppState>, phase: GamePhase): void => {
     if (!state.gameState) return;
 
     const gameState = state.gameState;

@@ -179,7 +179,7 @@ describe('createGameScriptsSlice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore = createMockStore();
-    scriptsSlice = createGameScriptsSlice(mockStore.set as any, mockStore.get, {} as any);
+    scriptsSlice = createGameScriptsSlice(mockStore.set, mockStore.get, {} as any);
   });
 
   describe('setScript', () => {

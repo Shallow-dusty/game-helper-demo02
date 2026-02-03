@@ -67,6 +67,18 @@ import {
   DEMON_PROCESSORS
 } from '../../../src/lib/roleAutomation';
 
+type _UnusedTypeExports =
+  | AbilityType
+  | TriggerTiming
+  | AutomationSuggestion
+  | AutomationOption
+  | RoleAbilityDef
+  | RuleViolationRequest
+  | RoleAutomationConfig;
+
+const _unusedTypeCheck = null as _UnusedTypeExports | null;
+void _unusedTypeCheck;
+
 describe('roleAutomation module exports', () => {
   describe('Constants', () => {
     it('should export DEFAULT_AUTOMATION_CONFIG', () => {
@@ -310,6 +322,7 @@ describe('roleAutomation module exports', () => {
         aiMessages: [],
         nightActionRequests: [],
         candlelightEnabled: false,
+        dailyExecutionCompleted: false,
         dailyNominations: [],
         interactionLog: []
       };
@@ -369,7 +382,9 @@ describe('roleAutomation module exports', () => {
     it('should have valid DeathEvent type', () => {
       const death: DeathEvent = {
         seatId: 0,
-        source: 'imp',
+        cause: 'demon_kill',
+        killerRoleId: 'imp',
+        isPreventable: true,
         wasPrevented: false
       };
       expect(death.wasPrevented).toBe(false);

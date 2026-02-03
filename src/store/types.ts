@@ -181,6 +181,7 @@ interface PhaseActorInterface {
   send: (event: {
     type: string;
     seats?: Seat[];
+    scriptId?: string;
     nomineeSeatId?: number;
     isExecuted?: boolean;
     winner?: 'GOOD' | 'EVIL';
@@ -203,7 +204,7 @@ export interface PhaseMachineSlice {
 
   // Actions to send events to the machine
   phaseMachine: {
-    startGame: (seats: Seat[]) => void;
+    startGame: (seats: Seat[], scriptId?: string) => void;
     startNight: () => void;
     nextNightAction: () => void;
     prevNightAction: () => void;

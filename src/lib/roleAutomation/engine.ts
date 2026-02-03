@@ -16,7 +16,7 @@ import type {
   ChainReaction
 } from './types';
 import { processTroubleBrewingRole } from './troubleBrewing';
-import { getRealRoleId } from './utils';
+import { getRealRoleId, getTeamFromRoleId } from './utils';
 
 /**
  * 角色自动化引擎
@@ -303,7 +303,12 @@ export class RoleAutomationEngine {
    * 检查游戏结束条件
    */
   checkGameEndConditions(gameState: GameState): { shouldEnd: boolean; winner?: 'GOOD' | 'EVIL'; reason?: string } {
-    const alivePlayers = gameState.seats.filter(s => !s.isDead && s.userId);
+    const isTravelerSeat = (seat: Seat): boolean => {
+      const roleId = getRealRoleId(seat);
+      return roleId ? getTeamFromRoleId(roleId) === 'TRAVELER' : false;
+    };
+
+    const alivePlayers = gameState.seats.filter(s => !s.isDead && s.userId && !isTravelerSeat(s));
 
     // 检查恶魔是否死亡
     const demon = alivePlayers.find(s => {

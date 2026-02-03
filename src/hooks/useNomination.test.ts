@@ -168,7 +168,7 @@ describe('useNomination', () => {
                 await result.current.makeNomination(0, 1);
             });
 
-            expect(mockStartVote).toHaveBeenCalledWith(1);
+            expect(mockStartVote).toHaveBeenCalledWith(1, 0);
         });
 
         it('当前用户提名成功后应该更新本地状态', async () => {

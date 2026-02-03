@@ -29,6 +29,7 @@ interface PhaseActorInterface {
   send: (event: {
     type: string;
     seats?: Seat[];
+    scriptId?: string;
     nomineeSeatId?: number;
     isExecuted?: boolean;
     winner?: 'GOOD' | 'EVIL';
@@ -50,8 +51,8 @@ export interface PhaseMachineSlice {
   phaseContext: PhaseMachineContext;
 
   // Actions to send events to the machine
-  phaseMachine: {
-    startGame: (seats: Seat[]) => void;
+    phaseMachine: {
+    startGame: (seats: Seat[], scriptId?: string) => void;
     startNight: () => void;
     nextNightAction: () => void;
     prevNightAction: () => void;
@@ -71,6 +72,7 @@ export interface PhaseMachineSlice {
 export const createPhaseMachineSlice: StoreSlice<PhaseMachineSlice> = (set, get) => {
   // Initial context matching machine's initial context
   const initialContext: PhaseMachineContext = {
+    scriptId: 'tb',
     roundInfo: {
       dayCount: 0,
       nightCount: 0,
@@ -89,9 +91,9 @@ export const createPhaseMachineSlice: StoreSlice<PhaseMachineSlice> = (set, get)
     phaseContext: initialContext,
 
     phaseMachine: {
-      startGame: (seats: Seat[]) => {
+      startGame: (seats: Seat[], scriptId?: string) => {
         const { phaseActor } = get();
-        phaseActor?.send({ type: 'START_GAME', seats });
+        phaseActor?.send({ type: 'START_GAME', seats, scriptId });
       },
 
       startNight: () => {

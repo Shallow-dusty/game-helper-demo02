@@ -1,11 +1,12 @@
 import { setup, assign } from 'xstate';
 import type { Seat } from '../../types';
-import { NIGHT_ORDER_FIRST, NIGHT_ORDER_OTHER } from '../../constants';
+import { getNightOrder } from '../../constants/nightOrder';
 
 /**
  * Game Phase State Machine Context
  */
 export interface PhaseMachineContext {
+  scriptId: string;
   roundInfo: {
     dayCount: number;
     nightCount: number;
@@ -26,7 +27,7 @@ export interface PhaseMachineContext {
  * Game Phase State Machine Events
  */
 export type PhaseMachineEvent =
-  | { type: 'START_GAME'; seats: Seat[] }
+  | { type: 'START_GAME'; seats: Seat[]; scriptId?: string }
   | { type: 'START_NIGHT' }
   | { type: 'NEXT_NIGHT_ACTION' }
   | { type: 'PREV_NIGHT_ACTION' }
@@ -39,8 +40,8 @@ export type PhaseMachineEvent =
 /**
  * Calculate night action queue based on alive roles
  */
-function calculateNightQueue(seats: Seat[], isFirstNight: boolean): string[] {
-  const orderList = isFirstNight ? NIGHT_ORDER_FIRST : NIGHT_ORDER_OTHER;
+function calculateNightQueue(seats: Seat[], isFirstNight: boolean, scriptId: string): string[] {
+  const orderList = getNightOrder(scriptId, isFirstNight);
   const activeRoleIds = seats
     .filter(s => s.realRoleId && !s.isDead)
     .map(s => s.realRoleId!);
@@ -99,6 +100,10 @@ export const phaseMachine = setup({
      * Initialize game state
      */
     initializeGame: assign({
+      scriptId: ({ event }) => {
+        if (event.type !== 'START_GAME') return 'tb';
+        return event.scriptId ?? 'tb';
+      },
       roundInfo: () => ({
         dayCount: 0,
         nightCount: 1,
@@ -107,7 +112,7 @@ export const phaseMachine = setup({
       }),
       nightQueue: ({ event }) => {
         if (event.type !== 'START_GAME') return [];
-        return calculateNightQueue(event.seats, true);
+        return calculateNightQueue(event.seats, true, event.scriptId ?? 'tb');
       },
       nightCurrentIndex: -1,
       seats: ({ event }) => {
@@ -128,7 +133,7 @@ export const phaseMachine = setup({
       }),
       nightQueue: ({ context }) => {
         const isFirstNight = context.roundInfo.nightCount === 0;
-        return calculateNightQueue(context.seats, isFirstNight);
+        return calculateNightQueue(context.seats, isFirstNight, context.scriptId);
       },
       nightCurrentIndex: -1,
     }),
@@ -177,6 +182,7 @@ export const phaseMachine = setup({
   id: 'gamePhase',
   initial: 'setup',
   context: {
+    scriptId: 'tb',
     roundInfo: {
       dayCount: 0,
       nightCount: 0,

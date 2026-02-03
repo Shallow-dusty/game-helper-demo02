@@ -328,7 +328,8 @@ describe('createGameFlowSlice', () => {
 
             slice.setPhase('NIGHT');
             expect(mockState.gameState?.seats[1]?.isDead).toBe(true);
-            expect(mockState.gameState?.voteHistory[0]?.result).toBe('executed');
+            const latestVote = mockState.gameState?.voteHistory[0] as { result?: string } | undefined;
+            expect(latestVote?.result).toBe('executed');
         });
 
         it('票数不足时不应处决', () => {

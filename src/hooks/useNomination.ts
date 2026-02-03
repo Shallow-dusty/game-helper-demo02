@@ -114,7 +114,7 @@ export function useNomination(): UseNominationReturn {
                 }
                 
                 // Start the vote
-                startVote(nomineeSeat);
+                startVote(nomineeSeat, nominatorSeat);
                 
                 // Refresh nomination list
                 const nominations = await getNominationHistory(roomId, gameDay);

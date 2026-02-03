@@ -8,6 +8,20 @@ import {
 } from '@/lib/supabaseService';
 import { calculateVoteResult, getVoteThreshold } from './utils';
 
+const SPECIAL_TRAVELER_VOTE_ROLES = new Set([
+    'bureaucrat',
+    'thief',
+    'judge',
+    'bishop',
+    'matron',
+    'gunslinger',
+    'beggar',
+]);
+
+const getSeatRoleId = (seat: { realRoleId?: string | null; seenRoleId?: string | null; roleId?: string | null }): string | null => {
+    return seat.realRoleId ?? seat.seenRoleId ?? seat.roleId ?? null;
+};
+
 export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote'>> = (set, get) => ({
     // Bug#10 fix: Accept nominatorId to properly record in vote history
     startVote: (nomineeId, nominatorId) => {
@@ -50,6 +64,19 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                     isOpen: true
                 };
                 state.gameState.phase = 'VOTING';
+
+                const hasSpecialTraveler = state.gameState.seats.some(seat => {
+                    const roleId = getSeatRoleId(seat);
+                    return roleId ? SPECIAL_TRAVELER_VOTE_ROLES.has(roleId) : false;
+                });
+                if (hasSpecialTraveler) {
+                    const hasNotice = state.gameState.messages.some(
+                        message => message.type === 'system' && message.content.includes('旅行者规则需要手动处理')
+                    );
+                    if (!hasNotice) {
+                        addSystemMessage(state.gameState, '检测到旅行者投票/处决相关规则，部分效果需要手动处理。');
+                    }
+                }
             }
         });
         get().sync();
@@ -80,6 +107,20 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
         const seat = gameState.seats.find(s => s.id === current);
         if (!seat || seat.userId !== user.id) {
             // If not the user's seat, do nothing (or show error)
+            return;
+        }
+
+        const hasVoudon = gameState.seats.some(s => {
+            const roleId = getSeatRoleId(s);
+            return !s.isDead && roleId === 'voudon';
+        });
+
+        if (seat.isDead && hasVoudon) {
+            set((state: Draft<AppState>) => {
+                if (state.gameState) {
+                    addSystemMessage(state.gameState, '巫毒师在场，死者不能投票');
+                }
+            });
             return;
         }
 
@@ -143,9 +184,20 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
             if (!state.gameState?.voting) return;
 
             const { nomineeSeatId, nominatorSeatId, votes } = state.gameState.voting;
+            const hasVoudon = state.gameState.seats.some(seat => {
+                const roleId = getSeatRoleId(seat);
+                return !seat.isDead && roleId === 'voudon';
+            });
+            const effectiveVotes = hasVoudon
+                ? votes.filter((voteId) => {
+                    const seat = state.gameState!.seats.find(s => s.id === voteId);
+                    return seat ? !seat.isDead : false;
+                })
+                : votes;
+
             const aliveCount = state.gameState.seats.filter(s => !s.isDead).length;
             const requiredVotes = getVoteThreshold(aliveCount);
-            const meetsThreshold = calculateVoteResult(votes.length, aliveCount);
+            const meetsThreshold = calculateVoteResult(effectiveVotes.length, aliveCount);
 
             let result: 'executed' | 'survived' | 'cancelled' | 'on_the_block' | 'tied' = 'survived';
 
@@ -155,7 +207,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 result = 'cancelled';
                 addSystemMessage(state.gameState, `投票取消：被提名者已死亡`);
             } else if (!meetsThreshold) {
-                addSystemMessage(state.gameState, `票数不足 (${String(votes.length)}/${String(requiredVotes)}), 无人被处决`);
+                addSystemMessage(state.gameState, `票数不足 (${String(effectiveVotes.length)}/${String(requiredVotes)}), 无人被处决`);
             } else {
                 const dayVotes = state.gameState.voteHistory.filter(vote => vote.round === state.gameState!.roundInfo.dayCount);
                 const eligibleVotes = dayVotes.filter(vote => vote.voteCount >= requiredVotes && vote.result !== 'cancelled');
@@ -163,15 +215,15 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                     ? Math.max(...eligibleVotes.map(vote => vote.voteCount))
                     : 0;
 
-                if (votes.length > leadingCount) {
+                if (effectiveVotes.length > leadingCount) {
                     eligibleVotes.forEach(vote => {
                         if (vote.result === 'on_the_block' || vote.result === 'tied') {
                             vote.result = 'survived';
                         }
                     });
                     result = 'on_the_block';
-                    addSystemMessage(state.gameState, `${nomineeSeat?.userName ?? '被提名者'} 获得 ${String(votes.length)} 票，成为当前处决候选`);
-                } else if (votes.length === leadingCount && leadingCount > 0) {
+                    addSystemMessage(state.gameState, `${nomineeSeat?.userName ?? '被提名者'} 获得 ${String(effectiveVotes.length)} 票，成为当前处决候选`);
+                } else if (effectiveVotes.length === leadingCount && leadingCount > 0) {
                     eligibleVotes.forEach(vote => {
                         if (vote.voteCount === leadingCount) {
                             vote.result = 'tied';
@@ -180,7 +232,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                     result = 'tied';
                     addSystemMessage(state.gameState, `投票出现平票，暂无处决候选`);
                 } else {
-                    addSystemMessage(state.gameState, `票数不足 (${String(votes.length)}/${String(requiredVotes)}), 无人被处决`);
+                    addSystemMessage(state.gameState, `票数不足 (${String(effectiveVotes.length)}/${String(requiredVotes)}), 无人被处决`);
                 }
             }
 
@@ -189,8 +241,8 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                     user.roomId,
                     state.gameState.roundInfo.dayCount,
                     nomineeSeatId,
-                    votes.length > 0,
-                    votes.length,
+                    effectiveVotes.length > 0,
+                    effectiveVotes.length,
                     false
                 ).catch(console.error);
             }
@@ -199,8 +251,8 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 round: state.gameState.roundInfo.dayCount,
                 nominatorSeatId: nominatorSeatId ?? -1,
                 nomineeSeatId: nomineeSeatId ?? -1,
-                votes: votes,
-                voteCount: votes.length,
+                votes: effectiveVotes,
+                voteCount: effectiveVotes.length,
                 timestamp: Date.now(),
                 result: result
             });

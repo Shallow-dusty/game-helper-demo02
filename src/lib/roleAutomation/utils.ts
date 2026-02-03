@@ -69,6 +69,11 @@ export function getTeamFromRoleId(roleId: string): Team {
     'tinker', 'moonchild', 'goon', 'lunatic',
     'sweetheart', 'barber', 'klutz', 'mutant'
   ];
+  const travelers = [
+    'gunslinger', 'beggar', 'bureaucrat', 'thief',
+    'bone_collector', 'harlot', 'butcher', 'apprentice',
+    'matron', 'voudon', 'judge', 'bishop'
+  ];
 
   if (evilRoles.includes(roleId)) {
     return roleId === 'imp' || roleId === 'po' || roleId === 'vortox'
@@ -78,6 +83,7 @@ export function getTeamFromRoleId(roleId: string): Team {
       : 'MINION';
   }
   if (outsiders.includes(roleId)) return 'OUTSIDER';
+  if (travelers.includes(roleId)) return 'TRAVELER';
   return 'TOWNSFOLK';
 }
 

@@ -5,7 +5,7 @@ import { addSystemMessage } from '@/store/utils';
 import { PHASE_LABELS } from '@/constants';
 import { calculateNightQueue, getVoteThreshold } from './utils';
 import { checkGameOver } from '@/lib/gameLogic';
-import { logExecution } from '@/lib/supabaseService';
+import { logExecution, updateNominationResult } from '@/lib/supabaseService';
 import type { GamePhase } from '@/types';
 
 const resolveDailyExecution = (state: Draft<AppState>): void => {
@@ -74,6 +74,14 @@ const resolveDailyExecution = (state: Draft<AppState>): void => {
             nomineeSeat.id,
             nomineeSeat.seenRoleId ?? 'unknown',
             winningVote.voteCount
+        ).catch(console.error);
+        updateNominationResult(
+            user.roomId,
+            gameState.roundInfo.dayCount,
+            nomineeSeat.id,
+            winningVote.voteCount > 0,
+            winningVote.voteCount,
+            true
         ).catch(console.error);
     }
 };

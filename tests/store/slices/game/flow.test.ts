@@ -236,11 +236,11 @@ describe('Flow Utils', () => {
       expect(result).toBe(false);
     });
 
-    it('should fail when exactly half votes yes (3 out of 6) - strict majority required', () => {
-      // Blood on the Clocktower requires STRICT MAJORITY (more than half)
-      // 3 votes / 6 players = 50%, need >50% to pass
+    it('should pass when exactly half votes yes (3 out of 6)', () => {
+      // Blood on the Clocktower requires at least half of living players
+      // 3 votes / 6 players = 50%, which should pass
       const result = calculateVoteResult(3, 6);
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
     it('should fail with no votes', () => {

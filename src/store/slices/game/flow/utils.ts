@@ -4,7 +4,7 @@ import { Seat } from '@/types';
 const DEATH_TRIGGER_ROLES = new Set(['ravenkeeper', 'sage']);
 
 const getRequiredVotes = (aliveCount: number): number => {
-    return aliveCount > 0 ? Math.floor(aliveCount / 2) + 1 : 0;
+    return aliveCount > 0 ? Math.ceil(aliveCount / 2) : 0;
 };
 
 /**
@@ -41,10 +41,10 @@ export function calculateNightQueue(seats: Seat[], isFirstNight: boolean, script
 
 /**
  * Calculate voting result based on vote count and alive players
- * Blood on the Clocktower requires STRICT MAJORITY (more than EXECUTION_VOTE_RATIO)
- * - 5 players: need 3 votes (>2.5)
- * - 6 players: need 4 votes (>3)
- * - 7 players: need 4 votes (>3.5)
+ * Blood on the Clocktower requires at least HALF of living players' votes
+ * - 5 players: need 3 votes (>=2.5)
+ * - 6 players: need 3 votes (>=3)
+ * - 7 players: need 4 votes (>=3.5)
  * @param voteCount Number of votes received
  * @param aliveCount Number of alive players
  * @returns Whether the nominee should be executed

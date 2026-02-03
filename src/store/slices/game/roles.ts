@@ -2,7 +2,7 @@ import { StoreSlice, GameSlice } from '../../types';
 import { addSystemMessage } from '../../utils';
 import { ROLES } from '@/constants';
 import { applyRoleAssignment } from './utils';
-import { generateRoleAssignment, checkGameOver } from '@/lib/gameLogic';
+import { generateRoleAssignment, checkGameOver, countAlivePlayers } from '@/lib/gameLogic';
 import { generateShortId, shuffle } from '@/lib/random';
 
 export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'toggleDead' | 'toggleAbilityUsed' | 'toggleStatus' | 'addReminder' | 'removeReminder' | 'assignRoles' | 'resetRoles' | 'distributeRoles' | 'hideRoles' | 'applyStrategy'>> = (set, get) => ({
@@ -34,7 +34,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
             if (state.gameState) {
                 const seat = state.gameState.seats.find(s => s.id === seatId);
                 if (seat) {
-                    const aliveCountBeforeDeath = state.gameState.seats.filter(s => !s.isDead).length;
+                    const aliveCountBeforeDeath = countAlivePlayers(state.gameState.seats);
                     const wasAlive = !seat.isDead;
                     seat.isDead = !seat.isDead;
                     if (seat.isDead && wasAlive) {

@@ -26,6 +26,13 @@ describe('phaseMachine', () => {
       reminders: [], isHandRaised: false, isNominated: false,
       hasUsedAbility: false, statuses: []
     },
+    {
+      id: 3, userId: 'user4', userName: 'Player4',
+      roleId: 'chef', realRoleId: 'chef', seenRoleId: 'chef',
+      isDead: false, hasGhostVote: false,
+      reminders: [], isHandRaised: false, isNominated: false,
+      hasUsedAbility: false, statuses: []
+    },
   ];
 
   describe('Initial State', () => {

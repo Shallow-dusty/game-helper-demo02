@@ -5,7 +5,7 @@
  * 这些函数不依赖于任何 UI 或状态管理框架，只处理游戏规则的计算。
  */
 
-import { GameState, Seat, GamePhase, ChatMessage } from '../types';
+import { GameState, Seat, GamePhase, ChatMessage, Team } from '../types';
 import { getNightOrder } from '../constants/nightOrder';
 import { ROLES, PHASE_LABELS, SCRIPTS } from '../constants';
 import { GAME_RULES } from '../constants/gameRules';
@@ -47,13 +47,28 @@ export const addSystemMessage = (gameState: GameState, content: string, recipien
  * @returns 按顺序排列的角色ID列表
  */
 export const buildNightQueue = (seats: Seat[], isFirstNight: boolean, scriptId?: string): string[] => {
-    const availableRoles = seats
-        .filter((s): s is Seat & { realRoleId: string } => s.realRoleId != null && !s.isDead)
-        .map(s => s.realRoleId);
-
     const order = getNightOrder(scriptId ?? 'tb', isFirstNight);
+    const roleCounts = new Map<string, { alive: number; dead: number }>();
+    const deathTriggerRoles = new Set(['ravenkeeper', 'sage']);
 
-    return [...order].filter(role => availableRoles.includes(role));
+    seats.forEach((seat) => {
+        const roleId = seat.realRoleId;
+        if (!roleId) return;
+        const entry = roleCounts.get(roleId) ?? { alive: 0, dead: 0 };
+        if (seat.isDead) {
+            entry.dead += 1;
+        } else {
+            entry.alive += 1;
+        }
+        roleCounts.set(roleId, entry);
+    });
+
+    return order.filter((roleId) => {
+        const counts = roleCounts.get(roleId);
+        if (!counts) return false;
+        if (counts.alive > 0) return true;
+        return counts.dead > 0 && deathTriggerRoles.has(roleId);
+    });
 };
 
 /**
@@ -251,13 +266,27 @@ export const checkGoodWin = (seats: Seat[]): boolean => {
     return demons.every(d => d.isDead);
 };
 
+const getSeatRoleTeam = (seat: Seat): Team | null => {
+    const roleId = seat.realRoleId ?? seat.seenRoleId ?? seat.roleId;
+    if (!roleId) return null;
+    return ROLES[roleId]?.team ?? null;
+};
+
+export const isTravelerSeat = (seat: Seat): boolean => {
+    return getSeatRoleTeam(seat) === 'TRAVELER';
+};
+
+export const countAlivePlayers = (seats: Seat[]): number => {
+    return seats.filter(seat => !seat.isDead && !isTravelerSeat(seat)).length;
+};
+
 /**
  * 检查邪恶胜利条件（存活人数 <= EVIL_WIN_THRESHOLD）
  * @param seats 座位列表
  * @returns 是否满足邪恶胜利条件
  */
 export const checkEvilWin = (seats: Seat[]): boolean => {
-    const aliveCount = seats.filter(s => !s.isDead).length;
+    const aliveCount = countAlivePlayers(seats);
     return aliveCount <= GAME_RULES.EVIL_WIN_THRESHOLD;
 };
 
@@ -309,7 +338,7 @@ export const checkGameOver = (
 
     // Bug#11 fix: Mayor wins if 3 alive and NO execution occurs
     if (executionOccurred === false) {
-        const aliveSeats = seats.filter(s => !s.isDead);
+        const aliveSeats = seats.filter(s => !s.isDead && !isTravelerSeat(s));
         if (aliveSeats.length === GAME_RULES.MAYOR_TRIGGER_COUNT) {
             const mayorSeat = aliveSeats.find(s => s.realRoleId === 'mayor');
             const mayorIsPoisonedOrDrunk = mayorSeat?.statuses?.some(

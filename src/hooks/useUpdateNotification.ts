@@ -40,7 +40,7 @@ export const useUpdateNotification = () => {
               }
             });
           })
-          .catch(err => {
+          .catch((err: unknown) => {
             console.warn('Failed to check service worker registrations:', err);
           });
       }, 60000); // Check every 60 seconds
@@ -68,7 +68,7 @@ export const useUpdateNotification = () => {
           }
         });
       })
-      .catch(err => {
+      .catch((err: unknown) => {
         console.warn('Failed to get service worker registrations:', err);
       });
 

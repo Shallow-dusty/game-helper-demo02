@@ -265,6 +265,7 @@ export const checkGoodWin = (seats: Seat[]): boolean => {
 };
 
 const getSeatRoleTeam = (seat: Seat): Team | null => {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- fallback for legacy data
     const roleId = seat.realRoleId ?? seat.seenRoleId ?? seat.roleId;
     if (!roleId) return null;
     return ROLES[roleId]?.team ?? null;

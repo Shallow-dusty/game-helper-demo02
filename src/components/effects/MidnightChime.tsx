@@ -206,7 +206,7 @@ export const MidnightChime: React.FC<MidnightChimeProps> = ({
                                 }}
                             >
                                 {/* 时钟刻度 */}
-                                {[...Array(12)].map((_, i) => (
+                                {Array.from({ length: 12 }, (_, i) => i).map((i) => (
                                     <div
                                         key={i}
                                         className="absolute w-0.5 h-2 bg-amber-600/60"
@@ -233,7 +233,7 @@ export const MidnightChime: React.FC<MidnightChimeProps> = ({
                             </div>
 
                             {/* 声波效果 */}
-                            {phase === "chiming" && [...Array(Math.min(chimeCount, 4))].map((_, i) => (
+                            {phase === "chiming" && Array.from({ length: Math.min(chimeCount, 4) }, (_, i) => i).map((i) => (
                                 <SoundWave key={i} delay={i * 0.8} />
                             ))}
                         </motion.div>

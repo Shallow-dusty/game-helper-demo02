@@ -102,7 +102,7 @@ export const NightActionManager: React.FC = () => {
                     const seat = seats.find(s => s.id === request.seatId);
                     const role = ROLES[request.roleId];
                     const isExpanded = expandedRequest === request.id;
-                    const roleQuickReplies = quickReplies[request.roleId] ?? quickReplies.default;
+                    const roleQuickReplies = quickReplies[request.roleId] ?? quickReplies.default ?? [];
 
                     // 检测是否是假角色（酒鬼/疯子）：真实角色与显示角色不同
                     const realRoleId = seat?.realRoleId;
@@ -164,7 +164,7 @@ export const NightActionManager: React.FC = () => {
                                     )}
                                     {/* 快捷回复 */}
                                     <div className="flex flex-wrap gap-1 mb-2">
-                                        {roleQuickReplies!.map((reply, idx) => (
+                                        {roleQuickReplies.map((reply, idx) => (
                                             <button
                                                 key={idx}
                                                 onClick={() => setResultInputs(prev => ({
@@ -216,7 +216,6 @@ export const NightActionManager: React.FC = () => {
         </div>
     );
 };
-
 
 
 

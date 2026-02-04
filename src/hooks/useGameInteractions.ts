@@ -30,7 +30,6 @@ export interface UseGameInteractionsReturn {
 }
 
 export function useGameInteractions(): UseGameInteractionsReturn {
-    const user = useStore((s) => s.user);
     const gameState = useStore((s) => s.gameState);
     const roomDbId = useStore((s) => s.roomDbId);
     
@@ -109,10 +108,12 @@ export function useGameInteractions(): UseGameInteractionsReturn {
         
         for (const interaction of interactions) {
             const day = interaction.gameDay;
-            if (!grouped.has(day)) {
-                grouped.set(day, []);
+            const existing = grouped.get(day);
+            if (existing) {
+                existing.push(interaction);
+            } else {
+                grouped.set(day, [interaction]);
             }
-            grouped.get(day)!.push(interaction);
         }
         
         return grouped;
@@ -123,10 +124,12 @@ export function useGameInteractions(): UseGameInteractionsReturn {
         
         for (const interaction of interactions) {
             const phase = interaction.phase;
-            if (!grouped.has(phase)) {
-                grouped.set(phase, []);
+            const existing = grouped.get(phase);
+            if (existing) {
+                existing.push(interaction);
+            } else {
+                grouped.set(phase, [interaction]);
             }
-            grouped.get(phase)!.push(interaction);
         }
         
         return grouped;

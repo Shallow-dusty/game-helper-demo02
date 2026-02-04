@@ -28,7 +28,9 @@ export const Lobby: React.FC = () => {
             if (swordSfx) {
                 const audio = new Audio(swordSfx.url);
                 audio.volume = 0.4;
-                audio.play().catch(e => console.warn("SFX play failed", e));
+                audio.play().catch((error: unknown) => {
+                    console.warn("SFX play failed", error);
+                });
             }
         } else if (roomCode.length !== 4 && isRoomCodeValid) {
             setIsRoomCodeValid(false);
@@ -71,7 +73,9 @@ export const Lobby: React.FC = () => {
     const handleInteraction = () => {
         if (!hasInteracted && audioRef.current) {
             setHasInteracted(true);
-            audioRef.current.play().catch(e => console.warn("Audio play failed", e));
+            audioRef.current.play().catch((error: unknown) => {
+                console.warn("Audio play failed", error);
+            });
         }
     };
 
@@ -248,5 +252,4 @@ export const Lobby: React.FC = () => {
         </div>
     );
 };
-
 

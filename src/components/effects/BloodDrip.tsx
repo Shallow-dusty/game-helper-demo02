@@ -119,13 +119,13 @@ const generateDrops = (
 ): Omit<BloodDropProps, "onComplete">[] => {
     const drops: Omit<BloodDropProps, "onComplete">[] = []
 
-    const intensityConfig: Record<string, { sizeWeights: { sm: number; md: number; lg: number }; durationRange: [number, number] }> = {
+    const intensityConfig: Record<"light" | "normal" | "intense", { sizeWeights: { sm: number; md: number; lg: number }; durationRange: [number, number] }> = {
         light: { sizeWeights: { sm: 0.7, md: 0.25, lg: 0.05 }, durationRange: [2, 3] },
         normal: { sizeWeights: { sm: 0.4, md: 0.4, lg: 0.2 }, durationRange: [1.5, 2.5] },
         intense: { sizeWeights: { sm: 0.2, md: 0.4, lg: 0.4 }, durationRange: [1, 2] }
     }
 
-    const config = intensityConfig[intensity]!
+    const config = intensityConfig[intensity]
 
     for (let i = 0; i < count; i++) {
         const rand = Math.random()

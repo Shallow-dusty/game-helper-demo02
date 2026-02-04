@@ -40,7 +40,7 @@ if ('serviceWorker' in navigator) {
           }
         });
       })
-      .catch(error => {
+      .catch((error: unknown) => {
         console.warn('✗ Service Worker 注册失败:', error);
       });
   });

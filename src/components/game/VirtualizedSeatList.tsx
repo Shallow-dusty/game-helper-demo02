@@ -33,6 +33,18 @@ interface CustomRowProps {
     onSeatClick: (seat: Seat) => void;
 }
 
+interface VirtualListProps {
+    height: number;
+    width: number | string;
+    rowCount: number;
+    rowHeight: number;
+    rowComponent: React.ComponentType<CustomRowProps & { index: number; style: React.CSSProperties }>;
+    rowProps: CustomRowProps;
+    overscanCount?: number;
+}
+
+const VirtualList = List as unknown as React.ComponentType<VirtualListProps>;
+
 const SeatItem = React.memo<CustomRowProps & { index: number; style: React.CSSProperties }>(
     ({ index, style, seats, isStoryteller, currentUserId, onSeatClick }) => {
         const { t } = useTranslation();
@@ -152,15 +164,15 @@ export const VirtualizedSeatList: React.FC<VirtualizedSeatListProps> = ({
 
             {/* 虚拟列表 */}
             <div>
-                {React.createElement(List as any, {
-                    height,
-                    rowCount: seats.length,
-                    rowHeight: itemSize,
-                    width,
-                    rowComponent: SeatItem as any,
-                    rowProps: itemData as any,
-                    overscanCount: OVERSCAN_COUNT,
-                })}
+                <VirtualList
+                    height={height}
+                    rowCount={seats.length}
+                    rowHeight={itemSize}
+                    width={width}
+                    rowComponent={SeatItem}
+                    rowProps={itemData}
+                    overscanCount={OVERSCAN_COUNT}
+                />
             </div>
 
             {/* 列表底部信息 */}

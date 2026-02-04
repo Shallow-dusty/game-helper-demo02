@@ -1,11 +1,11 @@
 import { StoreSlice, GameSlice } from '../../types';
 
 export const createGameHistorySlice: StoreSlice<Pick<GameSlice, 'fetchGameHistory' | 'saveGameHistory'>> = (_set, _get) => ({
-    fetchGameHistory: async () => {
-        return [];
+    fetchGameHistory: () => {
+        return Promise.resolve([]);
     },
 
-    saveGameHistory: async (_game) => {
-        // Placeholder
+    saveGameHistory: (_game) => {
+        return Promise.resolve();
     }
 });

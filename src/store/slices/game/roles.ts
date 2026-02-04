@@ -50,7 +50,8 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                              const scarletWoman = state.gameState.seats.find(s => s.realRoleId === 'scarlet_woman' && !s.isDead);
                              if (scarletWoman && aliveCountBeforeDeath >= 5) {
                                  // Inherit the demon's role
-                                 const demonRoleId = seat.realRoleId!;
+                                 const demonRoleId = seat.realRoleId;
+                                 if (!demonRoleId) return;
                                  scarletWoman.realRoleId = demonRoleId;
                                  scarletWoman.seenRoleId = demonRoleId;
                                  // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility

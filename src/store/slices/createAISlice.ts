@@ -3,6 +3,16 @@ import { AI_CONFIG } from '../aiConfig';
 import { ChatMessage } from '../../types';
 import { supabase } from './connection';
 
+interface AskAiResponse {
+    reply?: string;
+    error?: string;
+}
+
+type InvokeResult<T> = {
+    data: T | null;
+    error: { message?: string } | null;
+};
+
 export interface AISlice {
     isAiThinking: boolean;
     aiProvider: AiProvider;
@@ -73,13 +83,14 @@ export const createAISlice: StoreSlice<AISlice> = (set, get) => ({
             };
 
             // 调用 Supabase Edge Function
-            const { data, error } = await supabase.functions.invoke('ask-ai', {
+            const response = await supabase.functions.invoke<AskAiResponse>('ask-ai', {
                 body: {
                     prompt,
                     gameContext,
                     aiProvider
                 }
-            });
+            }) as InvokeResult<AskAiResponse>;
+            const { data, error } = response;
 
             if (error) {
                 throw new Error(error.message || 'Edge Function 调用失败');

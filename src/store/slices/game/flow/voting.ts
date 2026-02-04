@@ -238,41 +238,42 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
         if (!user?.isStoryteller) return;
 
         set((state: Draft<AppState>) => {
-            if (!state.gameState?.voting) return;
+            const currentState = state.gameState;
+            if (!currentState?.voting) return;
 
-            const { nomineeSeatId, nominatorSeatId, votes } = state.gameState.voting;
-            const hasVoudon = state.gameState.seats.some(seat => {
+            const { nomineeSeatId, nominatorSeatId, votes } = currentState.voting;
+            const hasVoudon = currentState.seats.some(seat => {
                 const roleId = getSeatRoleId(seat);
                 return !seat.isDead && roleId === 'voudon';
             });
             const effectiveVotes = hasVoudon
                 ? votes.filter((voteId) => {
-                    const seat = state.gameState!.seats.find(s => s.id === voteId);
+                    const seat = currentState.seats.find(s => s.id === voteId);
                     if (!seat) return false;
                     const roleId = getSeatRoleId(seat);
                     return seat.isDead || roleId === 'voudon';
                 })
                 : votes;
 
-            const aliveCount = state.gameState.seats.filter(s => !s.isDead).length;
+            const aliveCount = currentState.seats.filter(s => !s.isDead).length;
             const requiredVotes = hasVoudon ? 0 : getVoteThreshold(aliveCount);
             const meetsThreshold = hasVoudon ? effectiveVotes.length > 0 : calculateVoteResult(effectiveVotes.length, aliveCount);
 
             let result: 'executed' | 'survived' | 'cancelled' | 'on_the_block' | 'tied' = 'survived';
 
-            const nomineeSeat = state.gameState.seats.find(s => s.id === nomineeSeatId);
+            const nomineeSeat = currentState.seats.find(s => s.id === nomineeSeatId);
 
             if (nomineeSeat?.isDead) {
                 result = 'cancelled';
-                addSystemMessage(state.gameState, `投票取消：被提名者已死亡`);
+                addSystemMessage(currentState, `投票取消：被提名者已死亡`);
             } else if (!meetsThreshold) {
                 if (hasVoudon) {
-                    addSystemMessage(state.gameState, '无人投票，暂无处决候选');
+                    addSystemMessage(currentState, '无人投票，暂无处决候选');
                 } else {
-                    addSystemMessage(state.gameState, `票数不足 (${String(effectiveVotes.length)}/${String(requiredVotes)}), 无人被处决`);
+                    addSystemMessage(currentState, `票数不足 (${String(effectiveVotes.length)}/${String(requiredVotes)}), 无人被处决`);
                 }
             } else {
-                const dayVotes = state.gameState.voteHistory.filter(vote => vote.round === state.gameState!.roundInfo.dayCount);
+                const dayVotes = currentState.voteHistory.filter(vote => vote.round === currentState.roundInfo.dayCount);
                 const eligibleVotes = hasVoudon
                     ? dayVotes.filter(vote => vote.result !== 'cancelled')
                     : dayVotes.filter(vote => vote.voteCount >= requiredVotes && vote.result !== 'cancelled');
@@ -287,7 +288,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                         }
                     });
                     result = 'on_the_block';
-                    addSystemMessage(state.gameState, `${nomineeSeat?.userName ?? '被提名者'} 获得 ${String(effectiveVotes.length)} 票，成为当前处决候选`);
+                    addSystemMessage(currentState, `${nomineeSeat?.userName ?? '被提名者'} 获得 ${String(effectiveVotes.length)} 票，成为当前处决候选`);
                 } else if (effectiveVotes.length === leadingCount && leadingCount > 0) {
                     eligibleVotes.forEach(vote => {
                         if (vote.voteCount === leadingCount) {
@@ -295,12 +296,12 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                         }
                     });
                     result = 'tied';
-                    addSystemMessage(state.gameState, `投票出现平票，暂无处决候选`);
+                    addSystemMessage(currentState, `投票出现平票，暂无处决候选`);
                 } else {
                     if (hasVoudon) {
-                        addSystemMessage(state.gameState, '票数不足，暂无处决候选');
+                        addSystemMessage(currentState, '票数不足，暂无处决候选');
                     } else {
-                        addSystemMessage(state.gameState, `票数不足 (${String(effectiveVotes.length)}/${String(requiredVotes)}), 无人被处决`);
+                        addSystemMessage(currentState, `票数不足 (${String(effectiveVotes.length)}/${String(requiredVotes)}), 无人被处决`);
                     }
                 }
             }
@@ -308,7 +309,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
             if (state.roomDbId && nomineeSeatId !== null) {
                 updateNominationResult(
                     state.roomDbId,
-                    state.gameState.roundInfo.dayCount,
+                    currentState.roundInfo.dayCount,
                     nomineeSeatId,
                     effectiveVotes.length > 0,
                     effectiveVotes.length,
@@ -316,8 +317,8 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 ).catch(console.error);
             }
 
-            state.gameState.voteHistory.push({
-                round: state.gameState.roundInfo.dayCount,
+            currentState.voteHistory.push({
+                round: currentState.roundInfo.dayCount,
                 nominatorSeatId: nominatorSeatId ?? -1,
                 nomineeSeatId: nomineeSeatId ?? -1,
                 votes: effectiveVotes,
@@ -326,8 +327,8 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 result: result
             });
 
-            state.gameState.voting = null;
-            state.gameState.phase = 'DAY';
+            currentState.voting = null;
+            currentState.phase = 'DAY';
         });
         get().sync();
     }

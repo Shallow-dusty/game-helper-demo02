@@ -289,7 +289,10 @@ function processImpSelfKill(
 
   // FULL_AUTO 模式下自动选择第一个爪牙
   if (newDemonSeatId === undefined && context.automationLevel === 'FULL_AUTO' && minions.length > 0) {
-    newDemonSeatId = minions[0]!.id;
+    const firstMinion = minions[0];
+    if (firstMinion) {
+      newDemonSeatId = firstMinion.id;
+    }
   }
 
   if (newDemonSeatId === undefined) {

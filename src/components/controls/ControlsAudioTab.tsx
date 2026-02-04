@@ -16,7 +16,9 @@ export const ControlsAudioTab: React.FC = () => {
     const playSoundEffect = (url: string) => {
         const audio = new Audio(url);
         audio.volume = 0.5;
-        audio.play().catch(e => console.error("Failed to play SFX:", e));
+        audio.play().catch((error: unknown) => {
+            console.error("Failed to play SFX:", error);
+        });
     };
 
     return (

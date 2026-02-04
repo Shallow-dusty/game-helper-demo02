@@ -42,9 +42,10 @@ export type PhaseMachineEvent =
  */
 function calculateNightQueue(seats: Seat[], isFirstNight: boolean, scriptId: string): string[] {
   const orderList = getNightOrder(scriptId, isFirstNight);
-  const activeRoleIds = seats
-    .filter(s => s.realRoleId && !s.isDead)
-    .map(s => s.realRoleId!);
+  const activeRoleIds = seats.flatMap(seat => {
+    if (!seat.realRoleId || seat.isDead) return [];
+    return [seat.realRoleId];
+  });
   return orderList.filter(roleId => activeRoleIds.includes(roleId));
 }
 

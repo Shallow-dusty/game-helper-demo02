@@ -153,6 +153,7 @@ export function getNightOrder(scriptId: string, isFirstNight: boolean): readonly
     return isFirstNight ? scriptOrder.first : scriptOrder.other;
   }
   // 回退到合并顺序（自定义剧本）
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- fallback for legacy/custom scripts
   return isFirstNight ? NIGHT_ORDER_FIRST : NIGHT_ORDER_OTHER;
 }
 

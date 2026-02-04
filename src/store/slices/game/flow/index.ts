@@ -31,11 +31,11 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice,
     'toggleCandlelight' | 'addInteractionLog' | 'setRuleAutomationLevel'
 >> = (set, get) => {
     return {
-        ...(createPhaseSlice as any)(set, get),
-        ...(createNightSlice as any)(set, get),
-        ...(createVotingSlice as any)(set, get),
-        ...(createLifecycleSlice as any)(set, get),
-        ...(createFeaturesSlice as any)(set, get)
+        ...createPhaseSlice(set, get),
+        ...createNightSlice(set, get),
+        ...createVotingSlice(set, get),
+        ...createLifecycleSlice(set, get),
+        ...createFeaturesSlice(set, get)
     };
 };
 

@@ -38,6 +38,9 @@ export function processButler(
 
   if (!targetSeatIds || targetSeatIds.length === 0) {
     const alivePlayers = getAlivePlayers(gameState).filter(s => s.id !== seatId);
+    const randomSeat = context.automationLevel === 'FULL_AUTO' && alivePlayers.length > 0
+      ? alivePlayers[randomInt(0, alivePlayers.length)]
+      : null;
 
     return {
       success: true,
@@ -57,11 +60,11 @@ export function processButler(
             result: '',
             requiresInput: { type: 'player', prompt: '选择你的主人' }
           },
-          ...(context.automationLevel === 'FULL_AUTO' && alivePlayers.length > 0 ? [{
+          ...(randomSeat ? [{
             id: 'random',
             label: '随机选择',
             isRecommended: true,
-            result: String(alivePlayers[randomInt(0, alivePlayers.length)]!.id)
+            result: String(randomSeat.id)
           }] : [])
         ]
       }]

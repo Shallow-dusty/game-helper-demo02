@@ -282,7 +282,8 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 800, height 
 
     // Handle new votes
     useEffect(() => {
-        if (!engineRef.current || !latestVote) return;
+        const engine = engineRef.current;
+        if (!engine || !latestVote) return;
 
         const newVotes = currentVotes.filter(seatId => !addedVotesRef.current.has(seatId));
 
@@ -306,7 +307,7 @@ export const JudgmentZone: React.FC<JudgmentZoneProps> = ({ width = 800, height 
                     label: userName
                 });
 
-                Matter.Composite.add(engineRef.current!.world, chip);
+                Matter.Composite.add(engine.world, chip);
                 addedVotesRef.current.add(seatId);
                 
                 // 播放筹码掉落音效

@@ -37,7 +37,7 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
                 .from('game_rooms')
                 .insert({ room_code: code, data: publicState, storyteller_id: updatedUser.id })
                 .select('id')
-                .single();
+                .single<{ id: number }>();
 
             if (error) throw error;
             if (data?.id) {

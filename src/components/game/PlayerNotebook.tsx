@@ -20,9 +20,19 @@ export const PlayerNotebook: React.FC = () => {
         const saved = localStorage.getItem('player_notes');
         if (saved) {
             try {
-                setNotes(JSON.parse(saved));
-            } catch (e) {
-                console.error("Failed to parse notes", e);
+                const parsed: unknown = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    const safeNotes = parsed.filter((note): note is Note => {
+                        if (!note || typeof note !== 'object') return false;
+                        const candidate = note as Partial<Note>;
+                        return typeof candidate.id === 'string'
+                            && typeof candidate.content === 'string'
+                            && typeof candidate.timestamp === 'number';
+                    });
+                    setNotes(safeNotes);
+                }
+            } catch (error) {
+                console.error("Failed to parse notes", error);
             }
         }
     }, []);
@@ -112,7 +122,6 @@ export const PlayerNotebook: React.FC = () => {
         </div>
     );
 };
-
 
 
 

@@ -1,6 +1,15 @@
 import { StoreSlice, GameSlice } from '../../types';
 import { addSystemMessage } from '../../utils';
 import { SCRIPTS } from '@/constants';
+import type { ScriptDefinition } from '@/types';
+
+const parseScriptDefinition = (value: unknown): ScriptDefinition | null => {
+    if (!value || typeof value !== 'object') return null;
+    const script = value as Partial<ScriptDefinition>;
+    if (typeof script.id !== 'string' || typeof script.name !== 'string') return null;
+    if (!Array.isArray(script.roles) || !script.roles.every(role => typeof role === 'string')) return null;
+    return script as ScriptDefinition;
+};
 
 export const createGameScriptsSlice: StoreSlice<Pick<GameSlice, 'setScript' | 'importScript' | 'saveCustomScript' | 'deleteCustomScript' | 'loadCustomScript'>> = (set, get) => ({
     setScript: (scriptId) => {
@@ -17,8 +26,9 @@ export const createGameScriptsSlice: StoreSlice<Pick<GameSlice, 'setScript' | 'i
     importScript: (jsonContent) => {
         if (!get().user?.isStoryteller) return;
         try {
-            const script = JSON.parse(jsonContent);
-            if (!script.id || !Array.isArray(script.roles)) {
+            const parsed: unknown = JSON.parse(jsonContent);
+            const script = parseScriptDefinition(parsed);
+            if (!script) {
                 throw new Error("Invalid script format");
             }
             
@@ -28,8 +38,8 @@ export const createGameScriptsSlice: StoreSlice<Pick<GameSlice, 'setScript' | 'i
                 }
             });
             get().sync();
-        } catch (e) {
-            console.error("Import script failed", e);
+        } catch (error) {
+            console.error("Import script failed", error);
         }
     },
 
@@ -47,7 +57,8 @@ export const createGameScriptsSlice: StoreSlice<Pick<GameSlice, 'setScript' | 'i
         if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
-                delete state.gameState.customScripts[scriptId];
+                const { [scriptId]: _removed, ...rest } = state.gameState.customScripts;
+                state.gameState.customScripts = rest;
             }
         });
         get().sync();

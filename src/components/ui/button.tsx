@@ -81,7 +81,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps & HTMLMotionProps
         } : {}
 
         return (
-            // @ts-ignore
+            // @ts-expect-error -- Slot/motion element type overlap is intentional here
             <Comp
                 className={cn(buttonVariants({ variant, size, glow, rounded, className }))}
                 ref={ref}
@@ -98,6 +98,5 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps & HTMLMotionProps
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
-
 
 

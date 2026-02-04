@@ -26,6 +26,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 interface ControlsProps {
     onClose?: () => void;
+    mode: 'storyteller' | 'player';
 }
 
 // 优化的选择器
@@ -43,11 +44,12 @@ const useControlsActions = () => useStore(
     }))
 );
 
-export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
+const ControlsBase: React.FC<ControlsProps> = ({ onClose, mode }) => {
     const { user, isOffline } = useControlsState();
     const { leaveGame, setModalOpen } = useControlsActions();
     const { t } = useAppTranslation();
     const { t: tControls } = useTranslation();
+    const isStoryteller = mode === 'storyteller';
 
     // 仅在需要完整 gameState 时才订阅（传递给子组件）
     const gameState = useStore(state => state.gameState);
@@ -111,7 +113,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
     // Auto-trigger player night action
     useEffect(() => {
-        if (!user || !gameState || user.isStoryteller) return;
+        if (!user || !gameState || isStoryteller) return;
         if (gameState.phase !== 'NIGHT') return;
 
         const currentSeat = gameState.seats.find(s => s.userId === user.id);
@@ -145,7 +147,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     const tabs = [
         { id: 'game' as const, label: t('common.game'), icon: <Gamepad2 className="w-4 h-4" /> },
         { id: 'chat' as const, label: t('chat.title'), icon: <MessageSquare className="w-4 h-4" /> },
-        ...(user.isStoryteller ? [
+        ...(isStoryteller ? [
             { id: 'ai' as const, label: t('controls.aiAssistant'), icon: <Bot className="w-4 h-4" /> },
             { id: 'audio' as const, label: t('audio.categories'), icon: <Music className="w-4 h-4" /> }
         ] : []),
@@ -176,9 +178,9 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                     <div className="flex items-center gap-2 text-sm">
                         <span className={cn(
                             "px-2 py-0.5 rounded border text-xs font-bold uppercase tracking-wider",
-                            user.isStoryteller ? 'bg-red-950/30 border-red-800 text-red-400' : 'bg-blue-950/30 border-blue-800 text-blue-400'
+                            isStoryteller ? 'bg-red-950/30 border-red-800 text-red-400' : 'bg-blue-950/30 border-blue-800 text-blue-400'
                         )}>
-                            {user.isStoryteller ? tControls('storyteller.title') : tControls('player.title')}
+                            {isStoryteller ? tControls('storyteller.title') : tControls('player.title')}
                         </span>
                         {currentSeat && <span className="text-stone-500 text-xs">{tControls('seat.empty')} {currentSeat.id + 1}</span>}
                     </div>
@@ -268,7 +270,7 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
 
                         <VoiceRoomLink />
 
-                        {user.isStoryteller ? (
+                        {isStoryteller ? (
                             <ControlsSTSection
                                 onShowCompositionGuide={() => setShowCompositionGuide(true)}
                                 onShowNightAction={(roleId) => {
@@ -295,17 +297,17 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 )}
 
                 {/* Tab: AI */}
-                {activeTab === 'ai' && <ControlsAITab />}
+                {activeTab === 'ai' && isStoryteller && <ControlsAITab />}
 
                 {/* Tab: Notebook */}
                 {activeTab === 'notebook' && (
                     <div className="h-full">
-                        {user.isStoryteller ? <StorytellerNotebook /> : <PlayerNotebook />}
+                        {isStoryteller ? <StorytellerNotebook /> : <PlayerNotebook />}
                     </div>
                 )}
 
                 {/* Tab: Audio */}
-                {activeTab === 'audio' && user.isStoryteller && (
+                {activeTab === 'audio' && isStoryteller && (
                     <ControlsAudioTab />
                 )}
             </div>
@@ -344,14 +346,14 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
                 />,
                 document.body
             )}
-            {showNightAction && user.isStoryteller && currentNightRole && createPortal(
+            {showNightAction && isStoryteller && currentNightRole && createPortal(
                 <NightActionPanel
                     roleId={currentNightRole}
                     onComplete={() => setShowNightAction(false)}
                 />,
                 document.body
             )}
-            {showNightAction && !user.isStoryteller && currentSeat?.seenRoleId && createPortal(
+            {showNightAction && !isStoryteller && currentSeat?.seenRoleId && createPortal(
                 <PlayerNightAction
                     roleId={currentSeat.seenRoleId}
                     onComplete={() => setShowNightAction(false)}
@@ -366,3 +368,20 @@ export const Controls: React.FC<ControlsProps> = ({ onClose }) => {
     );
 };
 
+interface ControlsWrapperProps {
+    onClose?: () => void;
+}
+
+export const ControlsStoryteller: React.FC<ControlsWrapperProps> = ({ onClose }) => (
+    <ControlsBase onClose={onClose} mode="storyteller" />
+);
+
+export const ControlsPlayer: React.FC<ControlsWrapperProps> = ({ onClose }) => (
+    <ControlsBase onClose={onClose} mode="player" />
+);
+
+export const Controls: React.FC<ControlsWrapperProps> = ({ onClose }) => {
+    const user = useStore(state => state.user);
+    const mode: ControlsProps['mode'] = user?.isStoryteller ? 'storyteller' : 'player';
+    return <ControlsBase onClose={onClose} mode={mode} />;
+};

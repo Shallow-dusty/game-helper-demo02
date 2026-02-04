@@ -20,7 +20,8 @@ import { ErrorBoundary } from './components/ui/ErrorBoundary';
 // 大型组件 - 懒加载
 const Grimoire = lazy(() => import('./components/game/Grimoire').then(m => ({ default: m.Grimoire })));
 const TownSquare = lazy(() => import('./components/game/TownSquare').then(m => ({ default: m.TownSquare })));
-const Controls = lazy(() => import('./components/controls/Controls').then(m => ({ default: m.Controls })));
+const ControlsStoryteller = lazy(() => import('./components/controls/Controls').then(m => ({ default: m.ControlsStoryteller })));
+const ControlsPlayer = lazy(() => import('./components/controls/Controls').then(m => ({ default: m.ControlsPlayer })));
 const SandboxView = lazy(() => import('./components/sandbox/SandboxView').then(m => ({ default: m.SandboxView })));
 
 // 游戏视图组件 - 懒加载
@@ -285,7 +286,7 @@ const App = () => {
             : ['#ef4444', '#a855f7', '#dc2626', '#7c3aed', '#000000']
           }
         />
-        <WelcomeAnnouncement />
+        {!user?.isStoryteller && <WelcomeAnnouncement />}
         <PhaseIndicator />
         <WaitingArea />
         <AudioManager />
@@ -379,7 +380,11 @@ const App = () => {
             style={{ zIndex: Z_INDEX.sidebar }}
           >
             <Suspense fallback={<ControlsLoadingFallback />}>
-              <Controls onClose={() => setIsMobileMenuOpen(false)} />
+              {user.isStoryteller ? (
+                <ControlsStoryteller onClose={() => setIsMobileMenuOpen(false)} />
+              ) : (
+                <ControlsPlayer onClose={() => setIsMobileMenuOpen(false)} />
+              )}
             </Suspense>
           </div>
         )}

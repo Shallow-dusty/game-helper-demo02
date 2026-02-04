@@ -8,6 +8,8 @@
  */
 
 import { generateShortId } from '../lib/random';
+import { supabase } from '../store/slices/connection';
+import { useStore } from '../store';
 
 // GameState type is available but not currently used in this module
 // import { GameState } from '../types';
@@ -201,15 +203,23 @@ export class OfflineOperationQueue {
      */
     private async executeOperation(operation: OfflineOperation): Promise<boolean> {
         try {
-            // TODO: 从应用状态或本地存储获取这些值
-            const userId = localStorage.getItem('userId') ?? 'unknown';
-            const roomId = localStorage.getItem('roomId') ?? 'unknown';
+            const { user, gameState } = useStore.getState();
+            const userId = user?.id ?? localStorage.getItem('userId');
+            const roomId = gameState?.roomId ?? localStorage.getItem('roomId');
+
+            if (!userId || !roomId) {
+                console.warn('✗ Operation skipped: missing userId or roomId');
+                return false;
+            }
+
+            const { data: sessionData } = await supabase.auth.getSession();
+            const accessToken = sessionData?.session?.access_token ?? localStorage.getItem('auth_token') ?? '';
 
             const response = await fetch('/api/game/operation', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token') ?? ''}`,
+                    'Authorization': `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify({
                     userId,

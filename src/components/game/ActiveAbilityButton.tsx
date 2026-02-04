@@ -92,14 +92,14 @@ export const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, 
             setShowModal(true);
         } else {
             // Send activation message to chat
-            sendMessage(`⚡ 【${role.name}】${t('game.activeAbility.skillActivated')}: ${t(abilityConfig.description)}`, null);
+            void sendMessage(`⚡ 【${role.name}】${t('game.activeAbility.skillActivated')}: ${t(abilityConfig.description)}`, null);
             setShowModal(false);
         }
     };
 
     const handleSubmitTarget = () => {
         if (targetInput.trim()) {
-            sendMessage(`⚡ 【${role.name}】${t('game.activeAbility.skillActivated')} → ${t('game.activeAbility.target')}: ${targetInput}`, null);
+            void sendMessage(`⚡ 【${role.name}】${t('game.activeAbility.skillActivated')} → ${t('game.activeAbility.target')}: ${targetInput}`, null);
             setTargetInput('');
             setShowModal(false);
         }
@@ -169,6 +169,5 @@ export const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, 
         </>
     );
 };
-
 
 

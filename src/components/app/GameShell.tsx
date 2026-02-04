@@ -9,7 +9,6 @@ import UpdateNotificationUI from '../ui/UpdateNotificationUI';
 import { ToastContainer, useToasts } from '../ui/Toast';
 import { SCRIPTS, ROLES, Z_INDEX } from '../../constants';
 import {
-  LoadingFallback,
   GrimoireLoadingFallback,
   ControlsLoadingFallback
 } from '../ui/LoadingFallback';

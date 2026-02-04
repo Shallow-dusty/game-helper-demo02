@@ -91,12 +91,7 @@ CREATE POLICY "game_rooms_update"
   ON game_rooms FOR UPDATE
   USING (
     auth.role() = 'service_role' OR
-    EXISTS (
-      SELECT 1 FROM room_members rm
-      WHERE rm.room_id = game_rooms.id
-        AND rm.user_id = auth.uid()
-        AND rm.role = 'storyteller'
-    )
+    auth.uid() = storyteller_id
   );
 
 -- room_members policies
@@ -109,16 +104,35 @@ CREATE POLICY "room_members_select"
   ON room_members FOR SELECT
   USING (
     auth.role() = 'service_role' OR
+    auth.uid() = user_id OR
     EXISTS (
-      SELECT 1 FROM room_members rm
-      WHERE rm.room_id = room_members.room_id
-        AND rm.user_id = auth.uid()
+      SELECT 1 FROM game_rooms gr
+      WHERE gr.id = room_members.room_id
+        AND gr.storyteller_id = auth.uid()
     )
   );
 
 CREATE POLICY "room_members_insert"
   ON room_members FOR INSERT
-  WITH CHECK (auth.role() = 'service_role' OR auth.uid() = user_id);
+  WITH CHECK (
+    auth.role() = 'service_role' OR
+    (
+      auth.uid() = user_id AND (
+        (
+          role IN ('player', 'observer') AND
+          seat_id IS NULL AND
+          seen_role_id IS NULL
+        ) OR (
+          role = 'storyteller' AND
+          EXISTS (
+            SELECT 1 FROM game_rooms gr
+            WHERE gr.id = room_members.room_id
+              AND gr.storyteller_id = auth.uid()
+          )
+        )
+      )
+    )
+  );
 
 CREATE POLICY "room_members_update"
   ON room_members FOR UPDATE
@@ -129,6 +143,25 @@ CREATE POLICY "room_members_update"
       SELECT 1 FROM game_rooms gr
       WHERE gr.id = room_members.room_id
         AND gr.storyteller_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    auth.role() = 'service_role' OR
+    EXISTS (
+      SELECT 1 FROM game_rooms gr
+      WHERE gr.id = room_members.room_id
+        AND gr.storyteller_id = auth.uid()
+    ) OR
+    (
+      auth.uid() = user_id AND
+      role IN ('player', 'observer') AND
+      EXISTS (
+        SELECT 1 FROM room_members rm
+        WHERE rm.id = room_members.id
+          AND rm.role IS NOT DISTINCT FROM room_members.role
+          AND rm.seat_id IS NOT DISTINCT FROM room_members.seat_id
+          AND rm.seen_role_id IS NOT DISTINCT FROM room_members.seen_role_id
+      )
     )
   );
 
@@ -253,9 +286,19 @@ CREATE POLICY "game_messages_select"
   USING (
     auth.role() = 'service_role' OR
     EXISTS (
+      SELECT 1 FROM game_rooms gr
+      WHERE gr.id = game_messages.room_id
+        AND gr.storyteller_id = auth.uid()
+    ) OR
+    EXISTS (
       SELECT 1 FROM room_members rm
       WHERE rm.room_id = game_messages.room_id
         AND rm.user_id = auth.uid()
+        AND (
+          game_messages.recipient_seat_id IS NULL OR
+          rm.seat_id = game_messages.sender_seat_id OR
+          rm.seat_id = game_messages.recipient_seat_id
+        )
     )
   );
 

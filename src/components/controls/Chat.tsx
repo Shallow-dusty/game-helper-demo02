@@ -144,7 +144,7 @@ export const Chat = () => {
     const handleSend = (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim()) return;
-        sendMessage(input, recipientId);
+        void sendMessage(input, recipientId);
         setInput('');
     };
 

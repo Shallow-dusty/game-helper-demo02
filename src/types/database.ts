@@ -17,6 +17,7 @@ export interface GameRoomRow {
   id: number;
   room_code: string;
   data: GameState;
+  storyteller_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -25,11 +26,40 @@ export interface GameRoomRow {
  * game_secrets 表结构（ST 私密数据）
  */
 export interface GameSecretRow {
-  id: number;
   room_code: string;
   data: SecretState;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * room_members 表结构
+ */
+export interface RoomMemberRow {
+  id: number;
+  room_id: number;
+  user_id: string;
+  display_name: string | null;
+  role: 'storyteller' | 'player' | 'observer';
+  seat_id: number | null;
+  seen_role_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * game_messages 表结构
+ */
+export interface GameMessageRow {
+  id: number;
+  room_id: number;
+  sender_seat_id: number | null;
+  sender_name: string | null;
+  content: string;
+  recipient_seat_id: number | null;
+  message_type: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
 }
 
 /**
@@ -39,8 +69,8 @@ export interface GameHistoryRow {
   id: number;
   room_code: string;
   winner: 'GOOD' | 'EVIL' | null;
-  reason: string;
-  script_name: string;
+  reason: string | null;
+  script_name: string | null;
   players: GameHistoryPlayer[];
   messages: unknown[];
   state: GameState;
@@ -52,7 +82,7 @@ export interface GameHistoryRow {
  */
 export interface InteractionLogRow {
   id: string;
-  room_id: string;
+  room_id: number;
   game_day: number;
   phase: 'DAY' | 'NIGHT' | 'DUSK' | 'DAWN';
   actor_seat: number | null;
@@ -72,7 +102,7 @@ export interface InteractionLogRow {
  */
 export interface NominationRow {
   id: string;
-  room_id: string;
+  room_id: number;
   game_day: number;
   nominator_seat: number;
   nominee_seat: number;

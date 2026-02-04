@@ -128,12 +128,7 @@ create policy "game_rooms_update"
 on game_rooms for update
 using (
   auth.role() = 'service_role' or
-  exists (
-    select 1 from room_members rm
-    where rm.room_id = game_rooms.id
-      and rm.user_id = auth.uid()
-      and rm.role = 'storyteller'
-  )
+  auth.uid() = storyteller_id
 );
 
 -- room_members policies
@@ -146,16 +141,35 @@ create policy "room_members_select"
 on room_members for select
 using (
   auth.role() = 'service_role' or
+  auth.uid() = user_id or
   exists (
-    select 1 from room_members rm
-    where rm.room_id = room_members.room_id
-      and rm.user_id = auth.uid()
+    select 1 from game_rooms gr
+    where gr.id = room_members.room_id
+      and gr.storyteller_id = auth.uid()
   )
 );
 
 create policy "room_members_insert"
 on room_members for insert
-with check (auth.role() = 'service_role' or auth.uid() = user_id);
+with check (
+  auth.role() = 'service_role' or
+  (
+    auth.uid() = user_id and (
+      (
+        role in ('player', 'observer') and
+        seat_id is null and
+        seen_role_id is null
+      ) or (
+        role = 'storyteller' and
+        exists (
+          select 1 from game_rooms gr
+          where gr.id = room_members.room_id
+            and gr.storyteller_id = auth.uid()
+        )
+      )
+    )
+  )
+);
 
 create policy "room_members_update"
 on room_members for update
@@ -166,6 +180,25 @@ using (
     select 1 from game_rooms gr
     where gr.id = room_members.room_id
       and gr.storyteller_id = auth.uid()
+  )
+)
+with check (
+  auth.role() = 'service_role' or
+  exists (
+    select 1 from game_rooms gr
+    where gr.id = room_members.room_id
+      and gr.storyteller_id = auth.uid()
+  ) or
+  (
+    auth.uid() = user_id and
+    role in ('player', 'observer') and
+    exists (
+      select 1 from room_members rm
+      where rm.id = room_members.id
+        and rm.role is not distinct from room_members.role
+        and rm.seat_id is not distinct from room_members.seat_id
+        and rm.seen_role_id is not distinct from room_members.seen_role_id
+    )
   )
 );
 
@@ -290,9 +323,19 @@ on game_messages for select
 using (
   auth.role() = 'service_role' or
   exists (
+    select 1 from game_rooms gr
+    where gr.id = game_messages.room_id
+      and gr.storyteller_id = auth.uid()
+  ) or
+  exists (
     select 1 from room_members rm
     where rm.room_id = game_messages.room_id
       and rm.user_id = auth.uid()
+      and (
+        game_messages.recipient_seat_id is null or
+        rm.seat_id = game_messages.sender_seat_id or
+        rm.seat_id = game_messages.recipient_seat_id
+      )
   )
 );
 

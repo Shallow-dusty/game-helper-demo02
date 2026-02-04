@@ -95,14 +95,14 @@ const ActiveAbilityButton: React.FC<ActiveAbilityButtonProps> = ({ role, seat, g
         if (abilityConfig.requiresTarget) {
             setShowModal(true);
         } else {
-            sendMessage(`【${role.name}】发动技能: ${abilityConfig.description}`, null);
+            void sendMessage(`【${role.name}】发动技能: ${abilityConfig.description}`, null);
             setShowModal(false);
         }
     };
 
     const handleSubmitTarget = () => {
         if (targetInput.trim()) {
-            sendMessage(`【${role.name}】发动技能 → 目标: ${targetInput}`, null);
+            void sendMessage(`【${role.name}】发动技能 → 目标: ${targetInput}`, null);
             setTargetInput('');
             setShowModal(false);
         }

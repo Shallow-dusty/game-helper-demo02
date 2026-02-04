@@ -485,7 +485,12 @@ BEGIN
     RETURNING * INTO v_member;
   ELSE
     UPDATE room_members
-      SET display_name = COALESCE(p_display_name, display_name)
+      SET display_name = COALESCE(p_display_name, display_name),
+          role = CASE
+            WHEN p_role = 'storyteller' AND v_room.storyteller_id = auth.uid() THEN 'storyteller'
+            WHEN v_member.role = 'observer' AND p_role = 'player' THEN 'player'
+            ELSE v_member.role
+          END
       WHERE id = v_member.id
       RETURNING * INTO v_member;
   END IF;

@@ -523,7 +523,12 @@ begin
     returning * into v_member;
   else
     update room_members
-      set display_name = coalesce(p_display_name, display_name)
+      set display_name = coalesce(p_display_name, display_name),
+          role = case
+            when p_role = 'storyteller' and v_room.storyteller_id = auth.uid() then 'storyteller'
+            when v_member.role = 'observer' and p_role = 'player' then 'player'
+            else v_member.role
+          end
       where id = v_member.id
       returning * into v_member;
   end if;

@@ -70,6 +70,37 @@ const secretsQueryBuilder = createQueryBuilder('game_secrets');
 const roomMembersQueryBuilder = createQueryBuilder('room_members');
 const messagesQueryBuilder = createQueryBuilder('game_messages');
 
+const mockRpc = vi.hoisted(() => vi.fn((fnName: string) => {
+  if (fnName === 'join_room') {
+    return {
+      single: vi.fn(() => ({
+        data: {
+          room_id: 1,
+          room_code: 'TEST123',
+          storyteller_id: 'auth-user',
+          seen_role_id: null,
+          data: {
+            roomId: 'TEST123',
+            seats: [],
+            messages: [],
+            phase: 'SETUP',
+            currentScriptId: 'tb',
+            dailyNominations: [],
+            dailyExecutionCompleted: false,
+            voteHistory: [],
+            roundInfo: { dayCount: 0, nightCount: 0, nominationCount: 0, totalRounds: 0 },
+            gameOver: null
+          } as Partial<GameState>
+        },
+        error: null
+      }))
+    };
+  }
+  return {
+    single: vi.fn(() => ({ data: null, error: null }))
+  };
+}));
+
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({
     auth: {
@@ -79,7 +110,7 @@ vi.mock('@supabase/supabase-js', () => ({
     from: vi.fn((table: string) => createQueryBuilder(table)),
     channel: vi.fn(() => mockChannel),
     removeChannel: vi.fn(),
-    rpc: vi.fn()
+    rpc: mockRpc
   })),
   REALTIME_SUBSCRIBE_STATES: {
     SUBSCRIBED: 'SUBSCRIBED',
@@ -303,14 +334,12 @@ describe('Connection Slice', () => {
     });
 
     it('should handle spectate error when room not found', async () => {
-      mockQueryBuilder.select.mockReturnValueOnce({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: null,
-            error: { message: 'Room not found' }
-          }))
+      mockRpc.mockImplementationOnce(() => ({
+        single: vi.fn(() => ({
+          data: null,
+          error: { message: 'Room not found' }
         }))
-      });
+      }));
 
       await store.getState().spectateGame('INVALID');
 
@@ -320,7 +349,7 @@ describe('Connection Slice', () => {
     it('should handle spectate exception', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      mockQueryBuilder.select.mockImplementationOnce(() => {
+      mockRpc.mockImplementationOnce(() => {
         throw new Error('Network failure');
       });
 
@@ -508,15 +537,12 @@ describe('joinGame Error Handling', () => {
   });
 
   it('should handle room not found error (PGRST116)', async () => {
-    // Override select to return error
-    mockQueryBuilder.select.mockReturnValueOnce({
-      eq: vi.fn(() => ({
-        single: vi.fn(() => ({
-          data: null,
-          error: { code: 'PGRST116', message: 'Room not found' }
-        }))
+    mockRpc.mockImplementationOnce(() => ({
+      single: vi.fn(() => ({
+        data: null,
+        error: { message: 'Room not found' }
       }))
-    });
+    }));
 
     await store.getState().login('Player', false);
     await store.getState().joinGame('INVALID');
@@ -525,15 +551,12 @@ describe('joinGame Error Handling', () => {
   });
 
   it('should handle generic network error', async () => {
-    // Override select to return generic error
-    mockQueryBuilder.select.mockReturnValueOnce({
-      eq: vi.fn(() => ({
-        single: vi.fn(() => ({
-          data: null,
-          error: { code: 'NETWORK_ERROR', message: 'Network error' }
-        }))
+    mockRpc.mockImplementationOnce(() => ({
+      single: vi.fn(() => ({
+        data: null,
+        error: { message: 'Network error' }
       }))
-    });
+    }));
 
     await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
@@ -542,15 +565,12 @@ describe('joinGame Error Handling', () => {
   });
 
   it('should handle null data response', async () => {
-    // Override select to return null data
-    mockQueryBuilder.select.mockReturnValueOnce({
-      eq: vi.fn(() => ({
-        single: vi.fn(() => ({
-          data: null,
-          error: null
-        }))
+    mockRpc.mockImplementationOnce(() => ({
+      single: vi.fn(() => ({
+        data: null,
+        error: null
       }))
-    });
+    }));
 
     await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
@@ -1005,8 +1025,7 @@ describe('joinGame Exception Handling', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem');
 
-    // Mock select to throw an error
-    mockQueryBuilder.select.mockImplementation(() => {
+    mockRpc.mockImplementationOnce(() => {
       throw new Error('Network failure');
     });
 
@@ -1024,7 +1043,7 @@ describe('joinGame Exception Handling', () => {
   it('should handle exception with non-Error object', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    mockQueryBuilder.select.mockImplementation(() => {
+    mockRpc.mockImplementationOnce(() => {
       throw 'String error';
     });
 
@@ -1038,12 +1057,12 @@ describe('joinGame Exception Handling', () => {
   });
 
   it('should not join if user is not logged in', async () => {
-    mockQueryBuilder.select.mockClear();
+    mockRpc.mockClear();
 
     await store.getState().joinGame('TEST123');
 
     // Should not call any Supabase methods
-    expect(mockQueryBuilder.select).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 });
 
@@ -1143,7 +1162,7 @@ describe('spectateGame Subscription Status', () => {
   it('should handle spectate exception with non-Error object', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    mockQueryBuilder.select.mockImplementationOnce(() => {
+    mockRpc.mockImplementationOnce(() => {
       throw 'String error';
     });
 

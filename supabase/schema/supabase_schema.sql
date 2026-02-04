@@ -118,7 +118,15 @@ drop policy if exists "game_rooms_update" on game_rooms;
 
 create policy "game_rooms_select"
 on game_rooms for select
-using (auth.role() = 'service_role' or auth.uid() is not null);
+using (
+  auth.role() = 'service_role' or
+  auth.uid() = storyteller_id or
+  exists (
+    select 1 from room_members rm
+    where rm.room_id = game_rooms.id
+      and rm.user_id = auth.uid()
+  )
+);
 
 create policy "game_rooms_insert"
 on game_rooms for insert
@@ -468,6 +476,61 @@ with check (
 -- Atomic Seat Claiming Function (Prevents Race Conditions)
 -- 修复：使用 userId + userName 代替 player 以匹配前端数据结构
 -- ============================================================
+
+create or replace function join_room(
+  p_room_code text,
+  p_display_name text,
+  p_role text default 'player'
+)
+returns table (
+  room_id bigint,
+  room_code text,
+  data jsonb,
+  storyteller_id uuid,
+  member_role text,
+  seen_role_id text
+) as $$
+declare
+  v_room game_rooms%rowtype;
+  v_member room_members%rowtype;
+begin
+  if p_role is null or p_role not in ('player', 'observer', 'storyteller') then
+    raise exception 'Invalid role';
+  end if;
+
+  select * into v_room from game_rooms where room_code = p_room_code;
+  if not found then
+    raise exception 'Room not found';
+  end if;
+
+  if p_role = 'storyteller' and v_room.storyteller_id is distinct from auth.uid() then
+    raise exception 'Not storyteller';
+  end if;
+
+  select * into v_member
+  from room_members
+  where room_id = v_room.id
+    and user_id = auth.uid();
+
+  if not found then
+    insert into room_members (room_id, user_id, display_name, role)
+    values (
+      v_room.id,
+      auth.uid(),
+      p_display_name,
+      case when p_role = 'storyteller' then 'storyteller' else p_role end
+    )
+    returning * into v_member;
+  else
+    update room_members
+      set display_name = coalesce(p_display_name, display_name)
+      where id = v_member.id
+      returning * into v_member;
+  end if;
+
+  return query select v_room.id, v_room.room_code, v_room.data, v_room.storyteller_id, v_member.role, v_member.seen_role_id;
+end;
+$$ language plpgsql security definer set search_path = public;
 
 create or replace function claim_seat(
   p_room_code text,

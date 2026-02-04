@@ -347,16 +347,21 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 set({ user });
             }
 
-            // 1. Fetch Room (public state + room id)
+            // 1. Join via secure RPC (handles membership + returns room data)
             const { data, error } = await supabase
-                .from('game_rooms')
-                .select('id,data')
-                .eq('room_code', roomCode)
+                .rpc('join_room', {
+                    p_room_code: roomCode,
+                    p_display_name: user.name,
+                    p_role: user.isStoryteller ? 'storyteller' : 'player'
+                })
                 .single();
 
             if (error || !data) {
-                if (error?.code === 'PGRST116') {
+                const message = error?.message ?? '';
+                if (message.includes('Room not found')) {
                     void getToastFunctions().then(({ showError }) => showError("房间不存在！请检查房间号。"));
+                } else if (message.includes('Not storyteller')) {
+                    void getToastFunctions().then(({ showError }) => showError("只有房间说书人可以以说书人身份加入。"));
                 } else {
                     void getToastFunctions().then(({ showError }) => showError("网络连接失败，请检查网络后重试。"));
                 }
@@ -433,29 +438,13 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             realtimeChannel = channel;
 
             const updatedUser = { ...user, roomId: roomCode };
-            set({ user: updatedUser, gameState: gameState, roomDbId: data.id, isOffline: false });
+            set({ user: updatedUser, gameState: gameState, roomDbId: data.room_id, isOffline: false });
 
             localStorage.setItem('grimoire_last_room', roomCode);
 
-            // 3. Ensure membership row exists
-            await supabase
-                .from('room_members')
-                .upsert({
-                    room_id: data.id,
-                    user_id: updatedUser.id,
-                    display_name: updatedUser.name,
-                    role: updatedUser.isStoryteller ? 'storyteller' : 'player',
-                }, { onConflict: 'room_id,user_id' });
-
-            // 4. Fetch member seen_role_id for players and subscribe for updates
+            // 3. Fetch member seen_role_id for players and subscribe for updates
             if (!updatedUser.isStoryteller) {
-                const { data: memberData } = await supabase
-                    .from('room_members')
-                    .select('seen_role_id')
-                    .eq('room_id', data.id)
-                    .eq('user_id', updatedUser.id)
-                    .single();
-                memberSeenRoleId = (memberData as { seen_role_id?: string | null } | null)?.seen_role_id ?? null;
+                memberSeenRoleId = (data.seen_role_id as string | null | undefined) ?? null;
                 if (memberSeenRoleId) {
                     const currentState = get().gameState;
                     if (currentState) {
@@ -529,7 +518,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             }
 
             // 6. Fetch and subscribe to messages
-            await setupMessageSubscription(roomCode, data.id, set as unknown as (partial: unknown) => void, get);
+            await setupMessageSubscription(roomCode, data.room_id, set as unknown as (partial: unknown) => void, get);
 
             // 7. Announce Join (storyteller only)
             if (updatedUser.isStoryteller) {
@@ -563,9 +552,11 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             }
 
             const { data, error } = await supabase
-                .from('game_rooms')
-                .select('id,data')
-                .eq('room_code', roomCode)
+                .rpc('join_room', {
+                    p_room_code: roomCode,
+                    p_display_name: 'Observer',
+                    p_role: 'observer'
+                })
                 .single();
 
             if (error || !data) {
@@ -618,7 +609,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             set({
                 gameState: gameState,
                 connectionStatus: 'connected',
-                roomDbId: data.id,
+                roomDbId: data.room_id,
                 user: {
                     id: authUser.id,
                     name: 'Observer',
@@ -629,17 +620,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 }
             });
 
-            await supabase
-                .from('room_members')
-                .upsert({
-                    room_id: data.id,
-                    user_id: authUser.id,
-                    display_name: 'Observer',
-                    role: 'observer',
-                    seat_id: null
-                }, { onConflict: 'room_id,user_id' });
-
-            await setupMessageSubscription(roomCode, data.id, set as unknown as (partial: unknown) => void, get);
+            await setupMessageSubscription(roomCode, data.room_id, set as unknown as (partial: unknown) => void, get);
 
         } catch (error) {
             logger.error('观察游戏失败:', error);

@@ -3,6 +3,37 @@ import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
 vi.mock('@supabase/supabase-js', () => {
+  const mockRpc = vi.fn((fnName: string) => {
+    if (fnName === 'join_room') {
+      return {
+        single: vi.fn(() => ({
+          data: {
+            room_id: 1,
+            room_code: 'test',
+            storyteller_id: 'auth-user',
+            seen_role_id: null,
+            data: {
+              roomId: 'test',
+              seats: [],
+              messages: [],
+              dailyNominations: [],
+              dailyExecutionCompleted: false,
+              voteHistory: [],
+              voting: null,
+              phase: 'DAY',
+              roundInfo: { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 1 },
+              gameOver: null
+            }
+          },
+          error: null
+        }))
+      };
+    }
+    return {
+      single: vi.fn(() => ({ data: null, error: null }))
+    };
+  });
+
   const createQueryBuilder = (table: string) => {
     const builder: Record<string, any> = {};
 
@@ -61,6 +92,7 @@ vi.mock('@supabase/supabase-js', () => {
           unsubscribe: vi.fn(),
         })),
         removeChannel: vi.fn(),
+        rpc: mockRpc,
       };
     }),
     REALTIME_SUBSCRIBE_STATES: {

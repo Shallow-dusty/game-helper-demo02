@@ -81,7 +81,15 @@ DROP POLICY IF EXISTS "game_rooms_update" ON game_rooms;
 
 CREATE POLICY "game_rooms_select"
   ON game_rooms FOR SELECT
-  USING (auth.role() = 'service_role' OR auth.uid() IS NOT NULL);
+  USING (
+    auth.role() = 'service_role' OR
+    auth.uid() = storyteller_id OR
+    EXISTS (
+      SELECT 1 FROM room_members rm
+      WHERE rm.room_id = game_rooms.id
+        AND rm.user_id = auth.uid()
+    )
+  );
 
 CREATE POLICY "game_rooms_insert"
   ON game_rooms FOR INSERT
@@ -426,3 +434,62 @@ CREATE POLICY "game_history_insert"
         AND gr.storyteller_id = auth.uid()
     )
   );
+
+-- ============================================================
+-- Secure join_room RPC (membership + read room data)
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION join_room(
+  p_room_code text,
+  p_display_name text,
+  p_role text default 'player'
+)
+RETURNS TABLE (
+  room_id bigint,
+  room_code text,
+  data jsonb,
+  storyteller_id uuid,
+  member_role text,
+  seen_role_id text
+) AS $$
+DECLARE
+  v_room game_rooms%rowtype;
+  v_member room_members%rowtype;
+BEGIN
+  IF p_role IS NULL OR p_role NOT IN ('player', 'observer', 'storyteller') THEN
+    RAISE EXCEPTION 'Invalid role';
+  END IF;
+
+  SELECT * INTO v_room FROM game_rooms WHERE room_code = p_room_code;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Room not found';
+  END IF;
+
+  IF p_role = 'storyteller' AND v_room.storyteller_id IS DISTINCT FROM auth.uid() THEN
+    RAISE EXCEPTION 'Not storyteller';
+  END IF;
+
+  SELECT * INTO v_member
+  FROM room_members
+  WHERE room_id = v_room.id
+    AND user_id = auth.uid();
+
+  IF NOT FOUND THEN
+    INSERT INTO room_members (room_id, user_id, display_name, role)
+    VALUES (
+      v_room.id,
+      auth.uid(),
+      p_display_name,
+      CASE WHEN p_role = 'storyteller' THEN 'storyteller' ELSE p_role END
+    )
+    RETURNING * INTO v_member;
+  ELSE
+    UPDATE room_members
+      SET display_name = COALESCE(p_display_name, display_name)
+      WHERE id = v_member.id
+      RETURNING * INTO v_member;
+  END IF;
+
+  RETURN QUERY SELECT v_room.id, v_room.room_code, v_room.data, v_room.storyteller_id, v_member.role, v_member.seen_role_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;

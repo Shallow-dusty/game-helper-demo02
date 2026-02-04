@@ -6,7 +6,7 @@
 import { StoreSlice, ConnectionStatus } from '../types';
 import { User, GameState } from '../../types';
 import { createClient, RealtimeChannel, REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
-import { addSystemMessage, splitGameState, mergeGameState, type SecretState } from '../utils';
+import { addSystemMessage, splitGameState, mergeGameState, applyGameStateDefaults, type SecretState } from '../utils';
 import { generateShortId } from '../../lib/random';
 import { env } from '../../config/env';
 import { connectionLogger as logger } from '../../lib/logger';
@@ -227,6 +227,8 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             }
 
             const gameState = data.data as GameState;
+            applyGameStateDefaults(gameState);
+            applyGameStateDefaults(gameState);
 
             // 2. Subscribe
             if (realtimeChannel) void supabase.removeChannel(realtimeChannel);
@@ -238,6 +240,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                     (payload) => {
                         const newData = (payload.new as { data?: GameState } | undefined)?.data;
                         if (newData) {
+                            applyGameStateDefaults(newData);
                             isReceivingUpdate = true;
                             set({ gameState: newData });
                             isReceivingUpdate = false;
@@ -302,13 +305,14 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                     .eq('room_code', roomCode)
                     .single();
 
-                if (secretData?.data) {
-                    const currentState = get().gameState;
-                    if (currentState) {
-                        const merged = mergeGameState(currentState, secretData.data as SecretState);
-                        set({ gameState: merged });
+                    if (secretData?.data) {
+                        const currentState = get().gameState;
+                        if (currentState) {
+                            const merged = mergeGameState(currentState, secretData.data as SecretState);
+                            applyGameStateDefaults(merged);
+                            set({ gameState: merged });
+                        }
                     }
-                }
 
                 const sChannel = supabase.channel(`room-secrets:${roomCode}`)
                     .on(
@@ -325,6 +329,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                                 // we should merge the new secret data into the CURRENT state.
                                 if (currentPublic) {
                                     const merged = mergeGameState(currentPublic, newSecretData);
+                                    applyGameStateDefaults(merged);
                                     set({ gameState: merged });
                                 }
                                 isReceivingUpdate = false;
@@ -380,6 +385,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                     (payload) => {
                         const newData = (payload.new as { data?: GameState } | undefined)?.data;
                         if (newData) {
+                            applyGameStateDefaults(newData);
                             isReceivingUpdate = true;
                             set({ gameState: newData });
                             isReceivingUpdate = false;
@@ -532,6 +538,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             if (data.data) {
                 isReceivingUpdate = true;
                 let newState = data.data as GameState;
+                applyGameStateDefaults(newState);
 
                 // If ST, also fetch secrets
                 if (get().user?.isStoryteller) {
@@ -543,6 +550,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
 
                     if (secretData?.data) {
                         newState = mergeGameState(newState, secretData.data as SecretState);
+                        applyGameStateDefaults(newState);
                     }
                 }
 

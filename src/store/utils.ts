@@ -93,6 +93,20 @@ export const filterGameStateForUser = (gameState: GameState, currentUserId: stri
     };
 };
 
+/**
+ * 确保游戏状态包含必要默认值（用于老版本存档或缺字段）
+ */
+export const applyGameStateDefaults = (gameState: GameState): boolean => {
+    let changed = false;
+
+    if (!gameState.ruleAutomationLevel) {
+        gameState.ruleAutomationLevel = 'GUIDED';
+        changed = true;
+    }
+
+    return changed;
+};
+
 export const addSystemMessage = (gameState: GameState, content: string, recipientId: string | null = null) => {
     gameState.messages.push({
         id: generateShortId(),

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { splitGameState, mergeGameState, filterSeatForUser, filterGameStateForUser } from './utils';
+import { splitGameState, mergeGameState, filterSeatForUser, filterGameStateForUser, applyGameStateDefaults } from './utils';
 import { GameState, Seat } from '../types';
 
 describe('utils', () => {
@@ -149,6 +149,28 @@ describe('utils', () => {
         // User who IS the recipient
         const filtered = filterGameStateForUser(stateWithPrivateMsg, 'target-user', false);
         expect(filtered.messages).toHaveLength(1);
+    });
+  });
+
+  describe('applyGameStateDefaults', () => {
+    it('should apply default rule automation level when missing', () => {
+      const stateWithoutRuleLevel: GameState = {
+        ...mockGameState,
+        ruleAutomationLevel: undefined
+      };
+      const changed = applyGameStateDefaults(stateWithoutRuleLevel);
+      expect(changed).toBe(true);
+      expect(stateWithoutRuleLevel.ruleAutomationLevel).toBe('GUIDED');
+    });
+
+    it('should not change state when rule automation level already set', () => {
+      const stateWithRuleLevel: GameState = {
+        ...mockGameState,
+        ruleAutomationLevel: 'FULL_AUTO'
+      };
+      const changed = applyGameStateDefaults(stateWithRuleLevel);
+      expect(changed).toBe(false);
+      expect(stateWithRuleLevel.ruleAutomationLevel).toBe('FULL_AUTO');
     });
   });
 });

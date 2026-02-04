@@ -438,7 +438,20 @@ drop policy if exists "game_history_insert" on game_history;
 
 create policy "game_history_select"
 on game_history for select
-using (auth.role() = 'service_role' or auth.uid() is not null);
+using (
+  auth.role() = 'service_role' or
+  exists (
+    select 1 from game_rooms gr
+    where gr.room_code = game_history.room_code
+      and gr.storyteller_id = auth.uid()
+  ) or
+  exists (
+    select 1 from room_members rm
+    join game_rooms gr on gr.id = rm.room_id
+    where gr.room_code = game_history.room_code
+      and rm.user_id = auth.uid()
+  )
+);
 
 create policy "game_history_insert"
 on game_history for insert

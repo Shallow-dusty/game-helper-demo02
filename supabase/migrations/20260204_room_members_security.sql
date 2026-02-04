@@ -401,7 +401,20 @@ DROP POLICY IF EXISTS "game_history_insert" ON game_history;
 
 CREATE POLICY "game_history_select"
   ON game_history FOR SELECT
-  USING (auth.role() = 'service_role' OR auth.uid() IS NOT NULL);
+  USING (
+    auth.role() = 'service_role' OR
+    EXISTS (
+      SELECT 1 FROM game_rooms gr
+      WHERE gr.room_code = game_history.room_code
+        AND gr.storyteller_id = auth.uid()
+    ) OR
+    EXISTS (
+      SELECT 1 FROM room_members rm
+      JOIN game_rooms gr ON gr.id = rm.room_id
+      WHERE gr.room_code = game_history.room_code
+        AND rm.user_id = auth.uid()
+    )
+  );
 
 CREATE POLICY "game_history_insert"
   ON game_history FOR INSERT

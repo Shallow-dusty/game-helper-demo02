@@ -440,7 +440,8 @@
     "manualAssign": "Manual Assign",
     "startGame": "Start Game",
     "endGame": "End Game",
-    "resetGame": "Reset Game"
+    "resetGame": "Reset Game",
+    "onlyStoryteller": "Only the storyteller can change this setting."
   },
   "player": {
     "title": "Player",

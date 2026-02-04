@@ -542,7 +542,8 @@
     "manualAssign": "手动分配",
     "startGame": "开始游戏",
     "endGame": "结束游戏",
-    "resetGame": "重置游戏"
+    "resetGame": "重置游戏",
+    "onlyStoryteller": "仅说书人可以修改此设置。"
   },
   "player": {
     "title": "玩家",

@@ -12,9 +12,10 @@ interface AudioSettingsModalProps {
 
 export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, onClose }) => {
     const { t } = useTranslation();
-    const { audioSettings, setAudioMode, toggleAudioCategory, gameState, setRuleAutomationLevel } = useStore();
+    const { audioSettings, setAudioMode, toggleAudioCategory, gameState, setRuleAutomationLevel, user } = useStore();
     const ruleAutomationLevel = gameState?.ruleAutomationLevel ?? 'GUIDED';
-    const isAutomationAvailable = Boolean(gameState);
+    const isStoryteller = Boolean(user?.isStoryteller);
+    const isAutomationAvailable = Boolean(gameState) && isStoryteller;
 
     if (!isOpen) return null;
 
@@ -162,6 +163,11 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                             </div>
                             <div className="bg-[#0c0a09]/50 p-3 rounded border border-[#44403c] text-xs text-[#a8a29e] leading-relaxed">
                                 {t('audio.ruleAutomationDesc')}
+                                {!isStoryteller && (
+                                    <span className="block mt-2 text-[#78716c]">
+                                        {t('storyteller.onlyStoryteller')}
+                                    </span>
+                                )}
                             </div>
                         </div>
 

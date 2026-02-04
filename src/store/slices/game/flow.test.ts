@@ -72,7 +72,7 @@ describe('createGameFlowSlice', () => {
             gameOver: { isOver: boolean; winner: string; reason: string } | null;
             messages: unknown[];
         } | null;
-        user: { id: string; roomId: number } | null;
+        user: { id: string; roomId: number; isStoryteller: boolean } | null;
     };
     
     let slice: ReturnType<typeof createGameFlowSlice>;
@@ -118,7 +118,7 @@ describe('createGameFlowSlice', () => {
                 gameOver: null,
                 messages: []
             },
-            user: { id: 'user1', roomId: 123 }
+            user: { id: 'user1', roomId: 123, isStoryteller: true }
         };
         
         slice = createGameFlowSlice(
@@ -176,6 +176,24 @@ describe('createGameFlowSlice', () => {
             const log = mockState.gameState?.interactionLog[0] as { id: string; timestamp: number };
             expect(log.id).toMatch(/^log-[a-z0-9]+$/);
             expect(log.timestamp).toBeGreaterThan(0);
+        });
+    });
+
+    describe('setRuleAutomationLevel', () => {
+        it('说书人可以设置规则自动化级别', () => {
+            expect(mockState.gameState?.ruleAutomationLevel).toBeUndefined();
+            slice.setRuleAutomationLevel('FULL_AUTO');
+            expect(mockState.gameState?.ruleAutomationLevel).toBe('FULL_AUTO');
+            expect(mockSync).toHaveBeenCalled();
+        });
+
+        it('非说书人无法设置规则自动化级别', () => {
+            if (mockState.user) {
+                mockState.user.isStoryteller = false;
+            }
+            slice.setRuleAutomationLevel('MANUAL');
+            expect(mockState.gameState?.ruleAutomationLevel).toBeUndefined();
+            expect(mockSync).not.toHaveBeenCalled();
         });
     });
 

@@ -29,6 +29,8 @@ export const createFeaturesSlice: StoreSlice<Pick<GameSlice, 'toggleCandlelight'
     },
 
     setRuleAutomationLevel: (level: RuleAutomationLevel) => {
+        const { user } = get();
+        if (!user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.ruleAutomationLevel = level;

@@ -239,11 +239,14 @@ export const Lobby: React.FC = () => {
                     <div className="mt-12 opacity-40">
                         <p className="text-xs font-serif italic text-stone-500">{t('lobby.demonAmongUs')}</p>
                     </div>
+
+                    <div className="mt-4 text-[10px] text-stone-500/80 leading-relaxed">
+                        {t('lobby.disclaimer')}
+                    </div>
                 </div>
             </motion.div>
         </div>
     );
 };
-
 
 

@@ -1,6 +1,6 @@
 import { StoreSlice, GameSlice } from '../../types';
-import { supabase, setIsReceivingUpdate, setRealtimeChannel } from '../connection';
-import { addSystemMessage, applyGameStateDefaults } from '../../utils';
+import { supabase, setIsReceivingUpdate, setRealtimeChannel, ensureAuthenticatedUser, setupMessageSubscription } from '../connection';
+import { addSystemMessage, applyGameStateDefaults, splitGameState } from '../../utils';
 import { getInitialState } from './utils';
 import { REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
 import type { GameState } from '@/types';
@@ -21,7 +21,9 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
 
         const code = generateRoomCode();
         const newState = getInitialState(code, seatCount);
-        const updatedUser = { ...user, roomId: code };
+        const authUser = await ensureAuthenticatedUser();
+        const userId = authUser?.id ?? user.id;
+        const updatedUser = { ...user, id: userId, roomId: code };
 
         set({ user: updatedUser, gameState: newState, isOffline: false });
         addSystemMessage(newState, `${user.name} 创建了房间 ${code}`);
@@ -29,11 +31,47 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
         localStorage.setItem('grimoire_last_room', code);
 
         try {
-            const { error } = await supabase
+            const { publicState, secretState } = splitGameState(newState);
+
+            const { data, error } = await supabase
                 .from('game_rooms')
-                .insert({ room_code: code, data: newState });
+                .insert({ room_code: code, data: publicState, storyteller_id: updatedUser.id })
+                .select('id')
+                .single();
 
             if (error) throw error;
+            if (data?.id) {
+                set({ roomDbId: data.id });
+                void supabase
+                    .from('room_members')
+                    .upsert({
+                        room_id: data.id,
+                        user_id: updatedUser.id,
+                        display_name: updatedUser.name,
+                        role: 'storyteller'
+                    }, { onConflict: 'room_id,user_id' });
+
+                void supabase
+                    .from('game_secrets')
+                    .upsert({ room_code: code, data: secretState, updated_at: new Date() }, { onConflict: 'room_code' });
+
+                const systemMessages = newState.messages.filter(msg => msg.type === 'system');
+                if (systemMessages.length > 0) {
+                    void supabase
+                        .from('game_messages')
+                        .insert(systemMessages.map(msg => ({
+                            room_id: data.id,
+                            sender_seat_id: null,
+                            sender_name: msg.senderName ?? '系统',
+                            content: msg.content,
+                            recipient_seat_id: null,
+                            message_type: 'system',
+                            metadata: { client_id: msg.id }
+                        })));
+                }
+
+                void setupMessageSubscription(code, data.id, set as unknown as (partial: unknown) => void, get);
+            }
 
             const channel = supabase.channel(`room:${code}`)
                 .on(
@@ -135,20 +173,18 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
     },
 
     toggleReady: () => {
-        const { user } = get();
-        if (!user) return;
-        set((state) => {
-            if (state.gameState) {
-                const seat = state.gameState.seats.find(s => s.userId === user.id);
-                if (seat) {
-                    seat.isReady = !seat.isReady;
-                }
-            }
+        const { user, gameState } = get();
+        if (!user || !gameState) return;
+        const seat = gameState.seats.find(s => s.userId === user.id);
+        if (!seat) return;
+        void supabase.rpc('toggle_ready', {
+            p_room_code: gameState.roomId,
+            p_seat_id: seat.id
         });
-        get().sync();
     },
 
     addSeat: () => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 if (state.gameState.seats.length >= 20) return;
@@ -176,6 +212,7 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
     },
 
     removeSeat: () => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState && state.gameState.seats.length > 5) {
                 state.gameState.seats.pop();
@@ -185,6 +222,7 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
     },
 
     addVirtualPlayer: () => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const emptySeat = state.gameState.seats.find(s => !s.userId && !s.isVirtual);
@@ -199,6 +237,7 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
     },
 
     removeVirtualPlayer: (seatId) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const seat = state.gameState.seats.find(s => s.id === seatId);

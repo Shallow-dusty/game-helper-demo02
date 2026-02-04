@@ -2,6 +2,7 @@ import { StoreSlice, GameSlice } from '../../types';
 
 export const createGameNotesSlice: StoreSlice<Pick<GameSlice, 'addStorytellerNote' | 'addAutoNote' | 'updateStorytellerNote' | 'deleteStorytellerNote' | 'toggleNoteFloating' | 'updateNotePosition' | 'setNoteColor' | 'toggleNoteCollapse' | 'sendInfoCard'>> = (set, get) => ({
     addStorytellerNote: (content) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.storytellerNotes.push({
@@ -16,6 +17,7 @@ export const createGameNotesSlice: StoreSlice<Pick<GameSlice, 'addStorytellerNot
     },
 
     addAutoNote: (content, color) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.storytellerNotes.push({
@@ -31,6 +33,7 @@ export const createGameNotesSlice: StoreSlice<Pick<GameSlice, 'addStorytellerNot
     },
 
     updateStorytellerNote: (id, content) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const note = state.gameState.storytellerNotes.find(n => n.id === id);
@@ -41,6 +44,7 @@ export const createGameNotesSlice: StoreSlice<Pick<GameSlice, 'addStorytellerNot
     },
 
     deleteStorytellerNote: (id) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.storytellerNotes = state.gameState.storytellerNotes.filter(n => n.id !== id);
@@ -50,6 +54,7 @@ export const createGameNotesSlice: StoreSlice<Pick<GameSlice, 'addStorytellerNot
     },
 
     toggleNoteFloating: (id) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const note = state.gameState.storytellerNotes.find(n => n.id === id);
@@ -60,6 +65,7 @@ export const createGameNotesSlice: StoreSlice<Pick<GameSlice, 'addStorytellerNot
     },
 
     updateNotePosition: (id, x, y) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const note = state.gameState.storytellerNotes.find(n => n.id === id);
@@ -70,6 +76,7 @@ export const createGameNotesSlice: StoreSlice<Pick<GameSlice, 'addStorytellerNot
     },
 
     setNoteColor: (id, color) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const note = state.gameState.storytellerNotes.find(n => n.id === id);
@@ -80,6 +87,7 @@ export const createGameNotesSlice: StoreSlice<Pick<GameSlice, 'addStorytellerNot
     },
 
     toggleNoteCollapse: (id) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const note = state.gameState.storytellerNotes.find(n => n.id === id);
@@ -90,6 +98,7 @@ export const createGameNotesSlice: StoreSlice<Pick<GameSlice, 'addStorytellerNot
     },
 
     sendInfoCard: (_card, _recipientId) => {
+        if (!get().user?.isStoryteller) return;
         // Placeholder
     }
 });

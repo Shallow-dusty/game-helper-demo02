@@ -104,18 +104,26 @@ vi.mock('react-i18next', () => ({
 // Mock Supabase client
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({
+    auth: {
+      getSession: vi.fn(async () => ({ data: { session: { user: { id: 'auth-user' } } } })),
+      signInAnonymously: vi.fn(async () => ({ data: { user: { id: 'auth-user' } }, error: null }))
+    },
     channel: vi.fn(() => ({
       on: vi.fn().mockReturnThis(),
       subscribe: vi.fn(),
       unsubscribe: vi.fn(),
       send: vi.fn(),
     })),
+    removeChannel: vi.fn(),
     from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),
       insert: vi.fn().mockReturnThis(),
+      upsert: vi.fn().mockReturnThis(),
       update: vi.fn().mockReturnThis(),
       delete: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
       single: vi.fn(),
     })),
     rpc: vi.fn(),

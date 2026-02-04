@@ -90,7 +90,10 @@ export interface NominationRow {
  * 私密状态（ST 可见）
  */
 export interface SecretState {
-  seats: Pick<Seat, 'id' | 'realRoleId' | 'seenRoleId'>[];
+  seats: Pick<Seat, 'id' | 'realRoleId' | 'seenRoleId' | 'reminders' | 'statuses' | 'hasUsedAbility'>[];
+  storytellerNotes?: GameState['storytellerNotes'];
+  nightActionRequests?: GameState['nightActionRequests'];
+  aiMessages?: GameState['aiMessages'];
 }
 
 /**

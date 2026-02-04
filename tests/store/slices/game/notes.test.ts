@@ -12,6 +12,7 @@ import type { GameState, StorytellerNote } from '../../../../src/types';
 interface MockState {
   gameState: Partial<GameState> | null;
   sync: () => void;
+  user?: { id: string; name: string; isStoryteller: boolean };
 }
 
 // Mock store state
@@ -20,7 +21,8 @@ const createMockStore = () => {
     gameState: {
       storytellerNotes: [] as StorytellerNote[]
     },
-    sync: vi.fn()
+    sync: vi.fn(),
+    user: { id: 'storyteller', name: 'Storyteller', isStoryteller: true }
   };
 
   const set = vi.fn((fn: (state: MockState) => void) => {

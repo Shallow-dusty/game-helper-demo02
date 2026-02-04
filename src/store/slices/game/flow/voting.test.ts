@@ -65,6 +65,7 @@ function createTestSeat(id: number, overrides: Partial<Seat> = {}): Seat {
 // Create mock store state
 function createMockState() {
     return {
+        roomDbId: 1,
         gameState: {
             seats: [
                 createTestSeat(0),
@@ -96,7 +97,7 @@ function createMockState() {
             id: 'user0',
             roomId: 'ROOM123',
             name: 'Test User',
-            isStoryteller: false
+            isStoryteller: true
         }
     };
 }
@@ -588,7 +589,7 @@ describe('createVotingSlice', () => {
             slice.closeVote();
 
             expect(updateNominationResult).toHaveBeenCalledWith(
-                'ROOM123',
+                1,
                 1, // dayCount
                 1, // nomineeSeatId
                 true, // hasVotes (votes.length > 0)

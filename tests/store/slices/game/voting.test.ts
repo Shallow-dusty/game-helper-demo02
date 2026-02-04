@@ -52,7 +52,8 @@ function createTestSeat(overrides: Partial<Seat> = {}): Seat {
 const createMockStore = () => {
   type MockStoreState = {
     gameState: Partial<GameState> | null;
-    user: { id: string; name: string; roomId: string } | null;
+    user: { id: string; name: string; roomId: string; isStoryteller: boolean } | null;
+    roomDbId?: number | null;
     sync: () => void;
   };
 
@@ -73,7 +74,8 @@ const createMockStore = () => {
       messages: [],
       roundInfo: { dayCount: 1, nightCount: 1, nominationCount: 0, totalRounds: 1 }
     } as Partial<GameState>,
-    user: { id: 'user1', name: 'Player1', roomId: 'room123' },
+    user: { id: 'user1', name: 'Player1', roomId: 'room123', isStoryteller: true },
+    roomDbId: 1,
     sync: vi.fn()
   };
 
@@ -393,8 +395,8 @@ describe('createVotingSlice', () => {
 
       votingSlice.closeVote();
 
-      // Should still close vote, just not log to database
-      expect(mockStore.state.gameState?.voting).toBe(null);
+      // Non-storyteller should not modify voting state
+      expect(mockStore.state.gameState?.voting).not.toBe(null);
     });
 
     it('should record survived result with insufficient votes', () => {

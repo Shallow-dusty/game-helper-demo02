@@ -33,7 +33,7 @@ export type GamePhase = 'DAY' | 'NIGHT' | 'DUSK' | 'DAWN';
 export type Team = 'GOOD' | 'EVIL' | 'NEUTRAL';
 
 export interface InteractionLogInput {
-    roomId: string;  // Room code (e.g., "1234")
+    roomId: number;  // Database room ID
     gameDay: number;
     phase: GamePhase;
     actorSeat?: number;
@@ -115,7 +115,7 @@ export async function logInteraction(input: InteractionLogInput): Promise<string
  * Log a night action
  */
 export async function logNightAction(
-    roomId: string,
+    roomId: number,
     gameDay: number,
     actorSeat: number,
     actorRole: string,
@@ -144,7 +144,7 @@ export async function logNightAction(
  * Log a death event
  */
 export async function logDeath(
-    roomId: string,
+    roomId: number,
     gameDay: number,
     phase: GamePhase,
     targetSeat: number,
@@ -168,7 +168,7 @@ export async function logDeath(
  * Log an execution
  */
 export async function logExecution(
-    roomId: string,
+    roomId: number,
     gameDay: number,
     targetSeat: number,
     targetRole: string,
@@ -190,7 +190,7 @@ export async function logExecution(
  * Log a chain reaction event
  */
 export async function logChainReaction(
-    roomId: string,
+    roomId: number,
     gameDay: number,
     phase: GamePhase,
     actorSeat: number,
@@ -217,7 +217,7 @@ export async function logChainReaction(
  * Get all interactions for a game
  */
 export async function getGameInteractions(
-    roomId: string,
+    roomId: number,
     gameDay?: number
 ): Promise<InteractionLog[]> {
     try {
@@ -246,7 +246,7 @@ export async function getGameInteractions(
  * Check if a player can nominate today
  */
 export async function checkNominationEligibility(
-    roomId: string,
+    roomId: number,
     gameDay: number,
     nominatorSeat: number
 ): Promise<NominationEligibility> {
@@ -273,7 +273,7 @@ export async function checkNominationEligibility(
  * Record a new nomination
  */
 export async function recordNomination(
-    roomId: string,
+    roomId: number,
     gameDay: number,
     nominatorSeat: number,
     nomineeSeat: number
@@ -302,7 +302,7 @@ export async function recordNomination(
  * Update nomination result after voting
  */
 export async function updateNominationResult(
-    roomId: string,
+    roomId: number,
     gameDay: number,
     nomineeSeat: number,
     wasSeconded: boolean,
@@ -335,7 +335,7 @@ export async function updateNominationResult(
  * Get nomination history for a game
  */
 export async function getNominationHistory(
-    roomId: string,
+    roomId: number,
     gameDay?: number
 ): Promise<NominationRecord[]> {
     try {

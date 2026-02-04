@@ -28,24 +28,27 @@ export const createGameNightSlice: StoreSlice<Pick<GameSlice, 'performNightActio
 
             if (error) throw error;
 
-            // v2.0: Log night action to database
-            const roleData = ROLES[action.roleId];
-            const targetSeatId = payload?.seatId;
-            const targetSeat = targetSeatId !== undefined
-                ? gameState.seats.find(s => s.id === targetSeatId)
-                : undefined;
+            // v2.0: Log night action to database (storyteller only)
+            const roomDbId = get().roomDbId;
+            if (user.isStoryteller && roomDbId) {
+                const roleData = ROLES[action.roleId];
+                const targetSeatId = payload?.seatId;
+                const targetSeat = targetSeatId !== undefined
+                    ? gameState.seats.find(s => s.id === targetSeatId)
+                    : undefined;
 
-            await logNightAction(
-                user.roomId,
-                gameState.roundInfo.nightCount,
-                seat.id,
-                action.roleId,
-                getTeamFromRoleType(roleData?.team),
-                targetSeatId,
-                targetSeat?.seenRoleId ?? undefined,
-                'SUCCESS',
-                payload as Record<string, unknown> | undefined
-            );
+                await logNightAction(
+                    roomDbId,
+                    gameState.roundInfo.nightCount,
+                    seat.id,
+                    action.roleId,
+                    getTeamFromRoleType(roleData?.team),
+                    targetSeatId,
+                    targetSeat?.seenRoleId ?? undefined,
+                    'SUCCESS',
+                    payload as Record<string, unknown> | undefined
+                );
+            }
 
             addSystemMessage(gameState, `已提交夜间行动`);
 
@@ -57,6 +60,7 @@ export const createGameNightSlice: StoreSlice<Pick<GameSlice, 'performNightActio
     },
 
     resolveNightAction: (requestId, result) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const req = state.gameState.nightActionRequests.find(r => r.id === requestId);

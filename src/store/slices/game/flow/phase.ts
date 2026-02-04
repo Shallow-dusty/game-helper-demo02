@@ -75,17 +75,17 @@ const resolveDailyExecution = (state: Draft<AppState>): void => {
         addSystemMessage(gameState, `游戏结束！${gameOver.winner === 'GOOD' ? '好人' : '邪恶'} 获胜 - ${gameOver.reason}`);
     }
 
-    const user = state.user;
-    if (user?.roomId) {
+    const roomDbId = state.roomDbId;
+    if (roomDbId) {
         logExecution(
-            user.roomId,
+            roomDbId,
             gameState.roundInfo.dayCount,
             nomineeSeat.id,
             nomineeSeat.seenRoleId ?? 'unknown',
             winningVote.voteCount
         ).catch(console.error);
         updateNominationResult(
-            user.roomId,
+            roomDbId,
             gameState.roundInfo.dayCount,
             nomineeSeat.id,
             winningVote.voteCount > 0,
@@ -137,6 +137,7 @@ export const applyPhaseChange = (state: Draft<AppState>, phase: GamePhase): void
 
 export const createPhaseSlice: StoreSlice<Pick<GameSlice, 'setPhase'>> = (set, get) => ({
     setPhase: (phase) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             applyPhaseChange(state, phase);
         });

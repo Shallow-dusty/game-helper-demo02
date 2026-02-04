@@ -2,6 +2,7 @@ import { StoreSlice, GameSlice } from '../../types';
 
 export const createGameSeatSwapSlice: StoreSlice<Pick<GameSlice, 'swapSeats' | 'requestSeatSwap' | 'respondToSwapRequest' | 'forceLeaveSeat'>> = (set, get) => ({
     swapSeats: (seatId1, seatId2) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const s1 = state.gameState.seats.find(s => s.id === seatId1);
@@ -22,6 +23,7 @@ export const createGameSeatSwapSlice: StoreSlice<Pick<GameSlice, 'swapSeats' | '
     },
 
     requestSeatSwap: (toSeatId) => {
+        if (!get().user?.isStoryteller) return;
         const { user } = get();
         if (!user) return;
         set((state) => {
@@ -45,6 +47,7 @@ export const createGameSeatSwapSlice: StoreSlice<Pick<GameSlice, 'swapSeats' | '
     },
 
     respondToSwapRequest: (requestId, accept) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const reqIndex = state.gameState.swapRequests.findIndex(r => r.id === requestId);
@@ -61,6 +64,7 @@ export const createGameSeatSwapSlice: StoreSlice<Pick<GameSlice, 'swapSeats' | '
     },
 
     forceLeaveSeat: (seatId) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const seat = state.gameState.seats.find(s => s.id === seatId);

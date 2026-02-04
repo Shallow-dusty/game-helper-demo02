@@ -36,13 +36,14 @@ export function useNomination(): UseNominationReturn {
     const user = useStore((s) => s.user);
     const gameState = useStore((s) => s.gameState);
     const startVote = useStore((s) => s.startVote);
+    const roomDbId = useStore((s) => s.roomDbId);
     
     const [canNominate, setCanNominate] = useState(true);
     const [isCheckingEligibility, setIsCheckingEligibility] = useState(false);
     const [previousNominee, setPreviousNominee] = useState<number | null>(null);
     const [todayNominations, setTodayNominations] = useState<NominationRecord[]>([]);
     
-    const roomId = user?.roomId;
+    const roomId = roomDbId ?? null;
     const gameDay = gameState?.roundInfo?.dayCount ?? 1;
     const ruleAutomationLevel = gameState?.ruleAutomationLevel ?? 'GUIDED';
     const shouldEnforceRules = ruleAutomationLevel === 'FULL_AUTO';

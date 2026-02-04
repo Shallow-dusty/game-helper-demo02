@@ -114,7 +114,7 @@ export const Lobby: React.FC = () => {
 
         if (name.trim()) {
             void fadeOutAudio().then(() => {
-                login(name, isST);
+                void login(name, isST);
             });
         }
     };
@@ -244,7 +244,6 @@ export const Lobby: React.FC = () => {
         </div>
     );
 };
-
 
 
 

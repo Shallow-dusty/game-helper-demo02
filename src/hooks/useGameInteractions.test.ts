@@ -9,6 +9,7 @@ vi.mock('../store', () => ({
     useStore: vi.fn((selector: (state: unknown) => unknown) => {
         const state = {
             user: { id: 'test-user', roomId: '123' },
+            roomDbId: 123,
             gameState: {
                 seats: [{ id: 0, userId: 'test-user' }],
                 roundInfo: { dayCount: 1 },
@@ -27,7 +28,7 @@ vi.mock('../lib/supabaseService', () => ({
 const mockInteractions: InteractionLog[] = [
     {
         id: 'int-1',
-        roomId: '123',
+        roomId: 123,
         gameDay: 1,
         phase: 'DAY' as ServiceGamePhase,
         actionType: 'VOTE',
@@ -38,7 +39,7 @@ const mockInteractions: InteractionLog[] = [
     },
     {
         id: 'int-2',
-        roomId: '123',
+        roomId: 123,
         gameDay: 1,
         phase: 'NIGHT' as ServiceGamePhase,
         actionType: 'DEATH',
@@ -49,7 +50,7 @@ const mockInteractions: InteractionLog[] = [
     },
     {
         id: 'int-3',
-        roomId: '123',
+        roomId: 123,
         gameDay: 2,
         phase: 'DAY' as ServiceGamePhase,
         actionType: 'VOTE',
@@ -74,7 +75,7 @@ describe('useGameInteractions', () => {
                 expect(result.current.isLoading).toBe(false);
             });
             
-            expect(supabaseService.getGameInteractions).toHaveBeenCalledWith('123');
+            expect(supabaseService.getGameInteractions).toHaveBeenCalledWith(123);
             expect(result.current.interactions).toEqual(mockInteractions);
         });
 
@@ -105,7 +106,7 @@ describe('useGameInteractions', () => {
             
             const data = await result.current.fetchByDay(1);
             
-            expect(supabaseService.getGameInteractions).toHaveBeenCalledWith('123', 1);
+            expect(supabaseService.getGameInteractions).toHaveBeenCalledWith(123, 1);
             expect(data).toEqual(dayInteractions);
         });
 
@@ -135,7 +136,7 @@ describe('useGameInteractions', () => {
             vi.clearAllMocks();
             const newInteractions: InteractionLog[] = [...mockInteractions, {
                 id: 'int-4',
-                roomId: '123',
+                roomId: 123,
                 gameDay: 2,
                 phase: 'NIGHT' as ServiceGamePhase,
                 actionType: 'NIGHT_ACTION',

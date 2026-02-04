@@ -7,6 +7,7 @@ import { generateShortId, shuffle } from '@/lib/random';
 
 export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'toggleDead' | 'toggleAbilityUsed' | 'toggleStatus' | 'addReminder' | 'removeReminder' | 'assignRoles' | 'resetRoles' | 'distributeRoles' | 'hideRoles' | 'applyStrategy'>> = (set, get) => ({
     assignRole: (seatId, roleId) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const seat = state.gameState.seats.find(s => s.id === seatId);
@@ -30,6 +31,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
     },
 
     toggleDead: (seatId) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const seat = state.gameState.seats.find(s => s.id === seatId);
@@ -72,6 +74,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
     },
 
     toggleAbilityUsed: (seatId) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const seat = state.gameState.seats.find(s => s.id === seatId);
@@ -84,6 +87,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
     },
 
     toggleStatus: (seatId, status) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const seat = state.gameState.seats.find(s => s.id === seatId);
@@ -100,6 +104,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
     },
 
     addReminder: (seatId, text, icon, color) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 const seat = state.gameState.seats.find(s => s.id === seatId);
@@ -119,6 +124,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
     },
 
     removeReminder: (id) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.seats.forEach(seat => {
@@ -130,6 +136,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
     },
 
     assignRoles: () => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 // Use seat count instead of player count
@@ -160,6 +167,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
     },
 
     resetRoles: () => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.seats.forEach(s => {
@@ -178,6 +186,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
     },
 
     distributeRoles: () => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.rolesRevealed = true;
@@ -189,6 +198,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
     },
 
     hideRoles: () => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.rolesRevealed = false;
@@ -198,6 +208,7 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
     },
 
     applyStrategy: (strategyName, roleIds) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.seats.forEach(s => {

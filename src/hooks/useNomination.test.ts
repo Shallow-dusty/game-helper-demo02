@@ -22,6 +22,7 @@ vi.mock('../store', () => ({
     useStore: vi.fn((selector: (state: unknown) => unknown) => {
         const state = {
             user: mockUser,
+            roomDbId: 123,
             gameState: mockGameState,
             startVote: mockStartVote
         };

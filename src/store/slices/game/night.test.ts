@@ -36,7 +36,7 @@ describe('createGameNightSlice', () => {
             nightActionRequests: { id: string; status: string; result?: unknown }[];
             messages: unknown[];
         } | null;
-        user: { id: string; roomId: number } | null;
+        user: { id: string; roomId: number; isStoryteller: boolean } | null;
     };
 
     let mockState: MockState;
@@ -63,7 +63,7 @@ describe('createGameNightSlice', () => {
                 ],
                 messages: []
             },
-            user: { id: 'user1', roomId: 123 }
+            user: { id: 'user1', roomId: 123, isStoryteller: true }
         };
         
         mockSet = (updater) => {
@@ -154,7 +154,7 @@ describe('createGameNightSlice', () => {
         });
 
         it('用户座位不存在时不应提交', async () => {
-            mockState.user = { id: 'unknown-user', roomId: 123 };
+            mockState.user = { id: 'unknown-user', roomId: 123, isStoryteller: false };
             
             const slice = createGameNightSlice(
                 mockSet as unknown as Parameters<typeof createGameNightSlice>[0],

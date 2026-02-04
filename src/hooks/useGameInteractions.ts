@@ -32,12 +32,13 @@ export interface UseGameInteractionsReturn {
 export function useGameInteractions(): UseGameInteractionsReturn {
     const user = useStore((s) => s.user);
     const gameState = useStore((s) => s.gameState);
+    const roomDbId = useStore((s) => s.roomDbId);
     
     const [interactions, setInteractions] = useState<InteractionLog[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     
-    const roomId = user?.roomId;
+    const roomId = roomDbId ?? null;
     
     // Fetch all interactions on mount and when room changes
     useEffect(() => {

@@ -42,8 +42,8 @@ export interface GameSlice {
     
     joinSeat: (seatId: number) => Promise<void>;
     leaveSeat: () => Promise<void>;
-    sendMessage: (content: string, recipientId: string | null) => void;
-    forwardMessage: (messageId: string, targetRecipientId: string | null) => void;
+    sendMessage: (content: string, recipientId: string | null) => Promise<void>;
+    forwardMessage: (messageId: string, targetRecipientId: string | null) => Promise<void>;
     setScript: (scriptId: string) => void;
     setPhase: (phase: GamePhase) => void;
     assignRole: (seatId: number, roleId: string | null) => void;
@@ -121,6 +121,7 @@ export interface GameSlice {
 
 export interface AppState extends GameSlice, PhaseMachineSlice {
     user: User | null;
+    roomDbId: number | null;
     isAiThinking: boolean;
     isOffline: boolean;
     connectionStatus: ConnectionStatus;
@@ -133,7 +134,7 @@ export interface AppState extends GameSlice, PhaseMachineSlice {
     isReportOpen: boolean;       // v2.0: 战报模态框
 
 
-    login: (name: string, isStoryteller: boolean) => void;
+    login: (name: string, isStoryteller: boolean) => Promise<void>;
     joinGame: (roomCode: string) => Promise<void>;
     spectateGame: (roomCode: string) => Promise<void>;
     leaveGame: () => void;

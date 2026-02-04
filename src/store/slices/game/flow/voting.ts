@@ -25,6 +25,7 @@ const getSeatRoleId = (seat: { realRoleId?: string | null; seenRoleId?: string |
 export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote'>> = (set, get) => ({
     // Bug#10 fix: Accept nominatorId to properly record in vote history
     startVote: (nomineeId, nominatorId) => {
+        if (!get().user?.isStoryteller) return;
         set((state: Draft<AppState>) => {
             if (state.gameState) {
                 const automationLevel = state.gameState.ruleAutomationLevel ?? 'GUIDED';
@@ -136,6 +137,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
     },
 
     nextClockHand: () => {
+        if (!get().user?.isStoryteller) return;
         set((state: Draft<AppState>) => {
             if (state.gameState?.voting) {
                 const current = state.gameState.voting.clockHandSeatId;
@@ -233,6 +235,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
 
     closeVote: () => {
         const { user } = get();
+        if (!user?.isStoryteller) return;
 
         set((state: Draft<AppState>) => {
             if (!state.gameState?.voting) return;
@@ -302,9 +305,9 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 }
             }
 
-            if (user?.roomId && nomineeSeatId !== null) {
+            if (state.roomDbId && nomineeSeatId !== null) {
                 updateNominationResult(
-                    user.roomId,
+                    state.roomDbId,
                     state.gameState.roundInfo.dayCount,
                     nomineeSeatId,
                     effectiveVotes.length > 0,

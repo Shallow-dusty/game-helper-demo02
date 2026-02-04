@@ -41,7 +41,7 @@ const createMockStore = () => {
       ],
       swapRequests: [] as SwapRequest[]
     } as Partial<GameState>,
-    user: { id: 'user1', name: 'Player1', roomId: 'room123', isStoryteller: false, isSeated: true },
+    user: { id: 'user1', name: 'Player1', roomId: 'room123', isStoryteller: true, isSeated: true },
     sync: vi.fn()
   };
 

@@ -65,6 +65,22 @@ interface NightActionRequest {
     timestamp: number;
 }
 
+interface SecretSeat {
+    id: number;
+    realRoleId?: string | null;
+    seenRoleId?: string | null;
+    reminders?: Reminder[];
+    statuses?: SeatStatus[];
+    hasUsedAbility?: boolean;
+}
+
+interface SecretState {
+    seats?: SecretSeat[];
+    storytellerNotes?: unknown[];
+    nightActionRequests?: NightActionRequest[];
+    aiMessages?: ChatMessage[];
+}
+
 interface GameState {
     roomId: string;
     seats: Seat[];
@@ -148,6 +164,41 @@ function filterGameStateForUser(
     };
 }
 
+function mergeSecretState(gameState: GameState, secretState: SecretState | null | undefined): GameState {
+    if (!secretState) return gameState;
+
+    const mergedState = JSON.parse(JSON.stringify(gameState)) as GameState;
+
+    if (secretState.seats && Array.isArray(secretState.seats)) {
+        secretState.seats.forEach((secretSeat) => {
+            const targetSeat = mergedState.seats.find(s => s.id === secretSeat.id);
+            if (targetSeat) {
+                targetSeat.realRoleId = secretSeat.realRoleId ?? null;
+                targetSeat.seenRoleId = secretSeat.seenRoleId ?? null;
+                // Backward compatibility
+                targetSeat.roleId = secretSeat.seenRoleId ?? null;
+                targetSeat.reminders = secretSeat.reminders ?? [];
+                targetSeat.statuses = secretSeat.statuses ?? [];
+                targetSeat.hasUsedAbility = secretSeat.hasUsedAbility ?? false;
+            }
+        });
+    }
+
+    if (secretState.storytellerNotes) {
+        mergedState.storytellerNotes = secretState.storytellerNotes;
+    }
+
+    if (secretState.nightActionRequests) {
+        mergedState.nightActionRequests = secretState.nightActionRequests;
+    }
+
+    if (secretState.aiMessages) {
+        mergedState.aiMessages = secretState.aiMessages;
+    }
+
+    return mergedState;
+}
+
 // --- Main Handler ---
 
 serve(async (req: Request) => {
@@ -156,63 +207,88 @@ serve(async (req: Request) => {
     }
 
     try {
-        // 1. Verify Authorization
         const authHeader = req.headers.get('Authorization');
-        if (!authHeader) {
-            throw new Error('Missing Authorization header');
+        if (!authHeader) throw new Error('Missing Authorization header');
+
+        const payload = await req.json().catch(() => ({}));
+        const roomCode = typeof payload?.roomCode === 'string' ? payload.roomCode.trim() : '';
+        if (!roomCode) throw new Error('Missing roomCode');
+
+        const supabaseUrl = Deno.env.get('SUPABASE_URL');
+        const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+        if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+            throw new Error('Missing Supabase configuration');
         }
 
-        // 2. Parse Request Body
-        const { roomCode, userId, isStoryteller } = await req.json();
+        const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+            auth: { persistSession: false, autoRefreshToken: false },
+            global: { headers: { Authorization: authHeader } },
+        });
 
-        if (!roomCode) throw new Error('Missing roomCode');
-        if (!userId) throw new Error('Missing userId');
+        const { data: authData, error: authError } = await authClient.auth.getUser();
+        if (authError || !authData?.user) throw new Error('Unauthorized');
 
-        // 3. Initialize Supabase Client
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const currentUserId = authData.user.id;
 
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const serviceClient = createClient(supabaseUrl, supabaseServiceKey, {
+            auth: { persistSession: false, autoRefreshToken: false },
+        });
 
-        // 4. Fetch Public Game State
-        const { data: roomData, error: roomError } = await supabase
+        const { data: roomData, error: roomError } = await serviceClient
             .from('game_rooms')
-            .select('data')
+            .select('id, room_code, storyteller_id, data')
             .eq('room_code', roomCode)
             .single();
 
-        if (roomError || !roomData) {
-            throw new Error('Room not found');
+        if (roomError || !roomData) throw new Error('Room not found');
+
+        const isStoryteller = roomData.storyteller_id === currentUserId;
+
+        let memberSeenRoleId: string | null = null;
+        if (!isStoryteller) {
+            const { data: memberData, error: memberError } = await serviceClient
+                .from('room_members')
+                .select('role, seen_role_id')
+                .eq('room_id', roomData.id)
+                .eq('user_id', currentUserId)
+                .maybeSingle();
+
+            if (memberError) throw new Error('Failed to verify room membership');
+            if (!memberData) throw new Error('Not a room member');
+
+            memberSeenRoleId = (memberData as { seen_role_id?: string | null } | null)?.seen_role_id ?? null;
         }
 
         let gameState = roomData.data as GameState;
+        if (!gameState.seats) gameState.seats = [];
+        if (!gameState.messages) gameState.messages = [];
+        if (!gameState.nightActionRequests) gameState.nightActionRequests = [];
 
-        // 5. If Storyteller, also fetch secrets and merge
-        if (isStoryteller) {
-            const { data: secretData } = await supabase
-                .from('game_secrets')
-                .select('data')
-                .eq('room_code', roomCode)
-                .single();
-
-            if (secretData?.data) {
-                // Merge secrets into game state
-                const secretState = secretData.data as { seats?: { id: number; realRoleId: string | null }[] };
-                if (secretState.seats) {
-                    secretState.seats.forEach(secretSeat => {
-                        const targetSeat = gameState.seats.find(s => s.id === secretSeat.id);
-                        if (targetSeat) {
-                            targetSeat.realRoleId = secretSeat.realRoleId ?? null;
-                        }
-                    });
-                }
+        if (memberSeenRoleId) {
+            const userSeat = gameState.seats.find(seat => seat.userId === currentUserId);
+            if (userSeat) {
+                userSeat.seenRoleId = memberSeenRoleId;
+                // Backward compatibility
+                userSeat.roleId = memberSeenRoleId;
             }
         }
 
-        // 6. Filter for User
-        const filteredState = filterGameStateForUser(gameState, userId, isStoryteller);
+        if (isStoryteller) {
+            const { data: secretData, error: secretError } = await serviceClient
+                .from('game_secrets')
+                .select('data')
+                .eq('room_code', roomCode)
+                .maybeSingle();
 
-        // 7. Return filtered state
+            if (!secretError && secretData?.data) {
+                gameState = mergeSecretState(gameState, secretData.data as SecretState);
+            }
+        }
+
+        const filteredState = filterGameStateForUser(gameState, currentUserId, isStoryteller);
+
         return new Response(JSON.stringify({ gameState: filteredState }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200,

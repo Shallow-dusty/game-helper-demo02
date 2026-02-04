@@ -181,7 +181,8 @@ describe('mergeGameState 进阶测试', () => {
     // Verify data integrity
     expect(merged.seats[0]?.realRoleId).toBe('drunk');
     expect(merged.storytellerNotes).toHaveLength(2);
-    expect(merged.messages).toHaveLength(1);
+    // Messages are synced via game_messages, not stored in game state
+    expect(merged.messages).toHaveLength(0);
     expect(merged.voteHistory).toHaveLength(1);
   });
 });

@@ -19,35 +19,67 @@ const mockChannel = {
   unsubscribe: vi.fn(),
 };
 
-const mockQueryBuilder = {
-  select: vi.fn(() => ({
-    eq: vi.fn(() => ({
-      single: vi.fn(() => ({
+const queryBuilders: Record<string, any> = {};
+const createQueryBuilder = (table: string) => {
+  if (queryBuilders[table]) return queryBuilders[table];
+  const builder: Record<string, any> = {};
+  builder.select = vi.fn(() => builder);
+  builder.insert = vi.fn(() => builder);
+  builder.update = vi.fn(() => builder);
+  builder.upsert = vi.fn(() => ({ error: null, data: null }));
+  builder.delete = vi.fn(() => builder);
+  builder.eq = vi.fn(() => builder);
+  builder.order = vi.fn(() => builder);
+  builder.limit = vi.fn(() => ({ data: [], error: null }));
+  builder.single = vi.fn(() => {
+    if (table === 'game_rooms') {
+      return {
         data: {
+          id: 1,
           data: {
             roomId: 'TEST123',
             seats: [],
             messages: [],
             phase: 'SETUP',
-            currentScriptId: 'tb'
+            currentScriptId: 'tb',
+            dailyNominations: [],
+            dailyExecutionCompleted: false,
+            voteHistory: [],
+            roundInfo: { dayCount: 0, nightCount: 0, nominationCount: 0, totalRounds: 0 },
+            gameOver: null
           } as Partial<GameState>
         },
         error: null
-      }))
-    }))
-  })) as ReturnType<typeof vi.fn>,
-  update: vi.fn(() => ({
-    eq: vi.fn(() => ({ error: null }))
-  })) as ReturnType<typeof vi.fn>,
-  upsert: vi.fn(() => ({ error: null })) as ReturnType<typeof vi.fn>,
-  insert: vi.fn(() => ({ data: null, error: null })) as ReturnType<typeof vi.fn>
+      };
+    }
+    if (table === 'room_members') {
+      return { data: { seen_role_id: null }, error: null };
+    }
+    if (table === 'game_secrets') {
+      return { data: { data: null }, error: null };
+    }
+    return { data: null, error: null };
+  });
+  builder.then = (resolve: (value: unknown) => void) => resolve({ data: null, error: null });
+  queryBuilders[table] = builder;
+  return builder;
 };
+
+const mockQueryBuilder = createQueryBuilder('game_rooms');
+const secretsQueryBuilder = createQueryBuilder('game_secrets');
+const roomMembersQueryBuilder = createQueryBuilder('room_members');
+const messagesQueryBuilder = createQueryBuilder('game_messages');
 
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({
-    from: vi.fn(() => mockQueryBuilder),
+    auth: {
+      getSession: vi.fn(async () => ({ data: { session: { user: { id: 'auth-user' } } } })),
+      signInAnonymously: vi.fn(async () => ({ data: { user: { id: 'auth-user' } }, error: null }))
+    },
+    from: vi.fn((table: string) => createQueryBuilder(table)),
     channel: vi.fn(() => mockChannel),
-    removeChannel: vi.fn()
+    removeChannel: vi.fn(),
+    rpc: vi.fn()
   })),
   REALTIME_SUBSCRIBE_STATES: {
     SUBSCRIBED: 'SUBSCRIBED',
@@ -143,7 +175,7 @@ describe('Connection Slice', () => {
   });
 
   describe('初始状态', () => {
-    it('should have correct initial state', () => {
+    it('should have correct initial state', async () => {
       const state = store.getState();
       expect(state.user).toBeNull();
       expect(state.isOffline).toBe(false);
@@ -152,8 +184,8 @@ describe('Connection Slice', () => {
   });
 
   describe('登录功能', () => {
-    it('should login user with storyteller role', () => {
-      store.getState().login('说书人', true);
+    it('should login user with storyteller role', async () => {
+      await store.getState().login('说书人', true);
       const state = store.getState();
 
       expect(state.user).not.toBeNull();
@@ -162,34 +194,34 @@ describe('Connection Slice', () => {
       expect(state.user?.roomId).toBeNull();
     });
 
-    it('should login user as player', () => {
-      store.getState().login('玩家1', false);
+    it('should login user as player', async () => {
+      await store.getState().login('玩家1', false);
       const state = store.getState();
 
       expect(state.user?.name).toBe('玩家1');
       expect(state.user?.isStoryteller).toBe(false);
     });
 
-    it('should generate unique user id', () => {
-      store.getState().login('User1', false);
+    it('should generate unique user id', async () => {
+      await store.getState().login('User1', false);
       const id1 = store.getState().user?.id;
 
       // Clear and login again
       store.setState({ user: null });
       localStorage.removeItem('grimoire_uid');
-      store.getState().login('User2', false);
+      await store.getState().login('User2', false);
       const id2 = store.getState().user?.id;
 
       expect(id1).toBeDefined();
       expect(id2).toBeDefined();
-      // New ID should be generated if localStorage was cleared
-      expect(id2).not.toBe(id1);
+      // Auth-backed IDs are stable across logins
+      expect(id2).toBe(id1);
     });
   });
 
   describe('加入游戏', () => {
     it('should join game and update connection status', async () => {
-      store.getState().login('Player', false);
+      await store.getState().login('Player', false);
       await store.getState().joinGame('TEST123');
 
       const state = store.getState();
@@ -198,7 +230,7 @@ describe('Connection Slice', () => {
     });
 
     it('should set connecting status during join', async () => {
-      store.getState().login('Player', false);
+      await store.getState().login('Player', false);
 
       const joinPromise = store.getState().joinGame('TEST123');
 
@@ -210,7 +242,7 @@ describe('Connection Slice', () => {
     });
 
     it('should subscribe to realtime channel', async () => {
-      store.getState().login('Player', false);
+      await store.getState().login('Player', false);
       await store.getState().joinGame('TEST123');
 
       expect(mockChannel.on).toHaveBeenCalled();
@@ -220,7 +252,7 @@ describe('Connection Slice', () => {
 
   describe('离开游戏', () => {
     it('should reset state when leaving game', async () => {
-      store.getState().login('Player', false);
+      await store.getState().login('Player', false);
       store.setState({
         gameState: createTestGameState(),
         connectionStatus: 'connected' as const
@@ -247,7 +279,7 @@ describe('Connection Slice', () => {
         ]
       });
 
-      store.getState().login('Test', false);
+      await store.getState().login('Test', false);
       store.setState({
         gameState,
         user: { id: 'test-user', name: 'Test', isStoryteller: false, roomId: 'TEST123', isSeated: true }
@@ -302,7 +334,7 @@ describe('Connection Slice', () => {
 
   describe('同步功能', () => {
     it('should call syncToCloud when sync is called', async () => {
-      store.getState().login('ST', true);
+      await store.getState().login('ST', true);
       store.setState({
         gameState: createTestGameState(),
         isOffline: false
@@ -318,7 +350,7 @@ describe('Connection Slice', () => {
     });
 
     it('should not sync when offline', async () => {
-      store.getState().login('ST', true);
+      await store.getState().login('ST', true);
       store.setState({
         gameState: createTestGameState(),
         isOffline: true
@@ -332,7 +364,7 @@ describe('Connection Slice', () => {
     });
 
     it('should not sync when no game state', async () => {
-      store.getState().login('Player', false);
+      await store.getState().login('Player', false);
       store.setState({ gameState: null });
 
       vi.clearAllMocks();
@@ -343,13 +375,13 @@ describe('Connection Slice', () => {
   });
 
   describe('内部辅助函数', () => {
-    it('should set receiving update flag', () => {
+    it('should set receiving update flag', async () => {
       store.getState()._setIsReceivingUpdate(true);
       // The flag is internal, but we can test that no error is thrown
       expect(() => store.getState()._setIsReceivingUpdate(false)).not.toThrow();
     });
 
-    it('should set realtime channel', () => {
+    it('should set realtime channel', async () => {
        
       const mockCh = { id: 'test-channel' } as any;
       store.getState()._setRealtimeChannel(mockCh);
@@ -385,7 +417,7 @@ describe('Connection Status Transitions', () => {
       return mockChannel;
     });
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
 
     expect(store.getState().connectionStatus).toBe('reconnecting');
@@ -397,7 +429,7 @@ describe('Connection Status Transitions', () => {
       return mockChannel;
     });
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
 
     expect(store.getState().connectionStatus).toBe('disconnected');
@@ -425,7 +457,7 @@ describe('Storyteller Secret Sync', () => {
   });
 
   it('should sync secrets when storyteller syncs', async () => {
-    store.getState().login('ST', true);
+    await store.getState().login('ST', true);
     store.setState({
       gameState: createTestGameState({
         storytellerNotes: [{ id: '1', content: 'Secret', timestamp: Date.now(), type: 'manual' }]
@@ -436,11 +468,11 @@ describe('Storyteller Secret Sync', () => {
     await store.getState().syncToCloud();
 
     // Should upsert to secrets table
-    expect(mockQueryBuilder.upsert).toHaveBeenCalled();
+    expect(secretsQueryBuilder.upsert).toHaveBeenCalled();
   });
 
   it('should not sync secrets when not storyteller', async () => {
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     store.setState({
       gameState: createTestGameState(),
       isOffline: false
@@ -449,9 +481,9 @@ describe('Storyteller Secret Sync', () => {
     vi.clearAllMocks();
     await store.getState().syncToCloud();
 
-    // Update public state but not upsert secrets
-    expect(mockQueryBuilder.update).toHaveBeenCalled();
-    expect(mockQueryBuilder.upsert).not.toHaveBeenCalled();
+    // Non-storyteller should not sync at all
+    expect(mockQueryBuilder.update).not.toHaveBeenCalled();
+    expect(secretsQueryBuilder.upsert).not.toHaveBeenCalled();
   });
 });
 
@@ -486,7 +518,7 @@ describe('joinGame Error Handling', () => {
       }))
     });
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     await store.getState().joinGame('INVALID');
 
     expect(store.getState().connectionStatus).toBe('disconnected');
@@ -503,7 +535,7 @@ describe('joinGame Error Handling', () => {
       }))
     });
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
 
     expect(store.getState().connectionStatus).toBe('disconnected');
@@ -520,7 +552,7 @@ describe('joinGame Error Handling', () => {
       }))
     });
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
 
     expect(store.getState().connectionStatus).toBe('disconnected');
@@ -548,7 +580,7 @@ describe('refreshFromCloud', () => {
   });
 
   it('should not refresh when no game state', async () => {
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     store.setState({ gameState: null });
 
     vi.clearAllMocks();
@@ -559,7 +591,7 @@ describe('refreshFromCloud', () => {
   });
 
   it('should refresh game state from cloud', async () => {
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     store.setState({
       gameState: createTestGameState({ roomId: 'TEST123' })
     });
@@ -582,7 +614,7 @@ describe('refreshFromCloud', () => {
   it('should handle refresh error gracefully', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     store.setState({
       gameState: createTestGameState({ roomId: 'TEST123' })
     });
@@ -605,35 +637,35 @@ describe('refreshFromCloud', () => {
   });
 
   it('should fetch and merge secrets for storyteller', async () => {
-    store.getState().login('ST', true);
+    await store.getState().login('ST', true);
     store.setState({
       gameState: createTestGameState({ roomId: 'TEST123' })
     });
 
     // Mock public data response
     const publicData = createTestGameState({ roomId: 'TEST123' });
-    mockQueryBuilder.select
-      .mockReturnValueOnce({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: { data: publicData },
-            error: null
-          }))
+    mockQueryBuilder.select.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        single: vi.fn(() => ({
+          data: { data: publicData },
+          error: null
         }))
-      })
-      .mockReturnValueOnce({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: { data: { storytellerNotes: [{ id: '1', content: 'Secret note' }] } },
-            error: null
-          }))
+      }))
+    });
+    secretsQueryBuilder.select.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        single: vi.fn(() => ({
+          data: { data: { storytellerNotes: [{ id: '1', content: 'Secret note' }] } },
+          error: null
         }))
-      });
+      }))
+    });
 
     await store.getState().refreshFromCloud();
 
-    // Verify select was called twice (public + secrets)
-    expect(mockQueryBuilder.select).toHaveBeenCalledTimes(2);
+    // Verify both public and secret queries were called
+    expect(mockQueryBuilder.select).toHaveBeenCalledTimes(1);
+    expect(secretsQueryBuilder.select).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -660,7 +692,7 @@ describe('syncToCloud Error Handling', () => {
   it('should handle public sync error', async () => {
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    store.getState().login('Player', false);
+    await store.getState().login('ST', true);
     store.setState({
       gameState: createTestGameState(),
       isOffline: false
@@ -680,14 +712,14 @@ describe('syncToCloud Error Handling', () => {
   it('should handle secret sync error for storyteller', async () => {
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    store.getState().login('ST', true);
+    await store.getState().login('ST', true);
     store.setState({
       gameState: createTestGameState(),
       isOffline: false
     });
 
     // Mock upsert error
-    mockQueryBuilder.upsert.mockReturnValueOnce({
+    secretsQueryBuilder.upsert.mockReturnValueOnce({
       error: { message: 'Upsert failed' }
     });
 
@@ -700,7 +732,7 @@ describe('syncToCloud Error Handling', () => {
   it('should handle exception during sync', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    store.getState().login('Player', false);
+    await store.getState().login('ST', true);
     store.setState({
       gameState: createTestGameState(),
       isOffline: false
@@ -741,7 +773,7 @@ describe('refreshFromCloud Exception Handling', () => {
   it('should handle exception during refresh', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     store.setState({
       gameState: createTestGameState({ roomId: 'TEST123' })
     });
@@ -783,25 +815,24 @@ describe('Storyteller joinGame with Secret Subscription', () => {
     const publicGameState = createTestGameState({ roomId: 'TEST123' });
 
     // Setup mock for both public and secret queries
-    mockQueryBuilder.select
-      .mockReturnValueOnce({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: { data: publicGameState },
-            error: null
-          }))
+    mockQueryBuilder.select.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        single: vi.fn(() => ({
+          data: { data: publicGameState },
+          error: null
         }))
-      })
-      .mockReturnValueOnce({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: { data: { storytellerNotes: [{ id: '1', content: 'Secret' }], seats: [{ id: 1, realRoleId: 'imp' }] } },
-            error: null
-          }))
+      }))
+    });
+    secretsQueryBuilder.select.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        single: vi.fn(() => ({
+          data: { data: { storytellerNotes: [{ id: '1', content: 'Secret' }], seats: [{ id: 1, realRoleId: 'imp' }] } },
+          error: null
         }))
-      });
+      }))
+    });
 
-    store.getState().login('Storyteller', true);
+    await store.getState().login('Storyteller', true);
     await store.getState().joinGame('TEST123');
 
     // Verify storyteller is connected and has roomId
@@ -817,25 +848,24 @@ describe('Storyteller joinGame with Secret Subscription', () => {
       seats: [{ id: 1, realRoleId: 'imp' }]
     };
 
-    mockQueryBuilder.select
-      .mockReturnValueOnce({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: { data: publicGameState },
-            error: null
-          }))
+    mockQueryBuilder.select.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        single: vi.fn(() => ({
+          data: { data: publicGameState },
+          error: null
         }))
-      })
-      .mockReturnValueOnce({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: { data: secretData },
-            error: null
-          }))
+      }))
+    });
+    secretsQueryBuilder.select.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        single: vi.fn(() => ({
+          data: { data: secretData },
+          error: null
         }))
-      });
+      }))
+    });
 
-    store.getState().login('Storyteller', true);
+    await store.getState().login('Storyteller', true);
     await store.getState().joinGame('TEST123');
 
     // Secret data should be merged
@@ -845,25 +875,24 @@ describe('Storyteller joinGame with Secret Subscription', () => {
   it('should handle missing secret data gracefully', async () => {
     const publicGameState = createTestGameState({ roomId: 'TEST123' });
 
-    mockQueryBuilder.select
-      .mockReturnValueOnce({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: { data: publicGameState },
-            error: null
-          }))
+    mockQueryBuilder.select.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        single: vi.fn(() => ({
+          data: { data: publicGameState },
+          error: null
         }))
-      })
-      .mockReturnValueOnce({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: null,
-            error: null
-          }))
+      }))
+    });
+    secretsQueryBuilder.select.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        single: vi.fn(() => ({
+          data: null,
+          error: null
         }))
-      });
+      }))
+    });
 
-    store.getState().login('Storyteller', true);
+    await store.getState().login('Storyteller', true);
     await store.getState().joinGame('TEST123');
 
     // Should still be connected without secrets
@@ -874,25 +903,24 @@ describe('Storyteller joinGame with Secret Subscription', () => {
   it('should send join announcement after joining', async () => {
     const publicGameState = createTestGameState({ roomId: 'TEST123', messages: [] });
 
-    mockQueryBuilder.select
-      .mockReturnValueOnce({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: { data: publicGameState },
-            error: null
-          }))
+    mockQueryBuilder.select.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        single: vi.fn(() => ({
+          data: { data: publicGameState },
+          error: null
         }))
-      })
-      .mockReturnValueOnce({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: null,
-            error: null
-          }))
+      }))
+    });
+    secretsQueryBuilder.select.mockReturnValueOnce({
+      eq: vi.fn(() => ({
+        single: vi.fn(() => ({
+          data: null,
+          error: null
         }))
-      });
+      }))
+    });
 
-    store.getState().login('TestPlayer', false);
+    await store.getState().login('Storyteller', true);
     await store.getState().joinGame('TEST123');
 
     // Advance timer to trigger the announcement setTimeout
@@ -926,7 +954,7 @@ describe('Storyteller joinGame with Secret Subscription', () => {
         }))
       });
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
 
     expect(setItemSpy).toHaveBeenCalledWith('grimoire_last_room', 'TEST123');
@@ -982,7 +1010,7 @@ describe('joinGame Exception Handling', () => {
       throw new Error('Network failure');
     });
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
 
     expect(store.getState().connectionStatus).toBe('disconnected');
@@ -1000,7 +1028,7 @@ describe('joinGame Exception Handling', () => {
       throw 'String error';
     });
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
 
     expect(store.getState().connectionStatus).toBe('disconnected');
@@ -1109,7 +1137,7 @@ describe('spectateGame Subscription Status', () => {
     expect(user?.name).toBe('Observer');
     expect(user?.isStoryteller).toBe(false);
     expect(user?.isSeated).toBe(false);
-    expect(user?.id).toMatch(/^observer-\d+$/);
+    expect(user?.id).toBe('auth-user');
   });
 
   it('should handle spectate exception with non-Error object', async () => {
@@ -1131,8 +1159,8 @@ describe('spectateGame Subscription Status', () => {
     // Capture the postgres_changes callback
     let postgresCallback: ((payload: unknown) => void) | null = null;
 
-    mockChannel.on.mockImplementation((event: string, _config: unknown, callback: (payload: unknown) => void) => {
-      if (event === 'postgres_changes') {
+    mockChannel.on.mockImplementation((event: string, config: any, callback: (payload: unknown) => void) => {
+      if (event === 'postgres_changes' && config?.table === 'game_rooms') {
         postgresCallback = callback;
       }
       return mockChannel;
@@ -1196,7 +1224,7 @@ describe('leaveGame with Secret Channel', () => {
         }))
       });
 
-    store.getState().login('Storyteller', true);
+    await store.getState().login('Storyteller', true);
     await store.getState().joinGame('TEST123');
 
     // Now leave
@@ -1210,7 +1238,7 @@ describe('leaveGame with Secret Channel', () => {
   it('should clear seat token from localStorage when leaving', async () => {
     const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem');
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     store.setState({
       gameState: createTestGameState({ roomId: 'TEST123' }),
       user: { id: 'user1', name: 'Player', isStoryteller: false, roomId: 'TEST123', isSeated: true }
@@ -1224,8 +1252,8 @@ describe('leaveGame with Secret Channel', () => {
     removeItemSpy.mockRestore();
   });
 
-  it('should handle leaving when not in a room', () => {
-    store.getState().login('Player', false);
+  it('should handle leaving when not in a room', async () => {
+    await store.getState().login('Player', false);
 
     // Should not throw when leaving without being in a room
     expect(() => store.getState().leaveGame()).not.toThrow();
@@ -1333,14 +1361,14 @@ describe('Realtime Channel Update Handling', () => {
   it('should process realtime updates in joinGame', async () => {
     let postgresCallback: ((payload: unknown) => void) | null = null;
 
-    mockChannel.on.mockImplementation((event: string, _config: unknown, callback: (payload: unknown) => void) => {
-      if (event === 'postgres_changes') {
+    mockChannel.on.mockImplementation((event: string, config: any, callback: (payload: unknown) => void) => {
+      if (event === 'postgres_changes' && config?.table === 'game_rooms') {
         postgresCallback = callback;
       }
       return mockChannel;
     });
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
 
     // Simulate receiving an update
@@ -1357,14 +1385,14 @@ describe('Realtime Channel Update Handling', () => {
   it('should handle empty payload data gracefully', async () => {
     let postgresCallback: ((payload: unknown) => void) | null = null;
 
-    mockChannel.on.mockImplementation((event: string, _config: unknown, callback: (payload: unknown) => void) => {
-      if (event === 'postgres_changes') {
+    mockChannel.on.mockImplementation((event: string, config: any, callback: (payload: unknown) => void) => {
+      if (event === 'postgres_changes' && config?.table === 'game_rooms') {
         postgresCallback = callback;
       }
       return mockChannel;
     });
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
 
     const currentPhase = store.getState().gameState?.phase;
@@ -1382,14 +1410,14 @@ describe('Realtime Channel Update Handling', () => {
   it('should handle undefined payload gracefully', async () => {
     let postgresCallback: ((payload: unknown) => void) | null = null;
 
-    mockChannel.on.mockImplementation((event: string, _config: unknown, callback: (payload: unknown) => void) => {
-      if (event === 'postgres_changes') {
+    mockChannel.on.mockImplementation((event: string, config: any, callback: (payload: unknown) => void) => {
+      if (event === 'postgres_changes' && config?.table === 'game_rooms') {
         postgresCallback = callback;
       }
       return mockChannel;
     });
 
-    store.getState().login('Player', false);
+    await store.getState().login('Player', false);
     await store.getState().joinGame('TEST123');
 
     const currentPhase = store.getState().gameState?.phase;
@@ -1472,7 +1500,7 @@ describe('Secret Channel Update Handling for Storyteller', () => {
         }))
       });
 
-    store.getState().login('Storyteller', true);
+    await store.getState().login('Storyteller', true);
     await store.getState().joinGame('TEST123');
 
     // Verify the store is connected

@@ -122,9 +122,20 @@ export const addSystemMessage = (gameState: GameState, content: string, recipien
 
 // --- SECURITY UTILITIES ---
 
+export interface SecretSeatState {
+    id: number;
+    realRoleId: string | null;
+    seenRoleId: string | null;
+    reminders: Seat['reminders'];
+    statuses: Seat['statuses'];
+    hasUsedAbility: boolean;
+}
+
 export interface SecretState {
-    seats?: Partial<Seat>[];
+    seats?: SecretSeatState[];
     storytellerNotes?: StorytellerNote[];
+    nightActionRequests?: GameState['nightActionRequests'];
+    aiMessages?: GameState['aiMessages'];
 }
 
 /**
@@ -136,25 +147,38 @@ export const splitGameState = (fullState: GameState): { publicState: GameState, 
     const secretState: SecretState = {};
 
     // 2. 提取敏感数据到 secretState
-    // 真实角色 ID
+    // 座位敏感信息
     secretState.seats = fullState.seats.map(s => ({
         id: s.id,
         realRoleId: s.realRoleId,
-        // 其他敏感字段如果需要也可以放在这里
+        seenRoleId: s.seenRoleId,
+        reminders: s.reminders,
+        statuses: s.statuses,
+        hasUsedAbility: s.hasUsedAbility,
     }));
 
     // 说书人笔记
     secretState.storytellerNotes = fullState.storytellerNotes;
+    // 夜间行动请求
+    secretState.nightActionRequests = fullState.nightActionRequests;
+    // AI 对话（仅说书人可见）
+    secretState.aiMessages = fullState.aiMessages;
 
     // 3. 从 publicState 中移除敏感数据
     publicState.seats.forEach(s => {
-        s.realRoleId = null; // 清除真实角色
-        // 注意：seenRoleId (展示角色) 是公开的（或者至少是发给客户端的），
-        // 具体的视野过滤由 filterGameStateForUser 在客户端进一步处理。
-        // 这里我们主要剥离 "绝对不能泄露给普通玩家" 的数据。
+        s.realRoleId = null;
+        s.seenRoleId = null;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility
+        s.roleId = null;
+        s.reminders = [];
+        s.statuses = [];
+        s.hasUsedAbility = false;
     });
 
-    publicState.storytellerNotes = []; // 清空笔记
+    publicState.storytellerNotes = [];
+    publicState.nightActionRequests = [];
+    publicState.aiMessages = [];
+    publicState.messages = [];
 
     return { publicState, secretState };
 };
@@ -173,6 +197,12 @@ export const mergeGameState = (publicState: GameState, secretState: SecretState 
             const targetSeat = mergedState.seats.find(s => s.id === secretSeat.id);
             if (targetSeat) {
                 targetSeat.realRoleId = secretSeat.realRoleId ?? null;
+                targetSeat.seenRoleId = secretSeat.seenRoleId ?? null;
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- Backward compatibility
+                targetSeat.roleId = secretSeat.seenRoleId ?? null;
+                targetSeat.reminders = secretSeat.reminders ?? [];
+                targetSeat.statuses = secretSeat.statuses ?? [];
+                targetSeat.hasUsedAbility = secretSeat.hasUsedAbility ?? false;
             }
         });
     }
@@ -180,6 +210,16 @@ export const mergeGameState = (publicState: GameState, secretState: SecretState 
     // 2. 恢复笔记
     if (secretState.storytellerNotes) {
         mergedState.storytellerNotes = secretState.storytellerNotes;
+    }
+
+    // 3. 恢复夜间行动请求
+    if (secretState.nightActionRequests) {
+        mergedState.nightActionRequests = secretState.nightActionRequests;
+    }
+
+    // 4. 恢复 AI 对话
+    if (secretState.aiMessages) {
+        mergedState.aiMessages = secretState.aiMessages;
     }
 
     return mergedState;

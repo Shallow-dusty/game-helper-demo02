@@ -11,7 +11,8 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       port: 3000,
-      host: '0.0.0.0',
+      // Default to localhost for test runners; override with VITE_DEV_HOST if needed.
+      host: env.VITE_DEV_HOST || '127.0.0.1',
     },
     plugins: [react()],
     define: {

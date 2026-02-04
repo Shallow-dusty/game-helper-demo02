@@ -83,7 +83,7 @@ describe('supabaseService', () => {
             mockRpc.mockResolvedValue({ data: 'log-123', error: null });
 
             const result = await logInteraction({
-                roomId: 'ROOM1',
+                roomId: 1,
                 gameDay: 1,
                 phase: 'NIGHT',
                 actorSeat: 0,
@@ -97,7 +97,7 @@ describe('supabaseService', () => {
 
             expect(result).toBe('log-123');
             expect(mockRpc).toHaveBeenCalledWith('log_interaction', expect.objectContaining({
-                p_room_id: 'ROOM1',
+                p_room_id: 1,
                 p_game_day: 1,
                 p_phase: 'NIGHT',
                 p_actor_seat: 0,
@@ -110,7 +110,7 @@ describe('supabaseService', () => {
             mockRpc.mockResolvedValue({ data: null, error: { message: 'DB error' } });
 
             const result = await logInteraction({
-                roomId: 'ROOM1',
+                roomId: 1,
                 gameDay: 1,
                 phase: 'DAY',
                 actionType: 'NOMINATION',
@@ -123,7 +123,7 @@ describe('supabaseService', () => {
             mockRpc.mockRejectedValue(new Error('Network error'));
 
             const result = await logInteraction({
-                roomId: 'ROOM1',
+                roomId: 1,
                 gameDay: 1,
                 phase: 'DAY',
                 actionType: 'VOTE',
@@ -136,7 +136,7 @@ describe('supabaseService', () => {
             mockRpc.mockResolvedValue({ data: 'log-456', error: null });
 
             const result = await logInteraction({
-                roomId: 'ROOM1',
+                roomId: 1,
                 gameDay: 1,
                 phase: 'DAY',
                 actionType: 'NOMINATION',
@@ -158,7 +158,7 @@ describe('supabaseService', () => {
             mockRpc.mockResolvedValue({ data: 'night-log-1', error: null });
 
             const result = await logNightAction(
-                'ROOM1',
+                1,
                 2,
                 0,
                 'washerwoman',
@@ -183,7 +183,7 @@ describe('supabaseService', () => {
             mockRpc.mockResolvedValue({ data: 'night-log-2', error: null });
 
             await logNightAction(
-                'ROOM1',
+                1,
                 1,
                 0,
                 'empath',
@@ -205,7 +205,7 @@ describe('supabaseService', () => {
             mockRpc.mockResolvedValue({ data: 'death-log-1', error: null });
 
             const result = await logDeath(
-                'ROOM1',
+                1,
                 1,
                 'NIGHT',
                 3,
@@ -229,7 +229,7 @@ describe('supabaseService', () => {
             mockRpc.mockResolvedValue({ data: 'exec-log-1', error: null });
 
             const result = await logExecution(
-                'ROOM1',
+                1,
                 2,
                 5,
                 'imp',
@@ -252,7 +252,7 @@ describe('supabaseService', () => {
             mockRpc.mockResolvedValue({ data: 'chain-log-1', error: null });
 
             const result = await logChainReaction(
-                'ROOM1',
+                1,
                 1,
                 'NIGHT',
                 0,
@@ -277,7 +277,7 @@ describe('supabaseService', () => {
                 error: null,
             });
 
-            const result = await checkNominationEligibility('ROOM1', 1, 0);
+            const result = await checkNominationEligibility(1, 1, 0);
 
             expect(result).toEqual({
                 canNominate: true,
@@ -292,7 +292,7 @@ describe('supabaseService', () => {
                 error: null,
             });
 
-            const result = await checkNominationEligibility('ROOM1', 1, 0);
+            const result = await checkNominationEligibility(1, 1, 0);
 
             expect(result).toEqual({
                 canNominate: false,
@@ -304,7 +304,7 @@ describe('supabaseService', () => {
         it('should return can nominate true on error (fail open)', async () => {
             mockRpc.mockResolvedValue({ data: null, error: { message: 'RPC error' } });
 
-            const result = await checkNominationEligibility('ROOM1', 1, 0);
+            const result = await checkNominationEligibility(1, 1, 0);
 
             // Fails open - allows nomination on error
             expect(result).toEqual({
@@ -317,7 +317,7 @@ describe('supabaseService', () => {
         it('should handle exception and fail open', async () => {
             mockRpc.mockRejectedValue(new Error('Network error'));
 
-            const result = await checkNominationEligibility('ROOM1', 1, 0);
+            const result = await checkNominationEligibility(1, 1, 0);
 
             // Fails open
             expect(result).toEqual({
@@ -335,7 +335,7 @@ describe('supabaseService', () => {
                 error: null,
             });
 
-            const result = await recordNomination('ROOM1', 1, 0, 3);
+            const result = await recordNomination(1, 1, 0, 3);
 
             expect(result).toEqual({
                 success: true,
@@ -350,7 +350,7 @@ describe('supabaseService', () => {
                 error: null,
             });
 
-            const result = await recordNomination('ROOM1', 1, 0, 3);
+            const result = await recordNomination(1, 1, 0, 3);
 
             expect(result).toEqual({
                 success: false,
@@ -362,7 +362,7 @@ describe('supabaseService', () => {
         it('should handle RPC error', async () => {
             mockRpc.mockResolvedValue({ data: null, error: { message: 'DB error' } });
 
-            const result = await recordNomination('ROOM1', 1, 0, 3);
+            const result = await recordNomination(1, 1, 0, 3);
 
             expect(result).toEqual({
                 success: false,
@@ -374,7 +374,7 @@ describe('supabaseService', () => {
         it('should handle exception', async () => {
             mockRpc.mockRejectedValue(new Error('Network error'));
 
-            const result = await recordNomination('ROOM1', 1, 0, 3);
+            const result = await recordNomination(1, 1, 0, 3);
 
             expect(result).toEqual({
                 success: false,
@@ -389,7 +389,7 @@ describe('supabaseService', () => {
             mockRpc.mockResolvedValue({ data: true, error: null });
 
             const result = await updateNominationResult(
-                'ROOM1',
+                1,
                 1,
                 3,
                 true,
@@ -399,7 +399,7 @@ describe('supabaseService', () => {
 
             expect(result).toBe(true);
             expect(mockRpc).toHaveBeenCalledWith('update_nomination_result', {
-                p_room_id: 'ROOM1',
+                p_room_id: 1,
                 p_game_day: 1,
                 p_nominee_seat: 3,
                 p_was_seconded: true,
@@ -411,7 +411,7 @@ describe('supabaseService', () => {
         it('should return false on error', async () => {
             mockRpc.mockResolvedValue({ data: null, error: { message: 'Update failed' } });
 
-            const result = await updateNominationResult('ROOM1', 1, 3, false, 2, false);
+            const result = await updateNominationResult(1, 1, 3, false, 2, false);
 
             expect(result).toBe(false);
         });
@@ -419,7 +419,7 @@ describe('supabaseService', () => {
         it('should handle exception', async () => {
             mockRpc.mockRejectedValue(new Error('Network error'));
 
-            const result = await updateNominationResult('ROOM1', 1, 3, true, 5, true);
+            const result = await updateNominationResult(1, 1, 3, true, 5, true);
 
             expect(result).toBe(false);
         });
@@ -442,11 +442,11 @@ describe('supabaseService', () => {
 
             mockRpc.mockResolvedValue({ data: mockHistory, error: null });
 
-            const result = await getNominationHistory('ROOM1');
+            const result = await getNominationHistory(1);
 
             expect(result).toEqual(mockHistory);
             expect(mockRpc).toHaveBeenCalledWith('get_nomination_history', {
-                p_room_id: 'ROOM1',
+                p_room_id: 1,
                 p_game_day: null,
             });
         });
@@ -454,10 +454,10 @@ describe('supabaseService', () => {
         it('should get nomination history for specific day', async () => {
             mockRpc.mockResolvedValue({ data: [], error: null });
 
-            await getNominationHistory('ROOM1', 2);
+            await getNominationHistory(1, 2);
 
             expect(mockRpc).toHaveBeenCalledWith('get_nomination_history', {
-                p_room_id: 'ROOM1',
+                p_room_id: 1,
                 p_game_day: 2,
             });
         });
@@ -465,7 +465,7 @@ describe('supabaseService', () => {
         it('should return empty array on error', async () => {
             mockRpc.mockResolvedValue({ data: null, error: { message: 'Query failed' } });
 
-            const result = await getNominationHistory('ROOM1');
+            const result = await getNominationHistory(1);
 
             expect(result).toEqual([]);
         });
@@ -473,7 +473,7 @@ describe('supabaseService', () => {
         it('should handle null data', async () => {
             mockRpc.mockResolvedValue({ data: null, error: null });
 
-            const result = await getNominationHistory('ROOM1');
+            const result = await getNominationHistory(1);
 
             expect(result).toEqual([]);
         });

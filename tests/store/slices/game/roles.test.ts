@@ -32,6 +32,7 @@ function createTestSeat(overrides: Partial<Seat> = {}): Seat {
 const createMockStore = () => {
   type MockStoreState = {
     gameState: Partial<GameState> | null;
+    user?: { id: string; name: string; isStoryteller: boolean };
     sync: () => void;
   };
 
@@ -50,7 +51,8 @@ const createMockStore = () => {
       phase: 'SETUP',
       setupPhase: 'ASSIGNING'
     } as Partial<GameState>,
-    sync: vi.fn()
+    sync: vi.fn(),
+    user: { id: 'storyteller', name: 'Storyteller', isStoryteller: true }
   };
 
   const set = vi.fn((fn: (state: MockStoreState) => void) => {

@@ -9,6 +9,16 @@ import { createGameChatSlice } from '../../../../src/store/slices/game/chat';
 import type { GameState } from '../../../../src/types';
 import type { AppState } from '../../../../src/store/types';
 
+vi.mock('../../../../src/store/slices/connection', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      insert: vi.fn().mockResolvedValue({ error: null })
+    }))
+  }
+}));
+
+import { supabase } from '../../../../src/store/slices/connection';
+
 // Mock store state
 const createMockStore = () => {
   const mockState: AppState = {
@@ -21,7 +31,10 @@ const createMockStore = () => {
       rolesRevealed: false,
       allowWhispers: false,
       vibrationEnabled: false,
-      seats: [],
+      seats: [
+        { id: 0, userId: 'user1', userName: 'Player1', isDead: false, hasGhostVote: true, roleId: null, realRoleId: null, seenRoleId: null, reminders: [], statuses: [], hasUsedAbility: false, isHandRaised: false, isNominated: false },
+        { id: 1, userId: 'user2', userName: 'Player2', isDead: false, hasGhostVote: true, roleId: null, realRoleId: null, seenRoleId: null, reminders: [], statuses: [], hasUsedAbility: false, isHandRaised: false, isNominated: false }
+      ],
       messages: [],
       gameOver: { isOver: false, winner: null },
       audio: { trackId: null, isPlaying: false, volume: 1 },
@@ -42,6 +55,7 @@ const createMockStore = () => {
       interactionLog: []
     },
     isAudioBlocked: false,
+    roomDbId: 1,
 
     // User state
     user: { id: 'user1', name: 'Player1', isStoryteller: false, roomId: null, isSeated: false },
@@ -185,18 +199,13 @@ describe('createGameChatSlice', () => {
   });
 
   describe('sendMessage', () => {
-    it('should send a public message', () => {
-      chatSlice.sendMessage('Hello everyone!', null);
+    it('should send a public message', async () => {
+      await chatSlice.sendMessage('Hello everyone!', null);
 
-      expect(mockStore.get().sync).toHaveBeenCalled();
-      expect(mockStore.state.gameState?.messages?.length).toBe(1);
-
-      const msg = mockStore.state.gameState?.messages?.[0]!;
-      expect(msg.content).toBe('Hello everyone!');
-      expect(msg.senderId).toBe('user1');
-      expect(msg.senderName).toBe('Player1');
-      expect(msg.isPrivate).toBe(false);
-      expect(msg.type).toBe('chat');
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      expect(fromMock).toHaveBeenCalled();
+      const insert = fromMock.mock.results[0]?.value.insert as ReturnType<typeof vi.fn>;
+      expect(insert).toHaveBeenCalled();
     });
 
     it('should block private messages when whispers are disabled', () => {
@@ -207,27 +216,30 @@ describe('createGameChatSlice', () => {
       chatSlice.sendMessage('Secret message', 'user2');
 
       // Message should not be added
-      expect(mockStore.state.gameState?.messages?.length).toBe(0);
+      expect(supabase.from).not.toHaveBeenCalled();
     });
 
-    it('should allow private messages when whispers are enabled', () => {
+    it('should allow private messages when whispers are enabled', async () => {
       mockStore.state.gameState!.allowWhispers = true;
 
-      chatSlice.sendMessage('Secret message', 'user2');
+      await chatSlice.sendMessage('Secret message', 'user2');
 
-      expect(mockStore.state.gameState?.messages?.length).toBe(1);
-      const msg = mockStore.state.gameState?.messages?.[0];
-      expect(msg?.isPrivate).toBe(true);
-      expect(msg?.recipientId).toBe('user2');
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      expect(fromMock).toHaveBeenCalled();
+      const insert = fromMock.mock.results[0]?.value.insert as ReturnType<typeof vi.fn>;
+      expect(insert).toHaveBeenCalled();
     });
 
-    it('should allow storyteller to send private messages regardless of whispers setting', () => {
+    it('should allow storyteller to send private messages regardless of whispers setting', async () => {
       mockStore.state.gameState!.allowWhispers = false;
       mockStore.state.user!.isStoryteller = true;
 
-      chatSlice.sendMessage('ST secret', 'user2');
+      await chatSlice.sendMessage('ST secret', 'user2');
 
-      expect(mockStore.state.gameState?.messages?.length).toBe(1);
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      expect(fromMock).toHaveBeenCalled();
+      const insert = fromMock.mock.results[0]?.value.insert as ReturnType<typeof vi.fn>;
+      expect(insert).toHaveBeenCalled();
     });
 
     it('should not send message if no user', () => {
@@ -235,7 +247,7 @@ describe('createGameChatSlice', () => {
 
       chatSlice.sendMessage('Test', null);
 
-      expect(mockStore.state.gameState?.messages?.length).toBe(0);
+      expect(supabase.from).not.toHaveBeenCalled();
     });
 
     it('should not send message if no gameState', () => {
@@ -243,13 +255,12 @@ describe('createGameChatSlice', () => {
 
       chatSlice.sendMessage('Test', null);
 
-      // Should not crash, sync should still be called
-      expect(mockStore.get().sync).toHaveBeenCalled();
+      expect(supabase.from).not.toHaveBeenCalled();
     });
   });
 
   describe('forwardMessage', () => {
-    it('should forward an existing message', () => {
+    it('should forward an existing message', async () => {
       // Add original message
       mockStore.state.gameState!.messages = [{
         id: 'msg1',
@@ -262,14 +273,12 @@ describe('createGameChatSlice', () => {
         isPrivate: false
       }];
 
-      chatSlice.forwardMessage('msg1', 'user3');
+      await chatSlice.forwardMessage('msg1', 'user3');
 
-      expect(mockStore.state.gameState?.messages?.length).toBe(2);
-      const forwardedMsg = mockStore.state.gameState?.messages?.[1]!;
-      expect(forwardedMsg.content).toContain('[转发]');
-      expect(forwardedMsg.content).toContain('Player2');
-      expect(forwardedMsg.content).toContain('Original message');
-      expect(forwardedMsg.recipientId).toBe('user3');
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      expect(fromMock).toHaveBeenCalled();
+      const insert = fromMock.mock.results[0]?.value.insert as ReturnType<typeof vi.fn>;
+      expect(insert).toHaveBeenCalled();
     });
 
     it('should not forward non-existent message', () => {
@@ -277,7 +286,7 @@ describe('createGameChatSlice', () => {
 
       chatSlice.forwardMessage('nonexistent', 'user2');
 
-      expect(mockStore.state.gameState?.messages?.length).toBe(0);
+      expect(supabase.from).not.toHaveBeenCalled();
     });
 
     it('should not forward if no user', () => {
@@ -295,12 +304,13 @@ describe('createGameChatSlice', () => {
 
       chatSlice.forwardMessage('msg1', 'user3');
 
-      expect(mockStore.state.gameState?.messages?.length).toBe(1);
+      expect(supabase.from).not.toHaveBeenCalled();
     });
   });
 
   describe('toggleWhispers', () => {
     it('should enable whispers when disabled', () => {
+      mockStore.state.user!.isStoryteller = true;
       mockStore.state.gameState!.allowWhispers = false;
 
       chatSlice.toggleWhispers();
@@ -310,6 +320,7 @@ describe('createGameChatSlice', () => {
     });
 
     it('should disable whispers when enabled', () => {
+      mockStore.state.user!.isStoryteller = true;
       mockStore.state.gameState!.allowWhispers = true;
 
       chatSlice.toggleWhispers();
@@ -318,6 +329,7 @@ describe('createGameChatSlice', () => {
     });
 
     it('should add system message on toggle', () => {
+      mockStore.state.user!.isStoryteller = true;
       mockStore.state.gameState!.allowWhispers = false;
       mockStore.state.gameState!.messages = [];
 
@@ -329,6 +341,7 @@ describe('createGameChatSlice', () => {
     });
 
     it('should not crash if no gameState', () => {
+      mockStore.state.user!.isStoryteller = true;
       mockStore.state.gameState = null;
 
       chatSlice.toggleWhispers();

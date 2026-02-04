@@ -4,6 +4,7 @@ import { SCRIPTS } from '@/constants';
 
 export const createGameScriptsSlice: StoreSlice<Pick<GameSlice, 'setScript' | 'importScript' | 'saveCustomScript' | 'deleteCustomScript' | 'loadCustomScript'>> = (set, get) => ({
     setScript: (scriptId) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.currentScriptId = scriptId;
@@ -14,6 +15,7 @@ export const createGameScriptsSlice: StoreSlice<Pick<GameSlice, 'setScript' | 'i
     },
 
     importScript: (jsonContent) => {
+        if (!get().user?.isStoryteller) return;
         try {
             const script = JSON.parse(jsonContent);
             if (!script.id || !Array.isArray(script.roles)) {
@@ -32,6 +34,7 @@ export const createGameScriptsSlice: StoreSlice<Pick<GameSlice, 'setScript' | 'i
     },
 
     saveCustomScript: (script) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.customScripts[script.id] = script;
@@ -41,6 +44,7 @@ export const createGameScriptsSlice: StoreSlice<Pick<GameSlice, 'setScript' | 'i
     },
 
     deleteCustomScript: (scriptId) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 delete state.gameState.customScripts[scriptId];
@@ -50,6 +54,7 @@ export const createGameScriptsSlice: StoreSlice<Pick<GameSlice, 'setScript' | 'i
     },
 
     loadCustomScript: (scriptId) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.currentScriptId = scriptId;

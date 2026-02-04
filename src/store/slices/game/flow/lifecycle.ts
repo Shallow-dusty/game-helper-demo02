@@ -4,6 +4,7 @@ import { applyPhaseChange } from './phase';
 
 export const createLifecycleSlice: StoreSlice<Pick<GameSlice, 'startGame' | 'endGame'>> = (set, get) => ({
     startGame: () => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 // Ensure counters start clean
@@ -24,6 +25,7 @@ export const createLifecycleSlice: StoreSlice<Pick<GameSlice, 'startGame' | 'end
     },
 
     endGame: (winner: 'GOOD' | 'EVIL', reason: string) => {
+        if (!get().user?.isStoryteller) return;
         set((state) => {
             if (state.gameState) {
                 state.gameState.gameOver = {

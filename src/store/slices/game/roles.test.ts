@@ -53,6 +53,11 @@ describe('createGameRolesSlice', () => {
             currentScriptId: string;
             messages: unknown[];
         } | null;
+        user?: {
+            id: string;
+            name: string;
+            isStoryteller: boolean;
+        };
     };
     
     let slice: ReturnType<typeof createGameRolesSlice>;
@@ -93,6 +98,11 @@ describe('createGameRolesSlice', () => {
                 phase: 'SETUP',
                 currentScriptId: 'trouble_brewing',
                 messages: []
+            },
+            user: {
+                id: 'storyteller',
+                name: 'Storyteller',
+                isStoryteller: true
             }
         };
         

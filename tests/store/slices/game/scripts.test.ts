@@ -108,7 +108,7 @@ const createMockStore = () => {
     toggleCandlelight: vi.fn(),
     addInteractionLog: vi.fn(),
     // AppState-specific fields
-    user: null,
+    user: { id: 'storyteller', name: 'Storyteller', isStoryteller: true },
     isAiThinking: false,
     isOffline: false,
     connectionStatus: 'connected',

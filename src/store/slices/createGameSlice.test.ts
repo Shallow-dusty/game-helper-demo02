@@ -26,16 +26,25 @@ const mockRpc = vi.hoisted(() => vi.fn().mockResolvedValue({ data: null, error: 
 
 vi.mock('./connection', () => ({
   supabase: {
-    from: () => ({
-      update: () => ({ eq: () => ({ error: null }) }),
-      upsert: () => ({ error: null }),
-      insert: () => ({ error: null }),
-    }),
+    from: () => {
+      const builder: Record<string, any> = {};
+      builder.insert = vi.fn(() => builder);
+      builder.update = vi.fn(() => builder);
+      builder.upsert = vi.fn(() => ({ error: null }));
+      builder.select = vi.fn(() => builder);
+      builder.single = vi.fn(() => ({ data: { id: 1 }, error: null }));
+      builder.eq = vi.fn(() => ({ error: null }));
+      return builder;
+    },
     channel: () => ({
       on: () => ({ subscribe: () => { /* empty */ } }),
     }),
     rpc: mockRpc,
   },
+  ensureAuthenticatedUser: vi.fn(async () => ({ id: 'auth-user' })),
+  setupMessageSubscription: vi.fn(async () => undefined),
+  setIsReceivingUpdate: vi.fn(),
+  setRealtimeChannel: vi.fn(),
 }));
 
 describe('createGameSlice', () => {

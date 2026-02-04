@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createGameCoreSlice } from '../../../../src/store/slices/game/core';
 import type { GameState, Seat } from '../../../../src/types';
 import type { AppState } from '../../../../src/store/types';
-import { setIsReceivingUpdate, setRealtimeChannel } from '../../../../src/store/slices/connection';
+import { setIsReceivingUpdate, setRealtimeChannel, supabase } from '../../../../src/store/slices/connection';
 
 // Mock @supabase/supabase-js to provide REALTIME_SUBSCRIBE_STATES
 vi.mock('@supabase/supabase-js', () => ({
@@ -29,10 +29,16 @@ vi.mock('@supabase/supabase-js', () => ({
 // Mock supabase and connection functions
 vi.mock('../../../../src/store/slices/connection', () => ({
   supabase: {
-    from: vi.fn(() => ({
-      insert: vi.fn().mockResolvedValue({ error: null }),
-      update: vi.fn().mockResolvedValue({ error: null })
-    })),
+    from: vi.fn(() => {
+      const builder: Record<string, any> = {};
+      builder.insert = vi.fn(() => builder);
+      builder.update = vi.fn(() => builder);
+      builder.upsert = vi.fn().mockResolvedValue({ error: null });
+      builder.select = vi.fn(() => builder);
+      builder.single = vi.fn().mockResolvedValue({ data: { id: 1 }, error: null });
+      builder.eq = vi.fn().mockResolvedValue({ error: null });
+      return builder;
+    }),
     channel: vi.fn(() => ({
       on: vi.fn().mockReturnThis(),
       subscribe: vi.fn((cb) => {
@@ -42,6 +48,8 @@ vi.mock('../../../../src/store/slices/connection', () => ({
     })),
     rpc: vi.fn().mockResolvedValue({ data: { success: true }, error: null })
   },
+  ensureAuthenticatedUser: vi.fn(async () => ({ id: 'auth-user' })),
+  setupMessageSubscription: vi.fn(async () => undefined),
   setIsReceivingUpdate: vi.fn(),
   setRealtimeChannel: vi.fn()
 }));
@@ -72,7 +80,7 @@ function createTestSeat(overrides: Partial<Seat> = {}): Seat {
 const createMockStore = () => {
   interface MockState {
     gameState: Partial<GameState> | null;
-    user: { id: string; name: string; roomId: string; isSeated?: boolean } | null;
+    user: { id: string; name: string; roomId: string; isSeated?: boolean; isStoryteller?: boolean } | null;
     connectionStatus: string;
     isOffline: boolean;
     sync: () => void;
@@ -82,6 +90,7 @@ const createMockStore = () => {
 
   const state: MockState = {
     gameState: {
+      roomId: 'room123',
       seats: [
         createTestSeat({ id: 0, userId: null, userName: '座位 1' }),
         createTestSeat({ id: 1, userId: null, userName: '座位 2' }),
@@ -91,7 +100,7 @@ const createMockStore = () => {
       ],
       messages: []
     } as Partial<GameState>,
-    user: { id: 'user1', name: 'Player1', roomId: 'room123' },
+    user: { id: 'user1', name: 'Player1', roomId: 'room123', isStoryteller: true },
     connectionStatus: 'disconnected',
     isOffline: false,
     sync: vi.fn(),
@@ -133,8 +142,10 @@ describe('createGameCoreSlice', () => {
 
       coreSlice.toggleReady();
 
-      expect(mockStore.state.gameState?.seats?.[0]?.isReady).toBe(true);
-      expect(mockStore.get().sync).toHaveBeenCalled();
+      expect(supabase.rpc).toHaveBeenCalledWith('toggle_ready', {
+        p_room_code: mockStore.state.gameState!.roomId,
+        p_seat_id: 0
+      });
     });
 
     it('should toggle ready from true to false', () => {
@@ -143,7 +154,10 @@ describe('createGameCoreSlice', () => {
 
       coreSlice.toggleReady();
 
-      expect(mockStore.state.gameState?.seats?.[0]?.isReady).toBe(false);
+      expect(supabase.rpc).toHaveBeenCalledWith('toggle_ready', {
+        p_room_code: mockStore.state.gameState!.roomId,
+        p_seat_id: 0
+      });
     });
 
     it('should not crash if no user', () => {
@@ -151,7 +165,7 @@ describe('createGameCoreSlice', () => {
 
       coreSlice.toggleReady();
 
-      expect(mockStore.get().sync).not.toHaveBeenCalled();
+      expect(supabase.rpc).not.toHaveBeenCalled();
     });
 
     it('should not crash if user not seated', () => {
@@ -159,8 +173,8 @@ describe('createGameCoreSlice', () => {
 
       coreSlice.toggleReady();
 
-      // Should still call sync (code doesn't check if seat was found)
-      expect(mockStore.get().sync).toHaveBeenCalled();
+      // Should return early (no RPC)
+      expect(supabase.rpc).not.toHaveBeenCalled();
     });
   });
 
@@ -561,7 +575,11 @@ describe('createGameCoreSlice', () => {
       const { supabase } = await import('../../../../src/store/slices/connection');
 
       (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
-        insert: vi.fn().mockResolvedValue({ error: { message: 'Insert failed' } })
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Insert failed' } })
+          })
+        })
       });
 
       await coreSlice.createGame(7);
@@ -577,7 +595,11 @@ describe('createGameCoreSlice', () => {
       const { supabase } = await import('../../../../src/store/slices/connection');
 
       (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
-        insert: vi.fn().mockRejectedValue(new Error('Network error'))
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockRejectedValue(new Error('Network error'))
+          })
+        })
       });
 
       await coreSlice.createGame(7);
@@ -593,7 +615,11 @@ describe('createGameCoreSlice', () => {
       const { supabase } = await import('../../../../src/store/slices/connection');
 
       (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
-        insert: vi.fn().mockRejectedValue('String error')
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockRejectedValue('String error')
+          })
+        })
       });
 
       await coreSlice.createGame(7);
@@ -609,7 +635,12 @@ describe('createGameCoreSlice', () => {
 
       // Reset supabase.from to return success
       (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
-        insert: vi.fn().mockResolvedValue({ error: null })
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { id: 1 }, error: null })
+          })
+        }),
+        upsert: vi.fn().mockResolvedValue({ error: null })
       });
 
       // Create mock channel - subscribe should return the channel itself for chaining

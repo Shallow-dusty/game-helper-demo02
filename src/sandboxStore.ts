@@ -78,6 +78,7 @@ const getInitialSandboxState = (seatCount: number, scriptId = 'tb'): GameState =
     candlelightEnabled: false,
     dailyExecutionCompleted: false,
     dailyNominations: [],
+    ruleAutomationLevel: 'GUIDED',
     interactionLog: []
 });
 
@@ -231,27 +232,39 @@ export const useSandboxStore = create<SandboxState>()(
         startVote: (nomineeId) => {
             set((state) => {
                 if (!state.gameState) return;
+                const automationLevel = state.gameState.ruleAutomationLevel ?? 'GUIDED';
+                const shouldEnforce = automationLevel === 'FULL_AUTO';
+                const shouldWarn = automationLevel === 'GUIDED';
+                const handleViolation = (message: string): boolean => {
+                    if (shouldWarn || shouldEnforce) {
+                        addSystemMessage(state.gameState, message);
+                    }
+                    return shouldEnforce;
+                };
+
                 if (state.gameState.phase !== 'DAY') {
-                    addSystemMessage(state.gameState, '只能在白天进行提名。');
-                    return;
+                    if (handleViolation('只能在白天进行提名。')) return;
+                }
+                if (state.gameState.voting) {
+                    if (handleViolation('当前已有投票进行中。')) return;
                 }
                 const nominee = state.gameState.seats.find(s => s.id === nomineeId);
-                if (!nominee?.userId) {
-                    addSystemMessage(state.gameState, '无法提名：座位未入座。');
+                if (!nominee) {
+                    addSystemMessage(state.gameState, '无法提名：该座位不存在。');
                     return;
+                }
+                if (!nominee.userId) {
+                    if (handleViolation('无法提名：座位未入座。')) return;
                 }
                 if (nominee.isDead) {
-                    addSystemMessage(state.gameState, '无法提名：该玩家已死亡。');
-                    return;
+                    if (handleViolation('无法提名：该玩家已死亡。')) return;
                 }
                 if (state.gameState.dailyExecutionCompleted) {
-                    addSystemMessage(state.gameState, '今日已处决过玩家，无法再次进行投票处决。');
-                    return;
+                    if (handleViolation('今日已处决过玩家，无法再次进行投票处决。')) return;
                 }
                 const day = state.gameState.roundInfo.dayCount;
                 if (state.gameState.dailyNominations.some(n => n.round === day && n.nomineeSeatId === nomineeId)) {
-                    addSystemMessage(state.gameState, '无法提名：该玩家今日已被提名。');
-                    return;
+                    if (handleViolation('无法提名：该玩家今日已被提名。')) return;
                 }
                 state.gameState.voting = createVotingState(nomineeId);
                 state.gameState.phase = 'VOTING';

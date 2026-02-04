@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store';
-import { X, Volume2, Monitor, User, Shield, Music, MousePointer, Bell, Globe } from 'lucide-react';
+import { X, Volume2, Monitor, User, Shield, Music, MousePointer, Bell, Globe, Wand2, Compass, Hand } from 'lucide-react';
 import { LanguageSelector } from '../ui/LanguageSelector';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +12,9 @@ interface AudioSettingsModalProps {
 
 export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, onClose }) => {
     const { t } = useTranslation();
-    const { audioSettings, setAudioMode, toggleAudioCategory } = useStore();
+    const { audioSettings, setAudioMode, toggleAudioCategory, gameState, setRuleAutomationLevel } = useStore();
+    const ruleAutomationLevel = gameState?.ruleAutomationLevel ?? 'GUIDED';
+    const isAutomationAvailable = Boolean(gameState);
 
     if (!isOpen) return null;
 
@@ -106,6 +108,60 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
                                         </span>
                                     </p>
                                 )}
+                            </div>
+                        </div>
+
+                        {/* Rule Automation */}
+                        <div className="space-y-4">
+                            <h3 className="text-[#a8a29e] text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                                <Wand2 className="w-4 h-4" /> {t('audio.ruleAutomation')}
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {[
+                                    {
+                                        level: 'FULL_AUTO',
+                                        icon: Wand2,
+                                        label: t('audio.ruleAutomationFull'),
+                                        desc: t('audio.ruleAutomationFullDesc'),
+                                    },
+                                    {
+                                        level: 'GUIDED',
+                                        icon: Compass,
+                                        label: t('audio.ruleAutomationGuided'),
+                                        desc: t('audio.ruleAutomationGuidedDesc'),
+                                    },
+                                    {
+                                        level: 'MANUAL',
+                                        icon: Hand,
+                                        label: t('audio.ruleAutomationManual'),
+                                        desc: t('audio.ruleAutomationManualDesc'),
+                                    },
+                                ].map(({ level, icon: IconComponent, label, desc }) => {
+                                    const isActive = ruleAutomationLevel === level;
+                                    return (
+                                        <button
+                                            key={level}
+                                            onClick={() => setRuleAutomationLevel(level as 'FULL_AUTO' | 'GUIDED' | 'MANUAL')}
+                                            disabled={!isAutomationAvailable}
+                                            className={`p-3 rounded-md border transition-all flex flex-col items-center gap-2 relative overflow-hidden group ${
+                                                isActive
+                                                    ? 'bg-[#292524] border-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.1)]'
+                                                    : 'bg-[#0c0a09] border-[#44403c] hover:border-[#78716c] opacity-60 hover:opacity-100'
+                                            } ${!isAutomationAvailable ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                        >
+                                            <IconComponent className={`w-7 h-7 ${isActive ? 'text-[#d4af37]' : 'text-[#78716c]'}`} />
+                                            <span className={`font-bold font-cinzel text-sm ${isActive ? 'text-[#e7e5e4]' : 'text-[#78716c]'}`}>
+                                                {label}
+                                            </span>
+                                            <span className="text-[10px] text-[#a8a29e] text-center leading-snug">
+                                                {desc}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="bg-[#0c0a09]/50 p-3 rounded border border-[#44403c] text-xs text-[#a8a29e] leading-relaxed">
+                                {t('audio.ruleAutomationDesc')}
                             </div>
                         </div>
 

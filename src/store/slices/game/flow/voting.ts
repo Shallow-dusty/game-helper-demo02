@@ -27,74 +27,56 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
     startVote: (nomineeId, nominatorId) => {
         set((state: Draft<AppState>) => {
             if (state.gameState) {
+                const automationLevel = state.gameState.ruleAutomationLevel ?? 'GUIDED';
+                const shouldEnforce = automationLevel === 'FULL_AUTO';
+                const shouldWarn = automationLevel === 'GUIDED';
+                const handleViolation = (message: string): boolean => {
+                    if (shouldWarn || shouldEnforce) {
+                        addSystemMessage(state.gameState, message);
+                    }
+                    return shouldEnforce;
+                };
+
                 if (state.gameState.phase !== 'DAY') {
-                    addSystemMessage(state.gameState, '只能在白天进行提名');
-                    return;
+                    if (handleViolation('只能在白天进行提名')) return;
                 }
 
                 if (state.gameState.voting) {
-                    addSystemMessage(state.gameState, '当前已有投票进行中');
-                    return;
+                    if (handleViolation('当前已有投票进行中')) return;
                 }
 
                 // 检查被提名者是否存活
                 const nomineeSeat = state.gameState.seats.find(s => s.id === nomineeId);
-                if (!nomineeSeat?.userId) {
-                    state.gameState.messages.push({
-                        id: `sys-${Date.now()}`,
-                        senderId: 'system',
-                        senderName: '系统',
-                        recipientId: null,
-                        content: '无法提名：该座位未入座',
-                        timestamp: Date.now(),
-                        type: 'system',
-                    });
+                if (!nomineeSeat) {
+                    addSystemMessage(state.gameState, '无法提名：该座位不存在');
                     return;
                 }
+                if (!nomineeSeat?.userId) {
+                    if (handleViolation('无法提名：该座位未入座')) return;
+                }
                 if (nomineeSeat?.isDead) {
-                    state.gameState.messages.push({
-                        id: `sys-${Date.now()}`,
-                        senderId: 'system',
-                        senderName: '系统',
-                        recipientId: null,
-                        content: '无法提名：该玩家已死亡',
-                        timestamp: Date.now(),
-                        type: 'system',
-                    });
-                    return;
+                    if (handleViolation('无法提名：该玩家已死亡')) return;
                 }
 
                 if (nominatorId !== null && nominatorId !== undefined) {
                     const nominatorSeat = state.gameState.seats.find(s => s.id === nominatorId);
                     if (!nominatorSeat?.userId) {
-                        addSystemMessage(state.gameState, '无法提名：提名者未入座');
-                        return;
+                        if (handleViolation('无法提名：提名者未入座')) return;
                     }
                     if (nominatorSeat.isDead) {
-                        addSystemMessage(state.gameState, '无法提名：死亡玩家不能提名');
-                        return;
+                        if (handleViolation('无法提名：死亡玩家不能提名')) return;
                     }
                 }
 
                 // 检查今日是否已处决过（每日一次处决规则）
                 if (state.gameState.dailyExecutionCompleted) {
-                    state.gameState.messages.push({
-                        id: `sys-${Date.now()}`,
-                        senderId: 'system',
-                        senderName: '系统',
-                        recipientId: null,
-                        content: '今日已处决过玩家，无法再次进行投票处决',
-                        timestamp: Date.now(),
-                        type: 'system',
-                    });
-                    return;
+                    if (handleViolation('今日已处决过玩家，无法再次进行投票处决')) return;
                 }
 
                 const day = state.gameState.roundInfo.dayCount;
                 const todaysNominations = state.gameState.dailyNominations.filter(n => n.round === day);
                 if (todaysNominations.some(nomination => nomination.nomineeSeatId === nomineeId)) {
-                    addSystemMessage(state.gameState, '无法提名：该玩家今日已被提名');
-                    return;
+                    if (handleViolation('无法提名：该玩家今日已被提名')) return;
                 }
 
                 if (nominatorId !== null && nominatorId !== undefined) {
@@ -103,8 +85,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                     const nominationLimit = nominatorRoleId === 'butcher' ? 2 : 1;
                     const nominationCount = todaysNominations.filter(nomination => nomination.nominatorSeatId === nominatorId).length;
                     if (nominationCount >= nominationLimit) {
-                        addSystemMessage(state.gameState, '无法提名：该玩家今日提名次数已用尽');
-                        return;
+                        if (handleViolation('无法提名：该玩家今日提名次数已用尽')) return;
                     }
                 }
 

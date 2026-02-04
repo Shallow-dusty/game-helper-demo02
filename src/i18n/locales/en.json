@@ -532,7 +532,15 @@
     "cuesDisabled": "Cues (Disabled)",
     "language": "Language Settings",
     "interfaceLanguage": "Interface Language",
-    "selectLanguage": "Select application display language"
+    "selectLanguage": "Select application display language",
+    "ruleAutomation": "Rule Automation",
+    "ruleAutomationDesc": "Choose how strictly the system enforces core rules during nominations and voting.",
+    "ruleAutomationFull": "Full Auto",
+    "ruleAutomationFullDesc": "Strictly enforce rules and block invalid actions.",
+    "ruleAutomationGuided": "Guided",
+    "ruleAutomationGuidedDesc": "Warn but allow; storyteller decides.",
+    "ruleAutomationManual": "Manual",
+    "ruleAutomationManualDesc": "No rule enforcement or warnings."
   },
   "lobby": {
     "title": "GRIMOIRE",

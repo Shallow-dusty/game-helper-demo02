@@ -55,6 +55,7 @@ export const getInitialState = (roomId: string, seatCount: number, currentScript
     candlelightEnabled: false,
     dailyNominations: [],
     dailyExecutionCompleted: false,
+    ruleAutomationLevel: 'GUIDED',
     interactionLog: [],
 });
 

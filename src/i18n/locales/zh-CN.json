@@ -634,7 +634,15 @@
     "cuesDisabled": "提示音效 (已禁用)",
     "language": "语言设置",
     "interfaceLanguage": "界面语言",
-    "selectLanguage": "选择应用显示语言"
+    "selectLanguage": "选择应用显示语言",
+    "ruleAutomation": "规则自动化",
+    "ruleAutomationDesc": "选择系统在提名与投票等关键规则上的强制程度。",
+    "ruleAutomationFull": "全自动",
+    "ruleAutomationFullDesc": "严格执行规则，违规会被阻止。",
+    "ruleAutomationGuided": "引导",
+    "ruleAutomationGuidedDesc": "仅提示不阻止，最终由说书人决定。",
+    "ruleAutomationManual": "手动",
+    "ruleAutomationManualDesc": "不进行规则拦截与提示。"
   },
   "lobby": {
     "title": "魔典 GRIMOIRE",

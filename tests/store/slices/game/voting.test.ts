@@ -130,6 +130,7 @@ describe('createVotingSlice', () => {
         votes: [0, 2, 3],
         isOpen: true
       };
+      mockStore.state.gameState!.ruleAutomationLevel = 'FULL_AUTO';
 
       votingSlice.startVote(3);
 

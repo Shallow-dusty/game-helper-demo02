@@ -193,6 +193,8 @@ export interface InteractionLogEntry {
   metadata?: Record<string, unknown>;
 }
 
+export type RuleAutomationLevel = 'FULL_AUTO' | 'GUIDED' | 'MANUAL';
+
 // 每日提名记录
 export interface DailyNomination {
   nominatorSeatId: number;
@@ -260,6 +262,9 @@ export interface GameState {
 
   // 每日处决完成标记（一天只能处决一人）
   dailyExecutionCompleted: boolean;
+
+  // 规则自动化级别（可选，默认 GUIDED）
+  ruleAutomationLevel?: RuleAutomationLevel;
 
   // 交互日志（用于战报生成）
   interactionLog: InteractionLogEntry[];

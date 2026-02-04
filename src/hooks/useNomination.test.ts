@@ -14,7 +14,8 @@ const mockGameState = {
         { id: 0, userId: 'test-user', isDead: false },
         { id: 1, userId: 'other-user', isDead: false }
     ],
-    roundInfo: { dayCount: 1 }
+    roundInfo: { dayCount: 1 },
+    ruleAutomationLevel: 'GUIDED'
 };
 
 vi.mock('../store', () => ({
@@ -38,6 +39,7 @@ vi.mock('../lib/supabaseService', () => ({
 describe('useNomination', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockGameState.ruleAutomationLevel = 'GUIDED';
         
         vi.mocked(supabaseService.checkNominationEligibility).mockResolvedValue({
             canNominate: true,
@@ -75,7 +77,7 @@ describe('useNomination', () => {
             expect(supabaseService.getNominationHistory).toHaveBeenCalledWith(123, 1);
         });
 
-        it('资格检查成功时应该更新状态', async () => {
+        it('资格检查成功时在引导模式下保持可提名，但更新上次提名信息', async () => {
             vi.mocked(supabaseService.checkNominationEligibility).mockResolvedValue({
                 canNominate: false,
                 reason: '今日已提名',
@@ -88,11 +90,11 @@ describe('useNomination', () => {
                 expect(result.current.isCheckingEligibility).toBe(false);
             });
             
-            expect(result.current.canNominate).toBe(false);
+            expect(result.current.canNominate).toBe(true);
             expect(result.current.previousNominee).toBe(3);
         });
 
-        it('资格检查失败时应该默认禁止提名', async () => {
+        it('资格检查失败时在引导模式下默认允许提名', async () => {
             vi.mocked(supabaseService.checkNominationEligibility).mockRejectedValue(new Error('Network error'));
             
             const { result } = renderHook(() => useNomination());
@@ -101,6 +103,19 @@ describe('useNomination', () => {
                 expect(result.current.isCheckingEligibility).toBe(false);
             });
             
+            expect(result.current.canNominate).toBe(true);
+        });
+
+        it('自动化全开时资格检查失败应默认禁止提名', async () => {
+            vi.mocked(supabaseService.checkNominationEligibility).mockRejectedValue(new Error('Network error'));
+            mockGameState.ruleAutomationLevel = 'FULL_AUTO';
+
+            const { result } = renderHook(() => useNomination());
+
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+
             expect(result.current.canNominate).toBe(false);
         });
     });
@@ -128,7 +143,25 @@ describe('useNomination', () => {
             expect(eligibility.canNominate).toBe(true);
         });
 
-        it('API 失败时应该返回默认禁止', async () => {
+        it('API 失败时引导模式下默认允许提名', async () => {
+            const { result } = renderHook(() => useNomination());
+
+            await waitFor(() => {
+                expect(result.current.isCheckingEligibility).toBe(false);
+            });
+
+            vi.mocked(supabaseService.checkNominationEligibility).mockRejectedValue(new Error('Error'));
+
+            let eligibility: any;
+            await act(async () => {
+                eligibility = await result.current.checkSeatEligibility(0);
+            });
+
+            expect(eligibility.canNominate).toBe(true);
+        });
+
+        it('API 失败时自动化全开应默认禁止', async () => {
+            mockGameState.ruleAutomationLevel = 'FULL_AUTO';
             const { result } = renderHook(() => useNomination());
 
             await waitFor(() => {
@@ -236,7 +269,7 @@ describe('useNomination', () => {
     });
 
     describe('refresh', () => {
-        it('应该刷新资格和提名历史', async () => {
+        it('应该刷新资格和提名历史（引导模式默认允许）', async () => {
             const { result } = renderHook(() => useNomination());
             
             await waitFor(() => {
@@ -261,7 +294,7 @@ describe('useNomination', () => {
             
             expect(supabaseService.checkNominationEligibility).toHaveBeenCalled();
             expect(supabaseService.getNominationHistory).toHaveBeenCalled();
-            expect(result.current.canNominate).toBe(false);
+            expect(result.current.canNominate).toBe(true);
             expect(result.current.previousNominee).toBe(2);
             expect(result.current.todayNominations.length).toBe(1);
         });

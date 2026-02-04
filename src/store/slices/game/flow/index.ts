@@ -28,7 +28,7 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice,
     'nightNext' | 'nightPrev' |
     'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote' |
     'startGame' | 'endGame' |
-    'toggleCandlelight' | 'addInteractionLog'
+    'toggleCandlelight' | 'addInteractionLog' | 'setRuleAutomationLevel'
 >> = (set, get) => {
     return {
         ...(createPhaseSlice as any)(set, get),

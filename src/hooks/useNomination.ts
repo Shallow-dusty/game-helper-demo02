@@ -44,6 +44,8 @@ export function useNomination(): UseNominationReturn {
     
     const roomId = user?.roomId;
     const gameDay = gameState?.roundInfo?.dayCount ?? 1;
+    const ruleAutomationLevel = gameState?.ruleAutomationLevel ?? 'GUIDED';
+    const shouldEnforceRules = ruleAutomationLevel === 'FULL_AUTO';
     
     // Find current user's seat
     const userSeat = gameState?.seats.find(s => s.userId === user?.id);
@@ -107,25 +109,25 @@ export function useNomination(): UseNominationReturn {
             setIsCheckingEligibility(true);
             try {
                 const localEligibility = getLocalNominationStatus(userSeatId);
-                if (!localEligibility.canNominate) {
+                if (shouldEnforceRules && !localEligibility.canNominate) {
                     setCanNominate(false);
                     setPreviousNominee(localEligibility.previousNominee);
                     return;
                 }
                 const result = await checkNominationEligibility(roomId, gameDay, userSeatId);
-                setCanNominate(result.canNominate);
+                setCanNominate(shouldEnforceRules ? result.canNominate : true);
                 setPreviousNominee(result.previousNominee);
             } catch (err) {
                 console.error('Failed to check nomination eligibility:', err);
-                // Fail closed on error
-                setCanNominate(false);
+                // Fail closed only when enforcing rules
+                setCanNominate(!shouldEnforceRules);
             } finally {
                 setIsCheckingEligibility(false);
             }
         };
         
         void checkEligibility();
-    }, [roomId, gameDay, userSeatId, getLocalNominationStatus]);
+    }, [roomId, gameDay, userSeatId, getLocalNominationStatus, shouldEnforceRules]);
     
     // Fetch today's nominations
     useEffect(() => {
@@ -149,23 +151,24 @@ export function useNomination(): UseNominationReturn {
         }
 
         const localEligibility = getLocalNominationStatus(seatId);
-        if (!localEligibility.canNominate) {
+        if (shouldEnforceRules && !localEligibility.canNominate) {
             return localEligibility;
         }
         
         try {
-            return await checkNominationEligibility(roomId, gameDay, seatId);
+            const result = await checkNominationEligibility(roomId, gameDay, seatId);
+            return shouldEnforceRules ? result : { ...result, canNominate: true };
         } catch (err) {
             console.error('Failed to check seat eligibility:', err);
-            return { canNominate: false, reason: '资格检查失败', previousNominee: null };
+            return { canNominate: !shouldEnforceRules, reason: '资格检查失败', previousNominee: null };
         }
-    }, [roomId, gameDay, gameState, getLocalNominationStatus]);
+    }, [roomId, gameDay, gameState, getLocalNominationStatus, shouldEnforceRules]);
     
     const makeNomination = useCallback(async (nominatorSeat: number, nomineeSeat: number): Promise<boolean> => {
         if (!roomId || !gameState) return false;
 
         const localEligibility = getLocalNominationStatus(nominatorSeat, nomineeSeat);
-        if (!localEligibility.canNominate) {
+        if (shouldEnforceRules && !localEligibility.canNominate) {
             if (nominatorSeat === userSeatId) {
                 setCanNominate(false);
                 setPreviousNominee(localEligibility.previousNominee);
@@ -199,7 +202,7 @@ export function useNomination(): UseNominationReturn {
             console.error('Error making nomination:', err);
             return false;
         }
-    }, [roomId, gameDay, userSeatId, startVote, gameState, getLocalNominationStatus]);
+    }, [roomId, gameDay, userSeatId, startVote, gameState, getLocalNominationStatus, shouldEnforceRules]);
     
     const refresh = useCallback(async () => {
         if (!roomId || !gameState) return;
@@ -208,17 +211,17 @@ export function useNomination(): UseNominationReturn {
         if (userSeatId !== undefined) {
             try {
                 const localEligibility = getLocalNominationStatus(userSeatId);
-                if (!localEligibility.canNominate) {
+                if (shouldEnforceRules && !localEligibility.canNominate) {
                     setCanNominate(false);
                     setPreviousNominee(localEligibility.previousNominee);
                 } else {
                     const eligibility = await checkNominationEligibility(roomId, gameDay, userSeatId);
-                    setCanNominate(eligibility.canNominate);
+                    setCanNominate(shouldEnforceRules ? eligibility.canNominate : true);
                     setPreviousNominee(eligibility.previousNominee);
                 }
             } catch (err) {
                 console.error('Failed to refresh nomination eligibility:', err);
-                setCanNominate(false);
+                setCanNominate(!shouldEnforceRules);
                 setPreviousNominee(null);
             }
         }
@@ -226,7 +229,7 @@ export function useNomination(): UseNominationReturn {
         // Refresh nominations
         const nominations = await getNominationHistory(roomId, gameDay);
         setTodayNominations(nominations);
-    }, [roomId, gameDay, userSeatId, gameState, getLocalNominationStatus]);
+    }, [roomId, gameDay, userSeatId, gameState, getLocalNominationStatus, shouldEnforceRules]);
     
     return {
         canNominate,

@@ -1,6 +1,6 @@
 import type { StoreApi } from 'zustand';
 import type { Draft } from 'immer';
-import { GameState, User, GamePhase, SeatStatus, NightActionRequest, NightActionPayload, GameHistory, Seat } from '../types';
+import { GameState, User, GamePhase, SeatStatus, NightActionRequest, NightActionPayload, GameHistory, Seat, RuleAutomationLevel } from '../types';
 import type { PhaseMachineContext } from '../lib/machines/phaseMachine';
 
 // --- CONNECTION STATE TYPE ---
@@ -116,6 +116,7 @@ export interface GameSlice {
     // v2.0 沉浸式 UI 控制
     toggleCandlelight: () => void;
     addInteractionLog: (entry: Omit<import('../types').InteractionLogEntry, 'id' | 'timestamp'>) => void;
+    setRuleAutomationLevel: (level: RuleAutomationLevel) => void;
 }
 
 export interface AppState extends GameSlice, PhaseMachineSlice {

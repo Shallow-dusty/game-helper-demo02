@@ -1,8 +1,9 @@
 import { StoreSlice, GameSlice } from '@/store/types';
+import { RuleAutomationLevel } from '@/types';
 import { InteractionLogEntry } from '@/types';
 import { generateShortId } from '@/lib/random';
 
-export const createFeaturesSlice: StoreSlice<Pick<GameSlice, 'toggleCandlelight' | 'addInteractionLog'>> = (set, get) => ({
+export const createFeaturesSlice: StoreSlice<Pick<GameSlice, 'toggleCandlelight' | 'addInteractionLog' | 'setRuleAutomationLevel'>> = (set, get) => ({
     // v2.0: 烛光模式控制 (手动开关，需要同步)
     toggleCandlelight: () => {
         set((state) => {
@@ -25,5 +26,14 @@ export const createFeaturesSlice: StoreSlice<Pick<GameSlice, 'toggleCandlelight'
                 state.gameState.interactionLog.push(logEntry);
             }
         });
+    },
+
+    setRuleAutomationLevel: (level: RuleAutomationLevel) => {
+        set((state) => {
+            if (state.gameState) {
+                state.gameState.ruleAutomationLevel = level;
+            }
+        });
+        get().sync();
     }
 });

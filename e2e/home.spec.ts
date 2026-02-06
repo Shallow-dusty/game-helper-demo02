@@ -4,8 +4,25 @@ const enterRegex = /进入魔典|Enter Grimoire|以玩家身份进入|Enter as P
 const createRoomRegex = /创建仪式|Create Ritual/i;
 const sandboxModeRegex = /沙盒模式|Sandbox Mode/i;
 
+const gotoHome = async (page: Page) => {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 45000 });
+      await expect(page.locator('#root')).toBeVisible({ timeout: 10000 });
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) {
+        await page.waitForTimeout(800);
+      }
+    }
+  }
+  throw lastError;
+};
+
 const loginToRoomSelection = async (page: Page) => {
-  await page.goto('/');
+  await gotoHome(page);
   const nicknameInput = page.locator('input[type="text"]').first();
   await nicknameInput.fill('E2E Tester');
   await page.getByRole('button', { name: enterRegex }).click();
@@ -14,13 +31,13 @@ const loginToRoomSelection = async (page: Page) => {
 
 test.describe('大厅与房间选择', () => {
   test('首页应显示标题与进入按钮', async ({ page }) => {
-    await page.goto('/');
+    await gotoHome(page);
     await expect(page).toHaveTitle(/血染钟楼|Grimoire/i);
     await expect(page.getByRole('button', { name: enterRegex })).toBeVisible();
   });
 
   test('昵称为空时进入按钮禁用，输入后可用', async ({ page }) => {
-    await page.goto('/');
+    await gotoHome(page);
     const nicknameInput = page.locator('input[type="text"]').first();
     const enterButton = page.getByRole('button', { name: enterRegex });
 

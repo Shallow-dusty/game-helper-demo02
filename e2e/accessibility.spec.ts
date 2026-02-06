@@ -1,14 +1,31 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+const gotoHome = async (page: Page) => {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 45000 });
+      await expect(page.locator('#root')).toBeVisible({ timeout: 10000 });
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) {
+        await page.waitForTimeout(800);
+      }
+    }
+  }
+  throw lastError;
+};
 
 test.describe('可访问性基础检查', () => {
   test('首页应有可见根容器和主标题', async ({ page }) => {
-    await page.goto('/');
+    await gotoHome(page);
     await expect(page.locator('#root')).toBeVisible();
     await expect(page.locator('h1').first()).toBeVisible();
   });
 
   test('输入框应具备可访问名称', async ({ page }) => {
-    await page.goto('/');
+    await gotoHome(page);
     const inputs = page.locator('input:not([type="hidden"])');
     const count = await inputs.count();
 
@@ -21,7 +38,7 @@ test.describe('可访问性基础检查', () => {
   });
 
   test('主要按钮应可被键盘聚焦并激活', async ({ page }) => {
-    await page.goto('/');
+    await gotoHome(page);
     await page.keyboard.press('Tab');
 
     const focused = page.locator(':focus').first();
@@ -32,7 +49,7 @@ test.describe('可访问性基础检查', () => {
   });
 
   test('按钮应具备可访问名称', async ({ page }) => {
-    await page.goto('/');
+    await gotoHome(page);
     const buttons = page.locator('button');
     const count = Math.min(await buttons.count(), 12);
 

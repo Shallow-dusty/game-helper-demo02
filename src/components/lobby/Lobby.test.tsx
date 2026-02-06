@@ -195,7 +195,7 @@ describe('Lobby', () => {
     expect(enterButton).not.toBeDisabled();
   });
 
-  it('calls spectateGame when submitting with valid room code', () => {
+  it('calls spectateGame when submitting with valid room code', async () => {
     const mockSpectateGame = vi.fn();
     mockStoreState.spectateGame = mockSpectateGame;
 
@@ -209,13 +209,13 @@ describe('Lobby', () => {
     fireEvent.change(roomCodeInput, { target: { value: '1234' } });
 
     const form = roomCodeInput.closest('form');
-    if (form) {
-      fireEvent.submit(form);
-      // Should call spectateGame asynchronously
-      waitFor(() => {
-        expect(mockSpectateGame).toHaveBeenCalledWith('1234');
-      });
-    }
+    expect(form).toBeTruthy();
+
+    fireEvent.submit(form!);
+    // Should call spectateGame asynchronously
+    await waitFor(() => {
+      expect(mockSpectateGame).toHaveBeenCalledWith('1234');
+    });
   });
 
   it('renders footer quote', () => {

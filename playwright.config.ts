@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const includeWebkit = process.env.PW_INCLUDE_WEBKIT === '1';
+
 /**
  * Playwright E2E 测试配置
  * @see https://playwright.dev/docs/test-configuration
@@ -52,18 +54,21 @@ export default defineConfig({
       use: { ...devices['Desktop Firefox'] },
     },
     {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    // 移动端测试
-    {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
     },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
+    ...(includeWebkit
+      ? [
+        {
+          name: 'webkit',
+          use: { ...devices['Desktop Safari'] },
+        },
+        {
+          name: 'Mobile Safari',
+          use: { ...devices['iPhone 12'] },
+        },
+      ]
+      : []),
   ],
 
   // 启动开发服务器

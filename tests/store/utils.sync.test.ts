@@ -147,7 +147,14 @@ describe('mergeGameState 进阶测试', () => {
     const { publicState } = splitGameState(gameState);
 
     const merged = mergeGameState(publicState, {
-      seats: [{ id: 999, realRoleId: 'unknown' }]
+      seats: [{
+        id: 999,
+        realRoleId: 'unknown',
+        seenRoleId: null,
+        reminders: [],
+        statuses: [],
+        hasUsedAbility: false
+      }]
     });
 
     // Should not crash, seat 999 doesn't exist so nothing changes

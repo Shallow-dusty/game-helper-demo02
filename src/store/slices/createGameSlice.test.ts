@@ -192,6 +192,7 @@ describe('createGameSlice', () => {
                   state.gameState.phase = 'DAY';
                   state.gameState.roundInfo.dayCount = 1;
               }
+              return state;
           });
           // 5 players alive, need 3 votes to execute
           const nomineeId = 0;
@@ -237,6 +238,7 @@ describe('createGameSlice', () => {
                 state.gameState.phase = 'DAY';
                 state.gameState.roundInfo.dayCount = 1;
             }
+            return state;
         });
         // 5 players alive, need 3 votes. We give 2.
         const nomineeId = 0;

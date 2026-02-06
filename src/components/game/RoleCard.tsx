@@ -36,7 +36,7 @@ export const RoleCard: React.FC<RoleCardProps> = React.memo(({
     const { t } = useTranslation();
     const color = TEAM_COLORS[role.team] ?? 'stone';
     const teamName = t(`game.roleCard.teams.${role.team}`, { defaultValue: role.team });
-    const iconName = ROLE_ICONS[role.id] ?? ROLE_ICONS.default;
+    const iconName: LucideIconName = ROLE_ICONS[role.id] ?? 'Theater';
 
     // Size classes
     const sizeClasses = {

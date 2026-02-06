@@ -29,13 +29,13 @@ export const createGameFlowSlice: StoreSlice<Pick<GameSlice,
     'startVote' | 'nextClockHand' | 'toggleHand' | 'closeVote' |
     'startGame' | 'endGame' |
     'toggleCandlelight' | 'addInteractionLog' | 'setRuleAutomationLevel'
->> = (set, get) => {
+>> = (set, get, api) => {
     return {
-        ...createPhaseSlice(set, get),
-        ...createNightSlice(set, get),
-        ...createVotingSlice(set, get),
-        ...createLifecycleSlice(set, get),
-        ...createFeaturesSlice(set, get)
+        ...createPhaseSlice(set, get, api),
+        ...createNightSlice(set, get, api),
+        ...createVotingSlice(set, get, api),
+        ...createLifecycleSlice(set, get, api),
+        ...createFeaturesSlice(set, get, api)
     };
 };
 

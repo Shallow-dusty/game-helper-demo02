@@ -69,6 +69,7 @@ describe('createGameFlowSlice', () => {
             voteHistory: unknown[];
             interactionLog: unknown[];
             dailyNominations: unknown[];
+            ruleAutomationLevel?: 'MANUAL' | 'GUIDED' | 'FULL_AUTO';
             gameOver: { isOver: boolean; winner: string; reason: string } | null;
             messages: unknown[];
         } | null;

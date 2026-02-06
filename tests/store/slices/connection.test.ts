@@ -46,7 +46,7 @@ const createQueryBuilder = (table: string) => {
             dailyExecutionCompleted: false,
             voteHistory: [],
             roundInfo: { dayCount: 0, nightCount: 0, nominationCount: 0, totalRounds: 0 },
-            gameOver: null
+            gameOver: { isOver: false, winner: null, reason: '' }
           } as Partial<GameState>
         },
         error: null
@@ -69,8 +69,10 @@ const mockQueryBuilder = createQueryBuilder('game_rooms');
 const secretsQueryBuilder = createQueryBuilder('game_secrets');
 const roomMembersQueryBuilder = createQueryBuilder('room_members');
 const messagesQueryBuilder = createQueryBuilder('game_messages');
+void roomMembersQueryBuilder;
+void messagesQueryBuilder;
 
-const mockRpc = vi.hoisted(() => vi.fn((fnName: string) => {
+const mockRpc = vi.hoisted(() => vi.fn((fnName: string): any => {
   if (fnName === 'join_room') {
     return {
       single: vi.fn(() => ({
@@ -89,7 +91,7 @@ const mockRpc = vi.hoisted(() => vi.fn((fnName: string) => {
             dailyExecutionCompleted: false,
             voteHistory: [],
             roundInfo: { dayCount: 0, nightCount: 0, nominationCount: 0, totalRounds: 0 },
-            gameOver: null
+            gameOver: { isOver: false, winner: null, reason: '' }
           } as Partial<GameState>
         },
         error: null

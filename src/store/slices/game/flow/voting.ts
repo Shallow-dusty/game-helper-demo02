@@ -27,29 +27,30 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
     startVote: (nomineeId, nominatorId) => {
         if (!get().user?.isStoryteller) return;
         set((state: Draft<AppState>) => {
-            if (state.gameState) {
-                const automationLevel = state.gameState.ruleAutomationLevel ?? 'GUIDED';
+            const gameState = state.gameState;
+            if (gameState) {
+                const automationLevel = gameState.ruleAutomationLevel ?? 'GUIDED';
                 const shouldEnforce = automationLevel === 'FULL_AUTO';
                 const shouldWarn = automationLevel === 'GUIDED';
                 const handleViolation = (message: string): boolean => {
                     if (shouldWarn || shouldEnforce) {
-                        addSystemMessage(state.gameState, message);
+                        addSystemMessage(gameState, message);
                     }
                     return shouldEnforce;
                 };
 
-                if (state.gameState.phase !== 'DAY') {
+                if (gameState.phase !== 'DAY') {
                     if (handleViolation('只能在白天进行提名')) return;
                 }
 
-                if (state.gameState.voting) {
+                if (gameState.voting) {
                     if (handleViolation('当前已有投票进行中')) return;
                 }
 
                 // 检查被提名者是否存活
-                const nomineeSeat = state.gameState.seats.find(s => s.id === nomineeId);
+                const nomineeSeat = gameState.seats.find(s => s.id === nomineeId);
                 if (!nomineeSeat) {
-                    addSystemMessage(state.gameState, '无法提名：该座位不存在');
+                    addSystemMessage(gameState, '无法提名：该座位不存在');
                     return;
                 }
                 if (!nomineeSeat?.userId) {
@@ -60,7 +61,11 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 }
 
                 if (nominatorId !== null && nominatorId !== undefined) {
-                    const nominatorSeat = state.gameState.seats.find(s => s.id === nominatorId);
+                    const nominatorSeat = gameState.seats.find(s => s.id === nominatorId);
+                    if (!nominatorSeat) {
+                        if (handleViolation('无法提名：提名者座位不存在')) return;
+                        return;
+                    }
                     if (!nominatorSeat?.userId) {
                         if (handleViolation('无法提名：提名者未入座')) return;
                     }
@@ -70,18 +75,18 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 }
 
                 // 检查今日是否已处决过（每日一次处决规则）
-                if (state.gameState.dailyExecutionCompleted) {
+                if (gameState.dailyExecutionCompleted) {
                     if (handleViolation('今日已处决过玩家，无法再次进行投票处决')) return;
                 }
 
-                const day = state.gameState.roundInfo.dayCount;
-                const todaysNominations = state.gameState.dailyNominations.filter(n => n.round === day);
+                const day = gameState.roundInfo.dayCount;
+                const todaysNominations = gameState.dailyNominations.filter(n => n.round === day);
                 if (todaysNominations.some(nomination => nomination.nomineeSeatId === nomineeId)) {
                     if (handleViolation('无法提名：该玩家今日已被提名')) return;
                 }
 
                 if (nominatorId !== null && nominatorId !== undefined) {
-                    const nominatorSeat = state.gameState.seats.find(s => s.id === nominatorId);
+                    const nominatorSeat = gameState.seats.find(s => s.id === nominatorId);
                     const nominatorRoleId = nominatorSeat ? getSeatRoleId(nominatorSeat) : null;
                     const nominationLimit = nominatorRoleId === 'butcher' ? 2 : 1;
                     const nominationCount = todaysNominations.filter(nomination => nomination.nominatorSeatId === nominatorId).length;
@@ -90,45 +95,45 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                     }
                 }
 
-                state.gameState.voting = {
+                gameState.voting = {
                     nominatorSeatId: nominatorId ?? null,
                     nomineeSeatId: nomineeId,
                     clockHandSeatId: nomineeId,
                     votes: [],
                     isOpen: true
                 };
-                state.gameState.phase = 'VOTING';
-                state.gameState.dailyNominations.push({
+                gameState.phase = 'VOTING';
+                gameState.dailyNominations.push({
                     nominatorSeatId: nominatorId ?? -1,
                     nomineeSeatId: nomineeId,
-                    round: state.gameState.roundInfo.dayCount,
+                    round: gameState.roundInfo.dayCount,
                     timestamp: Date.now()
                 });
-                state.gameState.roundInfo.nominationCount += 1;
+                gameState.roundInfo.nominationCount += 1;
 
-                const hasSpecialTraveler = state.gameState.seats.some(seat => {
+                const hasSpecialTraveler = gameState.seats.some(seat => {
                     const roleId = getSeatRoleId(seat);
                     return roleId ? SPECIAL_TRAVELER_VOTE_ROLES.has(roleId) : false;
                 });
                 if (hasSpecialTraveler) {
-                    const hasNotice = state.gameState.messages.some(
+                    const hasNotice = gameState.messages.some(
                         message => message.type === 'system' && message.content.includes('旅行者规则需要手动处理')
                     );
                     if (!hasNotice) {
-                        addSystemMessage(state.gameState, '检测到旅行者投票/处决相关规则，部分效果需要手动处理。');
+                        addSystemMessage(gameState, '检测到旅行者投票/处决相关规则，部分效果需要手动处理。');
                     }
                 }
 
-                const hasVoudon = state.gameState.seats.some(seat => {
+                const hasVoudon = gameState.seats.some(seat => {
                     const roleId = getSeatRoleId(seat);
                     return !seat.isDead && roleId === 'voudon';
                 });
                 if (hasVoudon) {
-                    const hasNotice = state.gameState.messages.some(
+                    const hasNotice = gameState.messages.some(
                         message => message.type === 'system' && message.content.includes('巫毒师在场')
                     );
                     if (!hasNotice) {
-                        addSystemMessage(state.gameState, '巫毒师在场：仅死者与巫毒师可以投票，最高票决定处决候选。');
+                        addSystemMessage(gameState, '巫毒师在场：仅死者与巫毒师可以投票，最高票决定处决候选。');
                     }
                 }
             }

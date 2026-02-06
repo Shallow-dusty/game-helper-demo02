@@ -231,26 +231,27 @@ export const useSandboxStore = create<SandboxState>()(
 
         startVote: (nomineeId) => {
             set((state) => {
-                if (!state.gameState) return;
-                const automationLevel = state.gameState.ruleAutomationLevel ?? 'GUIDED';
+                const gameState = state.gameState;
+                if (!gameState) return;
+                const automationLevel = gameState.ruleAutomationLevel ?? 'GUIDED';
                 const shouldEnforce = automationLevel === 'FULL_AUTO';
                 const shouldWarn = automationLevel === 'GUIDED';
                 const handleViolation = (message: string): boolean => {
                     if (shouldWarn || shouldEnforce) {
-                        addSystemMessage(state.gameState, message);
+                        addSystemMessage(gameState, message);
                     }
                     return shouldEnforce;
                 };
 
-                if (state.gameState.phase !== 'DAY') {
+                if (gameState.phase !== 'DAY') {
                     if (handleViolation('只能在白天进行提名。')) return;
                 }
-                if (state.gameState.voting) {
+                if (gameState.voting) {
                     if (handleViolation('当前已有投票进行中。')) return;
                 }
-                const nominee = state.gameState.seats.find(s => s.id === nomineeId);
+                const nominee = gameState.seats.find(s => s.id === nomineeId);
                 if (!nominee) {
-                    addSystemMessage(state.gameState, '无法提名：该座位不存在。');
+                    addSystemMessage(gameState, '无法提名：该座位不存在。');
                     return;
                 }
                 if (!nominee.userId) {
@@ -259,23 +260,23 @@ export const useSandboxStore = create<SandboxState>()(
                 if (nominee.isDead) {
                     if (handleViolation('无法提名：该玩家已死亡。')) return;
                 }
-                if (state.gameState.dailyExecutionCompleted) {
+                if (gameState.dailyExecutionCompleted) {
                     if (handleViolation('今日已处决过玩家，无法再次进行投票处决。')) return;
                 }
-                const day = state.gameState.roundInfo.dayCount;
-                if (state.gameState.dailyNominations.some(n => n.round === day && n.nomineeSeatId === nomineeId)) {
+                const day = gameState.roundInfo.dayCount;
+                if (gameState.dailyNominations.some(n => n.round === day && n.nomineeSeatId === nomineeId)) {
                     if (handleViolation('无法提名：该玩家今日已被提名。')) return;
                 }
-                state.gameState.voting = createVotingState(nomineeId);
-                state.gameState.phase = 'VOTING';
-                state.gameState.dailyNominations.push({
+                gameState.voting = createVotingState(nomineeId);
+                gameState.phase = 'VOTING';
+                gameState.dailyNominations.push({
                     nominatorSeatId: -1,
                     nomineeSeatId: nomineeId,
-                    round: state.gameState.roundInfo.dayCount,
+                    round: gameState.roundInfo.dayCount,
                     timestamp: Date.now()
                 });
-                state.gameState.roundInfo.nominationCount += 1;
-                addSystemMessage(state.gameState, `开始对 ${nominee.userName} 进行投票。`);
+                gameState.roundInfo.nominationCount += 1;
+                addSystemMessage(gameState, `开始对 ${nominee.userName} 进行投票。`);
             });
         },
 

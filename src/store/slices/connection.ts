@@ -364,12 +364,12 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
 
             // 1. Join via secure RPC (handles membership + returns room data)
             const { data, error } = await supabase
-                .rpc<JoinRoomResponse>('join_room', {
+                .rpc('join_room', {
                     p_room_code: roomCode,
                     p_display_name: user.name,
                     p_role: user.isStoryteller ? 'storyteller' : 'player'
                 })
-                .single();
+                .single() as { data: JoinRoomResponse | null; error: { message: string } | null };
 
             if (error || !data) {
                 const message = error?.message ?? '';
@@ -577,12 +577,12 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             }
 
             const { data, error } = await supabase
-                .rpc<JoinRoomResponse>('join_room', {
+                .rpc('join_room', {
                     p_room_code: roomCode,
                     p_display_name: 'Observer',
                     p_role: 'observer'
                 })
-                .single();
+                .single() as { data: JoinRoomResponse | null; error: { message: string } | null };
 
             if (error || !data) {
                 void getToastFunctions().then(({ showError }) => showError("房间不存在或已关闭！"));

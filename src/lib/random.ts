@@ -66,9 +66,13 @@ export function randomChoice<T>(array: readonly T[]): T | undefined {
 export function shuffleInPlace<T>(array: T[]): T[] {
     for (let i = array.length - 1; i > 0; i--) {
         const j = randomInt(0, i + 1);
-        const temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
+        const valueAtI = array[i];
+        const valueAtJ = array[j];
+        if (valueAtI === undefined || valueAtJ === undefined) {
+            continue;
+        }
+        array[i] = valueAtJ;
+        array[j] = valueAtI;
     }
     return array;
 }

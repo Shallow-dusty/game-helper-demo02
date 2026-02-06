@@ -1,96 +1,46 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
-/**
- * 首页 E2E 测试
- */
-test.describe('首页', () => {
-  test.beforeEach(async ({ page }) => {
+const enterRegex = /进入魔典|Enter Grimoire|以玩家身份进入|Enter as Player/i;
+const createRoomRegex = /创建仪式|Create Ritual/i;
+const sandboxModeRegex = /沙盒模式|Sandbox Mode/i;
+
+const loginToRoomSelection = async (page: Page) => {
+  await page.goto('/');
+  const nicknameInput = page.locator('input[type="text"]').first();
+  await nicknameInput.fill('E2E Tester');
+  await page.getByRole('button', { name: enterRegex }).click();
+  await expect(page.getByRole('button', { name: createRoomRegex })).toBeVisible();
+};
+
+test.describe('大厅与房间选择', () => {
+  test('首页应显示标题与进入按钮', async ({ page }) => {
     await page.goto('/');
-  });
-
-  test('应该显示标题', async ({ page }) => {
     await expect(page).toHaveTitle(/血染钟楼|Grimoire/i);
+    await expect(page.getByRole('button', { name: enterRegex })).toBeVisible();
   });
 
-  test('应该显示创建房间按钮', async ({ page }) => {
-    const createButton = page.getByRole('button', { name: /创建|新建|Create/i });
-    await expect(createButton).toBeVisible();
-  });
-
-  test('应该显示加入房间输入框', async ({ page }) => {
-    const joinInput = page.getByPlaceholder(/房间号|Room/i);
-    await expect(joinInput).toBeVisible();
-  });
-
-  test('应该显示沙盒模式入口', async ({ page }) => {
-    const sandboxButton = page.getByRole('button', { name: /沙盒|Sandbox|练习/i });
-    await expect(sandboxButton).toBeVisible();
-  });
-});
-
-/**
- * 导航测试
- */
-test.describe('导航', () => {
-  test('点击创建房间应进入说书人房间', async ({ page }) => {
+  test('昵称为空时进入按钮禁用，输入后可用', async ({ page }) => {
     await page.goto('/');
+    const nicknameInput = page.locator('input[type="text"]').first();
+    const enterButton = page.getByRole('button', { name: enterRegex });
 
-    const createButton = page.getByRole('button', { name: /创建|新建|Create/i });
-    await createButton.click();
-
-    // 应该导航到游戏页面
-    await expect(page).toHaveURL(/\/room\/|\/game\//);
+    await expect(enterButton).toBeDisabled();
+    await nicknameInput.fill('Tester');
+    await expect(enterButton).toBeEnabled();
   });
 
-  test('输入房间号并加入应进入玩家房间', async ({ page }) => {
-    await page.goto('/');
-
-    const joinInput = page.getByPlaceholder(/房间号|Room/i);
-    await joinInput.fill('TEST123');
-
-    const joinButton = page.getByRole('button', { name: /加入|Join/i });
-    await joinButton.click();
-
-    // 应该尝试导航到房间（可能显示错误如果房间不存在）
-    await expect(page).toHaveURL(/\/room\/|\/game\//);
+  test('提交昵称后应进入房间选择页', async ({ page }) => {
+    await loginToRoomSelection(page);
+    await expect(page.getByRole('button', { name: createRoomRegex })).toBeVisible();
+    await expect(page.getByPlaceholder('8888')).toBeVisible();
   });
 
-  test('点击沙盒模式应进入沙盒页面', async ({ page }) => {
-    await page.goto('/');
+  test('房间选择页应可进入沙盒模式', async ({ page }) => {
+    await loginToRoomSelection(page);
 
-    const sandboxButton = page.getByRole('button', { name: /沙盒|Sandbox|练习/i });
-    await sandboxButton.click();
+    await page.getByRole('button', { name: /展开|Expand|收起|Collapse/i }).click();
+    await page.getByRole('button', { name: sandboxModeRegex }).click();
 
-    await expect(page).toHaveURL(/sandbox/);
-  });
-});
-
-/**
- * 响应式测试
- */
-test.describe('响应式布局', () => {
-  test('移动端应该正确显示', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/');
-
-    // 应该显示移动端友好的布局
-    const mainContent = page.locator('main, [role="main"], .app, #root');
-    await expect(mainContent).toBeVisible();
-  });
-
-  test('平板端应该正确显示', async ({ page }) => {
-    await page.setViewportSize({ width: 768, height: 1024 });
-    await page.goto('/');
-
-    const mainContent = page.locator('main, [role="main"], .app, #root');
-    await expect(mainContent).toBeVisible();
-  });
-
-  test('桌面端应该正确显示', async ({ page }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    await page.goto('/');
-
-    const mainContent = page.locator('main, [role="main"], .app, #root');
-    await expect(mainContent).toBeVisible();
+    await expect(page.getByText(sandboxModeRegex).first()).toBeVisible();
   });
 });

@@ -1,21 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../store';
 import { useShallow } from 'zustand/react/shallow';
 import { ChatMessage, Seat } from '../../types';
 import { InfoCard } from '../ui/InfoCard';
 import { Icon } from '../ui/Icon';
 import { useTranslation } from 'react-i18next';
-import * as ReactWindow from 'react-window';
-// @ts-expect-error react-window types may not match at runtime
-const List = (ReactWindow.FixedSizeList ?? (ReactWindow as { default?: { FixedSizeList?: unknown } }).default?.FixedSizeList) as React.ComponentType<{
-    listRef?: React.RefObject<{ scrollToRow: (params: { index: number; align?: string }) => void } | null>;
-    defaultHeight: number;
-    rowCount: number;
-    rowHeight: number;
-    rowComponent: React.ComponentType<{ index: number; style: React.CSSProperties }>;
-    rowProps: Record<string, never>;
-    className?: string;
-}>;
 
 interface MessageItemProps {
     msg: ChatMessage;
@@ -75,9 +64,6 @@ const MessageItem: React.FC<MessageItemProps> = ({ msg, isMe, seats, style }) =>
         </div>
     );
 };
-
-// 虚拟滚动消息列表阈值 - 超过此数量启用虚拟滚动
-const VIRTUAL_SCROLL_THRESHOLD = 50;
 
 // 优化选择器 - 细粒度订阅
 const useChatState = () => useStore(
@@ -171,59 +157,9 @@ export const Chat = () => {
     // FR-05: 过滤掉虚拟玩家，只显示真实玩家
     const availableRecipients = seats.filter(s => s.userId && s.userId !== user?.id && !s.isVirtual);
 
-    // 虚拟滚动相关状态
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [listHeight, setListHeight] = useState(400);
-
-    // 是否启用虚拟滚动
-    const useVirtualScroll = filteredMessages.length > VIRTUAL_SCROLL_THRESHOLD;
-
-    // 固定行高（简化实现）
-    const ROW_HEIGHT = 80;
-
-    // 监听容器高度变化
     useEffect(() => {
-        if (!containerRef.current) return;
-
-        const resizeObserver = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                setListHeight(entry.contentRect.height);
-            }
-        });
-
-        resizeObserver.observe(containerRef.current);
-        return () => resizeObserver.disconnect();
-    }, []);
-
-    // 虚拟列表行组件 - react-window v2 要求返回 ReactElement，不能返回 null
-    const renderRow = useCallback(({ index, style }: { index: number; style: React.CSSProperties }) => {
-        const msg = filteredMessages[index];
-        if (!msg) {
-            // 返回空占位符而不是 null，满足 react-window v2 的类型要求
-            return <div style={style} />;
-        }
-        const isMe = msg.senderId === user?.id;
-
-        return (
-            <MessageItem
-                msg={msg}
-                isMe={isMe}
-                seats={seats}
-                style={style}
-            />
-        );
-    }, [filteredMessages, user?.id, seats]);
-
-    // 滚动到底部 - 使用 useListRef hook (react-window v2 API)
-    const listApiRef = useRef<{ scrollToRow: (params: { index: number; align?: 'auto' | 'center' | 'end' | 'smart' | 'start' }) => void } | null>(null);
-    
-    useEffect(() => {
-        if (useVirtualScroll && listApiRef.current && filteredMessages.length > 0) {
-            listApiRef.current.scrollToRow({ index: filteredMessages.length - 1, align: 'end' });
-        } else {
-            endRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [filteredMessages.length, useVirtualScroll, activeChannel]);
+        endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [filteredMessages.length, activeChannel]);
 
     return (
         <div className="flex flex-col h-full bg-[#1c1917] font-cinzel border-l-4 border-stone-800 shadow-2xl relative overflow-hidden">
@@ -253,7 +189,7 @@ export const Chat = () => {
             </div>
 
             {/* Message List */}
-            <div ref={containerRef} className="flex-1 overflow-hidden relative z-10 bg-[#1c1917]/90 backdrop-blur-sm">
+            <div className="flex-1 overflow-hidden relative z-10 bg-[#1c1917]/90 backdrop-blur-sm">
                 {filteredMessages.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-full text-stone-700 opacity-50">
                         <Icon icon="MessagesSquare" size="xl" variant="muted" className="mb-2 opacity-30" />
@@ -261,17 +197,7 @@ export const Chat = () => {
                     </div>
                 )}
 
-                {filteredMessages.length > 0 && useVirtualScroll ? (
-                    <List
-                        listRef={listApiRef as React.RefObject<{ scrollToRow: (params: { index: number; align?: string }) => void } | null>}
-                        defaultHeight={listHeight}
-                        rowCount={filteredMessages.length}
-                        rowHeight={ROW_HEIGHT}
-                        rowComponent={renderRow}
-                        rowProps={{}}
-                        className="scrollbar-thin h-full w-full"
-                    />
-                ) : (
+                {filteredMessages.length > 0 && (
                     <div className="h-full overflow-y-auto p-4 space-y-4 scrollbar-thin">
                         {filteredMessages.map(msg => {
                             const isMe = msg.senderId === user?.id;

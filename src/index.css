@@ -1,8 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap");
 
 :root {
     /* ===== Gothic Color System ===== */
@@ -483,4 +483,3 @@ h1, h2, h3, h4, h5, h6 {
         0 4px 20px rgba(0, 0, 0, 0.3),
         inset 0 0 30px rgba(139, 69, 19, 0.1);
 }
-

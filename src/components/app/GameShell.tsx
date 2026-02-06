@@ -3,7 +3,7 @@ import type { GameState, User } from '../../types';
 import { useStore } from '../../store';
 import { useShallow } from 'zustand/react/shallow';
 import { useDeathEcho } from '../../hooks/useDeathEcho';
-import { useGhostlyVision } from '../game/GhostlyVisionOverlay';
+import { GhostlyVisionOverlay, useGhostlyVision } from '../game/GhostlyVisionOverlay';
 import { useUpdateNotification } from '../../hooks/useUpdateNotification';
 import UpdateNotificationUI from '../ui/UpdateNotificationUI';
 import { ToastContainer, useToasts } from '../ui/Toast';
@@ -32,7 +32,6 @@ const RoleReferenceSidebar = lazy(() => import('../controls/RoleReferenceSidebar
 const AfterActionReportView = lazy(() => import('../history/AfterActionReportView').then(m => ({ default: m.AfterActionReportView })));
 
 const DeathEchoEffect = lazy(() => import('../game/DeathEchoEffect').then(m => ({ default: m.DeathEchoEffect })));
-const GhostlyVisionOverlay = lazy(() => import('../game/GhostlyVisionOverlay').then(m => ({ default: m.GhostlyVisionOverlay })));
 const CorruptionOverlay = lazy(() => import('../game/CorruptionOverlay').then(m => ({ default: m.CorruptionOverlay })));
 const AudioManager = lazy(() => import('../controls/AudioManager').then(m => ({ default: m.AudioManager })));
 

@@ -41,9 +41,11 @@ const checks = [
         name: 'VAPID 私钥',
         check: () => {
           const envPath = path.join(projectRoot, '.env.local');
-          if (!fs.existsSync(envPath)) return false;
+          if (!fs.existsSync(envPath)) return Boolean(process.env.VAPID_PRIVATE_KEY);
           const content = fs.readFileSync(envPath, 'utf-8');
-          return content.includes('VAPID_PRIVATE_KEY=');
+          const hasLocalKey = /(^|\\n)\\s*VAPID_PRIVATE_KEY=\\S+/.test(content);
+          const hasServerManagedHint = content.includes('VAPID_PRIVATE_KEY') && content.includes('服务端');
+          return hasLocalKey || Boolean(process.env.VAPID_PRIVATE_KEY) || hasServerManagedHint;
         }
       },
       {

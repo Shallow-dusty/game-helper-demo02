@@ -38,6 +38,7 @@ vi.mock('../../src/store/slices/connection', async (importOriginal) => {
     const actual = await importOriginal<typeof import('../../src/store/slices/connection')>();
     return {
         ...actual,
+        ensureAuthenticatedUser: vi.fn(async () => ({ id: 'st-1' })),
         createConnectionSlice: (_set, _get) => ({
             user: { id: 'st-1', name: 'Storyteller', isStoryteller: true },
             sync: vi.fn(),

@@ -109,6 +109,12 @@ CREATE POLICY "Host can update room" ON rooms
 ```bash
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_ENABLE_GUEST_AUTH_FALLBACK=true
+
+# 可选：生产错误监控
+VITE_SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
+VITE_SENTRY_ENVIRONMENT=production
+VITE_SENTRY_TRACES_SAMPLE_RATE=0.1
 ```
 
 ### 2.4 触发部署
@@ -134,6 +140,12 @@ npm install
 ```bash
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_ENABLE_GUEST_AUTH_FALLBACK=true
+
+# 可选（建议线上开启）
+VITE_SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
+VITE_SENTRY_ENVIRONMENT=development
+VITE_SENTRY_TRACES_SAMPLE_RATE=0.1
 ```
 
 ### 3.3 启动开发服务器

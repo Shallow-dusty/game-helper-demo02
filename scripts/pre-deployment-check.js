@@ -73,6 +73,7 @@ const checks = [
   {
     category: '⚙️  配置文件',
     items: [
+      { name: '.env.example', check: () => fs.existsSync(path.join(projectRoot, '.env.example')) },
       { name: 'manifest.json', check: () => fs.existsSync(path.join(projectRoot, 'public/manifest.json')) },
       { name: 'service-worker.js', check: () => fs.existsSync(path.join(projectRoot, 'public/service-worker.js')) },
       { name: 'index.html', check: () => fs.existsSync(path.join(projectRoot, 'index.html')) },

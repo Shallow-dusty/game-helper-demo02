@@ -106,7 +106,9 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({
     auth: {
       getSession: vi.fn(async () => ({ data: { session: { user: { id: 'auth-user' } } } })),
-      signInAnonymously: vi.fn(async () => ({ data: { user: { id: 'auth-user' } }, error: null }))
+      signInAnonymously: vi.fn(async () => ({ data: { user: { id: 'auth-user' } }, error: null })),
+      signInWithPassword: vi.fn(async () => ({ data: { user: { id: 'auth-user' }, session: { user: { id: 'auth-user' } } }, error: null })),
+      signUp: vi.fn(async () => ({ data: { user: { id: 'auth-user' }, session: { user: { id: 'auth-user' } } }, error: null })),
     },
     channel: vi.fn(() => ({
       on: vi.fn().mockReturnThis(),

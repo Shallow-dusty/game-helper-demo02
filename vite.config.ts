@@ -28,27 +28,51 @@ export default defineConfig(({ mode }) => {
       // 代码分割策略
       rollupOptions: {
         output: {
-          manualChunks: {
-            // React 核心
-            'react-vendor': ['react', 'react-dom'],
+          manualChunks: (id) => {
+            if (!id.includes('node_modules')) return undefined;
+
+            // React 基础
+            if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/scheduler/')) {
+              return 'react-vendor';
+            }
+
             // 状态管理
-            'state': ['zustand', 'immer'],
-            // UI 库
-            'ui-vendor': [
-              '@radix-ui/react-dialog',
-              '@radix-ui/react-context-menu',
-              '@radix-ui/react-slot',
-              'framer-motion',
-              'lucide-react',
-            ],
+            if (id.includes('/zustand/') || id.includes('/immer/')) {
+              return 'state';
+            }
+
+            // UI 与动效分离，避免单个超大 chunk
+            if (id.includes('/@radix-ui/')) {
+              return 'radix';
+            }
+            if (id.includes('/framer-motion/')) {
+              return 'motion';
+            }
+            if (id.includes('/recharts/') || id.includes('/d3-')) {
+              return 'charts';
+            }
+
             // 画布渲染
-            'canvas': ['react-konva', 'konva'],
+            if (id.includes('/react-konva/') || id.includes('/konva/')) {
+              return 'canvas';
+            }
+
             // 物理引擎
-            'physics': ['matter-js'],
+            if (id.includes('/matter-js/')) {
+              return 'physics';
+            }
+
             // AI 服务
-            'ai': ['@google/generative-ai', 'openai'],
+            if (id.includes('/@google/generative-ai/') || id.includes('/openai/')) {
+              return 'ai';
+            }
+
             // 后端服务
-            'backend': ['@supabase/supabase-js'],
+            if (id.includes('/@supabase/supabase-js/')) {
+              return 'backend';
+            }
+
+            return undefined;
           },
         },
         // 增强 tree-shaking
@@ -68,7 +92,7 @@ export default defineConfig(({ mode }) => {
       // 源码映射 (生产环境关闭)
       sourcemap: mode !== 'production',
       // chunk 大小警告阈值
-      chunkSizeWarningLimit: 300,
+      chunkSizeWarningLimit: 400,
     },
     // 依赖预构建优化
     optimizeDeps: {

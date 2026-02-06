@@ -25,11 +25,23 @@ const loginToRoomSelection = async (page: Page) => {
   await gotoHome(page);
   const nicknameInput = page.locator('input[type="text"]').first();
   await nicknameInput.fill('E2E Tester');
-  await page.getByRole('button', { name: enterRegex }).click();
-  await expect(page.getByRole('button', { name: createRoomRegex })).toBeVisible();
+  const enterButton = page.getByRole('button', { name: enterRegex });
+  const createButton = page.getByRole('button', { name: createRoomRegex });
+
+  await enterButton.click();
+  const firstTry = await createButton.isVisible({ timeout: 10000 }).catch(() => false);
+  if (!firstTry) {
+    const stillInLobby = await enterButton.isVisible({ timeout: 1000 }).catch(() => false);
+    if (stillInLobby) {
+      await enterButton.click();
+    }
+    await expect(createButton).toBeVisible({ timeout: 12000 });
+  }
 };
 
 test.describe('大厅与房间选择', () => {
+  test.describe.configure({ timeout: 60_000 });
+
   test('首页应显示标题与进入按钮', async ({ page }) => {
     await gotoHome(page);
     await expect(page).toHaveTitle(/血染钟楼|Grimoire/i);

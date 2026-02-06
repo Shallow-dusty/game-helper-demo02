@@ -83,7 +83,9 @@ vi.mock('@supabase/supabase-js', () => {
       return {
         auth: {
           getSession: vi.fn(async () => ({ data: { session: { user: { id: 'auth-user' } } } })),
-          signInAnonymously: vi.fn(async () => ({ data: { user: { id: 'auth-user' } }, error: null }))
+          signInAnonymously: vi.fn(async () => ({ data: { user: { id: 'auth-user' } }, error: null })),
+          signInWithPassword: vi.fn(async () => ({ data: { user: { id: 'auth-user' }, session: { user: { id: 'auth-user' } } }, error: null })),
+          signUp: vi.fn(async () => ({ data: { user: { id: 'auth-user' }, session: { user: { id: 'auth-user' } } }, error: null })),
         },
         from: vi.fn((table: string) => createQueryBuilder(table)),
         channel: vi.fn(() => ({

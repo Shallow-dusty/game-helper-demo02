@@ -3,6 +3,24 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import './i18n'; // 国际化配置 - 必须在 App 之前导入
 import App from './App';
+import { captureException, initMonitoring } from './lib/monitoring';
+
+initMonitoring();
+
+window.addEventListener('error', (event) => {
+  captureException(event.error ?? new Error(event.message), {
+    source: 'window.error',
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno,
+  });
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  captureException(event.reason ?? new Error('Unhandled promise rejection'), {
+    source: 'window.unhandledrejection',
+  });
+});
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

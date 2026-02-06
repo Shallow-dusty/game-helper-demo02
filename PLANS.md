@@ -4,6 +4,44 @@
 
 Ship a release-ready build of Grimoire Web with multi-round automated validation, including unit/integration tests, browser E2E, build checks, and deployment gates.
 
+## Iteration 2026-02-07 (Claude Review Driven)
+
+### Plan
+
+1. Fix Claude review blocker: oversized `Icon` build chunk caused by `lucide-react` wildcard imports.
+2. Re-run full release gates (lint, typecheck, all tests, build, pre-deployment).
+3. Run stress-grade realistic browser automation across desktop/mobile with repeated runs.
+4. Verify Supabase and Cloudflare MCP connectivity and deployment-related status.
+5. Perform one more full E2E regression loop as self-iteration confirmation.
+
+### Execution Log
+
+- Replaced wildcard icon imports with explicit registry-based imports:
+  - Added `src/lib/lucideRegistry.ts`
+  - Updated `src/components/ui/Icon.tsx`
+  - Updated `src/config/iconMap.ts`
+- Resolved build blocker:
+  - `Icon` chunk reduced from ~850KB (previous warning) to ~18.97KB.
+- Completed gate validation:
+  - `npm run lint` PASS
+  - `npx tsc --noEmit` PASS
+  - `npm run test:run` PASS
+  - `npm run build` PASS
+  - `node scripts/pre-deployment-check.js` PASS (29/29)
+- Completed stress + realistic E2E:
+  - `npm run test:e2e -- --project=chromium --repeat-each=3` PASS (33)
+  - `npm run test:e2e -- --project=firefox --repeat-each=2` PASS (22)
+  - `npm run test:e2e -- --project="Mobile Chrome" --repeat-each=2` PASS (22)
+  - `npm run test:e2e` PASS (33)
+- Codex readiness unit artifacts refreshed:
+  - `collect_evidence.py`, `deterministic_rules.py`, `scoring.py --mode read-only`
+  - Result: WARN (LLM checks not executed in this run; deterministic checks passed)
+- MCP verification:
+  - Cloudflare account listing available
+  - Supabase organizations/projects available
+  - Primary project `Game-Helper` status: `ACTIVE_HEALTHY`
+  - Edge Functions `ask-ai` and `filter-game-state` status: `ACTIVE`
+
 ## Progress
 
 - [x] Install project-level automation skills.
@@ -13,6 +51,7 @@ Ship a release-ready build of Grimoire Web with multi-round automated validation
 - [x] Run multi-round stress and realistic flow simulation.
 - [x] Resolve regressions and re-run until gates are green.
 - [x] Produce final delivery summary with artifacts.
+- [x] Apply Claude review blocker fixes and complete deep retest iteration.
 
 ## Decision Log
 

@@ -13,6 +13,10 @@ interface ImportMetaEnv {
     readonly VITE_HW_MAAS_KEY?: string
     readonly VITE_SILICONFLOW_KEY?: string
     readonly VITE_ADMIN_PASSWORD?: string
+    readonly VITE_SENTRY_DSN?: string
+    readonly VITE_SENTRY_ENVIRONMENT?: string
+    readonly VITE_SENTRY_TRACES_SAMPLE_RATE?: string
+    readonly VITE_ENABLE_GUEST_AUTH_FALLBACK?: string
 }
 
 interface ImportMeta {

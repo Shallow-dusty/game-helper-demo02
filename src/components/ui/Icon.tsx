@@ -1,11 +1,8 @@
 import React from 'react';
-import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LUCIDE_ICON_REGISTRY, type LucideIconComponent, type LucideIconName } from '@/lib/lucideRegistry';
 
-type LucideIconComponent = React.ComponentType<LucideIcons.LucideProps>;
-export type LucideIconName = {
-  [K in keyof typeof LucideIcons]: typeof LucideIcons[K] extends LucideIconComponent ? K : never
-}[keyof typeof LucideIcons];
+export type { LucideIconName } from '@/lib/lucideRegistry';
 
 interface IconProps {
   /** Lucide 图标名称或组件 */
@@ -55,7 +52,7 @@ export const Icon: React.FC<IconProps> = ({
   animated = false,
   clickable = false,
 }) => {
-  const IconComponent = typeof icon === 'string' ? (LucideIcons[icon] as LucideIconComponent) : icon;
+  const IconComponent = typeof icon === 'string' ? LUCIDE_ICON_REGISTRY[icon] : icon;
 
   if (!IconComponent) {
     console.warn(`Icon "${String(icon)}" not found in Lucide icons`);

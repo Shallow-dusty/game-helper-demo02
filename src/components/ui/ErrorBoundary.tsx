@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import i18n from '../../i18n';
+import { captureException } from '../../lib/monitoring';
 
 interface Props {
     children: ReactNode;
@@ -33,9 +34,10 @@ export class ErrorBoundary extends Component<Props, State> {
     componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
         console.error('ErrorBoundary caught an error:', error, errorInfo);
         this.setState({ errorInfo });
-
-        // 可以在这里上报错误到监控服务
-        // reportErrorToService(error, errorInfo);
+        captureException(error, {
+            source: 'ErrorBoundary',
+            componentStack: errorInfo.componentStack,
+        });
     }
 
     handleRetry = (): void => {
@@ -72,7 +74,7 @@ export class ErrorBoundary extends Component<Props, State> {
                         </div>
 
                         {/* 错误详情（开发环境） */}
-                        {process.env.NODE_ENV === 'development' && this.state.error && (
+                        {import.meta.env.DEV && this.state.error && (
                             <div className="mb-4 p-3 bg-red-950/30 border border-red-900/50 rounded text-xs">
                                 <div className="text-red-400 font-bold mb-1">{i18n.t('ui.errorBoundary.errorDetails')}:</div>
                                 <pre className="text-red-300 whitespace-pre-wrap break-words">
@@ -119,6 +121,5 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 export default ErrorBoundary;
-
 
 

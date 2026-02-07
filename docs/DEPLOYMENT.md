@@ -110,6 +110,7 @@ CREATE POLICY "Host can update room" ON rooms
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_ENABLE_GUEST_AUTH_FALLBACK=true
+VITE_FEEDBACK_URL=https://github.com/Shallow-dusty/game-helper-demo02/issues/new/choose
 
 # 可选：生产错误监控
 VITE_SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
@@ -141,6 +142,7 @@ npm install
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_ENABLE_GUEST_AUTH_FALLBACK=true
+VITE_FEEDBACK_URL=https://github.com/Shallow-dusty/game-helper-demo02/issues/new/choose
 
 # 可选（建议线上开启）
 VITE_SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
@@ -230,6 +232,12 @@ node scripts/pre-deployment-check.js
 - 数据库使用量
 - 实时连接数
 - API 请求统计
+
+### Web Vitals
+
+- 项目已接入 `web-vitals`（CLS/FCP/INP/LCP/TTFB）
+- 开发环境下可在浏览器控制台查看 `[WebVitals]` 日志
+- 生产环境会通过 Sentry Message 上报（若已配置 `VITE_SENTRY_DSN`）
 
 ---
 

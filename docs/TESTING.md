@@ -11,7 +11,7 @@
 | 指标 | 数值 |
 |------|------|
 | 单元/集成测试文件 | 105 |
-| E2E 测试文件 | 3 |
+| E2E 测试文件 | 4 |
 | 测试用例 | 2150+ |
 | 行覆盖率 | 85.41% |
 | 分支覆盖率 | 76.01% |
@@ -51,6 +51,12 @@ npm run test:src:ui
 
 # 运行集成测试
 npm run test:tests
+
+# 运行 E2E（默认多浏览器矩阵）
+npm run test:e2e
+
+# 覆盖默认并发 worker 数（默认 4）
+PW_WORKERS=2 npm run test:e2e
 ```
 
 ---
@@ -77,7 +83,7 @@ src/
 tests/                            # 集成测试
 ├── integration/
 │   └── gameFlow.test.ts
-└── e2e/                          # (计划中) E2E 测试
+e2e/                              # Playwright E2E 测试
 ```
 
 ---
@@ -402,9 +408,10 @@ npx playwright test --project=chromium
 
 ```
 e2e/
-├── home.spec.ts          # 首页测试
-├── sandbox.spec.ts       # 沙盒模式测试
-└── accessibility.spec.ts # 可访问性测试
+├── home.spec.ts             # 首页与大厅测试
+├── game-setup-flow.spec.ts  # 真实开局流程测试
+├── sandbox.spec.ts          # 沙盒模式测试
+└── accessibility.spec.ts    # 可访问性测试
 ```
 
 ### E2E 测试示例

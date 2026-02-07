@@ -14,6 +14,7 @@ vi.mock('framer-motion', () => ({
 vi.mock('lucide-react', () => ({
   Skull: () => <span>Skull</span>,
   Volume2: () => <span>Volume2</span>,
+  MessageSquare: () => <span>MessageSquare</span>,
 }));
 
 // Mock Audio
@@ -222,6 +223,11 @@ describe('Lobby', () => {
     render(<Lobby />);
 
     expect(screen.getByText('lobby.demonAmongUs')).toBeInTheDocument();
+  });
+
+  it('renders feedback entry button', () => {
+    render(<Lobby />);
+    expect(screen.getByRole('button', { name: /lobby\.feedbackEntry/i })).toBeInTheDocument();
   });
 
   it('shows audio enable hint initially', () => {

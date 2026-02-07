@@ -20,6 +20,7 @@ interface EnvConfig {
   SENTRY_ENVIRONMENT?: string;
   SENTRY_TRACES_SAMPLE_RATE: number;
   ENABLE_GUEST_AUTH_FALLBACK: boolean;
+  FEEDBACK_URL: string;
 
   // 开发模式标志
   IS_DEV: boolean;
@@ -41,6 +42,7 @@ function validateEnv(): EnvConfig {
   const sentryEnvironment = import.meta.env.VITE_SENTRY_ENVIRONMENT;
   const sentryRateRaw = import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE;
   const enableGuestAuthFallbackRaw = import.meta.env.VITE_ENABLE_GUEST_AUTH_FALLBACK;
+  const feedbackUrlRaw = import.meta.env.VITE_FEEDBACK_URL;
   const isDev = import.meta.env.DEV;
 
   const missingVars: string[] = [];
@@ -78,6 +80,10 @@ function validateEnv(): EnvConfig {
     : 0.1;
 
   const enableGuestAuthFallback = enableGuestAuthFallbackRaw !== 'false';
+  const fallbackFeedbackUrl = 'https://github.com/Shallow-dusty/game-helper-demo02/issues/new/choose';
+  const feedbackUrl = (feedbackUrlRaw && feedbackUrlRaw.trim().length > 0)
+    ? feedbackUrlRaw.trim()
+    : fallbackFeedbackUrl;
 
   return {
     SUPABASE_URL: supabaseUrl,
@@ -87,6 +93,7 @@ function validateEnv(): EnvConfig {
     SENTRY_ENVIRONMENT: sentryEnvironment,
     SENTRY_TRACES_SAMPLE_RATE: sentryTracesSampleRate,
     ENABLE_GUEST_AUTH_FALLBACK: enableGuestAuthFallback,
+    FEEDBACK_URL: feedbackUrl,
     IS_DEV: isDev,
   };
 }

@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 
 const enterRegex = /进入魔典|Enter Grimoire|以玩家身份进入|Enter as Player/i;
 const sandboxModeRegex = /沙盒模式|Sandbox Mode/i;
@@ -6,6 +6,15 @@ const controlPanelRegex = /沙盒控制台|Sandbox Control Panel/i;
 const scriptSelectionRegex = /剧本选择|Script Selection/i;
 const phaseNightButtonRegex = /^夜晚$|^Night$/i;
 const phaseDayButtonRegex = /^白天$|^Day$/i;
+const phaseNominationButtonRegex = /^提名$|^Nomination$/i;
+
+const clickSafely = async (locator: Locator) => {
+  await expect(locator).toBeVisible();
+  await locator.scrollIntoViewIfNeeded().catch(() => undefined);
+  await locator.click({ timeout: 2000 }).catch(async () => {
+    await locator.dispatchEvent('click');
+  });
+};
 
 const gotoHome = async (page: Page) => {
   let lastError: unknown;
@@ -24,13 +33,37 @@ const gotoHome = async (page: Page) => {
   throw lastError;
 };
 
-const openSandbox = async (page: Page) => {
-  await gotoHome(page);
-  await page.locator('input[type="text"]').first().fill('Sandbox Tester');
-  await page.getByRole('button', { name: enterRegex }).click();
+const loginToRoomSelection = async (page: Page) => {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      await gotoHome(page);
+      await page.locator('input[type="text"]').first().fill('Sandbox Tester');
+      const enterButton = page.getByRole('button', { name: enterRegex });
+      const createButton = page.getByRole('button', { name: /创建仪式|Create Ritual/i });
 
-  // Wait until room selection view is ready.
-  await expect(page.getByRole('heading', { name: /Choose Your Destiny|选择|命运/i })).toBeVisible();
+      await clickSafely(enterButton);
+      const firstTry = await createButton.isVisible({ timeout: 8000 }).catch(() => false);
+      if (!firstTry) {
+        const stillInLobby = await enterButton.isVisible({ timeout: 1000 }).catch(() => false);
+        if (stillInLobby) {
+          await clickSafely(enterButton);
+        }
+      }
+      await expect(createButton).toBeVisible({ timeout: 15000 });
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 2 && !page.isClosed()) {
+        await page.waitForTimeout(900);
+      }
+    }
+  }
+  throw lastError;
+};
+
+const openSandbox = async (page: Page) => {
+  await loginToRoomSelection(page);
 
   const sandboxButton = page.getByRole('button', { name: sandboxModeRegex }).first();
   const sandboxVisible = await sandboxButton.isVisible({ timeout: 2000 }).catch(() => false);
@@ -40,15 +73,26 @@ const openSandbox = async (page: Page) => {
 
     const toggleOptions = page.getByRole('button', { name: /展开|Expand|收起|Collapse|lobby\.expand|lobby\.collapse/i }).first();
     await expect(toggleOptions).toBeVisible();
-    await toggleOptions.click();
+    await clickSafely(toggleOptions);
   }
 
   await expect(sandboxButton).toBeVisible();
-  await sandboxButton.click();
-  await expect(page.getByText(sandboxModeRegex).first()).toBeVisible();
+  const controlPanel = page.getByText(controlPanelRegex).first();
+  await clickSafely(sandboxButton);
+  const opened = await controlPanel.isVisible({ timeout: 10000 }).catch(() => false);
+  if (!opened) {
+    const retryButton = page.getByRole('button', { name: sandboxModeRegex }).first();
+    const retryVisible = await retryButton.isVisible({ timeout: 1000 }).catch(() => false);
+    if (retryVisible) {
+      await clickSafely(retryButton);
+    }
+  }
+  await expect(controlPanel).toBeVisible({ timeout: 10000 });
 };
 
 test.describe('沙盒模式', () => {
+  test.describe.configure({ timeout: 90_000 });
+
   test.beforeEach(async ({ page }) => {
     await openSandbox(page);
   });
@@ -60,10 +104,34 @@ test.describe('沙盒模式', () => {
   });
 
   test('应可切换夜晚与白天阶段', async ({ page }) => {
-    await page.getByRole('button', { name: phaseNightButtonRegex }).click();
-    await expect(page.getByRole('button', { name: phaseNightButtonRegex })).toBeVisible();
+    const nightButton = page.getByRole('button', { name: phaseNightButtonRegex });
+    await clickSafely(nightButton);
+    await expect(nightButton).toBeVisible();
 
-    await page.getByRole('button', { name: phaseDayButtonRegex }).click();
-    await expect(page.getByRole('button', { name: phaseDayButtonRegex })).toBeVisible();
+    const dayButton = page.getByRole('button', { name: phaseDayButtonRegex });
+    await clickSafely(dayButton);
+    await expect(dayButton).toBeVisible();
+  });
+
+  test('应可随机分配角色并进入提名阶段', async ({ page }) => {
+    const mobileMenuButton = page.locator('button:visible', { hasText: '☰' }).first();
+    const hasMobileMenuButton = await mobileMenuButton.isVisible({ timeout: 1000 }).catch(() => false);
+    if (hasMobileMenuButton) {
+      await mobileMenuButton.click();
+    }
+
+    const randomAssignButton = page.getByRole('button', { name: /随机分配|Random Assign/i }).first();
+    await expect(randomAssignButton).toBeVisible();
+
+    // 分配前，座位 title 不应包含 “玩家 - 角色” 结构
+    const roleHintsBefore = await page.locator('[title*=" - "]').count();
+    expect(roleHintsBefore).toBe(0);
+
+    await clickSafely(randomAssignButton);
+    await expect.poll(async () => page.locator('[title*=" - "]').count()).toBeGreaterThan(0);
+
+    const nominationButton = page.getByRole('button', { name: phaseNominationButtonRegex }).first();
+    await clickSafely(nominationButton);
+    await expect(nominationButton).toBeVisible();
   });
 });

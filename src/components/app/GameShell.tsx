@@ -2,12 +2,14 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import type { GameState, User } from '../../types';
 import { useStore } from '../../store';
 import { useShallow } from 'zustand/react/shallow';
+import { MessageSquare } from 'lucide-react';
 import { useDeathEcho } from '../../hooks/useDeathEcho';
 import { GhostlyVisionOverlay, useGhostlyVision } from '../game/GhostlyVisionOverlay';
 import { useUpdateNotification } from '../../hooks/useUpdateNotification';
 import UpdateNotificationUI from '../ui/UpdateNotificationUI';
 import { ToastContainer, useToasts } from '../ui/Toast';
 import { SCRIPTS, ROLES, Z_INDEX } from '../../constants';
+import { openFeedback } from '../../lib/feedback';
 import {
   GrimoireLoadingFallback,
   ControlsLoadingFallback
@@ -373,6 +375,15 @@ export const GameShell: React.FC<GameShellProps> = ({ user, gameState, mode }) =
         title="查看规则手册"
       >
         <span className="text-xl md:text-2xl">📖</span>
+      </button>
+
+      <button
+        onClick={openFeedback}
+        className="fixed bottom-20 md:bottom-6 left-20 md:left-24 z-30 bg-stone-800 hover:bg-stone-700 text-stone-200 p-3 rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 border border-stone-600"
+        style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        title="提交反馈 / 报告问题"
+      >
+        <MessageSquare className="w-5 h-5" />
       </button>
     </div>
   );

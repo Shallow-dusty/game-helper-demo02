@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../store';
 import { AUDIO_TRACKS, SOUND_EFFECTS } from '../../constants';
 import { motion } from 'framer-motion';
-import { Skull, Volume2 } from 'lucide-react';
+import { MessageSquare, Skull, Volume2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { openFeedback } from '../../lib/feedback';
 
 export const Lobby: React.FC = () => {
     const { t } = useTranslation();
@@ -247,9 +248,19 @@ export const Lobby: React.FC = () => {
                     <div className="mt-4 text-[10px] text-stone-500/80 leading-relaxed">
                         {t('lobby.disclaimer')}
                     </div>
+
+                    <div className="mt-3 text-center">
+                        <button
+                            type="button"
+                            onClick={openFeedback}
+                            className="inline-flex items-center gap-1 text-xs text-stone-500 hover:text-amber-400 transition-colors"
+                        >
+                            <MessageSquare className="w-3 h-3" />
+                            <span>{t('lobby.feedbackEntry')}</span>
+                        </button>
+                    </div>
                 </div>
             </motion.div>
         </div>
     );
 };
-

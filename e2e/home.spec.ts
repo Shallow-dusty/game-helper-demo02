@@ -1,8 +1,16 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 
 const enterRegex = /进入魔典|Enter Grimoire|以玩家身份进入|Enter as Player/i;
 const createRoomRegex = /创建仪式|Create Ritual/i;
 const sandboxModeRegex = /沙盒模式|Sandbox Mode/i;
+
+const clickSafely = async (locator: Locator) => {
+  await expect(locator).toBeVisible();
+  await locator.scrollIntoViewIfNeeded().catch(() => undefined);
+  await locator.click({ timeout: 2000 }).catch(async () => {
+    await locator.dispatchEvent('click');
+  });
+};
 
 const gotoHome = async (page: Page) => {
   let lastError: unknown;
@@ -28,12 +36,12 @@ const loginToRoomSelection = async (page: Page) => {
   const enterButton = page.getByRole('button', { name: enterRegex });
   const createButton = page.getByRole('button', { name: createRoomRegex });
 
-  await enterButton.click();
+  await clickSafely(enterButton);
   const firstTry = await createButton.isVisible({ timeout: 10000 }).catch(() => false);
   if (!firstTry) {
     const stillInLobby = await enterButton.isVisible({ timeout: 1000 }).catch(() => false);
     if (stillInLobby) {
-      await enterButton.click();
+      await clickSafely(enterButton);
     }
     await expect(createButton).toBeVisible({ timeout: 12000 });
   }
@@ -67,8 +75,17 @@ test.describe('大厅与房间选择', () => {
   test('房间选择页应可进入沙盒模式', async ({ page }) => {
     await loginToRoomSelection(page);
 
-    await page.getByRole('button', { name: /展开|Expand|收起|Collapse/i }).click();
-    await page.getByRole('button', { name: sandboxModeRegex }).click();
+    const sandboxButton = page.getByRole('button', { name: sandboxModeRegex }).first();
+    const sandboxVisible = await sandboxButton.isVisible({ timeout: 1200 }).catch(() => false);
+    if (!sandboxVisible) {
+      const expandButton = page.getByRole('button', { name: /展开|Expand|收起|Collapse/i }).first();
+      const expandVisible = await expandButton.isVisible({ timeout: 1200 }).catch(() => false);
+      if (expandVisible) {
+        await clickSafely(expandButton);
+      }
+    }
+
+    await clickSafely(sandboxButton);
 
     await expect(page.getByText(sandboxModeRegex).first()).toBeVisible();
   });

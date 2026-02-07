@@ -209,3 +209,20 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
         self.skipWaiting();
     }
 });
+
+// ============================================================
+// 周期同步（PWA）
+// ============================================================
+
+self.addEventListener('periodicsync', (event: any) => {
+    if (event.tag !== 'room-state-sync') {
+        return;
+    }
+
+    event.waitUntil((async () => {
+        const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        clients.forEach((client: any) => {
+            client.postMessage({ type: 'PERIODIC_ROOM_SYNC' });
+        });
+    })());
+});

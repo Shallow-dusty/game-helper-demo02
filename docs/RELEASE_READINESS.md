@@ -23,11 +23,11 @@
 
 ## Nice-to-Have (Can Follow After Launch)
 
-- [ ] Full multiplayer E2E chain with multi-user coordination (create -> assign -> night -> vote -> end)
-- [ ] Push notification backend endpoint implementation (`/api/push-subscription`)
-- [ ] Offline queue backend endpoint hardening (`/api/game/operation` production implementation)
-- [ ] PWA install prompt optimization (`beforeinstallprompt` flow)
-- [ ] Periodic room-state sync for PWA background behavior
+- [x] Full multiplayer E2E chain with multi-user coordination (create -> join -> assign -> night -> vote -> end)
+- [x] Push notification backend endpoint implementation (`push-subscription` Edge Function, `/api/push-subscription` compatible)
+- [x] Offline queue backend endpoint hardening (`game-operation` Edge Function + audit/dedup)
+- [x] PWA install prompt optimization (`beforeinstallprompt` flow)
+- [x] Periodic room-state sync for PWA background behavior
 
 ## Notes
 

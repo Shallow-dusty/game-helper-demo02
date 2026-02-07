@@ -48,39 +48,33 @@ Supabase (后端 + 实时数据库 + 认证)
 | Project URL | API 基础地址 | `VITE_SUPABASE_URL` |
 | anon public | 前端公开密钥 | `VITE_SUPABASE_ANON_KEY` |
 
-### 1.3 创建数据库表
+### 1.3 应用仓库迁移（推荐）
 
-进入 **SQL Editor**，执行以下 SQL：
+项目使用仓库内的 Supabase 迁移（`supabase/migrations/*.sql`），不要手工创建旧版 `rooms` 表。
 
-```sql
--- 游戏房间表
-CREATE TABLE rooms (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  code VARCHAR(6) UNIQUE NOT NULL,
-  name TEXT NOT NULL,
-  host_id UUID NOT NULL,
-  state JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+推荐流程：
 
--- 启用实时功能
-ALTER TABLE rooms REPLICA IDENTITY FULL;
-
--- 行级安全策略
-ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Anyone can read rooms" ON rooms
-  FOR SELECT USING (true);
-
-CREATE POLICY "Host can update room" ON rooms
-  FOR UPDATE USING (auth.uid() = host_id);
+```bash
+supabase login
+supabase link --project-ref <project_ref>
+supabase db push
 ```
 
-### 1.4 启用 Realtime
+### 1.4 部署 Edge Functions
 
-1. 进入 **Database > Replication**
-2. 启用 `rooms` 表的 Realtime
+项目生产能力依赖以下函数：
+
+- `filter-game-state`
+- `ask-ai`
+- `game-operation`
+- `push-subscription`
+
+```bash
+supabase functions deploy filter-game-state
+supabase functions deploy ask-ai
+supabase functions deploy game-operation
+supabase functions deploy push-subscription
+```
 
 ---
 
@@ -111,6 +105,7 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_ENABLE_GUEST_AUTH_FALLBACK=true
 VITE_FEEDBACK_URL=https://github.com/Shallow-dusty/game-helper-demo02/issues/new/choose
+VITE_API_BASE_URL=
 
 # 可选：生产错误监控
 VITE_SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
@@ -143,6 +138,7 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_ENABLE_GUEST_AUTH_FALLBACK=true
 VITE_FEEDBACK_URL=https://github.com/Shallow-dusty/game-helper-demo02/issues/new/choose
+VITE_API_BASE_URL=
 
 # 可选（建议线上开启）
 VITE_SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0
@@ -212,8 +208,8 @@ node scripts/pre-deployment-check.js
 ### 手动检查项
 
 - [ ] 环境变量已配置
-- [ ] Supabase 表已创建
-- [ ] Realtime 已启用
+- [ ] Supabase 迁移已执行（`supabase db push`）
+- [ ] Edge Functions 已部署（`filter-game-state/ask-ai/game-operation/push-subscription`）
 - [ ] 构建无错误 (`npm run build`)
 - [ ] 测试通过 (`npm test`)
 

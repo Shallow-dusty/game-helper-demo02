@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import './i18n'; // 国际化配置 - 必须在 App 之前导入
 import App from './App';
+import { useStore } from './store';
 import { captureException, initMonitoring } from './lib/monitoring';
 import { initWebVitals } from './lib/webVitals';
 
@@ -41,10 +42,30 @@ root.render(
 // ============================================================
 
 if ('serviceWorker' in navigator) {
+  const registerPeriodicRoomSync = async (registration: ServiceWorkerRegistration) => {
+    const periodicSync = (registration as ServiceWorkerRegistration & {
+      periodicSync?: {
+        register: (tag: string, options: { minInterval: number }) => Promise<void>;
+      };
+    }).periodicSync;
+
+    if (!periodicSync) return;
+
+    try {
+      await periodicSync.register('room-state-sync', {
+        minInterval: 30 * 60 * 1000,
+      });
+      console.log('✓ Periodic room sync 已注册');
+    } catch (error) {
+      console.warn('✗ Periodic room sync 注册失败:', error);
+    }
+  };
+
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
       .then(registration => {
         console.log('✓ Service Worker 注册成功:', registration);
+        void registerPeriodicRoomSync(registration);
 
         // 检查更新
         registration.addEventListener('updatefound', () => {
@@ -68,5 +89,15 @@ if ('serviceWorker' in navigator) {
   // 处理 Service Worker 控制器变化
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     console.log('✓ Service Worker 已更新');
+  });
+
+  navigator.serviceWorker.addEventListener('message', (event: MessageEvent<{ type?: string }>) => {
+    if (event.data?.type !== 'PERIODIC_ROOM_SYNC') {
+      return;
+    }
+    const syncToCloud = useStore.getState().syncToCloud;
+    if (typeof syncToCloud === 'function') {
+      void syncToCloud();
+    }
   });
 }

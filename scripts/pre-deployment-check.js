@@ -107,7 +107,8 @@ const checks = [
       { name: 'src/services/offlineOperationQueue.ts', check: () => fs.existsSync(path.join(projectRoot, 'src/services/offlineOperationQueue.ts')) },
       { name: 'src/hooks/useGameStateSelectors.ts', check: () => fs.existsSync(path.join(projectRoot, 'src/hooks/useGameStateSelectors.ts')) },
       { name: 'supabase/functions/filter-game-state/', check: () => fs.existsSync(path.join(projectRoot, 'supabase/functions/filter-game-state')) },
-      { name: 'backend/routes/gameOperations.ts', check: () => fs.existsSync(path.join(projectRoot, 'backend/routes/gameOperations.ts')) },
+      { name: 'supabase/functions/game-operation/', check: () => fs.existsSync(path.join(projectRoot, 'supabase/functions/game-operation')) },
+      { name: 'supabase/functions/push-subscription/', check: () => fs.existsSync(path.join(projectRoot, 'supabase/functions/push-subscription')) },
     ]
   }
 ];
@@ -148,13 +149,11 @@ if (allChecksPass) {
   console.log('📚 下一步：\n');
   console.log('  1. 部署 Supabase Edge Function');
   console.log('     → 参考: SUPABASE_EDGE_FUNCTION_DEPLOYMENT.md\n');
-  console.log('  2. 实现后端 API 端点');
-  console.log('     → 参考: backend/routes/gameOperations.ts\n');
-  console.log('  3. 上传到服务器/CDN');
+  console.log('  2. 上传到服务器/CDN');
   console.log('     → 使用: npm run build && npm run preview\n');
-  console.log('  4. 验证 PWA 功能');
+  console.log('  3. 验证 PWA 功能');
   console.log('     → Chrome DevTools → Lighthouse → PWA\n');
-  console.log('  5. 监控性能指标');
+  console.log('  4. 监控性能指标');
   console.log('     → 参考: LIGHTHOUSE_OPTIMIZATION_GUIDE.md\n');
 } else {
   console.log('⚠️  还有 ' + (totalCount - passCount) + ' 项检查未通过。\n');

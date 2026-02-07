@@ -10,6 +10,7 @@
 import { generateShortId } from '../lib/random';
 import { supabase } from '../store/slices/connection';
 import { useStore } from '../store';
+import { buildJsonHeaders, getGameOperationEndpoint } from '../lib/apiEndpoints';
 
 // GameState type is available but not currently used in this module
 // import { GameState } from '../types';
@@ -132,7 +133,7 @@ export class OfflineOperationQueue {
 
         for (const item of this.queue) {
             try {
-                const success = await this.executeOperation(item.operation);
+                const success = await this.executeOperation(item);
 
                 if (success) {
                     this.remove(item.id);
@@ -201,8 +202,9 @@ export class OfflineOperationQueue {
      * 注意: 需要从应用状态获取 userId 和 roomId
      * 建议在应用初始化时设置这些值
      */
-    private async executeOperation(operation: OfflineOperation): Promise<boolean> {
+    private async executeOperation(item: QueuedOperation): Promise<boolean> {
         try {
+            const { operation } = item;
             const { user, gameState } = useStore.getState();
             const userId = user?.id ?? localStorage.getItem('userId');
             const roomId = gameState?.roomId ?? localStorage.getItem('roomId');
@@ -215,16 +217,14 @@ export class OfflineOperationQueue {
             const { data: sessionData } = await supabase.auth.getSession();
             const accessToken = sessionData?.session?.access_token ?? localStorage.getItem('auth_token') ?? '';
 
-            const response = await fetch('/api/game/operation', {
+            const endpoint = getGameOperationEndpoint();
+            const response = await fetch(endpoint.url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`,
-                },
+                headers: buildJsonHeaders(endpoint, accessToken),
                 body: JSON.stringify({
                     userId,
                     roomId,
-                    operations: [operation],
+                    operations: [{ ...operation, operationId: item.id }],
                 }),
             });
 

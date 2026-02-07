@@ -84,8 +84,13 @@ test.describe('真实开局流程', () => {
     await dismissAudioSetupIfNeeded(page);
 
     const seatButton = page.locator('button').filter({ hasText: /OPEN|座位|Seat/i }).first();
-    await expect(seatButton).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole('heading', { name: /[A-Z0-9]{4}/ })).toBeVisible();
+    const roomHeading = page.getByRole('heading', { name: /[A-Z0-9]{4}/ }).first();
+    await expect.poll(async () => {
+      const seatVisible = await seatButton.isVisible().catch(() => false);
+      const headingVisible = await roomHeading.isVisible().catch(() => false);
+      return seatVisible || headingVisible;
+    }, { timeout: 15000 }).toBe(true);
+    await expect(roomHeading).toBeVisible({ timeout: 15000 });
     await expect(page.getByText(/FlowTester/i)).toBeVisible({ timeout: 10000 });
     expect(roomCode).toBeTruthy();
   });

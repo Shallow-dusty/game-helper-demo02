@@ -15,6 +15,19 @@ vi.mock('lucide-react', () => ({
   Skull: () => <span>Skull</span>,
   Volume2: () => <span>Volume2</span>,
   MessageSquare: () => <span>MessageSquare</span>,
+  Download: () => <span>Download</span>,
+}));
+
+const mockPromptInstall = vi.fn();
+const mockDismissInstallPrompt = vi.fn();
+let mockCanInstall = false;
+
+vi.mock('../../hooks/usePwaInstallPrompt', () => ({
+  usePwaInstallPrompt: () => ({
+    canInstall: mockCanInstall,
+    promptInstall: mockPromptInstall,
+    dismissInstallPrompt: mockDismissInstallPrompt,
+  }),
 }));
 
 // Mock Audio
@@ -40,6 +53,7 @@ vi.mock('../../store', () => ({
 describe('Lobby', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCanInstall = false;
     mockStoreState = {
       login: vi.fn(),
       spectateGame: vi.fn(),
@@ -228,6 +242,14 @@ describe('Lobby', () => {
   it('renders feedback entry button', () => {
     render(<Lobby />);
     expect(screen.getByRole('button', { name: /lobby\.feedbackEntry/i })).toBeInTheDocument();
+  });
+
+  it('shows install prompt actions when install is available', () => {
+    mockCanInstall = true;
+    render(<Lobby />);
+
+    expect(screen.getByText('lobby.installApp')).toBeInTheDocument();
+    expect(screen.getByText('lobby.installAppLater')).toBeInTheDocument();
   });
 
   it('shows audio enable hint initially', () => {

@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../store';
 import { AUDIO_TRACKS, SOUND_EFFECTS } from '../../constants';
 import { motion } from 'framer-motion';
-import { MessageSquare, Skull, Volume2 } from 'lucide-react';
+import { Download, MessageSquare, Skull, Volume2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { openFeedback } from '../../lib/feedback';
+import { usePwaInstallPrompt } from '../../hooks/usePwaInstallPrompt';
 
 export const Lobby: React.FC = () => {
     const { t } = useTranslation();
@@ -15,6 +16,7 @@ export const Lobby: React.FC = () => {
     const [isSpectating, setIsSpectating] = useState(false);
     const [roomCode, setRoomCode] = useState('');
     const [isRoomCodeValid, setIsRoomCodeValid] = useState(false);
+    const { canInstall, promptInstall, dismissInstallPrompt } = usePwaInstallPrompt();
 
     // Local Audio for Lobby
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -259,6 +261,28 @@ export const Lobby: React.FC = () => {
                             <span>{t('lobby.feedbackEntry')}</span>
                         </button>
                     </div>
+
+                    {canInstall && (
+                        <div className="mt-3 flex items-center justify-center gap-3 text-xs">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    void promptInstall();
+                                }}
+                                className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition-colors"
+                            >
+                                <Download className="w-3 h-3" />
+                                <span>{t('lobby.installApp')}</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => dismissInstallPrompt()}
+                                className="text-stone-500 hover:text-stone-400 transition-colors"
+                            >
+                                {t('lobby.installAppLater')}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </motion.div>
         </div>

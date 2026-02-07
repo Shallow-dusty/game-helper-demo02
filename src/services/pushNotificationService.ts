@@ -1,3 +1,6 @@
+import { buildJsonHeaders, getPushSubscriptionEndpoint } from '../lib/apiEndpoints';
+import { supabase } from '../store/slices/connection';
+
 /**
  * PWA Push Notification Service
  *
@@ -125,7 +128,7 @@ export class PushNotificationService {
             subscription ??= await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: this.urlBase64ToUint8Array(
-                    process.env.VITE_VAPID_PUBLIC_KEY ?? ''
+                    import.meta.env.VITE_VAPID_PUBLIC_KEY ?? ''
                 ),
             });
 
@@ -142,12 +145,18 @@ export class PushNotificationService {
     private async saveSubscriptionToServer(subscription: PushSubscription): Promise<void> {
         try {
             const subscriptionJSON: PushSubscriptionJSON = subscription.toJSON() as PushSubscriptionJSON;
+            const endpoint = getPushSubscriptionEndpoint();
+            const roomCode = localStorage.getItem('grimoire_last_room');
+            const { data: sessionData } = await supabase.auth.getSession();
+            const accessToken = sessionData?.session?.access_token;
 
-            // 发送到服务器存储（需要实现后端接收）
-            await fetch('/api/push-subscription', {
+            await fetch(endpoint.url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(subscriptionJSON),
+                headers: buildJsonHeaders(endpoint, accessToken),
+                body: JSON.stringify({
+                    ...subscriptionJSON,
+                    roomCode,
+                }),
             });
 
             console.log('✓ Subscription saved to server');

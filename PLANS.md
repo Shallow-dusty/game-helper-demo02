@@ -27,7 +27,7 @@ Ship a release-ready build of Grimoire Web with multi-round automated validation
   - `npx tsc --noEmit` PASS
   - `npm run test:run` PASS
   - `npm run build` PASS
-  - `node scripts/pre-deployment-check.js` PASS (29/29)
+  - `node scripts/pre-deployment-check.js` PASS (30/30)
 - Completed stress + realistic E2E:
   - `npm run test:e2e -- --project=chromium --repeat-each=3` PASS (33)
   - `npm run test:e2e -- --project=firefox --repeat-each=2` PASS (22)
@@ -40,7 +40,7 @@ Ship a release-ready build of Grimoire Web with multi-round automated validation
   - Cloudflare account listing available
   - Supabase organizations/projects available
   - Primary project `Game-Helper` status: `ACTIVE_HEALTHY`
-  - Edge Functions `ask-ai` and `filter-game-state` status: `ACTIVE`
+  - Edge Functions `ask-ai`, `filter-game-state`, `game-operation`, `push-subscription` status: `ACTIVE`
 
 ## Progress
 

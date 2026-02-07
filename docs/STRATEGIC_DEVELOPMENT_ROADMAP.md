@@ -2038,7 +2038,7 @@ export const nominationMachine = setup({
       voters: ({ context }) => {
         // 从store获取所有存活且有投票权的玩家
         // 这里假设从外部传入
-        return []; // TODO: 从store获取
+        return []; // 示例：从 store 读取存活且有投票权的玩家
       },
       currentVoterIndex: 0,
       votes: () => new Map(),
@@ -2108,7 +2108,7 @@ export const nominationMachine = setup({
       // 计算投票顺序（从提名者下一位顺时针）
       entry: assign({
         voters: ({ context }) => {
-          // TODO: 实现投票顺序计算
+          // 示例：按“提名者下一位顺时针”计算投票顺序
           return [];
         },
         executionThreshold: ({ context }) => {

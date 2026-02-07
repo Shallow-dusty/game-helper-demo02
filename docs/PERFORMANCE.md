@@ -97,11 +97,11 @@ export const MyComponent = React.memo(({ prop }) => {
 
 ```bash
 # 构建分析
-npm run build -- --visualize
+npm run build:analyze
 
 # 开发时 Profiler
 # Chrome DevTools -> React -> Profiler -> Record
 
 # 性能测试
-npm run test:perf
+npm run test:e2e -- --project=chromium
 ```

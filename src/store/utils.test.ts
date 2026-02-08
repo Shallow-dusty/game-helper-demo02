@@ -150,6 +150,28 @@ describe('utils', () => {
         const filtered = filterGameStateForUser(stateWithPrivateMsg, 'target-user', false);
         expect(filtered.messages).toHaveLength(1);
     });
+
+      it('should treat recipient-only message as private even when isPrivate flag is missing', () => {
+        const stateWithRecipientOnlyMsg: GameState = {
+            ...mockGameState,
+            messages: [
+                {
+                    id: '2',
+                    senderId: 'user1',
+                    senderName: 'Player 1',
+                    recipientId: 'target-user',
+                    content: 'Secret whisper',
+                    timestamp: 456,
+                    type: 'chat'
+                }
+            ]
+        };
+
+        const otherUserView = filterGameStateForUser(stateWithRecipientOnlyMsg, 'other-user', false);
+        const recipientView = filterGameStateForUser(stateWithRecipientOnlyMsg, 'target-user', false);
+        expect(otherUserView.messages).toHaveLength(0);
+        expect(recipientView.messages).toHaveLength(1);
+      });
   });
 
   describe('applyGameStateDefaults', () => {

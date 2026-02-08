@@ -70,7 +70,7 @@ export const filterGameStateForUser = (gameState: GameState, currentUserId: stri
         seats: gameState.seats.map(seat => filterSeatForUser(seat, currentUserId, isStoryteller, userRoleId)),
         messages: gameState.messages.filter(msg => {
             // 私聊消息仅对发送者、接收者和 ST 可见
-            if (msg.isPrivate) {
+            if (msg.isPrivate || !!msg.recipientId) {
                 const visible = isStoryteller ||
                     msg.senderId === currentUserId ||
                     msg.recipientId === currentUserId;
@@ -82,8 +82,8 @@ export const filterGameStateForUser = (gameState: GameState, currentUserId: stri
             
             // 公开消息对所有人可见
             if (!msg.recipientId) return true;
-            
-            return true;
+
+            return false;
         }),
         // 过滤夜间行动请求：普通玩家只能看到自己的请求
         nightActionRequests: gameState.nightActionRequests.filter(req => {

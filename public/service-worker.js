@@ -27,7 +27,7 @@ const API_PREFIXES = [
 // Service Worker 安装
 // ============================================================
 
-self.addEventListener('install', (event: ExtendableEvent) => {
+self.addEventListener('install', (event) => {
     console.log('Service Worker: 安装中...');
 
     event.waitUntil((async () => {
@@ -48,7 +48,7 @@ self.addEventListener('install', (event: ExtendableEvent) => {
 // Service Worker 激活
 // ============================================================
 
-self.addEventListener('activate', (event: ExtendableEvent) => {
+self.addEventListener('activate', (event) => {
     console.log('Service Worker: 激活中...');
 
     event.waitUntil((async () => {
@@ -75,7 +75,7 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
 // Fetch 事件处理
 // ============================================================
 
-self.addEventListener('fetch', (event: FetchEvent) => {
+self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
@@ -109,7 +109,7 @@ self.addEventListener('fetch', (event: FetchEvent) => {
 /**
  * 缓存优先策略 - 优先使用缓存，缓存不存在才请求网络
  */
-async function cacheFirst(request: Request): Promise<Response> {
+async function cacheFirst(request) {
     const cache = await caches.open(STATIC_CACHE_NAME);
     const cached = await cache.match(request);
 
@@ -133,7 +133,7 @@ async function cacheFirst(request: Request): Promise<Response> {
 /**
  * 网络优先策略 - 优先使用网络，网络失败才使用缓存
  */
-async function networkFirst(request: Request): Promise<Response> {
+async function networkFirst(request) {
     try {
         const response = await fetch(request);
 
@@ -168,7 +168,7 @@ async function networkFirst(request: Request): Promise<Response> {
 // 辅助函数
 // ============================================================
 
-function isStaticAsset(url: URL): boolean {
+function isStaticAsset(url) {
     return [
         '.js',
         '.css',
@@ -186,11 +186,11 @@ function isStaticAsset(url: URL): boolean {
     ].some(ext => url.pathname.endsWith(ext));
 }
 
-function isApiEndpoint(url: URL): boolean {
+function isApiEndpoint(url) {
     return API_PREFIXES.some(prefix => url.pathname.startsWith(prefix));
 }
 
-function createOfflineResponse(): Response {
+function createOfflineResponse() {
     return new Response('Offline - No network connection', {
         status: 503,
         statusText: 'Service Unavailable',
@@ -204,7 +204,7 @@ function createOfflineResponse(): Response {
 // 消息处理（可选 - 用于客户端与 Service Worker 通信）
 // ============================================================
 
-self.addEventListener('message', (event: ExtendableMessageEvent) => {
+self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
@@ -214,14 +214,14 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 // 周期同步（PWA）
 // ============================================================
 
-self.addEventListener('periodicsync', (event: any) => {
+self.addEventListener('periodicsync', (event) => {
     if (event.tag !== 'room-state-sync') {
         return;
     }
 
     event.waitUntil((async () => {
         const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-        clients.forEach((client: any) => {
+        clients.forEach((client) => {
             client.postMessage({ type: 'PERIODIC_ROOM_SYNC' });
         });
     })());

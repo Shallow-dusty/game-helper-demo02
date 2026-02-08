@@ -150,7 +150,7 @@ export class PushNotificationService {
             const { data: sessionData } = await supabase.auth.getSession();
             const accessToken = sessionData?.session?.access_token;
 
-            await fetch(endpoint.url, {
+            const response = await fetch(endpoint.url, {
                 method: 'POST',
                 headers: buildJsonHeaders(endpoint, accessToken),
                 body: JSON.stringify({
@@ -158,6 +158,11 @@ export class PushNotificationService {
                     roomCode,
                 }),
             });
+
+            if (!response.ok) {
+                const errorBody = await response.text().catch(() => '');
+                throw new Error(`Subscription save failed (${String(response.status)}): ${errorBody}`);
+            }
 
             console.log('✓ Subscription saved to server');
         } catch (error) {

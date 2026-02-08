@@ -12,6 +12,7 @@
 import express, { Request, Response } from 'express';
 
 const router = express.Router();
+const OPERATION_SYNC_ENABLED = process.env.ENABLE_GAME_OPERATION_SYNC === 'true';
 
 // ============================================================================
 // 类型定义（应该从共享类型文件导入）
@@ -104,7 +105,7 @@ async function getGameState(roomId: string): Promise<GameState | null> {
   */
 
   // 开发用暂存实现
-  console.log(`[getGameState] 获取房间 ${roomId} 的游戏状态`);
+  console.warn(`[getGameState] 未配置真实数据源，拒绝处理房间 ${roomId}`);
   return null; // 用实际数据库调用替换
 }
 
@@ -124,8 +125,8 @@ async function updateGameState(roomId: string, gameState: GameState): Promise<bo
   return !error;
   */
 
-  console.log(`[updateGameState] 更新房间 ${roomId} 的游戏状态`);
-  return true;
+  console.warn(`[updateGameState] 未配置真实数据源，拒绝更新房间 ${roomId}`);
+  return false;
 }
 
 /**
@@ -139,8 +140,8 @@ async function verifyUserPermission(
   // TODO: 实现权限验证
   // 检查用户是否在房间中、是否是故事讲述者等
 
-  console.log(`[verifyUserPermission] 验证用户 ${userId} 对房间 ${roomId} 的权限（${operationType}）`);
-  return true;
+  console.warn(`[verifyUserPermission] 未配置权限校验，拒绝用户 ${userId} 在房间 ${roomId} 执行 ${operationType}`);
+  return false;
 }
 
 // ============================================================================
@@ -346,6 +347,13 @@ function handleUpdateReminder(gameState: GameState, userSeat: Seat, op: OfflineO
  */
 router.post('/operation', async (req: Request, res: Response) => {
   try {
+    if (!OPERATION_SYNC_ENABLED) {
+      return res.status(503).json({
+        success: false,
+        error: 'Game operation sync is disabled by default. Set ENABLE_GAME_OPERATION_SYNC=true only after implementing database and permission handlers.',
+      });
+    }
+
     const { userId, roomId, operations } = req.body;
 
     // 验证请求参数
@@ -474,9 +482,10 @@ router.get('/operations/status', (req: Request, res: Response) => {
   // - 服务器状态
 
   return res.json({
-    status: 'healthy',
+    status: OPERATION_SYNC_ENABLED ? 'ready' : 'disabled',
     timestamp: Date.now(),
     operationsProcessed: 0, // TODO: 从数据库获取
+    operationSyncEnabled: OPERATION_SYNC_ENABLED,
   });
 });
 

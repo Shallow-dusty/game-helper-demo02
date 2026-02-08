@@ -190,32 +190,39 @@ const applyOperation = (
   userNameFallback: string
 ): OperationResult => {
   const seats = state.seats ?? [];
+  const isSeatScopedOperation =
+    operation.type === 'raise_hand' ||
+    operation.type === 'lower_hand' ||
+    operation.type === 'night_action' ||
+    operation.type === 'update_reminder';
 
-  const getTargetSeat = (): RoomSeat | null => {
-    if (typeof operation.seatId === 'number') {
-      return seats.find((seat) => seat.id === operation.seatId) ?? null;
-    }
+  const ensureOwnedSeat = (): RoomSeat | null => {
+    if (!userSeat) return null;
+    if (typeof operation.seatId !== 'number') return userSeat;
+    if (operation.seatId !== userSeat.id) return null;
     return userSeat;
   };
 
-  const targetSeat = getTargetSeat();
+  const ownedSeat = ensureOwnedSeat();
 
-  if ((operation.type === 'raise_hand' || operation.type === 'lower_hand' || operation.type === 'update_reminder') && !targetSeat) {
+  if (isSeatScopedOperation && !ownedSeat) {
     return {
       operationId: operation.operationId,
       type: operation.type,
       success: false,
-      error: 'Seat not found',
+      error: userSeat ? 'Seat does not belong to user' : 'No seat assigned',
     };
   }
 
-  if (targetSeat && targetSeat.userId !== userId) {
-    return {
-      operationId: operation.operationId,
-      type: operation.type,
-      success: false,
-      error: 'Seat does not belong to user',
-    };
+  if (operation.type === 'send_message' && typeof operation.seatId === 'number') {
+    if (!userSeat || operation.seatId !== userSeat.id) {
+      return {
+        operationId: operation.operationId,
+        type: operation.type,
+        success: false,
+        error: userSeat ? 'Seat does not belong to user' : 'No seat assigned',
+      };
+    }
   }
 
   switch (operation.type) {
@@ -230,7 +237,7 @@ const applyOperation = (
         };
       }
 
-      if (targetSeat?.isDead) {
+      if (ownedSeat?.isDead) {
         return {
           operationId: operation.operationId,
           type: operation.type,
@@ -239,16 +246,12 @@ const applyOperation = (
         };
       }
 
-      if (targetSeat) {
-        targetSeat.isHandRaised = true;
-      }
+      ownedSeat.isHandRaised = true;
       return { operationId: operation.operationId, type: operation.type, success: true };
     }
 
     case 'lower_hand': {
-      if (targetSeat) {
-        targetSeat.isHandRaised = false;
-      }
+      ownedSeat.isHandRaised = false;
       return { operationId: operation.operationId, type: operation.type, success: true };
     }
 
@@ -262,9 +265,28 @@ const applyOperation = (
         };
       }
 
+      const payloadTargetSeatId = asInteger(operation.payload?.targetSeatId);
+      if (typeof operation.payload?.targetSeatId !== 'undefined' && payloadTargetSeatId === null) {
+        return {
+          operationId: operation.operationId,
+          type: operation.type,
+          success: false,
+          error: 'Invalid target seat',
+        };
+      }
+
+      if (payloadTargetSeatId !== null && !seats.some((seat) => seat.id === payloadTargetSeatId)) {
+        return {
+          operationId: operation.operationId,
+          type: operation.type,
+          success: false,
+          error: 'Target seat not found',
+        };
+      }
+
       state.nightActionRequests?.push({
         id: crypto.randomUUID(),
-        seatId: targetSeat?.id ?? operation.seatId ?? -1,
+        seatId: ownedSeat.id,
         roleId: operation.roleId ?? null,
         payload: operation.payload ?? {},
         status: 'pending',
@@ -295,10 +317,19 @@ const applyOperation = (
         };
       }
 
+      if (typeof operation.recipientId === 'number' && !seats.some((seat) => seat.id === operation.recipientId)) {
+        return {
+          operationId: operation.operationId,
+          type: operation.type,
+          success: false,
+          error: 'Recipient seat not found',
+        };
+      }
+
       state.messages?.push({
         id: crypto.randomUUID(),
         senderId: userId,
-        senderName: targetSeat?.userName ?? userNameFallback,
+        senderName: userSeat?.userName ?? userNameFallback,
         recipientId: operation.recipientId ?? null,
         content,
         timestamp: Date.now(),
@@ -309,7 +340,7 @@ const applyOperation = (
     }
 
     case 'update_reminder': {
-      if (!targetSeat) {
+      if (!ownedSeat) {
         return {
           operationId: operation.operationId,
           type: operation.type,
@@ -318,8 +349,8 @@ const applyOperation = (
         };
       }
 
-      if (!Array.isArray(targetSeat.reminders)) {
-        targetSeat.reminders = [];
+      if (!Array.isArray(ownedSeat.reminders)) {
+        ownedSeat.reminders = [];
       }
 
       const reminderId = operation.reminderId ?? crypto.randomUUID();
@@ -328,14 +359,14 @@ const applyOperation = (
         icon: operation.icon ?? '📝',
         text: operation.text ?? '',
         sourceRole: 'manual',
-        seatId: targetSeat.id,
+        seatId: ownedSeat.id,
       };
 
-      const existingIndex = targetSeat.reminders.findIndex((reminder) => reminder.id === reminderId);
+      const existingIndex = ownedSeat.reminders.findIndex((reminder) => reminder.id === reminderId);
       if (existingIndex >= 0) {
-        targetSeat.reminders[existingIndex] = nextReminder;
+        ownedSeat.reminders[existingIndex] = nextReminder;
       } else {
-        targetSeat.reminders.push(nextReminder);
+        ownedSeat.reminders.push(nextReminder);
       }
 
       return { operationId: operation.operationId, type: operation.type, success: true };

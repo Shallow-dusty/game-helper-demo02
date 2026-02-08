@@ -148,14 +148,14 @@ function filterGameStateForUser(
             filterSeatForUser(seat, currentUserId, isStoryteller, userRoleId)
         ),
         messages: gameState.messages.filter(msg => {
-            if (msg.isPrivate) {
+            if (msg.isPrivate || !!msg.recipientId) {
                 return isStoryteller ||
                     msg.senderId === currentUserId ||
                     msg.recipientId === currentUserId;
             }
             if (msg.type === 'system') return true;
             if (!msg.recipientId) return true;
-            return true;
+            return false;
         }),
         nightActionRequests: gameState.nightActionRequests.filter(req => {
             if (isStoryteller) return true;

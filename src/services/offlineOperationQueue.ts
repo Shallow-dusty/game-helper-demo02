@@ -31,7 +31,22 @@ interface QueuedOperation {
 }
 
 const QUEUE_STORAGE_KEY = 'grimoire_offline_queue';
+const USER_STORAGE_KEY = 'grimoire_uid';
+const ROOM_STORAGE_KEY = 'grimoire_last_room';
 const MAX_RETRIES = 3;
+
+const hasLocalStorage = (): boolean => {
+    try {
+        return typeof window !== 'undefined' && !!window.localStorage;
+    } catch {
+        return false;
+    }
+};
+
+const getStoredValue = (key: string): string | null => {
+    if (!hasLocalStorage()) return null;
+    return window.localStorage.getItem(key);
+};
 
 /**
  * 离线操作队列管理器
@@ -82,7 +97,7 @@ export class OfflineOperationQueue {
         console.log(`✓ Operation queued: ${id}`, operation);
 
         // 如果网络已连接，尝试立即同步
-        if (navigator.onLine) {
+        if (typeof navigator !== 'undefined' && navigator.onLine) {
             await this.sync();
         }
 
@@ -206,18 +221,23 @@ export class OfflineOperationQueue {
         try {
             const { operation } = item;
             const { user, gameState } = useStore.getState();
-            const userId = user?.id ?? localStorage.getItem('userId');
-            const roomId = gameState?.roomId ?? localStorage.getItem('roomId');
+            const userId = user?.id ?? getStoredValue(USER_STORAGE_KEY);
+            const roomId = gameState?.roomId ?? getStoredValue(ROOM_STORAGE_KEY);
 
             if (!userId || !roomId) {
                 console.warn('✗ Operation skipped: missing userId or roomId');
                 return false;
             }
 
-            const { data: sessionData } = await supabase.auth.getSession();
-            const accessToken = sessionData?.session?.access_token ?? localStorage.getItem('auth_token') ?? '';
-
             const endpoint = getGameOperationEndpoint();
+            const { data: sessionData } = await supabase.auth.getSession();
+            const accessToken = sessionData?.session?.access_token;
+
+            if (endpoint.useSupabaseHeaders && !accessToken) {
+                console.warn('✗ Operation skipped: missing access token for Supabase function');
+                return false;
+            }
+
             const response = await fetch(endpoint.url, {
                 method: 'POST',
                 headers: buildJsonHeaders(endpoint, accessToken),
@@ -269,8 +289,9 @@ export class OfflineOperationQueue {
      * 保存到本地存储
      */
     private saveToStorage(): void {
+        if (!hasLocalStorage()) return;
         try {
-            localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(this.queue));
+            window.localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(this.queue));
         } catch (error) {
             console.warn('Failed to save queue to storage:', error);
         }
@@ -280,8 +301,9 @@ export class OfflineOperationQueue {
      * 从本地存储加载
      */
     private loadFromStorage(): void {
+        if (!hasLocalStorage()) return;
         try {
-            const stored = localStorage.getItem(QUEUE_STORAGE_KEY);
+            const stored = window.localStorage.getItem(QUEUE_STORAGE_KEY);
             if (stored) {
                 const parsed: unknown = JSON.parse(stored);
                 if (Array.isArray(parsed)) {
@@ -299,6 +321,8 @@ export class OfflineOperationQueue {
      * 设置网络状态监听
      */
     private setupNetworkListener(): void {
+        if (typeof window === 'undefined') return;
+
         window.addEventListener('online', () => {
             console.log('📡 Network restored, syncing operations...');
             void this.sync();
@@ -326,9 +350,13 @@ import { useEffect, useState } from 'react';
 export const useOfflineQueue = () => {
     const queue = OfflineOperationQueue.getInstance();
     const [status, setStatus] = useState(queue.getQueueStatus());
-    const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [isOnline, setIsOnline] = useState(
+        typeof navigator === 'undefined' ? true : navigator.onLine
+    );
 
     useEffect(() => {
+        if (typeof window === 'undefined') return undefined;
+
         // 订阅同步事件
         const unsubscribe = queue.onSync(() => {
             setStatus(queue.getQueueStatus());

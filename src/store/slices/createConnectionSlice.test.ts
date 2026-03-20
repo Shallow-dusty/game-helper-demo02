@@ -106,7 +106,7 @@ vi.mock('@supabase/supabase-js', () => {
   };
 });
 
-import { createConnectionSlice } from './createConnectionSlice';
+import { createConnectionSlice } from './connection';
 
 describe('createConnectionSlice', () => {
   let store: any;

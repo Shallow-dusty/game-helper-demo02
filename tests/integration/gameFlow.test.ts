@@ -2,10 +2,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createStore, StoreApi } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { createGameSlice } from '../../src/store/slices/createGameSlice';
+import { createGameSlice } from '../../src/store/slices/game';
 import { createConnectionSlice } from '../../src/store/slices/connection';
 import { createAISlice } from '../../src/store/slices/ai';
-import { createUISlice } from '../../src/store/slices/createUISlice';
+import { createUISlice } from '../../src/store/slices/ui';
 import { AppState } from '../../src/store/types';
 
 // Mock everything needed for a full flow

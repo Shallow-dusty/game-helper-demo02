@@ -1,6 +1,6 @@
  
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createGameSlice } from './createGameSlice';
+import { createGameSlice } from './game';
 import { createStore, StoreApi } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { AppState } from '../types';

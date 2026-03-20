@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createUISlice, UISlice } from './createUISlice';
+import { createUISlice, UISlice } from './ui';
 
 describe('createUISlice', () => {
     let slice: UISlice;

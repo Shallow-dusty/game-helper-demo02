@@ -3,6 +3,33 @@ import { useTranslation } from 'react-i18next';
 import { RoleDef } from '../../types';
 import { Icon, type LucideIconName } from '../ui/Icon';
 
+/**
+ * Safely render a description string that may contain **bold** markdown
+ * and newlines. Returns React elements instead of using dangerouslySetInnerHTML.
+ */
+function renderDescription(text: string, boldClass: string): React.ReactNode[] {
+    return text.split('\n').flatMap((line, lineIdx, lines) => {
+        const parts: React.ReactNode[] = [];
+        let lastIndex = 0;
+        const boldRegex = /\*\*(.+?)\*\*/g;
+        let match: RegExpExecArray | null;
+        while ((match = boldRegex.exec(line)) !== null) {
+            if (match.index > lastIndex) {
+                parts.push(line.slice(lastIndex, match.index));
+            }
+            parts.push(<strong key={`${lineIdx}-${match.index}`} className={boldClass}>{match[1]}</strong>);
+            lastIndex = match.index + match[0].length;
+        }
+        if (lastIndex < line.length) {
+            parts.push(line.slice(lastIndex));
+        }
+        if (lineIdx < lines.length - 1) {
+            parts.push(<br key={`br-${lineIdx}`} />);
+        }
+        return parts;
+    });
+}
+
 interface RoleCardProps {
     role: RoleDef;
     isPlayerRole?: boolean;
@@ -86,13 +113,9 @@ export const RoleCard: React.FC<RoleCardProps> = React.memo(({
                     {/* Detailed Description */}
                     {showDetails && role.detailedDescription && (
                         <div className="pt-3 border-t border-yellow-500/30">
-                            <div className="text-sm text-stone-300 leading-relaxed space-y-2"
-                                dangerouslySetInnerHTML={{
-                                    __html: role.detailedDescription
-                                        .split('\n').join('<br/>')
-                                        .replace(/\*\*(.+?)\*\*/g, '<strong class="text-yellow-400">$1</strong>')
-                                }}
-                            />
+                            <div className="text-sm text-stone-300 leading-relaxed space-y-2">
+                                {renderDescription(role.detailedDescription, 'text-yellow-400')}
+                            </div>
                         </div>
                     )}
 
@@ -175,13 +198,9 @@ export const RoleCard: React.FC<RoleCardProps> = React.memo(({
             {/* Detailed Description */}
             {showDetails && role.detailedDescription && (
                 <div className="pt-2 mt-2 border-t border-stone-700/50">
-                    <div className="text-xs text-stone-400 leading-relaxed space-y-1"
-                        dangerouslySetInnerHTML={{
-                            __html: role.detailedDescription
-                                .split('\n').join('<br/>')
-                                .replace(/\*\*(.+?)\*\*/g, '<strong class="text-stone-200">$1</strong>')
-                        }}
-                    />
+                    <div className="text-xs text-stone-400 leading-relaxed space-y-1">
+                        {renderDescription(role.detailedDescription, 'text-stone-200')}
+                    </div>
                 </div>
             )}
 

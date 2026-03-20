@@ -42,7 +42,8 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
   onToggle
 }) => {
   const { t } = useTranslation();
-  const { seats, roundInfo, phase, hasGameState } = useSmartInfoState();
+  const { seats, roundInfo, phase } = useSmartInfoState();
+  const gameState = useStore(state => state.gameState);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [generatedResults, setGeneratedResults] = useState<Map<number, InfoGenerationResult>>(new Map());
 
@@ -51,12 +52,10 @@ export const SmartInfoPanel: React.FC<SmartInfoPanelProps> = ({
 
   // 检测当前夜晚的信息角色
   const infoRoles = useMemo(() => {
-    if (!hasGameState) return [];
-    const gameState = useStore.getState().gameState;
     if (!gameState) return [];
     const isFirstNight = roundInfo?.nightCount === 1;
     return getInfoRolesForNight(gameState, isFirstNight);
-  }, [hasGameState, roundInfo?.nightCount, seats]);
+  }, [gameState, roundInfo?.nightCount, seats]);
 
   // 获取存活玩家列表（用于占卜师目标选择）
   const alivePlayers = useMemo(() => {

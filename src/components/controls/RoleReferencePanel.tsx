@@ -298,49 +298,49 @@ export const RoleReferencePanel: React.FC<RoleReferencePanelProps> = ({
                     {activeTab === 'rules' && (
                         <div className="max-w-4xl mx-auto space-y-8 text-stone-300">
                             <div className="bg-stone-950/50 p-6 rounded-lg border border-stone-800">
-                                <h3 className="text-xl font-bold text-amber-400 mb-4 font-cinzel">基本流程</h3>
+                                <h3 className="text-xl font-bold text-amber-400 mb-4 font-cinzel">{t('controls.roleReference.rules.title.flow')}</h3>
                                 <ul className="space-y-3 list-disc list-inside">
-                                    <li><strong className="text-stone-200">夜晚</strong>：所有玩家闭眼。说书人唤醒特定角色进行行动（如查验、杀人、保护）。</li>
-                                    <li><strong className="text-stone-200">白天</strong>：所有玩家睁眼。大家自由讨论，分享信息（或谎言）。</li>
-                                    <li><strong className="text-stone-200">提名与投票</strong>：玩家可以提名处决嫌疑人。如果票数过半且最高，该玩家被处决。</li>
-                                    <li><strong className="text-stone-200">死亡</strong>：死亡玩家失去技能，但仍可说话，且只有最后一票投票权。</li>
+                                    <li><strong className="text-stone-200">{t('controls.roleReference.rules.flow.night')}</strong>：{t('controls.roleReference.rules.flow.nightDesc')}</li>
+                                    <li><strong className="text-stone-200">{t('controls.roleReference.rules.flow.day')}</strong>：{t('controls.roleReference.rules.flow.dayDesc')}</li>
+                                    <li><strong className="text-stone-200">{t('controls.roleReference.rules.flow.nomination')}</strong>：{t('controls.roleReference.rules.flow.nominationDesc')}</li>
+                                    <li><strong className="text-stone-200">{t('controls.roleReference.rules.flow.death')}</strong>：{t('controls.roleReference.rules.flow.deathDesc')}</li>
                                 </ul>
                             </div>
 
                             <div className="bg-stone-950/50 p-6 rounded-lg border border-stone-800">
-                                <h3 className="text-xl font-bold text-amber-400 mb-4 font-cinzel">获胜条件</h3>
+                                <h3 className="text-xl font-bold text-amber-400 mb-4 font-cinzel">{t('controls.roleReference.rules.title.winConditions')}</h3>
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div className="p-4 bg-blue-950/20 border border-blue-900/50 rounded">
-                                        <h4 className="font-bold text-blue-400 mb-2">好人阵营 (Townsfolk & Outsider)</h4>
-                                        <p>处决恶魔。</p>
-                                        <p className="text-sm text-stone-500 mt-2">注：只要恶魔死亡且无法传位，好人即获胜。</p>
+                                        <h4 className="font-bold text-blue-400 mb-2">{t('controls.roleReference.rules.win.good')}</h4>
+                                        <p>{t('controls.roleReference.rules.win.goodDesc')}</p>
+                                        <p className="text-sm text-stone-500 mt-2">{t('controls.roleReference.rules.win.goodNote')}</p>
                                     </div>
                                     <div className="p-4 bg-red-950/20 border border-red-900/50 rounded">
-                                        <h4 className="font-bold text-red-400 mb-2">邪恶阵营 (Minion & Demon)</h4>
-                                        <p>场上只剩下 2 名玩家。</p>
-                                        <p className="text-sm text-stone-500 mt-2">注：或者达成特殊获胜条件（如市长、圣徒等）。</p>
+                                        <h4 className="font-bold text-red-400 mb-2">{t('controls.roleReference.rules.win.evil')}</h4>
+                                        <p>{t('controls.roleReference.rules.win.evilDesc')}</p>
+                                        <p className="text-sm text-stone-500 mt-2">{t('controls.roleReference.rules.win.evilNote')}</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="bg-stone-950/50 p-6 rounded-lg border border-stone-800">
-                                <h3 className="text-xl font-bold text-amber-400 mb-4 font-cinzel">常见术语</h3>
+                                <h3 className="text-xl font-bold text-amber-400 mb-4 font-cinzel">{t('controls.roleReference.rules.title.glossary')}</h3>
                                 <dl className="grid md:grid-cols-2 gap-x-8 gap-y-4">
                                     <div>
-                                        <dt className="font-bold text-stone-200">醉酒 (Drunk)</dt>
-                                        <dd className="text-sm text-stone-400">你以为你是某个角色，但实际上你不是。你的技能无效，且可能得到错误信息。</dd>
+                                        <dt className="font-bold text-stone-200">{t('controls.roleReference.rules.glossary.drunk')}</dt>
+                                        <dd className="text-sm text-stone-400">{t('controls.roleReference.rules.glossary.drunkDesc')}</dd>
                                     </div>
                                     <div>
-                                        <dt className="font-bold text-stone-200">中毒 (Poisoned)</dt>
-                                        <dd className="text-sm text-stone-400">你的技能暂时无效，且可能得到错误信息。通常由投毒者造成。</dd>
+                                        <dt className="font-bold text-stone-200">{t('controls.roleReference.rules.glossary.poisoned')}</dt>
+                                        <dd className="text-sm text-stone-400">{t('controls.roleReference.rules.glossary.poisonedDesc')}</dd>
                                     </div>
                                     <div>
-                                        <dt className="font-bold text-stone-200">疯狂 (Madness)</dt>
-                                        <dd className="text-sm text-stone-400">你必须表现得像某个特定角色，否则可能会受到惩罚（通常是处决）。</dd>
+                                        <dt className="font-bold text-stone-200">{t('controls.roleReference.rules.glossary.madness')}</dt>
+                                        <dd className="text-sm text-stone-400">{t('controls.roleReference.rules.glossary.madnessDesc')}</dd>
                                     </div>
                                     <div>
-                                        <dt className="font-bold text-stone-200">死亡投票 (Ghost Vote)</dt>
-                                        <dd className="text-sm text-stone-400">死亡玩家在整局游戏中只有一次投票机会。</dd>
+                                        <dt className="font-bold text-stone-200">{t('controls.roleReference.rules.glossary.ghostVote')}</dt>
+                                        <dd className="text-sm text-stone-400">{t('controls.roleReference.rules.glossary.ghostVoteDesc')}</dd>
                                     </div>
                                 </dl>
                             </div>

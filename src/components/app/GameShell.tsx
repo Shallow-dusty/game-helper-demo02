@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { GameState, User } from '../../types';
 import { useStore } from '../../store';
 import { useShallow } from 'zustand/react/shallow';
@@ -77,6 +78,7 @@ interface GameShellProps {
 }
 
 export const GameShell: React.FC<GameShellProps> = ({ user, gameState, mode }) => {
+  const { t } = useTranslation();
   const {
     isAudioBlocked,
     roleReferenceMode,
@@ -275,7 +277,7 @@ export const GameShell: React.FC<GameShellProps> = ({ user, gameState, mode }) =
           )}
 
           <div className="absolute bottom-6 left-6 z-0 text-stone-500 text-xs select-none pointer-events-none transition-opacity duration-500 font-cinzel opacity-60 md:opacity-40">
-            {isStoryteller ? 'Right Click: Manage • Scroll: Zoom (Beta)' : (isObserver ? 'Spectating Mode' : 'Wait for the Storyteller...')}
+            {isStoryteller ? t('game.shell.hintStoryteller') : (isObserver ? t('game.shell.hintSpectator') : t('game.shell.hintPlayer'))}
           </div>
 
           {isAudioBlocked && gameState.audio.isPlaying && (
@@ -283,7 +285,7 @@ export const GameShell: React.FC<GameShellProps> = ({ user, gameState, mode }) =
               onClick={handleManualAudioStart}
               className="absolute top-6 left-6 z-50 bg-amber-600/90 hover:bg-amber-500 text-white px-4 py-2 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-2 animate-pulse font-bold text-sm"
             >
-              <span>🔊</span> 启用音效 (Enable Audio)
+              <span>🔊</span> {t('game.shell.enableAudio')}
             </button>
           )}
         </div>

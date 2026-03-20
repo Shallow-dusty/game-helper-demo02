@@ -300,6 +300,12 @@
       "virtual": "VIRTUAL",
       "taken": "TAKEN",
       "open": "OPEN"
+    },
+    "shell": {
+      "hintStoryteller": "右键：管理 • 滚轮：缩放 (Beta)",
+      "hintSpectator": "观察模式",
+      "hintPlayer": "等待说书人...",
+      "enableAudio": "启用音效"
     }
   },
   "grimoire": {
@@ -410,7 +416,42 @@
       "searchRoles": "🔍 搜索角色...",
       "allRoles": "所有角色",
       "searchingFor": "(搜索: \"{{query}}\")",
-      "noMatchingRoles": "没有找到匹配的角色"
+      "noMatchingRoles": "没有找到匹配的角色",
+      "rules": {
+        "title": {
+          "flow": "基本流程",
+          "winConditions": "获胜条件",
+          "glossary": "常见术语"
+        },
+        "flow": {
+          "night": "夜晚",
+          "nightDesc": "所有玩家闭眼。说书人唤醒特定角色进行行动（如查验、杀人、保护）。",
+          "day": "白天",
+          "dayDesc": "所有玩家睁眼。大家自由讨论，分享信息（或谎言）。",
+          "nomination": "提名与投票",
+          "nominationDesc": "玩家可以提名处决嫌疑人。如果票数过半且最高，该玩家被处决。",
+          "death": "死亡",
+          "deathDesc": "死亡玩家失去技能，但仍可说话，且只有最后一票投票权。"
+        },
+        "win": {
+          "good": "好人阵营 (Townsfolk & Outsider)",
+          "goodDesc": "处决恶魔。",
+          "goodNote": "注：只要恶魔死亡且无法传位，好人即获胜。",
+          "evil": "邪恶阵营 (Minion & Demon)",
+          "evilDesc": "场上只剩下 2 名玩家。",
+          "evilNote": "注：或者达成特殊获胜条件（如市长、圣徒等）。"
+        },
+        "glossary": {
+          "drunk": "醉酒 (Drunk)",
+          "drunkDesc": "你以为你是某个角色，但实际上你不是。你的技能无效，且可能得到错误信息。",
+          "poisoned": "中毒 (Poisoned)",
+          "poisonedDesc": "你的技能暂时无效，且可能得到错误信息。通常由投毒者造成。",
+          "madness": "疯狂 (Madness)",
+          "madnessDesc": "你必须表现得像某个特定角色，否则可能会受到惩罚（通常是处决）。",
+          "ghostVote": "死亡投票 (Ghost Vote)",
+          "ghostVoteDesc": "死亡玩家在整局游戏中只有一次投票机会。"
+        }
+      }
     },
     "smartInfo": {
       "title": "智能信息生成",

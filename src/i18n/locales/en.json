@@ -198,6 +198,12 @@
       "nominee": "Nominee",
       "requiredVotes": "Required votes: {{count}}",
       "seatNumber": "Seat {{number}}"
+    },
+    "shell": {
+      "hintStoryteller": "Right Click: Manage • Scroll: Zoom (Beta)",
+      "hintSpectator": "Spectating Mode",
+      "hintPlayer": "Wait for the Storyteller...",
+      "enableAudio": "Enable Audio"
     }
   },
   "grimoire": {
@@ -308,7 +314,42 @@
       "searchRoles": "🔍 Search roles...",
       "allRoles": "All Roles",
       "searchingFor": "(Searching: \"{{query}}\")",
-      "noMatchingRoles": "No matching roles found"
+      "noMatchingRoles": "No matching roles found",
+      "rules": {
+        "title": {
+          "flow": "Basic Flow",
+          "winConditions": "Win Conditions",
+          "glossary": "Glossary"
+        },
+        "flow": {
+          "night": "Night",
+          "nightDesc": "All players close their eyes. The Storyteller wakes specific characters to perform actions.",
+          "day": "Day",
+          "dayDesc": "All players open their eyes. Free discussion, share information (or lies).",
+          "nomination": "Nomination & Voting",
+          "nominationDesc": "Players can nominate suspects. If votes exceed half and are highest, that player is executed.",
+          "death": "Death",
+          "deathDesc": "Dead players lose abilities but can still talk and have one final vote."
+        },
+        "win": {
+          "good": "Good Team (Townsfolk & Outsider)",
+          "goodDesc": "Execute the Demon.",
+          "goodNote": "As long as the Demon dies and cannot pass the role, Good wins.",
+          "evil": "Evil Team (Minion & Demon)",
+          "evilDesc": "Only 2 players remain alive.",
+          "evilNote": "Or achieve special win conditions (Mayor, Saint, etc.)."
+        },
+        "glossary": {
+          "drunk": "Drunk",
+          "drunkDesc": "You think you are a certain character, but you are not. Your ability has no effect and you may receive false information.",
+          "poisoned": "Poisoned",
+          "poisonedDesc": "Your ability temporarily has no effect and you may receive false information.",
+          "madness": "Madness",
+          "madnessDesc": "You must act as if you are a specific character, or you may be punished (usually execution).",
+          "ghostVote": "Ghost Vote",
+          "ghostVoteDesc": "Dead players have only one vote for the entire game."
+        }
+      }
     },
     "smartInfo": {
       "title": "Smart Info Generation",

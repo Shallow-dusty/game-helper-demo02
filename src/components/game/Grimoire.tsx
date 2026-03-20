@@ -6,7 +6,7 @@
  * 支持说书人编辑、玩家交互、触摸缩放
  */
 
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Stage, Layer, Circle, Text, Group, Rect, RegularPolygon } from 'react-konva';
 import { useStore } from '../../store';
 import { PHASE_LABELS, JINX_DEFINITIONS } from '../../constants';
@@ -23,6 +23,7 @@ import RoleSelectorModal from './RoleSelectorModal';
 import { useGrimoireState, useGameActions, useUser } from '../../hooks/useGameStateSelectors';
 import { useTranslation } from 'react-i18next';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import { useCanvasGestures } from '../../hooks/useCanvasGestures';
 
 interface GrimoireProps {
   width: number;
@@ -32,19 +33,6 @@ interface GrimoireProps {
   gameState?: import('../../types').GameState;
   isStorytellerView?: boolean;
 }
-
-// 计算两个触摸点之间的距离
-const getDistance = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
-  return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-};
-
-// 计算两个触摸点的中心点
-const getCenter = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
-  return {
-    x: (p1.x + p2.x) / 2,
-    y: (p1.y + p2.y) / 2,
-  };
-};
 
 export const Grimoire: React.FC<GrimoireProps> = ({
   width,
@@ -114,105 +102,14 @@ export const Grimoire: React.FC<GrimoireProps> = ({
     title: string; message: string; onConfirm: () => void; isDangerous?: boolean;
   } | null>(null);
 
-  // Canvas state
-  const stageRef = useRef<Konva.Stage>(null);
-  const [stageScale, setStageScale] = useState(1);
-  const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
-  const lastCenter = useRef<{ x: number; y: number } | null>(null);
-  const lastDist = useRef<number>(0);
-  const lastGestureTime = useRef<number>(0);
-  const isPinching = useRef(false);
-  const draggingRef = useRef(false);
-  const [isGestureActive, setIsGestureActive] = useState(false);
+  // Canvas gestures (pinch-zoom, scroll-zoom, pan)
+  const {
+    stageScale, stagePos, setStagePos, isGestureActive, lastGestureTime,
+    draggingRef, updateGestureState, stageRef,
+    handleTouchStart, handleTouchMove, handleTouchEnd, handleWheel,
+  } = useCanvasGestures();
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [isPrivacyMode, setIsPrivacyMode] = useState(false);
-
-  const updateGestureState = useCallback(() => {
-    setIsGestureActive(isPinching.current || draggingRef.current);
-  }, []);
-
-  // Touch gesture handlers
-  const handleTouchStart = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
-    const touch = e.evt.touches;
-    if (touch.length === 2 && touch[0] && touch[1]) {
-      isPinching.current = true;
-      updateGestureState();
-      e.evt.preventDefault();
-      const p1 = { x: touch[0].clientX, y: touch[0].clientY };
-      const p2 = { x: touch[1].clientX, y: touch[1].clientY };
-      lastCenter.current = getCenter(p1, p2);
-      lastDist.current = getDistance(p1, p2);
-    }
-  }, [updateGestureState]);
-
-  const handleTouchMove = useCallback(
-    (e: Konva.KonvaEventObject<TouchEvent>) => {
-      const touch = e.evt.touches;
-      const stage = stageRef.current;
-      if (touch.length === 2 && stage && lastCenter.current && touch[0] && touch[1]) {
-        e.evt.preventDefault();
-        const p1 = { x: touch[0].clientX, y: touch[0].clientY };
-        const p2 = { x: touch[1].clientX, y: touch[1].clientY };
-        const newCenter = getCenter(p1, p2);
-        const newDist = getDistance(p1, p2);
-        if (lastDist.current === 0) {
-          lastDist.current = newDist;
-          return;
-        }
-        const scaleBy = newDist / lastDist.current;
-        const oldScale = stageScale;
-        let newScale = oldScale * scaleBy;
-        newScale = Math.max(0.5, Math.min(3, newScale));
-        const mousePointTo = {
-          x: (newCenter.x - stagePos.x) / oldScale,
-          y: (newCenter.y - stagePos.y) / oldScale,
-        };
-        const newPos = {
-          x: newCenter.x - mousePointTo.x * newScale + (newCenter.x - lastCenter.current.x),
-          y: newCenter.y - mousePointTo.y * newScale + (newCenter.y - lastCenter.current.y),
-        };
-        setStageScale(newScale);
-        setStagePos(newPos);
-        lastDist.current = newDist;
-        lastCenter.current = newCenter;
-      }
-    },
-    [stageScale, stagePos]
-  );
-
-  const handleTouchEnd = useCallback(() => {
-    lastCenter.current = null;
-    lastDist.current = 0;
-    isPinching.current = false;
-    lastGestureTime.current = Date.now();
-    updateGestureState();
-  }, [updateGestureState]);
-
-  const handleWheel = useCallback(
-    (e: Konva.KonvaEventObject<WheelEvent>) => {
-      e.evt.preventDefault();
-      const stage = stageRef.current;
-      if (!stage) return;
-      const scaleBy = 1.1;
-      const oldScale = stageScale;
-      const pointer = stage.getPointerPosition();
-      if (!pointer) return;
-      const mousePointTo = {
-        x: (pointer.x - stagePos.x) / oldScale,
-        y: (pointer.y - stagePos.y) / oldScale,
-      };
-      const direction = e.evt.deltaY > 0 ? -1 : 1;
-      let newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
-      newScale = Math.max(0.5, Math.min(3, newScale));
-      const newPos = {
-        x: pointer.x - mousePointTo.x * newScale,
-        y: pointer.y - mousePointTo.y * newScale,
-      };
-      setStageScale(newScale);
-      setStagePos(newPos);
-    },
-    [stageScale, stagePos]
-  );
 
   // Menu trigger handler
   const handleMenuTrigger = useCallback(

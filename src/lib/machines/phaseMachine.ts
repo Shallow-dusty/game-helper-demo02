@@ -33,6 +33,8 @@ export type PhaseMachineEvent =
   | { type: 'PREV_NIGHT_ACTION' }
   | { type: 'END_NIGHT' }
   | { type: 'START_DAY' }
+  | { type: 'START_NOMINATION' }
+  | { type: 'CANCEL_NOMINATION' }
   | { type: 'START_VOTING'; nomineeSeatId: number }
   | { type: 'CLOSE_VOTE'; isExecuted: boolean }
   | { type: 'END_GAME'; winner: 'GOOD' | 'EVIL'; reason: string };
@@ -228,6 +230,9 @@ export const phaseMachine = setup({
     },
     day: {
       on: {
+        START_NOMINATION: {
+          target: 'nomination',
+        },
         START_VOTING: {
           guard: 'canStartVoting',
           target: 'voting',
@@ -235,6 +240,21 @@ export const phaseMachine = setup({
         START_NIGHT: {
           target: 'night',
           actions: 'startNightPhase',
+        },
+        END_GAME: {
+          target: 'gameOver',
+          actions: 'endGame',
+        },
+      },
+    },
+    nomination: {
+      on: {
+        START_VOTING: {
+          guard: 'canStartVoting',
+          target: 'voting',
+        },
+        CANCEL_NOMINATION: {
+          target: 'day',
         },
         END_GAME: {
           target: 'gameOver',

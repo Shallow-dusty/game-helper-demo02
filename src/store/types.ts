@@ -199,7 +199,7 @@ export interface PhaseMachineSlice {
   phaseActor: PhaseActorInterface | null;
 
   // Current phase machine state
-  phaseState: 'setup' | 'night' | 'day' | 'voting' | 'gameOver';
+  phaseState: 'setup' | 'night' | 'day' | 'nomination' | 'voting' | 'gameOver';
 
   // Current phase machine context
   phaseContext: PhaseMachineContext;

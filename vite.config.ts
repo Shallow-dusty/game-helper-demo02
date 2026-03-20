@@ -44,10 +44,6 @@ export default defineConfig(({ mode }) => {
             if (id.includes('/framer-motion/')) {
               return 'motion';
             }
-            if (id.includes('/recharts/') || id.includes('/d3-')) {
-              return 'charts';
-            }
-
             // 画布渲染
             if (id.includes('/react-konva/') || id.includes('/konva/')) {
               return 'canvas';
@@ -56,11 +52,6 @@ export default defineConfig(({ mode }) => {
             // 物理引擎
             if (id.includes('/matter-js/')) {
               return 'physics';
-            }
-
-            // AI 服务
-            if (id.includes('/@google/generative-ai/') || id.includes('/openai/')) {
-              return 'ai';
             }
 
             // 后端服务

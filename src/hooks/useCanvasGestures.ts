@@ -31,8 +31,7 @@ export interface CanvasGestureState {
   lastGestureTime: React.MutableRefObject<number>;
   draggingRef: React.MutableRefObject<boolean>;
   updateGestureState: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  stageRef: React.RefObject<any>;
+  stageRef: React.RefObject<Konva.Stage>;
   handleTouchStart: (e: Konva.KonvaEventObject<TouchEvent>) => void;
   handleTouchMove: (e: Konva.KonvaEventObject<TouchEvent>) => void;
   handleTouchEnd: () => void;
@@ -40,8 +39,7 @@ export interface CanvasGestureState {
 }
 
 export function useCanvasGestures(): CanvasGestureState {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const stageRef = useRef<any>(null);
+  const stageRef = useRef<Konva.Stage>(null);
   const [stageScale, setStageScale] = useState(1);
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
   const lastCenter = useRef<{ x: number; y: number } | null>(null);

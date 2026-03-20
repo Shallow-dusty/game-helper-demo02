@@ -2,21 +2,46 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import {
     createSelector,
+    // Basic selectors
+    useSeats,
+    usePhase,
+    useVoting,
+    useNightQueue,
+    useNightCurrentIndex,
+    useCurrentScriptId,
+    useSetupPhase,
+    useRolesRevealed,
+    useCandlelightEnabled,
+    useMessages,
+    useRoomId,
+    useGameOver,
+    useUser,
+    useConnectionStatus,
+    useIsOffline,
+    // Composite selectors
     useVotingState,
     useNightActionState,
     useSeatList,
-    useCurrentSeat,
     useGameMessages,
-    useGameOverState,
     useRoomInfo,
     usePlayerInfo,
     useConnectionState,
+    useGrimoireState,
+    useAppState,
+    // Derived selectors
+    useCurrentSeat,
+    useGameOverState,
     useVotingStats,
     useCurrentNightRole,
     useAvailableActions,
+    useAlivePlayersCount,
+    useDeadPlayers,
+    // Action selectors
+    useGameActions,
+    useUIActions,
 } from './useGameStateSelectors';
 import type { GameState, User, Seat, ChatMessage } from '../types';
-import type { ConnectionStatus } from '../store/types';
+import type { ConnectionStatus, AppState } from '../store/types';
 
 // Helper to create mock seats
 const createMockSeat = (overrides: Partial<Seat> = {}): Seat => ({
@@ -78,13 +103,48 @@ const createMockUser = (overrides: Partial<User> = {}): User => ({
     ...overrides,
 });
 
+// Mock action functions
+const mockActions = {
+    joinSeat: vi.fn(),
+    leaveSeat: vi.fn(),
+    toggleDead: vi.fn(),
+    toggleAbilityUsed: vi.fn(),
+    toggleStatus: vi.fn(),
+    startVote: vi.fn(),
+    assignRole: vi.fn(),
+    addReminder: vi.fn(),
+    removeReminder: vi.fn(),
+    forceLeaveSeat: vi.fn(),
+    removeVirtualPlayer: vi.fn(),
+    swapSeats: vi.fn(),
+    requestSeatSwap: vi.fn(),
+    setPhase: vi.fn(),
+    nightNext: vi.fn(),
+    nightPrev: vi.fn(),
+    closeVote: vi.fn(),
+    nextClockHand: vi.fn(),
+    toggleHand: vi.fn(),
+    toggleAudioPlay: vi.fn(),
+    openRolePanel: vi.fn(),
+    closeRolePanel: vi.fn(),
+    toggleSidebar: vi.fn(),
+    closeTruthReveal: vi.fn(),
+    closeReport: vi.fn(),
+};
+
 // Mock store state
 let mockState: {
     gameState: GameState | null;
     user: User | null;
     connectionStatus: ConnectionStatus;
     isOffline: boolean;
-};
+    isAudioBlocked: boolean;
+    roleReferenceMode: 'modal' | 'sidebar';
+    isRolePanelOpen: boolean;
+    isSidebarExpanded: boolean;
+    isTruthRevealOpen: boolean;
+    isReportOpen: boolean;
+} & typeof mockActions;
 
 // Reset mock state before each test
 beforeEach(() => {
@@ -93,6 +153,13 @@ beforeEach(() => {
         user: null,
         connectionStatus: 'connected',
         isOffline: false,
+        isAudioBlocked: false,
+        roleReferenceMode: 'modal',
+        isRolePanelOpen: false,
+        isSidebarExpanded: false,
+        isTruthRevealOpen: false,
+        isReportOpen: false,
+        ...mockActions,
     };
 });
 
@@ -119,6 +186,245 @@ describe('useGameStateSelectors', () => {
             const equalityCheck = (a: number, b: number) => a === b;
             const result = createSelector(selector, equalityCheck);
             expect(result).toBe(selector);
+        });
+    });
+
+    // ============================================================
+    // Basic selectors - single property access
+    // ============================================================
+    describe('basic selectors', () => {
+        describe('useSeats', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => useSeats());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return seats from gameState', () => {
+                const seats = [createMockSeat({ id: 0 }), createMockSeat({ id: 1 })];
+                mockState.gameState = createMockGameState({ seats });
+                const { result } = renderHook(() => useSeats());
+                expect(result.current).toHaveLength(2);
+            });
+        });
+
+        describe('usePhase', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => usePhase());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return phase from gameState', () => {
+                mockState.gameState = createMockGameState({ phase: 'NIGHT' });
+                const { result } = renderHook(() => usePhase());
+                expect(result.current).toBe('NIGHT');
+            });
+        });
+
+        describe('useVoting', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => useVoting());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return voting from gameState', () => {
+                const voting = {
+                    nominatorSeatId: 0,
+                    nomineeSeatId: 1,
+                    clockHandSeatId: null,
+                    votes: [],
+                    isOpen: true,
+                };
+                mockState.gameState = createMockGameState({ voting });
+                const { result } = renderHook(() => useVoting());
+                expect(result.current).toEqual(voting);
+            });
+        });
+
+        describe('useNightQueue', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => useNightQueue());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return nightQueue from gameState', () => {
+                mockState.gameState = createMockGameState({ nightQueue: ['imp', 'spy'] });
+                const { result } = renderHook(() => useNightQueue());
+                expect(result.current).toEqual(['imp', 'spy']);
+            });
+        });
+
+        describe('useNightCurrentIndex', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => useNightCurrentIndex());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return nightCurrentIndex from gameState', () => {
+                mockState.gameState = createMockGameState({ nightCurrentIndex: 2 });
+                const { result } = renderHook(() => useNightCurrentIndex());
+                expect(result.current).toBe(2);
+            });
+        });
+
+        describe('useCurrentScriptId', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => useCurrentScriptId());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return currentScriptId from gameState', () => {
+                mockState.gameState = createMockGameState({ currentScriptId: 'bmr' });
+                const { result } = renderHook(() => useCurrentScriptId());
+                expect(result.current).toBe('bmr');
+            });
+        });
+
+        describe('useSetupPhase', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => useSetupPhase());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return setupPhase from gameState', () => {
+                mockState.gameState = createMockGameState({ setupPhase: 'STARTED' });
+                const { result } = renderHook(() => useSetupPhase());
+                expect(result.current).toBe('STARTED');
+            });
+        });
+
+        describe('useRolesRevealed', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => useRolesRevealed());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return rolesRevealed from gameState', () => {
+                mockState.gameState = createMockGameState({ rolesRevealed: true });
+                const { result } = renderHook(() => useRolesRevealed());
+                expect(result.current).toBe(true);
+            });
+
+            it('should return false when roles are hidden', () => {
+                mockState.gameState = createMockGameState({ rolesRevealed: false });
+                const { result } = renderHook(() => useRolesRevealed());
+                expect(result.current).toBe(false);
+            });
+        });
+
+        describe('useCandlelightEnabled', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => useCandlelightEnabled());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return candlelightEnabled from gameState', () => {
+                mockState.gameState = createMockGameState({ candlelightEnabled: true });
+                const { result } = renderHook(() => useCandlelightEnabled());
+                expect(result.current).toBe(true);
+            });
+        });
+
+        describe('useMessages', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => useMessages());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return messages from gameState', () => {
+                const messages: ChatMessage[] = [{
+                    id: 'msg-1',
+                    senderId: 'user-1',
+                    senderName: 'Alice',
+                    recipientId: null,
+                    content: 'Hello',
+                    timestamp: Date.now(),
+                    type: 'chat',
+                }];
+                mockState.gameState = createMockGameState({ messages });
+                const { result } = renderHook(() => useMessages());
+                expect(result.current).toHaveLength(1);
+            });
+        });
+
+        describe('useRoomId', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => useRoomId());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return roomId from gameState', () => {
+                mockState.gameState = createMockGameState({ roomId: 'test-room' });
+                const { result } = renderHook(() => useRoomId());
+                expect(result.current).toBe('test-room');
+            });
+        });
+
+        describe('useGameOver', () => {
+            it('should return undefined when gameState is null', () => {
+                mockState.gameState = null;
+                const { result } = renderHook(() => useGameOver());
+                expect(result.current).toBeUndefined();
+            });
+
+            it('should return gameOver from gameState', () => {
+                const gameOver = { isOver: true, winner: 'GOOD' as const, reason: 'Demon killed' };
+                mockState.gameState = createMockGameState({ gameOver });
+                const { result } = renderHook(() => useGameOver());
+                expect(result.current).toEqual(gameOver);
+            });
+        });
+
+        describe('useUser', () => {
+            it('should return null when user is null', () => {
+                mockState.user = null;
+                const { result } = renderHook(() => useUser());
+                expect(result.current).toBeNull();
+            });
+
+            it('should return user from state', () => {
+                mockState.user = createMockUser({ name: 'Alice' });
+                const { result } = renderHook(() => useUser());
+                expect(result.current!.name).toBe('Alice');
+            });
+        });
+
+        describe('useConnectionStatus', () => {
+            it('should return connectionStatus from state', () => {
+                mockState.connectionStatus = 'connected';
+                const { result } = renderHook(() => useConnectionStatus());
+                expect(result.current).toBe('connected');
+            });
+
+            it('should return disconnected status', () => {
+                mockState.connectionStatus = 'disconnected';
+                const { result } = renderHook(() => useConnectionStatus());
+                expect(result.current).toBe('disconnected');
+            });
+        });
+
+        describe('useIsOffline', () => {
+            it('should return false when online', () => {
+                mockState.isOffline = false;
+                const { result } = renderHook(() => useIsOffline());
+                expect(result.current).toBe(false);
+            });
+
+            it('should return true when offline', () => {
+                mockState.isOffline = true;
+                const { result } = renderHook(() => useIsOffline());
+                expect(result.current).toBe(true);
+            });
         });
     });
 
@@ -554,6 +860,113 @@ describe('useGameStateSelectors', () => {
     });
 
     // ============================================================
+    // useGrimoireState tests
+    // ============================================================
+    describe('useGrimoireState', () => {
+        it('should return undefined values when gameState is null', () => {
+            mockState.gameState = null;
+            const { result } = renderHook(() => useGrimoireState());
+
+            expect(result.current.seats).toBeUndefined();
+            expect(result.current.phase).toBeUndefined();
+            expect(result.current.voting).toBeUndefined();
+            expect(result.current.setupPhase).toBeUndefined();
+            expect(result.current.rolesRevealed).toBeUndefined();
+            expect(result.current.candlelightEnabled).toBeUndefined();
+            expect(result.current.currentScriptId).toBeUndefined();
+        });
+
+        it('should return grimoire state from gameState', () => {
+            const seats = [createMockSeat({ id: 0 }), createMockSeat({ id: 1 })];
+            const voting = {
+                nominatorSeatId: 0,
+                nomineeSeatId: 1,
+                clockHandSeatId: null,
+                votes: [],
+                isOpen: true,
+            };
+            mockState.gameState = createMockGameState({
+                seats,
+                phase: 'DAY',
+                voting,
+                setupPhase: 'STARTED',
+                rolesRevealed: true,
+                candlelightEnabled: false,
+                currentScriptId: 'tb',
+            });
+
+            const { result } = renderHook(() => useGrimoireState());
+
+            expect(result.current.seats).toHaveLength(2);
+            expect(result.current.phase).toBe('DAY');
+            expect(result.current.voting).toEqual(voting);
+            expect(result.current.setupPhase).toBe('STARTED');
+            expect(result.current.rolesRevealed).toBe(true);
+            expect(result.current.candlelightEnabled).toBe(false);
+            expect(result.current.currentScriptId).toBe('tb');
+        });
+    });
+
+    // ============================================================
+    // useAppState tests
+    // ============================================================
+    describe('useAppState', () => {
+        it('should return null gameState when gameState is null', () => {
+            mockState.gameState = null;
+            mockState.user = null;
+
+            const { result } = renderHook(() => useAppState());
+
+            expect(result.current.user).toBeNull();
+            expect(result.current.gameState).toBeNull();
+        });
+
+        it('should return projected gameState with only roomId and phase', () => {
+            mockState.user = createMockUser();
+            mockState.gameState = createMockGameState({
+                roomId: 'my-room',
+                phase: 'NIGHT',
+                seats: [createMockSeat({ id: 0 })],
+            });
+            mockState.isAudioBlocked = true;
+            mockState.roleReferenceMode = 'sidebar';
+            mockState.isRolePanelOpen = true;
+            mockState.isSidebarExpanded = true;
+            mockState.isTruthRevealOpen = false;
+            mockState.isReportOpen = false;
+
+            const { result } = renderHook(() => useAppState());
+
+            expect(result.current.user).not.toBeNull();
+            expect(result.current.gameState).toEqual({
+                roomId: 'my-room',
+                phase: 'NIGHT',
+            });
+            // Should NOT include full gameState fields like seats
+            expect((result.current.gameState as Record<string, unknown>)?.seats).toBeUndefined();
+            expect(result.current.isAudioBlocked).toBe(true);
+            expect(result.current.roleReferenceMode).toBe('sidebar');
+            expect(result.current.isRolePanelOpen).toBe(true);
+            expect(result.current.isSidebarExpanded).toBe(true);
+            expect(result.current.isTruthRevealOpen).toBe(false);
+            expect(result.current.isReportOpen).toBe(false);
+        });
+
+        it('should return default UI state values', () => {
+            mockState.gameState = null;
+
+            const { result } = renderHook(() => useAppState());
+
+            expect(result.current.isAudioBlocked).toBe(false);
+            expect(result.current.roleReferenceMode).toBe('modal');
+            expect(result.current.isRolePanelOpen).toBe(false);
+            expect(result.current.isSidebarExpanded).toBe(false);
+            expect(result.current.isTruthRevealOpen).toBe(false);
+            expect(result.current.isReportOpen).toBe(false);
+        });
+    });
+
+    // ============================================================
     // useVotingStats tests
     // ============================================================
     describe('useVotingStats', () => {
@@ -796,6 +1209,19 @@ describe('useGameStateSelectors', () => {
 
             expect(result.current).toBeNull();
         });
+
+        it('should default to index 0 when nightCurrentIndex is undefined', () => {
+            mockState.gameState = createMockGameState({
+                phase: 'NIGHT',
+                nightQueue: ['poisoner', 'imp'],
+            });
+            // Force nightCurrentIndex to undefined to test nullish coalescing
+            (mockState.gameState as Record<string, unknown>).nightCurrentIndex = undefined;
+
+            const { result } = renderHook(() => useCurrentNightRole());
+
+            expect(result.current).toBe('poisoner');
+        });
     });
 
     // ============================================================
@@ -970,6 +1396,192 @@ describe('useGameStateSelectors', () => {
             const { result } = renderHook(() => useAvailableActions());
 
             expect(result.current).not.toContain('night_action');
+        });
+    });
+
+    // ============================================================
+    // useAlivePlayersCount tests
+    // ============================================================
+    describe('useAlivePlayersCount', () => {
+        it('should return 0 when gameState is null', () => {
+            mockState.gameState = null;
+            const { result } = renderHook(() => useAlivePlayersCount());
+
+            expect(result.current).toBe(0);
+        });
+
+        it('should return 0 when all seats are empty', () => {
+            mockState.gameState = createMockGameState({ seats: [] });
+            const { result } = renderHook(() => useAlivePlayersCount());
+
+            expect(result.current).toBe(0);
+        });
+
+        it('should count all alive players', () => {
+            mockState.gameState = createMockGameState({
+                seats: [
+                    createMockSeat({ id: 0, isDead: false }),
+                    createMockSeat({ id: 1, isDead: false }),
+                    createMockSeat({ id: 2, isDead: false }),
+                ],
+            });
+
+            const { result } = renderHook(() => useAlivePlayersCount());
+
+            expect(result.current).toBe(3);
+        });
+
+        it('should exclude dead players from count', () => {
+            mockState.gameState = createMockGameState({
+                seats: [
+                    createMockSeat({ id: 0, isDead: false }),
+                    createMockSeat({ id: 1, isDead: true }),
+                    createMockSeat({ id: 2, isDead: false }),
+                    createMockSeat({ id: 3, isDead: true }),
+                ],
+            });
+
+            const { result } = renderHook(() => useAlivePlayersCount());
+
+            expect(result.current).toBe(2);
+        });
+
+        it('should return 0 when all players are dead', () => {
+            mockState.gameState = createMockGameState({
+                seats: [
+                    createMockSeat({ id: 0, isDead: true }),
+                    createMockSeat({ id: 1, isDead: true }),
+                ],
+            });
+
+            const { result } = renderHook(() => useAlivePlayersCount());
+
+            expect(result.current).toBe(0);
+        });
+    });
+
+    // ============================================================
+    // useDeadPlayers tests
+    // ============================================================
+    describe('useDeadPlayers', () => {
+        it('should return empty array when gameState is null', () => {
+            mockState.gameState = null;
+            const { result } = renderHook(() => useDeadPlayers());
+
+            expect(result.current).toEqual([]);
+        });
+
+        it('should return empty array when no players are dead', () => {
+            mockState.gameState = createMockGameState({
+                seats: [
+                    createMockSeat({ id: 0, isDead: false }),
+                    createMockSeat({ id: 1, isDead: false }),
+                ],
+            });
+
+            const { result } = renderHook(() => useDeadPlayers());
+
+            expect(result.current).toEqual([]);
+        });
+
+        it('should return only dead players', () => {
+            mockState.gameState = createMockGameState({
+                seats: [
+                    createMockSeat({ id: 0, isDead: false, userName: 'Alice' }),
+                    createMockSeat({ id: 1, isDead: true, userName: 'Bob' }),
+                    createMockSeat({ id: 2, isDead: false, userName: 'Charlie' }),
+                    createMockSeat({ id: 3, isDead: true, userName: 'Dave' }),
+                ],
+            });
+
+            const { result } = renderHook(() => useDeadPlayers());
+
+            expect(result.current).toHaveLength(2);
+            expect(result.current[0]!.userName).toBe('Bob');
+            expect(result.current[1]!.userName).toBe('Dave');
+        });
+
+        it('should return all players when all are dead', () => {
+            mockState.gameState = createMockGameState({
+                seats: [
+                    createMockSeat({ id: 0, isDead: true }),
+                    createMockSeat({ id: 1, isDead: true }),
+                    createMockSeat({ id: 2, isDead: true }),
+                ],
+            });
+
+            const { result } = renderHook(() => useDeadPlayers());
+
+            expect(result.current).toHaveLength(3);
+        });
+
+        it('should return empty array when seats is empty', () => {
+            mockState.gameState = createMockGameState({ seats: [] });
+
+            const { result } = renderHook(() => useDeadPlayers());
+
+            expect(result.current).toEqual([]);
+        });
+    });
+
+    // ============================================================
+    // useGameActions tests
+    // ============================================================
+    describe('useGameActions', () => {
+        it('should return all game action functions', () => {
+            const { result } = renderHook(() => useGameActions());
+
+            expect(result.current.joinSeat).toBeDefined();
+            expect(result.current.leaveSeat).toBeDefined();
+            expect(result.current.toggleDead).toBeDefined();
+            expect(result.current.toggleAbilityUsed).toBeDefined();
+            expect(result.current.toggleStatus).toBeDefined();
+            expect(result.current.startVote).toBeDefined();
+            expect(result.current.assignRole).toBeDefined();
+            expect(result.current.addReminder).toBeDefined();
+            expect(result.current.removeReminder).toBeDefined();
+            expect(result.current.forceLeaveSeat).toBeDefined();
+            expect(result.current.removeVirtualPlayer).toBeDefined();
+            expect(result.current.swapSeats).toBeDefined();
+            expect(result.current.requestSeatSwap).toBeDefined();
+            expect(result.current.setPhase).toBeDefined();
+            expect(result.current.nightNext).toBeDefined();
+            expect(result.current.nightPrev).toBeDefined();
+            expect(result.current.closeVote).toBeDefined();
+            expect(result.current.nextClockHand).toBeDefined();
+            expect(result.current.toggleHand).toBeDefined();
+        });
+
+        it('should return functions that are callable', () => {
+            const { result } = renderHook(() => useGameActions());
+
+            expect(typeof result.current.joinSeat).toBe('function');
+            expect(typeof result.current.toggleDead).toBe('function');
+            expect(typeof result.current.setPhase).toBe('function');
+        });
+    });
+
+    // ============================================================
+    // useUIActions tests
+    // ============================================================
+    describe('useUIActions', () => {
+        it('should return all UI action functions', () => {
+            const { result } = renderHook(() => useUIActions());
+
+            expect(result.current.toggleAudioPlay).toBeDefined();
+            expect(result.current.openRolePanel).toBeDefined();
+            expect(result.current.closeRolePanel).toBeDefined();
+            expect(result.current.toggleSidebar).toBeDefined();
+            expect(result.current.closeTruthReveal).toBeDefined();
+            expect(result.current.closeReport).toBeDefined();
+        });
+
+        it('should return functions that are callable', () => {
+            const { result } = renderHook(() => useUIActions());
+
+            expect(typeof result.current.toggleAudioPlay).toBe('function');
+            expect(typeof result.current.openRolePanel).toBe('function');
+            expect(typeof result.current.closeTruthReveal).toBe('function');
         });
     });
 });

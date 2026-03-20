@@ -15,19 +15,47 @@ import { connectionLogger as logger } from '../../lib/logger';
 // 使用经过运行时校验的环境变量配置
 export const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
-// Global variables for subscription (kept here for now, but encapsulated)
-let realtimeChannel: RealtimeChannel | null = null;
-let secretChannel: RealtimeChannel | null = null;
-let messagesChannel: RealtimeChannel | null = null;
-let memberChannel: RealtimeChannel | null = null;
-let isReceivingUpdate = false;
-let pendingSyncAfterReceive = false;
-const syncedSystemMessageIds = new Set<string>();
-let memberSeenRoleId: string | null = null;
+// ---------------------------------------------------------------------------
+// Mutable realtime state — encapsulated in a resettable object so tests and
+// multi-instance scenarios get a clean slate via `resetRealtimeState()`.
+// ---------------------------------------------------------------------------
+interface RealtimeState {
+    realtimeChannel: RealtimeChannel | null;
+    secretChannel: RealtimeChannel | null;
+    messagesChannel: RealtimeChannel | null;
+    memberChannel: RealtimeChannel | null;
+    isReceivingUpdate: boolean;
+    pendingSyncAfterReceive: boolean;
+    syncedSystemMessageIds: Set<string>;
+    memberSeenRoleId: string | null;
+    syncDebounceTimer: ReturnType<typeof setTimeout> | null;
+    pendingSync: boolean;
+    showErrorFn: ((msg: string) => void) | null;
+}
 
-// Debounce state for sync
-let syncDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-let pendingSync = false;
+function createRealtimeState(): RealtimeState {
+    return {
+        realtimeChannel: null,
+        secretChannel: null,
+        messagesChannel: null,
+        memberChannel: null,
+        isReceivingUpdate: false,
+        pendingSyncAfterReceive: false,
+        syncedSystemMessageIds: new Set<string>(),
+        memberSeenRoleId: null,
+        syncDebounceTimer: null,
+        pendingSync: false,
+        showErrorFn: null,
+    };
+}
+
+const rt = createRealtimeState();
+
+/** Reset all mutable realtime state (useful for tests). */
+export function resetRealtimeState(): void {
+    Object.assign(rt, createRealtimeState());
+}
+
 const SYNC_DEBOUNCE_MS = 300; // 300ms 防抖延迟
 
 interface JoinRoomResponse {
@@ -313,18 +341,17 @@ function stopReconnect(): void {
 }
 
 // Helper functions for managing realtime state (exported for use in other slices)
-export const setIsReceivingUpdate = (val: boolean): void => { isReceivingUpdate = val; };
-export const setRealtimeChannel = (channel: RealtimeChannel | null): void => { realtimeChannel = channel; };
-export const getRealtimeChannel = (): RealtimeChannel | null => realtimeChannel;
+export const setIsReceivingUpdate = (val: boolean): void => { rt.isReceivingUpdate = val; };
+export const setRealtimeChannel = (channel: RealtimeChannel | null): void => { rt.realtimeChannel = channel; };
+export const getRealtimeChannel = (): RealtimeChannel | null => rt.realtimeChannel;
 
 // Helper to get toast functions (lazy load)
-let showErrorFn: ((msg: string) => void) | null = null;
 const getToastFunctions = async () => {
-    if (!showErrorFn) {
+    if (!rt.showErrorFn) {
         const { showError } = await import('../../components/ui/Toast');
-        showErrorFn = showError;
+        rt.showErrorFn = showError;
     }
-    return { showError: showErrorFn };
+    return { showError: rt.showErrorFn };
 };
 
 interface GameMessageRow {
@@ -388,7 +415,7 @@ export const setupMessageSubscription = async (
     set: (partial: unknown) => void,
     get: () => { gameState: GameState | null }
 ): Promise<void> => {
-    if (messagesChannel) void supabase.removeChannel(messagesChannel);
+    if (rt.messagesChannel) void supabase.removeChannel(rt.messagesChannel);
 
     const { data: messageRows } = await supabase
         .from('game_messages')
@@ -404,14 +431,14 @@ export const setupMessageSubscription = async (
             currentState.messages = mapped;
             mapped.forEach(msg => {
                 if (msg.type === 'system') {
-                    syncedSystemMessageIds.add(msg.id);
+                    rt.syncedSystemMessageIds.add(msg.id);
                 }
             });
             set({ gameState: currentState });
         }
     }
 
-    messagesChannel = supabase.channel(`room-messages:${roomCode}`)
+    rt.messagesChannel = supabase.channel(`room-messages:${roomCode}`)
         .on(
             'postgres_changes',
             { event: 'INSERT', schema: 'public', table: 'game_messages', filter: `room_id=eq.${roomDbId}` },
@@ -455,9 +482,9 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
     isOffline: false,
     connectionStatus: 'disconnected',
 
-    _setIsReceivingUpdate: (val) => { isReceivingUpdate = val; },
-    _setRealtimeChannel: (channel) => { realtimeChannel = channel; },
-    _getRealtimeChannel: () => realtimeChannel,
+    _setIsReceivingUpdate: (val) => { rt.isReceivingUpdate = val; },
+    _setRealtimeChannel: (channel) => { rt.realtimeChannel = channel; },
+    _getRealtimeChannel: () => rt.realtimeChannel,
 
     login: async (name, isStoryteller) => {
         const authUser = await ensureAuthenticatedUser();
@@ -521,7 +548,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             applyGameStateDefaults(gameState);
 
             // 2. Subscribe to public room updates
-            if (realtimeChannel) void supabase.removeChannel(realtimeChannel);
+            if (rt.realtimeChannel) void supabase.removeChannel(rt.realtimeChannel);
 
             const channel = supabase.channel(`room:${roomCode}`)
                 .on(
@@ -531,15 +558,15 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                         const newData = (payload.new as { data?: GameState } | undefined)?.data;
                         if (newData) {
                             applyGameStateDefaults(newData);
-                            isReceivingUpdate = true;
+                            rt.isReceivingUpdate = true;
                             const currentUser = get().user;
-                            if (memberSeenRoleId && currentUser) {
-                                applyMemberRoleToState(newData, currentUser.id, memberSeenRoleId);
+                            if (rt.memberSeenRoleId && currentUser) {
+                                applyMemberRoleToState(newData, currentUser.id, rt.memberSeenRoleId);
                             }
                             set({ gameState: newData });
-                            isReceivingUpdate = false;
-                            if (pendingSyncAfterReceive) {
-                                pendingSyncAfterReceive = false;
+                            rt.isReceivingUpdate = false;
+                            if (rt.pendingSyncAfterReceive) {
+                                rt.pendingSyncAfterReceive = false;
                                 get().sync();
                             }
                         }
@@ -582,7 +609,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                     }
                 });
 
-            realtimeChannel = channel;
+            rt.realtimeChannel = channel;
 
             const updatedUser = { ...user, roomId: roomCode };
             set({ user: updatedUser, gameState: gameState, roomDbId: roomId, isOffline: false });
@@ -591,27 +618,27 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
 
             // 3. Fetch member seen_role_id for players and subscribe for updates
             if (!updatedUser.isStoryteller) {
-                memberSeenRoleId = joinData.seen_role_id ?? null;
-                if (memberSeenRoleId) {
+                rt.memberSeenRoleId = joinData.seen_role_id ?? null;
+                if (rt.memberSeenRoleId) {
                     const currentState = get().gameState;
                     if (currentState) {
-                        applyMemberRoleToState(currentState, updatedUser.id, memberSeenRoleId);
+                        applyMemberRoleToState(currentState, updatedUser.id, rt.memberSeenRoleId);
                         set({ gameState: currentState });
                     }
                 }
 
-                if (memberChannel) void supabase.removeChannel(memberChannel);
-                memberChannel = supabase.channel(`room-member:${roomCode}:${updatedUser.id}`)
+                if (rt.memberChannel) void supabase.removeChannel(rt.memberChannel);
+                rt.memberChannel = supabase.channel(`room-member:${roomCode}:${updatedUser.id}`)
                     .on(
                         'postgres_changes',
                         { event: 'UPDATE', schema: 'public', table: 'room_members', filter: `user_id=eq.${updatedUser.id}` },
                         (payload) => {
                             const updated = payload.new as { seen_role_id?: string | null } | undefined;
-                            memberSeenRoleId = updated?.seen_role_id ?? null;
+                            rt.memberSeenRoleId = updated?.seen_role_id ?? null;
                             const currentState = get().gameState;
                             const currentUser = get().user;
                             if (currentState && currentUser) {
-                                applyMemberRoleToState(currentState, currentUser.id, memberSeenRoleId);
+                                applyMemberRoleToState(currentState, currentUser.id, rt.memberSeenRoleId);
                                 set({ gameState: currentState });
                             }
                         }
@@ -621,7 +648,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
 
             // 5. Subscribe to Secrets (Storyteller only)
             if (updatedUser.isStoryteller) {
-                if (secretChannel) void supabase.removeChannel(secretChannel);
+                if (rt.secretChannel) void supabase.removeChannel(rt.secretChannel);
 
                 const { data: secretData } = await supabase
                     .from('game_secrets')
@@ -645,23 +672,23 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                         (payload) => {
                             const newSecretData = (payload.new as { data?: SecretState } | undefined)?.data;
                             if (newSecretData) {
-                                isReceivingUpdate = true;
+                                rt.isReceivingUpdate = true;
                                 const currentPublic = get().gameState;
                                 if (currentPublic) {
                                     const merged = mergeGameState(currentPublic, newSecretData);
                                     applyGameStateDefaults(merged);
                                     set({ gameState: merged });
                                 }
-                                isReceivingUpdate = false;
-                                if (pendingSyncAfterReceive) {
-                                    pendingSyncAfterReceive = false;
+                                rt.isReceivingUpdate = false;
+                                if (rt.pendingSyncAfterReceive) {
+                                    rt.pendingSyncAfterReceive = false;
                                     get().sync();
                                 }
                             }
                         }
                     )
                     .subscribe();
-                secretChannel = sChannel;
+                rt.secretChannel = sChannel;
             }
 
             // 6. Fetch and subscribe to messages
@@ -725,7 +752,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             const gameState = joinData.data;
             applyGameStateDefaults(gameState);
 
-            if (realtimeChannel) void supabase.removeChannel(realtimeChannel);
+            if (rt.realtimeChannel) void supabase.removeChannel(rt.realtimeChannel);
 
             const channel = supabase.channel(`room:${roomCode}`)
                 .on(
@@ -735,11 +762,11 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                         const newData = (payload.new as { data?: GameState } | undefined)?.data;
                         if (newData) {
                             applyGameStateDefaults(newData);
-                            isReceivingUpdate = true;
+                            rt.isReceivingUpdate = true;
                             set({ gameState: newData });
-                            isReceivingUpdate = false;
-                            if (pendingSyncAfterReceive) {
-                                pendingSyncAfterReceive = false;
+                            rt.isReceivingUpdate = false;
+                            if (rt.pendingSyncAfterReceive) {
+                                rt.pendingSyncAfterReceive = false;
                                 get().sync();
                             }
                         }
@@ -761,7 +788,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                     }
                 });
 
-            realtimeChannel = channel;
+            rt.realtimeChannel = channel;
 
             set({
                 gameState: gameState,
@@ -819,24 +846,24 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
         }
         localStorage.removeItem('grimoire_last_room');
 
-        if (realtimeChannel) {
-            void supabase.removeChannel(realtimeChannel);
-            realtimeChannel = null;
+        if (rt.realtimeChannel) {
+            void supabase.removeChannel(rt.realtimeChannel);
+            rt.realtimeChannel = null;
         }
-        if (secretChannel) {
-            void supabase.removeChannel(secretChannel);
-            secretChannel = null;
+        if (rt.secretChannel) {
+            void supabase.removeChannel(rt.secretChannel);
+            rt.secretChannel = null;
         }
-        if (messagesChannel) {
-            void supabase.removeChannel(messagesChannel);
-            messagesChannel = null;
+        if (rt.messagesChannel) {
+            void supabase.removeChannel(rt.messagesChannel);
+            rt.messagesChannel = null;
         }
-        if (memberChannel) {
-            void supabase.removeChannel(memberChannel);
-            memberChannel = null;
+        if (rt.memberChannel) {
+            void supabase.removeChannel(rt.memberChannel);
+            rt.memberChannel = null;
         }
-        memberSeenRoleId = null;
-        syncedSystemMessageIds.clear();
+        rt.memberSeenRoleId = null;
+        rt.syncedSystemMessageIds.clear();
 
         set({
             user: user ? { ...user, roomId: null, isSeated: false } : null,
@@ -851,8 +878,8 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
     syncToCloud: async () => {
         try {
             if (get().isOffline) return;
-            if (isReceivingUpdate) {
-                pendingSyncAfterReceive = true;
+            if (rt.isReceivingUpdate) {
+                rt.pendingSyncAfterReceive = true;
                 return;
             }
 
@@ -885,7 +912,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             const roomDbId = get().roomDbId;
             if (roomDbId) {
                 const pendingSystemMessages = currentGameState.messages.filter(
-                    msg => msg.type === 'system' && !syncedSystemMessageIds.has(msg.id)
+                    msg => msg.type === 'system' && !rt.syncedSystemMessageIds.has(msg.id)
                 );
 
                 if (pendingSystemMessages.length > 0) {
@@ -915,7 +942,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                     if (msgError) {
                         logger.warn('同步系统消息失败:', msgError.message);
                     } else {
-                        pendingSystemMessages.forEach(msg => syncedSystemMessageIds.add(msg.id));
+                        pendingSystemMessages.forEach(msg => rt.syncedSystemMessageIds.add(msg.id));
                     }
                 }
 
@@ -962,7 +989,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             }
 
             if (data.data) {
-                isReceivingUpdate = true;
+                rt.isReceivingUpdate = true;
                 let newState = data.data as GameState;
                 applyGameStateDefaults(newState);
 
@@ -980,15 +1007,15 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                     }
                 } else {
                     const currentUser = get().user;
-                    if (currentUser && memberSeenRoleId) {
-                        applyMemberRoleToState(newState, currentUser.id, memberSeenRoleId);
+                    if (currentUser && rt.memberSeenRoleId) {
+                        applyMemberRoleToState(newState, currentUser.id, rt.memberSeenRoleId);
                     }
                 }
 
                 set({ gameState: newState });
-                isReceivingUpdate = false;
-                if (pendingSyncAfterReceive) {
-                    pendingSyncAfterReceive = false;
+                rt.isReceivingUpdate = false;
+                if (rt.pendingSyncAfterReceive) {
+                    rt.pendingSyncAfterReceive = false;
                     get().sync();
                 }
             }
@@ -999,18 +1026,18 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
 
     sync: () => {
         // 使用防抖避免高频同步
-        pendingSync = true;
+        rt.pendingSync = true;
 
-        if (syncDebounceTimer) {
-            clearTimeout(syncDebounceTimer);
+        if (rt.syncDebounceTimer) {
+            clearTimeout(rt.syncDebounceTimer);
         }
 
-        syncDebounceTimer = setTimeout(() => {
-            if (pendingSync) {
-                pendingSync = false;
+        rt.syncDebounceTimer = setTimeout(() => {
+            if (rt.pendingSync) {
+                rt.pendingSync = false;
                 void get().syncToCloud();
             }
-            syncDebounceTimer = null;
+            rt.syncDebounceTimer = null;
         }, SYNC_DEBOUNCE_MS);
     },
 });

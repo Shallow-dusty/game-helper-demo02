@@ -105,7 +105,9 @@ const createMockStore = () => {
     isOffline: false,
     sync: vi.fn(),
     _setIsReceivingUpdate: vi.fn(),
-    _setRealtimeChannel: vi.fn()
+    _setRealtimeChannel: vi.fn(),
+    initializePhaseMachine: vi.fn(),
+    stopPhaseMachine: vi.fn(),
   };
 
   const set = vi.fn((fn: ((state: MockState) => void) | Partial<MockState>) => {

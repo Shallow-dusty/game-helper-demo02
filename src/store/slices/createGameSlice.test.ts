@@ -56,6 +56,10 @@ describe('createGameSlice', () => {
         ...createGameSlice(set, get, {} as any),
         user: { id: 'test-user', name: 'Test User', isStoryteller: true },
         sync: vi.fn(), // Mock sync
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
+        phaseActor: null,
+        phaseState: 'setup' as const,
       } as unknown as AppState))
     );
   });

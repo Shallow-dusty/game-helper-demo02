@@ -55,6 +55,8 @@ const createMockStore = () => {
     user: { id: string; name: string; roomId: string; isStoryteller: boolean } | null;
     roomDbId?: number | null;
     sync: () => void;
+    phaseActor: { send: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn> } | null;
+    phaseState: string;
   };
 
   const state: MockStoreState = {
@@ -76,7 +78,20 @@ const createMockStore = () => {
     } as Partial<GameState>,
     user: { id: 'user1', name: 'Player1', roomId: 'room123', isStoryteller: true },
     roomDbId: 1,
-    sync: vi.fn()
+    sync: vi.fn(),
+    phaseActor: null as MockStoreState['phaseActor'],
+    phaseState: 'setup',
+  };
+
+  // Create mock phaseActor that simulates XState phase transitions
+  state.phaseActor = {
+    send: vi.fn((event: { type: string }) => {
+      if (!state.gameState) return;
+      if (event.type === 'START_VOTING') (state.gameState).phase = 'VOTING';
+      if (event.type === 'CLOSE_VOTE') (state.gameState).phase = 'DAY';
+      if (event.type === 'END_GAME') (state.gameState).phase = 'DAY';
+    }),
+    stop: vi.fn(),
   };
 
   const set = vi.fn((fn: (state: MockStoreState) => void) => {

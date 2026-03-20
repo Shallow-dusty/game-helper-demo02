@@ -52,7 +52,9 @@ const createMockStore = () => {
       setupPhase: 'ASSIGNING'
     } as Partial<GameState>,
     sync: vi.fn(),
-    user: { id: 'storyteller', name: 'Storyteller', isStoryteller: true }
+    user: { id: 'storyteller', name: 'Storyteller', isStoryteller: true },
+    initializePhaseMachine: vi.fn(),
+    stopPhaseMachine: vi.fn(),
   };
 
   const set = vi.fn((fn: (state: MockStoreState) => void) => {

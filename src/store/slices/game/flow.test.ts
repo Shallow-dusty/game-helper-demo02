@@ -37,6 +37,13 @@ vi.mock('../../../constants', () => ({
 }));
 
 describe('createGameFlowSlice', () => {
+    let mockPhaseActor: {
+        send: ReturnType<typeof vi.fn>;
+        stop: ReturnType<typeof vi.fn>;
+        subscribe: ReturnType<typeof vi.fn>;
+        start: ReturnType<typeof vi.fn>;
+    };
+
     let mockState: {
         gameState: {
             phase: string;
@@ -74,6 +81,8 @@ describe('createGameFlowSlice', () => {
             messages: unknown[];
         } | null;
         user: { id: string; roomId: number; isStoryteller: boolean } | null;
+        phaseActor: typeof mockPhaseActor;
+        phaseState: string;
     };
     
     let slice: ReturnType<typeof createGameFlowSlice>;
@@ -92,14 +101,29 @@ describe('createGameFlowSlice', () => {
     const createMockGet = () => {
         return () => ({
             ...mockState,
-            sync: mockSync
+            sync: mockSync,
+            phaseActor: mockState.phaseActor,
+            phaseState: mockState.phaseState,
         });
     };
 
     beforeEach(() => {
         vi.clearAllMocks();
         mockSync = vi.fn();
-        
+
+        mockPhaseActor = {
+            send: vi.fn((event: { type: string }) => {
+                if (!mockState.gameState) return;
+                // Simulate phase transitions matching the XState machine behavior
+                if (event.type === 'START_VOTING') mockState.gameState.phase = 'VOTING';
+                if (event.type === 'CLOSE_VOTE') mockState.gameState.phase = 'DAY';
+                if (event.type === 'END_GAME') mockState.gameState.phase = 'DAY';
+            }),
+            stop: vi.fn(),
+            subscribe: vi.fn(),
+            start: vi.fn(),
+        };
+
         mockState = {
             gameState: {
                 phase: 'SETUP',
@@ -119,7 +143,9 @@ describe('createGameFlowSlice', () => {
                 gameOver: null,
                 messages: []
             },
-            user: { id: 'user1', roomId: 123, isStoryteller: true }
+            user: { id: 'user1', roomId: 123, isStoryteller: true },
+            phaseActor: null as unknown as typeof mockPhaseActor,
+            phaseState: 'setup',
         };
         
         slice = createGameFlowSlice(
@@ -281,6 +307,7 @@ describe('createGameFlowSlice', () => {
 
     describe('startVote', () => {
         it('应该开始投票并设置被提名者', () => {
+            mockState.phaseActor = mockPhaseActor;
             mockState.gameState!.phase = 'DAY';
             mockState.gameState!.roundInfo.dayCount = 1;
             slice.startVote(1);
@@ -328,6 +355,7 @@ describe('createGameFlowSlice', () => {
 
     describe('closeVote', () => {
         it('票数足够时应该进入处决候选并在入夜时执行', () => {
+            mockState.phaseActor = mockPhaseActor;
             mockState.gameState!.voting = {
                 nominatorSeatId: 0,
                 nomineeSeatId: 1,
@@ -336,9 +364,9 @@ describe('createGameFlowSlice', () => {
                 isOpen: true
             };
             mockState.gameState!.roundInfo.dayCount = 1;
-            
+
             slice.closeVote();
-            
+
             const seat = mockState.gameState?.seats[1];
             expect(seat?.isDead).toBe(false);
             expect(mockState.gameState?.voting).toBeNull();
@@ -349,6 +377,8 @@ describe('createGameFlowSlice', () => {
                 voteCount: 2
             });
 
+            // Use fallback path for setPhase so side effects (execution) are applied
+            mockState.phaseActor = null as unknown as typeof mockPhaseActor;
             slice.setPhase('NIGHT');
             expect(mockState.gameState?.seats[1]?.isDead).toBe(true);
             const latestVote = mockState.gameState?.voteHistory[0] as { result?: string } | undefined;
@@ -356,6 +386,7 @@ describe('createGameFlowSlice', () => {
         });
 
         it('巫毒师在场时应按最高票处决（不需过半）', () => {
+            mockState.phaseActor = mockPhaseActor;
             mockState.gameState!.seats[0]!.isDead = true;
             mockState.gameState!.seats[1]!.roleId = 'voudon';
             mockState.gameState!.seats[1]!.realRoleId = 'voudon';
@@ -371,6 +402,8 @@ describe('createGameFlowSlice', () => {
 
             slice.closeVote();
 
+            // Use fallback path for setPhase so side effects (execution) are applied
+            mockState.phaseActor = null as unknown as typeof mockPhaseActor;
             slice.setPhase('NIGHT');
             expect(mockState.gameState?.seats[2]?.isDead).toBe(true);
             const latestVote = mockState.gameState?.voteHistory[0] as { result?: string } | undefined;
@@ -378,6 +411,7 @@ describe('createGameFlowSlice', () => {
         });
 
         it('票数不足时不应处决', () => {
+            mockState.phaseActor = mockPhaseActor;
             mockState.gameState!.voting = {
                 nominatorSeatId: 0,
                 nomineeSeatId: 1,
@@ -386,9 +420,9 @@ describe('createGameFlowSlice', () => {
                 isOpen: true
             };
             mockState.gameState!.roundInfo.dayCount = 1;
-            
+
             slice.closeVote();
-            
+
             const seat = mockState.gameState?.seats[1];
             expect(seat?.isDead).toBe(false);
             expect(mockState.gameState?.voteHistory[0]).toMatchObject({
@@ -396,6 +430,8 @@ describe('createGameFlowSlice', () => {
                 voteCount: 1
             });
 
+            // Use fallback path for setPhase so side effects are applied
+            mockState.phaseActor = null as unknown as typeof mockPhaseActor;
             slice.setPhase('NIGHT');
             expect(mockState.gameState?.seats[1]?.isDead).toBe(false);
         });

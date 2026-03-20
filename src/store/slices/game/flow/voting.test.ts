@@ -62,9 +62,24 @@ function createTestSeat(id: number, overrides: Partial<Seat> = {}): Seat {
     } as Seat;
 }
 
+// Create mock phaseActor that simulates XState phase transitions
+function createMockPhaseActor(stateRef: { gameState: GameState | null }) {
+    return {
+        send: vi.fn((event: { type: string }) => {
+            if (!stateRef.gameState) return;
+            if (event.type === 'START_VOTING') stateRef.gameState.phase = 'VOTING';
+            if (event.type === 'CLOSE_VOTE') stateRef.gameState.phase = 'DAY';
+            if (event.type === 'END_GAME') stateRef.gameState.phase = 'DAY';
+        }),
+        stop: vi.fn(),
+        subscribe: vi.fn(),
+        start: vi.fn(),
+    };
+}
+
 // Create mock store state
 function createMockState() {
-    return {
+    const state = {
         roomDbId: 1,
         gameState: {
             seats: [
@@ -98,8 +113,13 @@ function createMockState() {
             roomId: 'ROOM123',
             name: 'Test User',
             isStoryteller: true
-        }
+        },
+        phaseActor: null as ReturnType<typeof createMockPhaseActor> | null,
+        phaseState: 'setup' as string,
     };
+    // Create phaseActor with a reference to state so it can mutate phase
+    state.phaseActor = createMockPhaseActor(state);
+    return state;
 }
 
 describe('createVotingSlice', () => {
@@ -120,7 +140,9 @@ describe('createVotingSlice', () => {
     const createMockGet = () => {
         return () => ({
             ...mockState,
-            sync: mockSync
+            sync: mockSync,
+            phaseActor: mockState.phaseActor,
+            phaseState: mockState.phaseState,
         });
     };
 

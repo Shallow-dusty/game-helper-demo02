@@ -76,7 +76,9 @@ describe('createGameRolesSlice', () => {
     const createMockGet = () => {
         return () => ({
             ...mockState,
-            sync: mockSync
+            sync: mockSync,
+            initializePhaseMachine: vi.fn(),
+            stopPhaseMachine: vi.fn(),
         });
     };
 

@@ -196,7 +196,9 @@ describe('Connection Slice', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -431,7 +433,9 @@ describe('Connection Status Transitions', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -477,7 +481,9 @@ describe('Storyteller Secret Sync', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -528,7 +534,9 @@ describe('joinGame Error Handling', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -591,7 +599,9 @@ describe('refreshFromCloud', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -701,7 +711,9 @@ describe('syncToCloud Error Handling', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -782,7 +794,9 @@ describe('refreshFromCloud Exception Handling', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -822,7 +836,9 @@ describe('Storyteller joinGame with Secret Subscription', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -1013,7 +1029,9 @@ describe('joinGame Exception Handling', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -1104,7 +1122,9 @@ describe('spectateGame Subscription Status', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -1213,7 +1233,9 @@ describe('leaveGame with Secret Channel', () => {
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
         gameState: null,
-        isAudioBlocked: false
+        isAudioBlocked: false,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -1369,7 +1391,9 @@ describe('Realtime Channel Update Handling', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });
@@ -1464,7 +1488,9 @@ describe('Secret Channel Update Handling for Storyteller', () => {
     store = createStore<ConnectionSlice & { gameState: GameState | null }>()(
       immer((set, get) => ({
         ...createConnectionSlice(set as never, get as never, {} as never),
-        gameState: null
+        gameState: null,
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
       }))
     );
   });

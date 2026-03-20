@@ -114,7 +114,11 @@ describe('createConnectionSlice', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     store = createStore(
-      immer((set, get) => createConnectionSlice(set as any, get as any, {} as any))
+      immer((set, get) => ({
+        ...createConnectionSlice(set as any, get as any, {} as any),
+        initializePhaseMachine: vi.fn(),
+        stopPhaseMachine: vi.fn(),
+      }))
     );
     vi.clearAllMocks();
   });

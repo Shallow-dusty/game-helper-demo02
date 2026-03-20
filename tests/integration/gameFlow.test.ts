@@ -77,6 +77,10 @@ describe('Game Flow Integration', () => {
                 ...createConnectionSlice(set, get, {} as any),
                 ...createAISlice(set, get, {} as any),
                 ...createUISlice(set, get, {} as any),
+                initializePhaseMachine: vi.fn(),
+                stopPhaseMachine: vi.fn(),
+                phaseActor: null,
+                phaseState: 'setup' as const,
             } as unknown as AppState))
         );
     });

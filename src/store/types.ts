@@ -179,7 +179,7 @@ export interface AppState extends GameSlice, PhaseMachineSlice {
 /**
  * Actor interface for sending events to the phase machine.
  */
-interface PhaseActorInterface {
+export interface PhaseActorInterface {
   send: (event: {
     type: string;
     seats?: Seat[];

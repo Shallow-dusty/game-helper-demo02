@@ -17,57 +17,11 @@
 
 import { createActor } from 'xstate';
 import { phaseMachine, type PhaseMachineContext } from '@/lib/machines/phaseMachine';
-import type { StoreSlice } from '../../types';
+import type { StoreSlice, PhaseMachineSlice, PhaseActorInterface } from '../../types';
 import type { Seat } from '@/types';
 
-/**
- * Actor interface for sending events to the phase machine.
- * We define this explicitly to avoid complex XState type inference issues
- * with Zustand's immer middleware.
- */
-interface PhaseActorInterface {
-  send: (event: {
-    type: string;
-    seats?: Seat[];
-    scriptId?: string;
-    nomineeSeatId?: number;
-    isExecuted?: boolean;
-    winner?: 'GOOD' | 'EVIL';
-    reason?: string;
-  }) => void;
-  stop: () => void;
-  subscribe: (callback: (snapshot: { value: string; context: PhaseMachineContext }) => void) => { unsubscribe: () => void };
-  start: () => void;
-}
-
-export interface PhaseMachineSlice {
-  // XState actor instance
-  phaseActor: PhaseActorInterface | null;
-
-  // Current phase machine state
-  phaseState: 'setup' | 'night' | 'day' | 'voting' | 'gameOver';
-
-  // Current phase machine context
-  phaseContext: PhaseMachineContext;
-
-  // Actions to send events to the machine
-    phaseMachine: {
-    startGame: (seats: Seat[], scriptId?: string) => void;
-    startNight: () => void;
-    nextNightAction: () => void;
-    prevNightAction: () => void;
-    endNight: () => void;
-    startVoting: (nomineeSeatId: number) => void;
-    closeVote: (isExecuted: boolean) => void;
-    endGame: (winner: 'GOOD' | 'EVIL', reason: string) => void;
-  };
-
-  // Initialize the phase machine actor
-  initializePhaseMachine: () => void;
-
-  // Stop the phase machine actor
-  stopPhaseMachine: () => void;
-}
+// Re-export so existing consumers keep working
+export type { PhaseMachineSlice } from '../../types';
 
 export const createPhaseMachineSlice: StoreSlice<PhaseMachineSlice> = (set, get) => {
   // Initial context matching machine's initial context

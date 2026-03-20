@@ -131,7 +131,7 @@ export const aiSlice: StoreSlice<AISlice> = (set, get) => ({
 
         } catch (error: unknown) {
             console.error('AI Error:', error);
-            const errorMessage = error instanceof Error ? error.message : '未知错误';
+            const errorMessage = error instanceof Error ? error.message : String(error);
             set((state) => {
                 state.isAiThinking = false;
                 if (state.gameState) {

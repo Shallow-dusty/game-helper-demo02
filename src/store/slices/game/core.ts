@@ -28,6 +28,9 @@ export const createGameCoreSlice: StoreSlice<Pick<GameSlice, 'createGame' | 'joi
         set({ user: updatedUser, gameState: newState, isOffline: false });
         addSystemMessage(newState, `${user.name} 创建了房间 ${code}`);
 
+        // Initialize XState phase machine for this game session
+        get().initializePhaseMachine();
+
         localStorage.setItem('grimoire_last_room', code);
 
         try {

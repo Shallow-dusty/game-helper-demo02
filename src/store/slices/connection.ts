@@ -475,6 +475,9 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
             const updatedUser = { ...user, roomId: roomCode };
             set({ user: updatedUser, gameState: gameState, roomDbId: roomId, isOffline: false });
 
+            // Initialize XState phase machine for this session
+            get().initializePhaseMachine();
+
             localStorage.setItem('grimoire_last_room', roomCode);
 
             // 3. Fetch member seen_role_id for players and subscribe for updates
@@ -676,6 +679,9 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
     },
 
     leaveGame: () => {
+        // Stop XState phase machine
+        get().stopPhaseMachine();
+
         // 停止任何正在进行的重连尝试
         stopReconnect();
 

@@ -102,7 +102,8 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                     votes: [],
                     isOpen: true
                 };
-                gameState.phase = 'VOTING';
+                // Phase transition handled by XState (DAY→VOTING)
+                // gameState.phase is set by the subscription handler
                 gameState.dailyNominations.push({
                     nominatorSeatId: nominatorId ?? -1,
                     nomineeSeatId: nomineeId,
@@ -138,6 +139,9 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 }
             }
         });
+        // Send XState event to transition phase DAY→VOTING
+        const { phaseActor } = get();
+        phaseActor?.send({ type: 'START_VOTING', nomineeSeatId: nomineeId });
         get().sync();
     },
 
@@ -242,6 +246,7 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
         const { user } = get();
         if (!user?.isStoryteller) return;
 
+        let voteResult = 'survived';
         set((state: Draft<AppState>) => {
             const currentState = state.gameState;
             if (!currentState?.voting) return;
@@ -332,9 +337,13 @@ export const createVotingSlice: StoreSlice<Pick<GameSlice, 'startVote' | 'nextCl
                 result: result
             });
 
+            voteResult = result;
             currentState.voting = null;
-            currentState.phase = 'DAY';
+            // Phase transition VOTING→DAY handled by XState
         });
+        // Send XState event to transition phase VOTING→DAY
+        const { phaseActor } = get();
+        phaseActor?.send({ type: 'CLOSE_VOTE', isExecuted: voteResult === 'executed' });
         get().sync();
     }
 });

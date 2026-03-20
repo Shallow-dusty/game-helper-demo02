@@ -34,6 +34,8 @@ const createMockStore = () => {
     gameState: Partial<GameState> | null;
     user?: { id: string; name: string; isStoryteller: boolean };
     sync: () => void;
+    initializePhaseMachine: () => void;
+    stopPhaseMachine: () => void;
   };
 
   const state: MockStoreState = {

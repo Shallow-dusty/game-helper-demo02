@@ -180,9 +180,12 @@ export const createGameRolesSlice: StoreSlice<Pick<GameSlice, 'assignRole' | 'to
                     s.statuses = [];
                 });
                 state.gameState.rolesRevealed = false;
-                state.gameState.phase = 'SETUP';
+                // Phase reset to SETUP: restart the XState machine
             }
         });
+        // Reset XState machine to initial (setup) state
+        get().stopPhaseMachine();
+        get().initializePhaseMachine();
         get().sync();
     },
 

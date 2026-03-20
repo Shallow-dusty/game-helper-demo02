@@ -86,6 +86,8 @@ const createMockStore = () => {
     sync: () => void;
     _setIsReceivingUpdate?: (value: boolean) => void;
     _setRealtimeChannel?: (channel: unknown) => void;
+    initializePhaseMachine: () => void;
+    stopPhaseMachine: () => void;
   }
 
   const state: MockState = {

@@ -79,7 +79,7 @@ export const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: st
 
     // Bug#9 fix: Warn if script doesn't exist
     if (!script) {
-        console.warn(`Script "${gameState.currentScriptId}" not found, using fallback townsfolk for special roles`);
+        // Script not found — using fallback townsfolk for special roles
     }
 
     // 收集所有已分配的角色（包括真实角色和假角色），避免重复
@@ -103,7 +103,7 @@ export const applyRoleAssignment = (gameState: GameState, seat: Seat, roleId: st
         
         if (pool.length === 0) {
             // 极端情况：没有可用的村民，选择第一个备用
-            console.warn('No available townsfolk for fake role assignment');
+            // No available townsfolk for fake role assignment — using first fallback
             return fallbackTownsfolk[0] ?? null;
         }
         

@@ -6,6 +6,9 @@ import App from './App';
 import { useStore } from './store';
 import { captureException, initMonitoring } from './lib/monitoring';
 import { initWebVitals } from './lib/webVitals';
+import { createLogger } from './lib/logger';
+
+const swLogger = createLogger('ServiceWorker');
 
 initMonitoring();
 initWebVitals();
@@ -55,16 +58,16 @@ if ('serviceWorker' in navigator) {
       await periodicSync.register('room-state-sync', {
         minInterval: 30 * 60 * 1000,
       });
-      console.log('✓ Periodic room sync 已注册');
+      swLogger.info('Periodic room sync 已注册');
     } catch (error) {
-      console.warn('✗ Periodic room sync 注册失败:', error);
+      swLogger.warn('Periodic room sync 注册失败:', error);
     }
   };
 
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
       .then(registration => {
-        console.log('✓ Service Worker 注册成功:', registration);
+        swLogger.info('Service Worker 注册成功');
         void registerPeriodicRoomSync(registration);
 
         // 检查更新
@@ -74,7 +77,7 @@ if ('serviceWorker' in navigator) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 // 有新版本的 Service Worker
-                console.log('⚠ 检测到新版本，刷新后生效');
+                swLogger.info('检测到新版本，刷新后生效');
                 // 可选：显示"有新版本"的通知
               }
             });
@@ -82,13 +85,13 @@ if ('serviceWorker' in navigator) {
         });
       })
       .catch((error: unknown) => {
-        console.warn('✗ Service Worker 注册失败:', error);
+        swLogger.warn('Service Worker 注册失败:', error);
       });
   });
 
   // 处理 Service Worker 控制器变化
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    console.log('✓ Service Worker 已更新');
+    swLogger.info('Service Worker 已更新');
   });
 
   navigator.serviceWorker.addEventListener('message', (event: MessageEvent<{ type?: string }>) => {

@@ -1,6 +1,9 @@
 import { buildJsonHeaders, getPushSubscriptionEndpoint } from '../lib/apiEndpoints';
 import { supabase } from '../store/slices/connection';
 
+import { createLogger } from '../lib/logger';
+const logger = createLogger('PushNotification');
+
 /**
  * PWA Push Notification Service
  *
@@ -35,7 +38,7 @@ export const getNotificationPermission = (): NotificationPermission => {
 
 export const requestNotificationPermission = async (): Promise<boolean> => {
     if (!isPushNotificationSupported()) {
-        console.warn('Push notifications not supported');
+        logger.warn('Push notifications not supported');
         return false;
     }
 
@@ -43,7 +46,7 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
         const permission = await Notification.requestPermission();
         return permission === 'granted';
     } catch (error) {
-        console.error('Error requesting notification permission:', error);
+        logger.error('Error requesting notification permission:', error);
         return false;
     }
 };
@@ -86,14 +89,14 @@ export class PushNotificationService {
      */
     async initialize(): Promise<boolean> {
         if (!isPushNotificationSupported()) {
-            console.warn('Push notifications not supported in this browser');
+            logger.warn('Push notifications not supported in this browser');
             return false;
         }
 
         try {
             const permission = await requestNotificationPermission();
             if (!permission) {
-                console.log('User denied notification permission');
+                logger.info('User denied notification permission');
                 return false;
             }
 
@@ -103,13 +106,13 @@ export class PushNotificationService {
             if (subscription) {
                 // 保存订阅信息到服务器（可选）
                 await this.saveSubscriptionToServer(subscription);
-                console.log('✓ Push notification initialized');
+                logger.info('✓ Push notification initialized');
                 return true;
             }
 
             return false;
         } catch (error) {
-            console.error('Error initializing push notifications:', error);
+            logger.error('Error initializing push notifications:', error);
             return false;
         }
     }
@@ -134,7 +137,7 @@ export class PushNotificationService {
 
             return subscription;
         } catch (error) {
-            console.error('Error getting/creating push subscription:', error);
+            logger.error('Error getting/creating push subscription:', error);
             return null;
         }
     }
@@ -164,9 +167,9 @@ export class PushNotificationService {
                 throw new Error(`Subscription save failed (${String(response.status)}): ${errorBody}`);
             }
 
-            console.log('✓ Subscription saved to server');
+            logger.info('✓ Subscription saved to server');
         } catch (error) {
-            console.error('Error saving subscription to server:', error);
+            logger.error('Error saving subscription to server:', error);
             // 继续执行，订阅仍然有效
         }
     }
@@ -181,13 +184,13 @@ export class PushNotificationService {
 
             if (subscription) {
                 await subscription.unsubscribe();
-                console.log('✓ Unsubscribed from push notifications');
+                logger.info('✓ Unsubscribed from push notifications');
                 return true;
             }
 
             return false;
         } catch (error) {
-            console.error('Error unsubscribing:', error);
+            logger.error('Error unsubscribing:', error);
             return false;
         }
     }
@@ -197,7 +200,7 @@ export class PushNotificationService {
      */
     async showLocalNotification(options: GameNotificationPayload): Promise<void> {
         if (!isPushNotificationSupported()) {
-            console.warn('Push notifications not supported');
+            logger.warn('Push notifications not supported');
             return;
         }
 
@@ -213,9 +216,9 @@ export class PushNotificationService {
                 data: options.data ?? {},
             });
 
-            console.log('✓ Notification shown:', options.title);
+            logger.info('✓ Notification shown:', options.title);
         } catch (error) {
-            console.error('Error showing notification:', error);
+            logger.error('Error showing notification:', error);
         }
     }
 

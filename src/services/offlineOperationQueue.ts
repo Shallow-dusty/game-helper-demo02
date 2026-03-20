@@ -94,7 +94,7 @@ export class OfflineOperationQueue {
         // 立即保存到存储
         this.saveToStorage();
 
-        console.log(`✓ Operation queued: ${id}`, operation);
+        logger.info(`✓ Operation queued: ${id}`, operation);
 
         // 如果网络已连接，尝试立即同步
         if (typeof navigator !== 'undefined' && navigator.onLine) {
@@ -141,7 +141,7 @@ export class OfflineOperationQueue {
         }
 
         this.isSyncing = true;
-        console.log(`✓ Starting sync of ${String(this.queue.length)} operations...`);
+        logger.info(`✓ Starting sync of ${String(this.queue.length)} operations...`);
 
         let successCount = 0;
         const failedIds = new Set<string>();
@@ -158,11 +158,11 @@ export class OfflineOperationQueue {
 
                     if (item.retryCount >= MAX_RETRIES) {
                         failedIds.add(item.id);
-                        console.warn(`✗ Operation failed after ${String(MAX_RETRIES)} retries: ${item.id}`);
+                        logger.warn(`✗ Operation failed after ${String(MAX_RETRIES)} retries: ${item.id}`);
                     }
                 }
             } catch (error) {
-                console.error(`✗ Error executing operation: ${item.id}`, error);
+                logger.error(`✗ Error executing operation: ${item.id}`, error);
                 item.retryCount++;
 
                 if (item.retryCount >= MAX_RETRIES) {
@@ -176,7 +176,7 @@ export class OfflineOperationQueue {
 
         const isFullSuccess = failedIds.size === 0;
 
-        console.log(
+        logger.info(
             `✓ Sync complete: ${String(successCount)} succeeded, ${String(failedIds.size)} failed`
         );
 
@@ -204,7 +204,7 @@ export class OfflineOperationQueue {
     clear(): void {
         this.queue = [];
         this.saveToStorage();
-        console.log('✓ Queue cleared');
+        logger.info('✓ Queue cleared');
     }
 
     // ============================================================
@@ -225,7 +225,7 @@ export class OfflineOperationQueue {
             const roomId = gameState?.roomId ?? getStoredValue(ROOM_STORAGE_KEY);
 
             if (!userId || !roomId) {
-                console.warn('✗ Operation skipped: missing userId or roomId');
+                logger.warn('✗ Operation skipped: missing userId or roomId');
                 return false;
             }
 
@@ -234,7 +234,7 @@ export class OfflineOperationQueue {
             const accessToken = sessionData?.session?.access_token;
 
             if (endpoint.useSupabaseHeaders && !accessToken) {
-                console.warn('✗ Operation skipped: missing access token for Supabase function');
+                logger.warn('✗ Operation skipped: missing access token for Supabase function');
                 return false;
             }
 
@@ -250,12 +250,12 @@ export class OfflineOperationQueue {
 
             if (!response.ok) {
                 const errorData: unknown = await response.json().catch(() => ({}));
-                console.warn(`✗ Operation failed: ${String(response.status)}`, errorData);
+                logger.warn(`✗ Operation failed: ${String(response.status)}`, errorData);
                 return false;
             }
 
             const result: unknown = await response.json();
-            console.log('✓ Operation synced successfully:', result);
+            logger.info('✓ Operation synced successfully:', result);
             return (
                 typeof result === 'object' &&
                 result !== null &&
@@ -264,7 +264,7 @@ export class OfflineOperationQueue {
             );
 
         } catch (error) {
-            console.error('✗ Error executing operation:', error);
+            logger.error('✗ Error executing operation:', error);
             return false;
         }
     }
@@ -293,7 +293,7 @@ export class OfflineOperationQueue {
         try {
             window.localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(this.queue));
         } catch (error) {
-            console.warn('Failed to save queue to storage:', error);
+            logger.warn('Failed to save queue to storage:', error);
         }
     }
 
@@ -308,11 +308,11 @@ export class OfflineOperationQueue {
                 const parsed: unknown = JSON.parse(stored);
                 if (Array.isArray(parsed)) {
                     this.queue = parsed as QueuedOperation[];
-                    console.log(`✓ Loaded ${String(this.queue.length)} operations from storage`);
+                    logger.info(`✓ Loaded ${String(this.queue.length)} operations from storage`);
                 }
             }
         } catch (error) {
-            console.warn('Failed to load queue from storage:', error);
+            logger.warn('Failed to load queue from storage:', error);
             this.queue = [];
         }
     }
@@ -324,12 +324,12 @@ export class OfflineOperationQueue {
         if (typeof window === 'undefined') return;
 
         window.addEventListener('online', () => {
-            console.log('📡 Network restored, syncing operations...');
+            logger.info('📡 Network restored, syncing operations...');
             void this.sync();
         });
 
         window.addEventListener('offline', () => {
-            console.log('📵 Network lost, operations will be queued');
+            logger.info('📵 Network lost, operations will be queued');
         });
     }
 
@@ -346,6 +346,9 @@ export class OfflineOperationQueue {
 // ============================================================
 
 import { useEffect, useState } from 'react';
+
+import { createLogger } from '../lib/logger';
+const logger = createLogger('OfflineQueue');
 
 export const useOfflineQueue = () => {
     const queue = OfflineOperationQueue.getInstance();

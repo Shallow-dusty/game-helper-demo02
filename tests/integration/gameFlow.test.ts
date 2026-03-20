@@ -4,7 +4,7 @@ import { createStore, StoreApi } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { createGameSlice } from '../../src/store/slices/createGameSlice';
 import { createConnectionSlice } from '../../src/store/slices/connection';
-import { createAISlice } from '../../src/store/slices/createAISlice';
+import { createAISlice } from '../../src/store/slices/ai';
 import { createUISlice } from '../../src/store/slices/createUISlice';
 import { AppState } from '../../src/store/types';
 

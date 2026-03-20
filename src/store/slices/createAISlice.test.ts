@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createAISlice, type AISlice } from './createAISlice';
+import { createAISlice, type AISlice } from './ai';
 import type { ChatMessage } from '../../types';
 import type { AiProvider } from '../types';
 

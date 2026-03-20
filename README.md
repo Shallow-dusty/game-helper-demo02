@@ -31,7 +31,7 @@
 
 - **智能夜间助手**: 交互式夜间行动面板，引导说书人完成夜间流程
 - **结构化信息卡片**: 美观的卡片式信息展示，支持折叠和主题配色
-- **可视化投票历史**: 使用Recharts图表展示投票趋势和详细记录
+- **可视化投票历史**: 使用CSS/HTML图表展示投票趋势和详细记录
 - **主动技能按钮**: 杀手/处女/艺术家等角色可主动发动技能
 
 ### 📚 角色规则手册
@@ -92,7 +92,7 @@
 | **画布渲染**    | react-konva                            |
 | **后端/数据库** | Supabase (PostgreSQL + Realtime + RPC) |
 | **AI 集成**     | OpenAI SDK (兼容多模型)                |
-| **可视化**      | Recharts                               |
+| **可视化**      | CSS/HTML                               |
 | **测试**        | Vitest                                 |
 | **代码质量**    | ESLint 9 + Husky + lint-staged         |
 
@@ -123,9 +123,8 @@ VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # AI Providers (可选 - 根据需要配置)
-VITE_DEEPSEEK_KEY=your_deepseek_api_key
-VITE_KIMI_KEY=your_kimi_api_key
-VITE_SILICONFLOW_KEY=your_siliconflow_api_key
+# AI API Keys are now stored server-side in Supabase Edge Function Secrets.
+# No frontend AI keys needed.
 ```
 
 > 💡 **提示**:
@@ -135,7 +134,7 @@ VITE_SILICONFLOW_KEY=your_siliconflow_api_key
 
 ### 4. 数据库初始化
 
-在 Supabase 项目中执行 `supabase_schema.sql` 中的 SQL 创建必要的表结构：
+在 Supabase 项目中执行 `supabase/migrations/supabase_migration.sql` 中的 SQL 创建必要的表结构：
 
 - `game_rooms` - 游戏房间数据
 - `seat_secrets` - 座位敏感信息（仅ST可见）
@@ -148,7 +147,7 @@ VITE_SILICONFLOW_KEY=your_siliconflow_api_key
 npm run dev
 ```
 
-访问 `http://localhost:3001` 即可开始使用。
+访问 `http://localhost:3000` 即可开始使用。
 
 ---
 
@@ -222,7 +221,7 @@ npm run dev
 - 杀手/处女/艺术家/杂耍艺人/造谣者
 - 技能使用追踪
 
-查看完整更新日志：[CHANGELOG.md](./CHANGELOG.md)
+查看完整更新日志：[Git 提交历史](https://github.com/Shallow-dusty/game-helper-demo02/commits/main)
 
 ---
 

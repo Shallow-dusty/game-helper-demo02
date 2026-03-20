@@ -2,7 +2,6 @@
 import { lazy, Suspense } from 'react';
 import { useStore } from './store';
 import { useSandboxStore } from './sandboxStore';
-import { useShallow } from 'zustand/react/shallow';
 
 // Loading
 import { LoadingFallback } from './components/ui/LoadingFallback';
@@ -18,14 +17,8 @@ const SandboxView = lazy(() => import('./components/sandbox/SandboxView').then(m
 const StorytellerShell = lazy(() => import('./components/app/StorytellerShell').then(m => ({ default: m.StorytellerShell })));
 const PlayerShell = lazy(() => import('./components/app/PlayerShell').then(m => ({ default: m.PlayerShell })));
 
-const useAppState = () => useStore(
-  useShallow(state => ({
-    user: state.user,
-  }))
-);
-
 const App = () => {
-  const { user } = useAppState();
+  const user = useStore(state => state.user);
   const gameState = useStore(state => state.gameState);
   const isSandboxActive = useSandboxStore(state => state.isActive);
 

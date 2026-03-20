@@ -1,6 +1,6 @@
 # 项目架构文档 | Architecture
 
-> **版本**: v0.8.0 | **代码规模**: ~52,000 行 | **测试覆盖率**: 80%+
+> **版本**: v0.8.0 | **代码规模**: ~70,000 行 | **测试覆盖率**: 85%+
 
 本文档描述 Grimoire Web（血染钟楼魔典）的技术架构、目录结构和核心设计决策。
 
@@ -11,38 +11,41 @@
 ```
 src/
 ├── components/           # React 组件
-│   ├── game/            # 游戏核心组件
-│   │   ├── core/        # 核心渲染 (TownSquare, SeatNode)
-│   │   ├── night/       # 夜间阶段组件
-│   │   ├── voting/      # 投票系统组件
-│   │   ├── player/      # 玩家相关组件
-│   │   ├── modals/      # 游戏内弹窗
-│   │   └── overlay/     # 覆盖层效果
+│   ├── app/             # 应用外壳 (GameShell, StorytellerShell, PlayerShell)
+│   ├── game/            # 游戏核心组件 (Grimoire, SeatNode, TownSquare, 投票, 夜晚等)
 │   ├── lobby/           # 大厅/房间组件
-│   ├── modals/          # 通用弹窗组件
 │   ├── controls/        # 控制面板组件
-│   ├── effects/         # 视觉特效组件
+│   │   └── sections/    # ST 控制子面板
 │   ├── settings/        # 设置页面组件
-│   ├── ui/              # 基础 UI 组件 (Button, Card, Input...)
+│   ├── ui/              # 基础 UI 组件 (Button, Card, ConfirmModal...)
 │   ├── script/          # 剧本编辑器组件
 │   ├── sandbox/         # 沙盒/测试组件
 │   └── history/         # 历史记录组件
 ├── store/               # Zustand 状态管理
 │   ├── slices/          # 状态切片
 │   │   ├── game/        # 游戏状态 (核心)
-│   │   │   └── flow/    # 游戏流程状态
+│   │   │   ├── flow/    # 游戏流程 (phase, night, voting, lifecycle)
+│   │   │   └── phaseMachine.ts # XState 集成 (阶段转换权威)
 │   │   ├── ai.ts        # AI 配置状态
-│   │   ├── connection.ts # 连接状态
+│   │   ├── connection.ts # 连接状态 + Supabase Realtime
+│   │   ├── connection.auth.ts # 认证逻辑 (匿名/访客)
 │   │   └── ui.ts        # UI 状态
-│   └── index.ts         # Store 入口
+│   └── store.ts         # Store 入口 (根目录)
 ├── hooks/               # 自定义 Hooks
+│   ├── useGameStateSelectors.ts # 细粒度 store selectors
+│   └── useCanvasGestures.ts     # Konva 画布手势
 ├── lib/                 # 工具库
 │   ├── roleAutomation/  # 角色自动化逻辑
-│   │   └── troubleBrewing/ # 暗流涌动剧本
-│   └── machines/        # 状态机 (XState)
-├── services/            # 外部服务
-├── constants/           # 常量定义
-├── styles/              # 全局样式
+│   │   ├── troubleBrewing/ # 暗流涌动剧本处理器
+│   │   └── abilityMetadata.ts # 能力元数据注册表
+│   ├── machines/        # XState 状态机
+│   │   ├── phaseMachine.ts # 游戏阶段状态机定义
+│   │   └── phaseMapping.ts # XState↔GamePhase 映射
+│   └── gameLogic.ts     # 游戏核心逻辑 (胜负判定, 阵营分析)
+├── config/              # 环境配置 (env.ts)
+├── services/            # 外部服务 (离线队列, 推送通知)
+├── constants/           # 常量定义 (角色, 剧本, 夜晚顺序)
+├── i18n/                # 国际化 (zh-CN, en)
 └── types/               # TypeScript 类型
 ```
 
@@ -54,12 +57,30 @@ src/
 |------|------|------|
 | **框架** | React 18 + TypeScript | UI 构建 |
 | **构建** | Vite | 开发/打包 |
-| **状态** | Zustand + Immer | 全局状态管理 |
+| **状态** | Zustand + Immer + XState | 全局状态 + 阶段状态机 |
 | **样式** | Tailwind CSS + CSS Variables | 样式系统 |
 | **画布** | React Konva | 座位圆桌渲染 |
 | **动画** | Framer Motion | UI 动画 |
 | **后端** | Supabase (Realtime) | 实时同步 |
 | **测试** | Vitest + Testing Library | 单元/集成测试 |
+
+---
+
+## 🔄 阶段管理架构 (XState + Zustand)
+
+```
+用户操作 → flow slice action
+  → phaseActor.send(event)          # XState 验证转换合法性
+    → guards 检查 (canStartVoting, isNightQueueComplete, ...)
+    → 状态转换 (setup→night→day→voting→gameOver)
+      → actor.subscribe() 回调
+        → 同步 context 到 gameState (nightQueue, roundInfo, ...)
+        → 执行副作用 (onEnterNight, onEnterDay, resolveDailyExecution)
+        → 调用 sync() 推送到 Supabase
+          → UI 读取 gameState.phase 更新
+```
+
+**回退机制**: 当 phaseActor 不可用时（测试、边缘场景），flow slices 自动回退到直接 Zustand mutation。
 
 ---
 

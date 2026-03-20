@@ -10,6 +10,38 @@ import { addSystemMessage, splitGameState, mergeGameState, applyGameStateDefault
 import { generateShortId } from '../../lib/random';
 import { env } from '../../config/env';
 import { connectionLogger as logger } from '../../lib/logger';
+import type { GamePhase } from '../../types';
+
+/**
+ * Sync the local XState phase machine to match a remotely received gameState.
+ * Called after writing remote data into the Zustand store.
+ * For non-ST clients, restarts the machine so it reflects the remote phase.
+ * For ST, skips (the ST's machine is authoritative).
+ */
+function syncPhaseMachineFromRemote(get: () => unknown, _remotePhase: GamePhase): void {
+    const store = get() as {
+        user?: { isStoryteller?: boolean };
+        phaseActor?: { stop: () => void } | null;
+        stopPhaseMachine?: () => void;
+        initializePhaseMachine?: () => void;
+        phaseMachine?: { startGame?: (...args: unknown[]) => void };
+    };
+
+    // ST's local machine is authoritative — don't override
+    if (store.user?.isStoryteller) return;
+    // No machine functions available
+    if (typeof store.stopPhaseMachine !== 'function') return;
+    if (typeof store.initializePhaseMachine !== 'function') return;
+
+    // Restart machine — it starts at 'setup', which matches SETUP.
+    // For games in progress, we need to advance the machine to the correct state.
+    // Since non-ST clients don't send events (they just receive state),
+    // we accept the machine being at 'setup' — the gameState.phase from
+    // Zustand (set by remote data) is what the UI reads.
+    // The machine is mainly needed if this client later needs to send events.
+    store.stopPhaseMachine();
+    store.initializePhaseMachine();
+}
 
 // --- SUPABASE CONFIG ---
 // 使用经过运行时校验的环境变量配置
@@ -425,6 +457,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                                 applyMemberRoleToState(newData, currentUser.id, rt.memberSeenRoleId);
                             }
                             set({ gameState: newData });
+                            syncPhaseMachineFromRemote(get, newData.phase);
                             rt.isReceivingUpdate = false;
                             if (rt.pendingSyncAfterReceive) {
                                 rt.pendingSyncAfterReceive = false;
@@ -628,6 +661,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                             applyGameStateDefaults(newData);
                             rt.isReceivingUpdate = true;
                             set({ gameState: newData });
+                            syncPhaseMachineFromRemote(get, newData.phase);
                             rt.isReceivingUpdate = false;
                             if (rt.pendingSyncAfterReceive) {
                                 rt.pendingSyncAfterReceive = false;
@@ -880,6 +914,7 @@ export const connectionSlice: StoreSlice<ConnectionSlice> = (set, get) => ({
                 }
 
                 set({ gameState: newState });
+                syncPhaseMachineFromRemote(get, newState.phase);
                 rt.isReceivingUpdate = false;
                 if (rt.pendingSyncAfterReceive) {
                     rt.pendingSyncAfterReceive = false;

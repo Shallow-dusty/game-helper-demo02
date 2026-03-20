@@ -22,6 +22,7 @@ import SeatNode from './SeatNode';
 import RoleSelectorModal from './RoleSelectorModal';
 import { useGrimoireState, useGameActions, useUser } from '../../hooks/useGameStateSelectors';
 import { useTranslation } from 'react-i18next';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 interface GrimoireProps {
   width: number;
@@ -109,6 +110,9 @@ export const Grimoire: React.FC<GrimoireProps> = ({
   const [joiningId, setJoiningId] = useState<number | null>(null);
   const [chainEvents, setChainEvents] = useState<ChainReactionEvent[]>([]);
   const [_pendingDeathSeatId, setPendingDeathSeatId] = useState<number | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    title: string; message: string; onConfirm: () => void; isDangerous?: boolean;
+  } | null>(null);
 
   // Canvas state
   const stageRef = useRef<Konva.Stage>(null);
@@ -239,10 +243,12 @@ export const Grimoire: React.FC<GrimoireProps> = ({
           setSwapSourceId(null);
           showWarning(t('game.grimoire.swapCancelled'));
         } else {
-          if (window.confirm(t('game.grimoire.confirmSwap', { from: String(swapSourceId + 1), to: String(seat.id + 1) }))) {
-            swapSeats(swapSourceId, seat.id);
-            setSwapSourceId(null);
-          }
+          const fromId = swapSourceId;
+          setConfirmDialog({
+            title: t('game.grimoire.swapTitle', { defaultValue: '交换座位' }),
+            message: t('game.grimoire.confirmSwap', { from: String(fromId + 1), to: String(seat.id + 1) }),
+            onConfirm: () => { swapSeats(fromId, seat.id); setSwapSourceId(null); },
+          });
         }
         return;
       }
@@ -258,9 +264,11 @@ export const Grimoire: React.FC<GrimoireProps> = ({
         return;
       }
       if (user && seat.userId !== user.id) {
-        if (window.confirm(t('game.grimoire.confirmSwapPlayer', { player: seat.userName }))) {
-          requestSeatSwap(seat.id);
-        }
+        setConfirmDialog({
+          title: t('game.grimoire.swapTitle', { defaultValue: '交换座位' }),
+          message: t('game.grimoire.confirmSwapPlayer', { player: seat.userName }),
+          onConfirm: () => { requestSeatSwap(seat.id); },
+        });
         return;
       }
     }
@@ -737,6 +745,14 @@ export const Grimoire: React.FC<GrimoireProps> = ({
         currentScriptId={gameState.currentScriptId ?? 'tb'}
         onAssignRole={assignRole}
         onClose={() => setRoleSelectSeat(null)}
+      />
+      <ConfirmModal
+        isOpen={!!confirmDialog}
+        title={confirmDialog?.title ?? ''}
+        message={confirmDialog?.message ?? ''}
+        isDangerous={confirmDialog?.isDangerous}
+        onConfirm={() => { confirmDialog?.onConfirm(); setConfirmDialog(null); }}
+        onCancel={() => setConfirmDialog(null)}
       />
     </div>
   );

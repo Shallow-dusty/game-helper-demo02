@@ -4,6 +4,7 @@ import { useStore } from '@/store';
 import { ROLES } from '@/constants';
 import type { GamePhase } from '@/types';
 import { Moon, Sun, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ConfirmModal } from '../../ui/ConfirmModal';
 
 interface STNightQueueManagerProps {
     nightQueue: string[];
@@ -19,6 +20,7 @@ export const STNightQueueManager = React.memo<STNightQueueManagerProps>(({
     onShowNightAction,
 }) => {
     const { t } = useTranslation();
+    const [showDawnConfirm, setShowDawnConfirm] = React.useState(false);
     const currentRoleId = nightCurrentIndex >= 0 ? nightQueue[nightCurrentIndex] : undefined;
     const currentRole = currentRoleId ? ROLES[currentRoleId] : undefined;
 
@@ -79,16 +81,19 @@ export const STNightQueueManager = React.memo<STNightQueueManagerProps>(({
 
             {/* Manual Day Switch (Backup) */}
             <button
-                onClick={() => {
-                    if (window.confirm(t('controls.st.forceDawnConfirm'))) {
-                        onSetPhase('DAY');
-                    }
-                }}
+                onClick={() => setShowDawnConfirm(true)}
                 className="mt-3 w-full py-2 bg-amber-900/30 hover:bg-amber-800/50 text-amber-500 rounded text-xs border border-amber-900/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
                 <Sun className="w-4 h-4" />
                 {t('controls.st.forceDawn')}
             </button>
+            <ConfirmModal
+                isOpen={showDawnConfirm}
+                title={t('controls.st.forceDawn')}
+                message={t('controls.st.forceDawnConfirm')}
+                onConfirm={() => { onSetPhase('DAY'); setShowDawnConfirm(false); }}
+                onCancel={() => setShowDawnConfirm(false)}
+            />
         </div>
     );
 });

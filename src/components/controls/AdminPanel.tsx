@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Lock, Crown, RefreshCw, Loader2, Home } from 'lucide-react';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { supabase } from '../../store/slices/connection';
 import { env } from '../../config/env';
 
@@ -36,6 +37,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     const [rooms, setRooms] = useState<RoomInfo[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [closeTarget, setCloseTarget] = useState<string | null>(null);
     const { t } = useTranslation();
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -69,9 +71,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
         }
     };
 
-    const closeRoom = async (roomCode: string) => {
-        if (!confirm(`${t('controls.admin.closeConfirm')} ${roomCode} ${t('controls.admin.deleteData')}`)) return;
-
+    const doCloseRoom = useCallback(async (roomCode: string) => {
         try {
             const { error } = await supabase
                 .from('game_rooms')
@@ -86,7 +86,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
             const errorMessage = err instanceof Error ? err.message : String(err);
             setError(t('controls.admin.closeError') + ': ' + errorMessage);
         }
-    };
+    }, [t]);
 
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleString('zh-CN');
@@ -272,7 +272,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => void closeRoom(room.room_code)}
+                                            onClick={() => setCloseTarget(room.room_code)}
                                             className="px-3 py-1 bg-red-900/50 hover:bg-red-800 text-red-300 rounded text-sm border border-red-800/50 transition-colors cursor-pointer"
                                         >
                                             {t('common.close')}
@@ -284,6 +284,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
                     )}
                 </div>
             </div>
+            <ConfirmModal
+                isOpen={!!closeTarget}
+                title={t('controls.admin.closeConfirm')}
+                message={`${closeTarget} ${t('controls.admin.deleteData')}`}
+                isDangerous
+                onConfirm={() => { if (closeTarget) void doCloseRoom(closeTarget); setCloseTarget(null); }}
+                onCancel={() => setCloseTarget(null)}
+            />
         </div>
     );
 };

@@ -8,6 +8,7 @@ import { Icon } from '../ui/Icon';
 import { motion } from 'framer-motion';
 import { Skull, Heart, Ban, Theater, Scale, Trash2, ArrowLeftRight, X, LogOut, Settings } from 'lucide-react';
 import { AudioSettingsModal } from '../settings/AudioSettingsModal';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 interface StorytellerMenuProps {
     seat: Seat;
@@ -31,6 +32,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
     const { t } = useTranslation();
     const selectedRole = seat.seenRoleId ? ROLES[seat.seenRoleId] : null;
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+    const [kickConfirm, setKickConfirm] = React.useState(false);
 
     // Get role icon based on team
     const getRoleIcon = () => {
@@ -190,12 +192,7 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
                                 <Button
                                     variant="destructive"
                                     className="h-auto py-3 flex justify-start gap-3 col-span-1 bg-red-950/30 border border-red-900/50 hover:bg-red-900/50 transition-all duration-300"
-                                    onClick={() => {
-                                        if (window.confirm(t('game.storytellerMenu.confirmKick', { player: seat.userName }))) {
-                                            actions.forceLeaveSeat(seat.id);
-                                            onClose();
-                                        }
-                                    }}
+                                    onClick={() => setKickConfirm(true)}
                                 >
                                     <div className="p-2 rounded-full bg-red-900/20 text-red-500">
                                         <LogOut className="w-5 h-5" />
@@ -283,6 +280,14 @@ export const StorytellerMenu: React.FC<StorytellerMenuProps> = ({ seat, onClose,
             </motion.div>
         </div>
         <AudioSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+        <ConfirmModal
+            isOpen={kickConfirm}
+            title={t('game.storytellerMenu.kickPlayer')}
+            message={t('game.storytellerMenu.confirmKick', { player: seat.userName })}
+            isDangerous
+            onConfirm={() => { actions.forceLeaveSeat(seat.id); setKickConfirm(false); onClose(); }}
+            onCancel={() => setKickConfirm(false)}
+        />
     </>
     );
 };

@@ -160,6 +160,12 @@ vi.mock('lucide-react', () => ({
   Flame: function MockFlame() {
     return React.createElement('span', { 'data-testid': 'flame-icon' }, 'Flame');
   },
+  AlertTriangle: function MockAlertTriangle() {
+    return React.createElement('span', null, 'AlertTriangle');
+  },
+  Trash2: function MockTrash2() {
+    return React.createElement('span', null, 'Trash2');
+  },
 }));
 
 // Mock child components
@@ -624,9 +630,7 @@ describe('Grimoire', () => {
       expect(showWarning).toHaveBeenCalledWith(expect.stringMatching(/reserved for virtual|该座位预留给虚拟玩家/i));
     });
 
-    it('player can request seat swap', () => {
-      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-
+    it('player can request seat swap via ConfirmModal', () => {
       mockGrimoireState.seats = [
         createMockSeat({ id: 0, userId: 'user-1', userName: 'Current User' }),
         createMockSeat({ id: 1, userId: 'user-2', userName: 'Other Player' }),
@@ -637,16 +641,14 @@ describe('Grimoire', () => {
       const otherSeat = screen.getByTestId('seat-node-1');
       fireEvent.click(otherSeat);
 
-      // The confirm message will use the translation key output
-      expect(confirmSpy).toHaveBeenCalled();
-      expect(mockGameActions.requestSeatSwap).toHaveBeenCalledWith(1);
+      // ConfirmModal should appear; click the confirm button
+      const confirmBtn = screen.getByText('ui.confirmModal.defaultConfirm');
+      fireEvent.click(confirmBtn);
 
-      confirmSpy.mockRestore();
+      expect(mockGameActions.requestSeatSwap).toHaveBeenCalledWith(1);
     });
 
-    it('does not request seat swap when user cancels confirm', () => {
-      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
-
+    it('does not request seat swap when user cancels ConfirmModal', () => {
       mockGrimoireState.seats = [
         createMockSeat({ id: 0, userId: 'user-1', userName: 'Current User' }),
         createMockSeat({ id: 1, userId: 'user-2', userName: 'Other Player' }),
@@ -657,10 +659,11 @@ describe('Grimoire', () => {
       const otherSeat = screen.getByTestId('seat-node-1');
       fireEvent.click(otherSeat);
 
-      expect(confirmSpy).toHaveBeenCalled();
-      expect(mockGameActions.requestSeatSwap).not.toHaveBeenCalled();
+      // Click cancel in the modal
+      const cancelBtn = screen.getByText('ui.confirmModal.defaultCancel');
+      fireEvent.click(cancelBtn);
 
-      confirmSpy.mockRestore();
+      expect(mockGameActions.requestSeatSwap).not.toHaveBeenCalled();
     });
   });
 
@@ -1029,14 +1032,10 @@ describe('Grimoire', () => {
     });
 
     it('storyteller can initiate and cancel swap', () => {
-      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-
       render(<Grimoire {...defaultProps} />);
 
       // Click on occupied seat - this should trigger joinSeat for ST (since seat has userId)
       // Note: The actual swap flow needs more setup from StorytellerMenu
-
-      confirmSpy.mockRestore();
     });
   });
 

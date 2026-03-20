@@ -313,9 +313,7 @@ describe('StorytellerMenu', () => {
     expect(screen.getByText('game.storytellerMenu.kickPlayer')).toBeInTheDocument();
   });
 
-  it('calls forceLeaveSeat when kick button clicked and confirmed', () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-
+  it('calls forceLeaveSeat when kick button clicked and confirmed via ConfirmModal', () => {
     render(
       <StorytellerMenu
         seat={createMockSeat({ isVirtual: false, userId: 'real-user-123', userName: 'TestUser' })}
@@ -325,17 +323,22 @@ describe('StorytellerMenu', () => {
       />
     );
 
+    // Click kick button → opens ConfirmModal
     const button = screen.getByText('game.storytellerMenu.kickPlayer');
     fireEvent.click(button);
 
-    expect(window.confirm).toHaveBeenCalledWith('game.storytellerMenu.confirmKick');
+    // ConfirmModal should show confirmation message
+    expect(screen.getByText('game.storytellerMenu.confirmKick')).toBeInTheDocument();
+
+    // Click the confirm button in the modal
+    const confirmBtn = screen.getByText('ui.confirmModal.defaultConfirm');
+    fireEvent.click(confirmBtn);
+
     expect(mockActions.forceLeaveSeat).toHaveBeenCalledWith(0);
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('does not call forceLeaveSeat when kick is cancelled', () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
-
+  it('does not call forceLeaveSeat when kick is cancelled via ConfirmModal', () => {
     render(
       <StorytellerMenu
         seat={createMockSeat({ isVirtual: false, userId: 'real-user-123' })}
@@ -347,6 +350,10 @@ describe('StorytellerMenu', () => {
 
     const button = screen.getByText('game.storytellerMenu.kickPlayer');
     fireEvent.click(button);
+
+    // Click cancel in the modal
+    const cancelBtn = screen.getByText('ui.confirmModal.defaultCancel');
+    fireEvent.click(cancelBtn);
 
     expect(mockActions.forceLeaveSeat).not.toHaveBeenCalled();
     expect(mockOnClose).not.toHaveBeenCalled();

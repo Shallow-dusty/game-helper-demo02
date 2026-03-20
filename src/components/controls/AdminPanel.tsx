@@ -4,12 +4,20 @@ import { AlertTriangle, Lock, Crown, RefreshCw, Loader2, Home } from 'lucide-rea
 import { supabase } from '../../store/slices/connection';
 import { env } from '../../config/env';
 
-// 管理员密码验证 - 必须通过环境变量配置
-// 不提供默认值以确保生产环境安全
-const ADMIN_PASSWORD = env.ADMIN_PASSWORD;
+// Admin password hash (SHA-256, computed at build time in vite.config.ts).
+// The plaintext password never appears in the bundle.
+const ADMIN_PASSWORD_HASH = env.ADMIN_PASSWORD_HASH;
 
-// 如果未配置密码，禁用管理面板
-const ADMIN_PANEL_ENABLED = !!ADMIN_PASSWORD;
+// If no password was configured at build time, the hash is empty → panel disabled.
+const ADMIN_PANEL_ENABLED = !!ADMIN_PASSWORD_HASH;
+
+async function hashPassword(password: string): Promise<string> {
+    const data = new TextEncoder().encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+}
 
 interface RoomInfo {
     room_code: string;
@@ -30,9 +38,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     const [error, setError] = useState('');
     const { t } = useTranslation();
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password === ADMIN_PASSWORD) {
+        const inputHash = await hashPassword(password);
+        if (inputHash === ADMIN_PASSWORD_HASH) {
             setIsAuthenticated(true);
             setError('');
             void fetchRooms();

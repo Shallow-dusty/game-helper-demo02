@@ -9,13 +9,16 @@
 // 环境变量定义
 // ============================================================================
 
+// Injected by vite.config.ts at build time (SHA-256 hash, never plaintext)
+declare const __ADMIN_PASSWORD_HASH__: string;
+
 interface EnvConfig {
   // Supabase 配置（必需）
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
 
-  // 可选配置
-  ADMIN_PASSWORD?: string;
+  // 可选配置（hash only, plaintext never stored）
+  ADMIN_PASSWORD_HASH: string;
   SENTRY_DSN?: string;
   SENTRY_ENVIRONMENT?: string;
   SENTRY_TRACES_SAMPLE_RATE: number;
@@ -37,7 +40,6 @@ interface EnvConfig {
 function validateEnv(): EnvConfig {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
   const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
   const sentryEnvironment = import.meta.env.VITE_SENTRY_ENVIRONMENT;
   const sentryRateRaw = import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE;
@@ -88,7 +90,7 @@ function validateEnv(): EnvConfig {
   return {
     SUPABASE_URL: supabaseUrl,
     SUPABASE_ANON_KEY: supabaseAnonKey,
-    ADMIN_PASSWORD: adminPassword,
+    ADMIN_PASSWORD_HASH: typeof __ADMIN_PASSWORD_HASH__ !== 'undefined' ? __ADMIN_PASSWORD_HASH__ : '',
     SENTRY_DSN: sentryDsn,
     SENTRY_ENVIRONMENT: sentryEnvironment,
     SENTRY_TRACES_SAMPLE_RATE: sentryTracesSampleRate,

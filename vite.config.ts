@@ -1,4 +1,5 @@
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -15,6 +16,15 @@ export default defineConfig(({ mode }) => {
       host: env.VITE_DEV_HOST || '127.0.0.1',
     },
     plugins: [react()],
+    define: {
+      // Hash admin password at build time so plaintext never appears in the bundle.
+      // The raw VITE_ADMIN_PASSWORD is consumed here only; source code uses the hash.
+      '__ADMIN_PASSWORD_HASH__': JSON.stringify(
+        env.VITE_ADMIN_PASSWORD
+          ? crypto.createHash('sha256').update(env.VITE_ADMIN_PASSWORD).digest('hex')
+          : ''
+      ),
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

@@ -11,6 +11,107 @@ import { ROLES, PHASE_LABELS, SCRIPTS } from '../constants';
 import { GAME_RULES } from '../constants/gameRules';
 import { generateShortId, shuffle } from './random';
 
+// ==================== 内部辅助 ====================
+
+const getSeatRoleTeam = (seat: Seat): Team | null => {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- fallback for legacy data
+    const roleId = seat.realRoleId ?? seat.seenRoleId ?? seat.roleId;
+    if (!roleId) return null;
+    return ROLES[roleId]?.team ?? null;
+};
+
+export const isTravelerSeat = (seat: Seat): boolean => {
+    return getSeatRoleTeam(seat) === 'TRAVELER';
+};
+
+// ==================== 游戏结束条件类型 ====================
+
+/**
+ * 结束条件类型枚举（来源: Grimoire-Aether gameEnd.ts）
+ */
+export enum EndConditionType {
+    DEMON_DIED = 'DEMON_DIED',
+    GOOD_ELIMINATED = 'GOOD_ELIMINATED',
+    MAYOR_WIN = 'MAYOR_WIN',
+    SAINT_EXECUTED = 'SAINT_EXECUTED',
+    SCARLET_WOMAN_TRANSFORM = 'SCARLET_WOMAN_TRANSFORM',
+    STORYTELLER_DECISION = 'STORYTELLER_DECISION',
+}
+
+export interface GameOverResult {
+    isOver: boolean;
+    winner: 'GOOD' | 'EVIL' | null;
+    reason: string;
+    conditionType?: EndConditionType;
+}
+
+// ==================== 阵营分析辅助函数 ====================
+
+/**
+ * 计算各阵营存活比例（来源: Grimoire-Aether gameEnd.ts）
+ */
+export function getTeamBalance(seats: Seat[]): {
+    aliveGood: number;
+    aliveEvil: number;
+    totalAlive: number;
+    goodPercentage: number;
+    evilPercentage: number;
+} {
+    const alivePlayers = seats.filter(s => s.userId && !s.isDead && !isTravelerSeat(s));
+    const aliveGood = alivePlayers.filter(s => {
+        const team = getSeatRoleTeam(s);
+        return team === 'TOWNSFOLK' || team === 'OUTSIDER';
+    });
+    const aliveEvil = alivePlayers.filter(s => {
+        const team = getSeatRoleTeam(s);
+        return team === 'MINION' || team === 'DEMON';
+    });
+    const total = alivePlayers.length;
+    return {
+        aliveGood: aliveGood.length,
+        aliveEvil: aliveEvil.length,
+        totalAlive: total,
+        goodPercentage: total > 0 ? (aliveGood.length / total) * 100 : 0,
+        evilPercentage: total > 0 ? (aliveEvil.length / total) * 100 : 0,
+    };
+}
+
+/**
+ * 检查游戏是否处于危险状态（来源: Grimoire-Aether gameEnd.ts）
+ */
+export function isGameInDanger(seats: Seat[]): {
+    inDanger: boolean;
+    reason?: string;
+    daysLeft?: number;
+} {
+    const balance = getTeamBalance(seats);
+    if (balance.evilPercentage >= 40) {
+        return {
+            inDanger: true,
+            reason: `邪恶玩家比例达到 ${balance.evilPercentage.toFixed(0)}%！`,
+            daysLeft: balance.aliveEvil > 0 ? Math.floor(balance.aliveGood / balance.aliveEvil) : 0,
+        };
+    }
+    if (balance.totalAlive === 4) {
+        return { inDanger: true, reason: '只剩 4 名玩家，局势危急！', daysLeft: 2 };
+    }
+    if (balance.totalAlive === 3) {
+        return { inDanger: true, reason: '只剩 3 名玩家，最后一天！', daysLeft: 1 };
+    }
+    return { inDanger: false };
+}
+
+/**
+ * 估算剩余游戏轮数（来源: Grimoire-Aether gameEnd.ts）
+ */
+export function estimateRemainingRounds(seats: Seat[]): number {
+    const balance = getTeamBalance(seats);
+    if (balance.aliveEvil === 0) return 0;
+    // 每晚恶魔杀 1 人，好人每天处决 1 人
+    // 好人需要找到恶魔，估算为: 存活好人数 / 2 (粗略)
+    return Math.max(1, Math.ceil(balance.aliveGood / 2));
+}
+
 // ==================== 消息创建 ====================
 
 /**
@@ -264,17 +365,6 @@ export const checkGoodWin = (seats: Seat[]): boolean => {
     return demons.every(d => d.isDead);
 };
 
-const getSeatRoleTeam = (seat: Seat): Team | null => {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- fallback for legacy data
-    const roleId = seat.realRoleId ?? seat.seenRoleId ?? seat.roleId;
-    if (!roleId) return null;
-    return ROLES[roleId]?.team ?? null;
-};
-
-export const isTravelerSeat = (seat: Seat): boolean => {
-    return getSeatRoleTeam(seat) === 'TRAVELER';
-};
-
 export const countAlivePlayers = (seats: Seat[]): number => {
     return seats.filter(seat => seat.userId && !seat.isDead && !isTravelerSeat(seat)).length;
 };
@@ -298,23 +388,21 @@ export const checkEvilWin = (seats: Seat[]): boolean => {
 export const checkGameOver = (
     seats: Seat[],
     options?: { executedSeatId?: number; executionOccurred?: boolean }
-): {
-    isOver: boolean;
-    winner: 'GOOD' | 'EVIL' | null;
-    reason: string;
-} | null => {
+): GameOverResult | null => {
     if (checkGoodWin(seats)) {
         return {
             isOver: true,
             winner: 'GOOD',
-            reason: '恶魔已被处决，好人胜利！'
+            reason: '恶魔已被处决，好人胜利！',
+            conditionType: EndConditionType.DEMON_DIED,
         };
     }
     if (checkEvilWin(seats)) {
         return {
             isOver: true,
             winner: 'EVIL',
-            reason: '存活玩家不足，邪恶胜利！'
+            reason: '存活玩家不足，邪恶胜利！',
+            conditionType: EndConditionType.GOOD_ELIMINATED,
         };
     }
 
@@ -325,12 +413,12 @@ export const checkGameOver = (
     if (executionOccurred === true && executedSeatId !== undefined) {
         const executedSeat = seats.find(s => s.id === executedSeatId);
 
-        // 圣徒被处决检查
         if (executedSeat?.realRoleId === 'saint') {
             return {
                 isOver: true,
                 winner: 'EVIL',
-                reason: '圣徒被处决，邪恶胜利！'
+                reason: '圣徒被处决，邪恶胜利！',
+                conditionType: EndConditionType.SAINT_EXECUTED,
             };
         }
     }
@@ -347,7 +435,8 @@ export const checkGameOver = (
                 return {
                     isOver: true,
                     winner: 'GOOD',
-                    reason: '市长特殊胜利！仅剩3名玩家且无人被处决，好人获胜！'
+                    reason: '市长特殊胜利！仅剩3名玩家且无人被处决，好人获胜！',
+                    conditionType: EndConditionType.MAYOR_WIN,
                 };
             }
         }

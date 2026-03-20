@@ -112,7 +112,7 @@ export const TownSquare = () => {
 
             <div 
                 className="absolute inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat opacity-50"
-                style={{ backgroundImage: `url(/src/assets/game_bg.png)` }}
+                style={{ backgroundImage: `url(/img/grimoire-bg.png)` }}
             ></div>
 
             {/* Header / Info Overlay */}

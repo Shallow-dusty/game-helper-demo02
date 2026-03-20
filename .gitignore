@@ -16,7 +16,7 @@ dist-ssr
 coverage/
 vitest-files.json
 test-output.txt
-true
+*.tsbuildinfo
 
 # Playwright
 playwright-report/

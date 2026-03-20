@@ -1,0 +1,150 @@
+/**
+ * Phase transition side-effects — pure functions operating on Draft<AppState>.
+ *
+ * Extracted from phase.ts so they can be called by both the legacy
+ * applyPhaseChange() path and the new XState subscription handler.
+ */
+import type { Draft } from 'immer';
+import type { AppState } from '@/store/types';
+import { addSystemMessage } from '@/store/utils';
+import { PHASE_LABELS } from '@/constants';
+import { calculateNightQueue, getVoteThreshold } from './utils';
+import { checkGameOver } from '@/lib/gameLogic';
+import { logExecution, updateNominationResult } from '@/lib/supabaseService';
+import type { GamePhase } from '@/types';
+
+// ---------------------------------------------------------------------------
+// Entry side-effects (called when entering a phase)
+// ---------------------------------------------------------------------------
+
+/** Side-effects when entering NIGHT phase. */
+export function onEnterNight(state: Draft<AppState>): void {
+  if (!state.gameState) return;
+  const gs = state.gameState;
+
+  const nextNightCount = gs.roundInfo.nightCount + 1;
+  gs.roundInfo.nightCount = nextNightCount;
+  gs.roundInfo.totalRounds++;
+  gs.dailyExecutionCompleted = false;
+
+  const isFirstNight = nextNightCount === 1;
+  gs.nightQueue = calculateNightQueue(gs.seats, isFirstNight, gs.currentScriptId);
+  gs.nightCurrentIndex = -1;
+}
+
+/** Side-effects when entering DAY phase. */
+export function onEnterDay(state: Draft<AppState>): void {
+  if (!state.gameState) return;
+  const gs = state.gameState;
+
+  gs.roundInfo.dayCount++;
+  gs.roundInfo.nominationCount = 0;
+  gs.candlelightEnabled = false;
+  gs.dailyNominations = [];
+}
+
+/** Side-effects when leaving VOTING phase. */
+export function onExitVoting(state: Draft<AppState>): void {
+  if (!state.gameState) return;
+  state.gameState.voting = null;
+}
+
+// ---------------------------------------------------------------------------
+// Daily execution resolution (called on DAY→NIGHT transition)
+// ---------------------------------------------------------------------------
+
+export function resolveDailyExecution(state: Draft<AppState>): void {
+  if (!state.gameState) return;
+  const gameState = state.gameState;
+  const day = gameState.roundInfo.dayCount;
+  const dayVotes = gameState.voteHistory.filter(vote => vote.round === day && vote.result !== 'cancelled');
+
+  const applyNoExecutionResult = () => {
+    const gameOver = checkGameOver(gameState.seats, { executionOccurred: false });
+    if (gameOver) {
+      gameState.gameOver = gameOver;
+      addSystemMessage(gameState, `游戏结束！${gameOver.winner === 'GOOD' ? '好人' : '邪恶'} 获胜 - ${gameOver.reason}`);
+    }
+  };
+
+  const getSeatRoleId = (seat: { realRoleId?: string | null; seenRoleId?: string | null; roleId?: string | null }): string | null => {
+    return seat.realRoleId ?? seat.seenRoleId ?? seat.roleId ?? null;
+  };
+  const hasVoudon = gameState.seats.some(seat => {
+    const roleId = getSeatRoleId(seat);
+    return !seat.isDead && roleId === 'voudon';
+  });
+
+  if (dayVotes.length === 0) {
+    applyNoExecutionResult();
+    return;
+  }
+
+  const aliveCount = gameState.seats.filter(seat => !seat.isDead).length;
+  const requiredVotes = hasVoudon ? 0 : getVoteThreshold(aliveCount);
+  const eligibleVotes = hasVoudon ? dayVotes : dayVotes.filter(vote => vote.voteCount >= requiredVotes);
+  if (eligibleVotes.length === 0) {
+    applyNoExecutionResult();
+    return;
+  }
+
+  const maxVotes = Math.max(...eligibleVotes.map(vote => vote.voteCount));
+  const topVotes = eligibleVotes.filter(vote => vote.voteCount === maxVotes);
+
+  if (topVotes.length !== 1) {
+    topVotes.forEach(vote => { vote.result = 'tied'; });
+    addSystemMessage(gameState, '投票出现平票，本日无人被处决');
+    applyNoExecutionResult();
+    return;
+  }
+
+  const winningVote = topVotes[0];
+  if (!winningVote) return;
+  const nomineeSeat = gameState.seats.find(seat => seat.id === winningVote.nomineeSeatId);
+  if (!nomineeSeat || nomineeSeat.isDead) {
+    winningVote.result = 'cancelled';
+    addSystemMessage(gameState, '投票取消：被提名者已死亡');
+    applyNoExecutionResult();
+    return;
+  }
+
+  nomineeSeat.isDead = true;
+  gameState.dailyExecutionCompleted = true;
+  winningVote.result = 'executed';
+  addSystemMessage(gameState, `${nomineeSeat.userName} 被处决了 (票数: ${String(winningVote.voteCount)})`);
+
+  const gameOver = checkGameOver(gameState.seats, { executedSeatId: nomineeSeat.id, executionOccurred: true });
+  if (gameOver) {
+    gameState.gameOver = gameOver;
+    addSystemMessage(gameState, `游戏结束！${gameOver.winner === 'GOOD' ? '好人' : '邪恶'} 获胜 - ${gameOver.reason}`);
+  }
+
+  const roomDbId = state.roomDbId;
+  if (roomDbId) {
+    logExecution(
+      roomDbId,
+      gameState.roundInfo.dayCount,
+      nomineeSeat.id,
+      nomineeSeat.seenRoleId ?? 'unknown',
+      winningVote.voteCount
+    ).catch(console.error);
+    updateNominationResult(
+      roomDbId,
+      gameState.roundInfo.dayCount,
+      nomineeSeat.id,
+      winningVote.voteCount > 0,
+      winningVote.voteCount,
+      true
+    ).catch(console.error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Transition side-effect dispatcher
+// ---------------------------------------------------------------------------
+
+/** Add a phase-change system message. */
+export function addPhaseChangeMessage(state: Draft<AppState>, phase: GamePhase): void {
+  if (!state.gameState) return;
+  addSystemMessage(state.gameState, `游戏阶段变更为: ${PHASE_LABELS[phase]}`);
+}
